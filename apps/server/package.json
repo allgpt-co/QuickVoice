@@ -37,7 +37,7 @@
     "morgan": "^1.10.1",
     "nodemailer": "^9.0.1",
     "prisma": "^7.5.0",
-    "stripe": "^19.1.0",
+    "stripe": "^22.2.1",
     "swagger-ui-express": "^5.0.1",
     "telnyx": "^6.41.0",
     "twilio": "^5.13.1",
