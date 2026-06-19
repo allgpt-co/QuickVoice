@@ -45,7 +45,7 @@
     "@types/react-dom": "^19",
     "@repo/eslint-config": "workspace:*",
     "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
+    "eslint": "^10",
     "eslint-config-next": "16.2.1",
     "prisma": "^7.5.0",
     "tailwindcss": "^4",
