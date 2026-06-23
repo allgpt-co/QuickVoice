@@ -1,12 +1,14 @@
 "use client";
 
+import Link from "next/link";
+import { useId } from "react";
+import { PhoneCall } from "lucide-react";
 import {
   Area,
   Bar,
   CartesianGrid,
   ComposedChart,
   Line,
-  Legend,
   XAxis,
   YAxis,
 } from "recharts";
@@ -16,7 +18,9 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/src/components/ui/chart";
+import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
+import { EmptyState } from "@/src/components/common/EmptyState";
 import type {
   DashboardRange,
   DashboardSeriesPoint,
@@ -53,6 +57,10 @@ export function VolumeChart({
   range: DashboardRange;
   loading?: boolean;
 }) {
+  const titleId = useId();
+  const summaryId = useId();
+  const bucketUnit = range === "24h" ? "hour" : "day";
+
   if (loading) {
     return (
       <div className="border bg-card p-5">
@@ -74,17 +82,21 @@ export function VolumeChart({
   const minutes = totalFor(data, "minutes");
 
   return (
-    <div className="border bg-card">
+    <div className="border bg-card" aria-labelledby={titleId}>
       <div className="flex flex-col gap-4 border-b p-5 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             Traffic timeline
           </p>
-          <h3 className="mt-1 text-lg font-semibold tracking-tight text-foreground">
+          <h3
+            id={titleId}
+            className="mt-1 text-lg font-semibold tracking-tight text-foreground"
+          >
             Calls, minutes, and outcome pressure
           </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Bucketed by {range === "24h" ? "hour" : "day"} with failures overlaid.
+          <p id={summaryId} className="mt-1 text-sm text-muted-foreground">
+            Bucketed by {bucketUnit}. X-axis shows {bucketUnit}; left axis shows
+            calls and failed calls; right axis shows minutes.
           </p>
         </div>
         <div className="grid grid-cols-3 border bg-background text-center text-xs sm:min-w-96">
@@ -103,94 +115,186 @@ export function VolumeChart({
         </div>
       </div>
       {data.length === 0 ? (
-        <div className="m-5 flex h-80 items-center justify-center border border-dashed text-sm text-muted-foreground">
-          No calls yet in this range.
-        </div>
+        <EmptyState
+          icon={PhoneCall}
+          title="No calls yet in this range"
+          description="Place a test call or connect a number to start building the traffic timeline."
+          className="m-5 h-80 bg-background/40"
+          action={
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <Button asChild size="sm">
+                <Link href="/outbound">Place a test call</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/numbers">Connect number</Link>
+              </Button>
+            </div>
+          }
+        />
       ) : (
-        <ChartContainer config={config} className="h-[22rem] w-full p-5">
-          <ComposedChart
-            data={data}
-            margin={{ top: 4, right: 16, left: 0, bottom: 0 }}
+        <>
+          <ChartContainer
+            config={config}
+            className="h-[22rem] w-full p-5"
+            role="group"
+            aria-label="Traffic timeline chart"
           >
-            <defs>
-              <linearGradient
-                id="dashboard-minutes-fill"
-                x1="0"
-                y1="0"
-                x2="0"
-                y2="1"
-              >
-                <stop
-                  offset="0%"
-                  stopColor="var(--color-minutes)"
-                  stopOpacity={0.34}
-                />
-                <stop
-                  offset="100%"
-                  stopColor="var(--color-minutes)"
-                  stopOpacity={0.02}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              className="stroke-border"
-              vertical={false}
-            />
-            <XAxis
-              dataKey="t"
-              tickFormatter={(v) => formatTick(v, range)}
-              stroke="currentColor"
-              className="text-xs text-muted-foreground"
-              tickLine={false}
-              axisLine={false}
-            />
-            <YAxis
-              yAxisId="left"
-              stroke="currentColor"
-              className="text-xs text-muted-foreground"
-              tickLine={false}
-              axisLine={false}
-              width={32}
-            />
-            <YAxis yAxisId="right" orientation="right" hide />
-            <ChartTooltip
-              content={
-                <ChartTooltipContent
-                  labelFormatter={(v) => formatTick(String(v), range)}
-                />
-              }
-            />
-            <Legend
-              verticalAlign="top"
-              height={32}
-              iconType="square"
-              wrapperStyle={{ color: "var(--muted-foreground)", fontSize: 12 }}
-            />
-            <Area
-              yAxisId="right"
-              type="monotone"
-              dataKey="minutes"
-              stroke="var(--color-minutes)"
-              strokeWidth={2}
-              fill="url(#dashboard-minutes-fill)"
-            />
-            <Bar
-              yAxisId="left"
-              dataKey="calls"
-              fill="var(--color-calls)"
-              barSize={16}
-            />
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="failed"
-              stroke="var(--color-failed)"
-              strokeWidth={2}
-              dot={false}
-            />
-          </ComposedChart>
-        </ChartContainer>
+            <ComposedChart
+              accessibilityLayer
+              data={data}
+              margin={{ top: 12, right: 44, left: 18, bottom: 28 }}
+              aria-label="Calls, minutes, and failed calls over time"
+              aria-describedby={summaryId}
+            >
+              <defs>
+                <linearGradient
+                  id="dashboard-minutes-fill"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor="var(--color-minutes)"
+                    stopOpacity={0.34}
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor="var(--color-minutes)"
+                    stopOpacity={0.02}
+                  />
+                </linearGradient>
+              </defs>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-border"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="t"
+                tickFormatter={(v) => formatTick(v, range)}
+                stroke="currentColor"
+                className="text-xs text-muted-foreground"
+                tickLine={false}
+                axisLine={false}
+                label={{
+                  value: bucketUnit === "hour" ? "Hour" : "Day",
+                  position: "insideBottom",
+                  offset: -18,
+                }}
+              />
+              <YAxis
+                yAxisId="left"
+                stroke="currentColor"
+                className="text-xs text-muted-foreground"
+                tickLine={false}
+                axisLine={false}
+                width={42}
+                label={{
+                  value: `Calls by ${bucketUnit}`,
+                  angle: -90,
+                  position: "insideLeft",
+                }}
+              />
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                stroke="currentColor"
+                className="text-xs text-muted-foreground"
+                tickLine={false}
+                axisLine={false}
+                width={48}
+                label={{
+                  value: "Minutes (right axis)",
+                  angle: 90,
+                  position: "insideRight",
+                }}
+              />
+              <ChartTooltip
+                content={
+                  <ChartTooltipContent
+                    labelFormatter={(v) => formatTick(String(v), range)}
+                  />
+                }
+              />
+              <Area
+                yAxisId="right"
+                type="monotone"
+                dataKey="minutes"
+                name="Minutes (right axis)"
+                stroke="var(--color-minutes)"
+                strokeWidth={2}
+                fill="url(#dashboard-minutes-fill)"
+              />
+              <Bar
+                yAxisId="left"
+                dataKey="calls"
+                name={`Calls by ${bucketUnit}`}
+                fill="var(--color-calls)"
+                barSize={16}
+              />
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="failed"
+                name="Failed calls"
+                stroke="var(--color-failed)"
+                strokeWidth={2}
+                dot={false}
+              />
+            </ComposedChart>
+          </ChartContainer>
+          <ul
+            className="grid gap-2 px-5 pb-5 text-xs text-muted-foreground sm:grid-cols-3"
+            aria-label="Traffic timeline legend"
+          >
+            <li className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="h-4 w-2 border border-primary bg-primary"
+              />
+              <span>Calls by {bucketUnit} - bar series</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="h-3 w-5 border border-emerald-500 bg-emerald-500/20"
+              />
+              <span>Minutes (right axis) - shaded area</span>
+            </li>
+            <li className="flex items-center gap-2">
+              <span
+                aria-hidden
+                className="h-px w-6 border-t-2 border-destructive"
+              />
+              <span>Failed calls - line series</span>
+            </li>
+          </ul>
+          <div className="sr-only">
+            <table aria-describedby={summaryId}>
+              <caption>Traffic timeline data table</caption>
+              <thead>
+                <tr>
+                  <th scope="col">{bucketUnit}</th>
+                  <th scope="col">Calls</th>
+                  <th scope="col">Minutes</th>
+                  <th scope="col">Failed calls</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((point) => (
+                  <tr key={point.t}>
+                    <th scope="row">{formatTick(point.t, range)}</th>
+                    <td>{point.calls}</td>
+                    <td>{point.minutes}</td>
+                    <td>{point.failed}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTransition } from "react";
+import { Loader2 } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ToggleGroup,
@@ -13,35 +15,59 @@ const RANGES: { value: DashboardRange; label: string }[] = [
   { value: "30d", label: "30 days" },
 ];
 
-export function RangeSwitcher({ current }: { current: DashboardRange }) {
+export function RangeSwitcher({
+  current,
+  loading = false,
+}: {
+  current: DashboardRange;
+  loading?: boolean;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+  const busy = loading || isPending;
 
   function onChange(value: string) {
     if (!value) return;
     const next = new URLSearchParams(params);
     next.set("range", value);
-    router.replace(`${pathname}?${next.toString()}`);
+    startTransition(() => {
+      router.replace(`${pathname}?${next.toString()}`);
+    });
   }
 
   return (
-    <ToggleGroup
-      type="single"
-      size="sm"
-      value={current}
-      onValueChange={onChange}
-      className="border bg-background p-1"
-    >
-      {RANGES.map((range) => (
-        <ToggleGroupItem
-          key={range.value}
-          value={range.value}
-          className="h-8 px-3 text-xs font-semibold text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
+    <div className="flex w-full flex-col gap-2 sm:w-auto sm:items-end">
+      <ToggleGroup
+        type="single"
+        size="sm"
+        value={current}
+        onValueChange={onChange}
+        aria-label="Dashboard date range"
+        aria-busy={busy}
+        className="w-full border bg-background p-1 sm:w-fit"
+      >
+        {RANGES.map((range) => (
+          <ToggleGroupItem
+            key={range.value}
+            value={range.value}
+            className="h-8 flex-1 px-3 text-xs font-semibold text-muted-foreground data-[state=on]:bg-primary data-[state=on]:text-primary-foreground sm:flex-none"
+          >
+            {range.label}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {busy ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center gap-1.5 text-xs text-muted-foreground"
         >
-          {range.label}
-        </ToggleGroupItem>
-      ))}
-    </ToggleGroup>
+          <Loader2 className="size-3 animate-spin" />
+          Updating dashboard range
+        </div>
+      ) : null}
+    </div>
   );
 }
