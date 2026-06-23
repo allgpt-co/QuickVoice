@@ -10,7 +10,8 @@ docker buildx build \
 
 docker buildx build \
   --file apps/ai/Dockerfile \
-  --build-arg SKIP_MODEL_DOWNLOAD=1 \
+  --build-arg PREINSTALL_CPU_TORCH=true \
+  --build-arg SKIP_MODEL_DOWNLOAD=true \
   --tag quickvoice-ai:ci \
   --load \
   apps/ai

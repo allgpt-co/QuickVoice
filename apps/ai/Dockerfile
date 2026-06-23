@@ -46,9 +46,13 @@ WORKDIR /app
 # Copy just the dependency files first, for more efficient layer caching
 COPY requirements.txt ./
 
-# Install Python dependencies using pip
-# --no-cache-dir ensures we don't use the system cache
-RUN pip install --no-cache-dir -r requirements.txt
+# CI can validate the image with a CPU-only Torch wheel to avoid pulling CUDA
+# wheels that exceed the hosted runner's disk budget.
+ARG PREINSTALL_CPU_TORCH=false
+RUN if [ "$PREINSTALL_CPU_TORCH" = "true" ]; then \
+      pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu; \
+    fi \
+  && pip install --no-cache-dir -r requirements.txt
 
 # Copy all remaining pplication files into the container
 # This includes source code, configuration files, and dependency specifications
