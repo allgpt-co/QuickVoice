@@ -33,9 +33,12 @@ RUN adduser \
 # g++: C++ compiler needed for building Python packages with C++ extensions
 # python3-dev: Python development headers needed for compilation
 # We clean up the apt cache after installation to keep the image size down
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update \
+  && apt-get upgrade -y \
+  && apt-get install -y --no-install-recommends \
     gcc \
     g++ \
+    linux-libc-dev \
     python3-dev \
   && rm -rf /var/lib/apt/lists/*
 
@@ -51,6 +54,7 @@ COPY requirements.txt ./
 ARG PREINSTALL_CPU_TORCH=false
 RUN if [ "$PREINSTALL_CPU_TORCH" = "true" ]; then \
       pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu; \
+      pip install --no-cache-dir "setuptools>=78.1.1,<82"; \
     fi \
   && pip install --no-cache-dir -r requirements.txt
 
