@@ -4,6 +4,7 @@ import type { CreateAgentArgs, UpdateAgentInput, ConfigureAgentInput } from "./a
 
 type CreateAgentInput = CreateAgentArgs & { agentSlug: string };
 type UpdateAgentRepoInput = UpdateAgentInput & { agentSlug?: string };
+type RuntimePrismaClient = Pick<typeof prisma, "phoneNumber" | "agent" | "agentFlow">;
 
 export const createAgent = async (agent: CreateAgentInput) => {
   const newAgent = await prisma.agent.create({
@@ -146,10 +147,11 @@ export const agentExistsInOrg = async (
   return row !== null;
 };
 
-export const getAgentConfigByNumber= async (
-  phoneNumber:string
-)=>{
-  const phone = await prisma.phoneNumber.findUnique({
+export const getAgentConfigByNumber = async (
+  phoneNumber: string,
+  client: RuntimePrismaClient = prisma
+) => {
+  const phone = await client.phoneNumber.findUnique({
     where: {
       number: phoneNumber,
     },
@@ -160,6 +162,7 @@ export const getAgentConfigByNumber= async (
       provider: true,
       agent: {
         select: {
+          agentId: true,
           userId: true,
           configuration: true,
           tools: true,
@@ -173,8 +176,23 @@ export const getAgentConfigByNumber= async (
       },
     },
   });
-  
+
   if (!phone?.agent?.configuration) return null;
+
+  const activeFlow = await client.agentFlow.findFirst({
+    where: {
+      organizationId: phone.organizationId,
+      rootAgentId: phone.agent.agentId,
+      isActive: true,
+    },
+    select: {
+      flowId: true,
+      rootAgentId: true,
+      name: true,
+      graphJson: true,
+      compiledJson: true,
+    },
+  });
 
   return {
     ...phone.agent.configuration,
@@ -184,11 +202,15 @@ export const getAgentConfigByNumber= async (
     provider: phone.provider,
     tools: phone.agent.tools,
     mcpConnections: phone.agent.mcpConnections.map((item) => item.mcpConnection),
+    flow: formatRuntimeFlow(activeFlow),
   };
-}
+};
 
-export const getAgentConfigByIdForRuntime = async (agentId: string) => {
-  const agent = await prisma.agent.findUnique({
+export const getAgentConfigByIdForRuntime = async (
+  agentId: string,
+  client: RuntimePrismaClient = prisma
+) => {
+  const agent = await client.agent.findUnique({
     where: { agentId },
     select: {
       organizationId: true,
@@ -216,6 +238,20 @@ export const getAgentConfigByIdForRuntime = async (agentId: string) => {
   if (!agent?.configuration) return null;
 
   const phone = agent.phoneNumbers[0] ?? null;
+  const activeFlow = await client.agentFlow.findFirst({
+    where: {
+      organizationId: agent.organizationId,
+      rootAgentId: agentId,
+      isActive: true,
+    },
+    select: {
+      flowId: true,
+      rootAgentId: true,
+      name: true,
+      graphJson: true,
+      compiledJson: true,
+    },
+  });
 
   return {
     ...agent.configuration,
@@ -225,5 +261,26 @@ export const getAgentConfigByIdForRuntime = async (agentId: string) => {
     provider: phone?.provider ?? null,
     tools: agent.tools,
     mcpConnections: agent.mcpConnections.map((item) => item.mcpConnection),
+    flow: formatRuntimeFlow(activeFlow),
   };
 };
+
+function formatRuntimeFlow(
+  flow: {
+    flowId: string;
+    rootAgentId: string;
+    name: string;
+    graphJson: unknown;
+    compiledJson: unknown;
+  } | null
+) {
+  return flow
+    ? {
+        flowId: flow.flowId,
+        rootAgentId: flow.rootAgentId,
+        name: flow.name,
+        graph: flow.graphJson,
+        compiled: flow.compiledJson,
+      }
+    : null;
+}
