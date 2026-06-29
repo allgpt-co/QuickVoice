@@ -6,6 +6,7 @@ import {
   BookOpen,
   Bot,
   Gauge,
+  GitBranch,
   Settings,
   Webhook,
   Wrench,
@@ -18,10 +19,12 @@ import { ToolsTab } from "@/src/components/agents/tabs/ToolsTab";
 import { KnowledgeTab } from "@/src/components/agents/tabs/KnowledgeTab";
 import { AdvancedTab } from "@/src/components/agents/tabs/AdvancedTab";
 import { LimitsTab } from "@/src/components/agents/tabs/LimitsTab";
+import { FlowTab } from "@/src/components/agents/tabs/FlowTab";
 
 const TABS = [
   { id: "behavior", label: "Behavior", icon: Bot },
   { id: "voice", label: "Models & Voices", icon: AudioLines },
+  { id: "flow", label: "Flow", icon: GitBranch },
   { id: "webhooks", label: "Webhooks", icon: Webhook },
   { id: "tools", label: "Tools", icon: Wrench },
   { id: "knowledge", label: "Knowledge", icon: BookOpen },
@@ -69,6 +72,9 @@ export function AgentTabs({ agentId }: { agentId: string }) {
       </TabsContent>
       <TabsContent value="voice" className="mt-6 min-w-0">
         <VoiceTab agentId={agentId} />
+      </TabsContent>
+      <TabsContent value="flow" className="mt-6 min-w-0">
+        <FlowTab agentId={agentId} />
       </TabsContent>
       <TabsContent value="webhooks" className="mt-6 min-w-0">
         <WebhooksTab agentId={agentId} />
