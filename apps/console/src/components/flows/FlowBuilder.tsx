@@ -23,6 +23,7 @@ import { cn } from "@/src/lib/utils";
 
 import { FlowInspector } from "./FlowInspector";
 import { FlowToolbar } from "./FlowToolbar";
+import { TestFlowDialog } from "./TestFlowDialog";
 import { FlowValidationPanel } from "./FlowValidationPanel";
 import {
   FLOW_NODE_HEIGHT,
@@ -114,6 +115,7 @@ function FlowBuilderEditor({ rootAgentId, agents, flow, className, onSaved }: Fl
   const [isActive, setIsActive] = useState(Boolean(flow?.isActive));
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+  const [testOpen, setTestOpen] = useState(false);
 
   const issues = useMemo(
     () => [
@@ -291,6 +293,8 @@ function FlowBuilderEditor({ rootAgentId, agents, flow, className, onSaved }: Fl
                 onAddEnd={addEndNode}
                 onAutoLayout={autoLayout}
                 onSave={saveFlow}
+                onTest={() => setTestOpen(true)}
+                canTest={Boolean(flow?.flowId)}
               />
             </Panel>
           </ReactFlow>
@@ -314,6 +318,7 @@ function FlowBuilderEditor({ rootAgentId, agents, flow, className, onSaved }: Fl
           }}
         />
       </div>
+      <TestFlowDialog flowId={flow?.flowId ?? null} open={testOpen} onOpenChange={setTestOpen} />
     </div>
   );
 }

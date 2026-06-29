@@ -1,4 +1,4 @@
-import { LayoutGrid, Plus, Save } from "lucide-react";
+import { LayoutGrid, PlayCircle, Plus, Save } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -10,6 +10,7 @@ interface FlowToolbarProps {
   description: string;
   isActive: boolean;
   canSave: boolean;
+  canTest: boolean;
   isSaving: boolean;
   errorCount: number;
   onNameChange: (value: string) => void;
@@ -19,6 +20,7 @@ interface FlowToolbarProps {
   onAddEnd: () => void;
   onAutoLayout: () => void;
   onSave: () => void;
+  onTest: () => void;
 }
 
 export function FlowToolbar({
@@ -26,6 +28,7 @@ export function FlowToolbar({
   description,
   isActive,
   canSave,
+  canTest,
   isSaving,
   errorCount,
   onNameChange,
@@ -35,9 +38,10 @@ export function FlowToolbar({
   onAddEnd,
   onAutoLayout,
   onSave,
+  onTest,
 }: FlowToolbarProps) {
   return (
-    <div className="flex w-[min(760px,calc(100vw-3rem))] flex-wrap items-end gap-2 border bg-card p-3 shadow-sm">
+    <div className="flex w-[min(860px,calc(100vw-3rem))] flex-wrap items-end gap-2 border bg-card p-3 shadow-sm">
       <div className="min-w-48 flex-1 space-y-1">
         <Label htmlFor="flow-name" className="text-xs">Name</Label>
         <Input
@@ -71,6 +75,10 @@ export function FlowToolbar({
       <Button type="button" variant="outline" size="sm" onClick={onAutoLayout}>
         <LayoutGrid className="size-4" />
         Layout
+      </Button>
+      <Button type="button" variant="outline" size="sm" onClick={onTest} disabled={!canTest}>
+        <PlayCircle className="size-4" />
+        Test
       </Button>
       <Button type="button" size="sm" onClick={onSave} disabled={!canSave || isSaving}>
         <Save className="size-4" />
