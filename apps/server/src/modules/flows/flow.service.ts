@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
+import * as agentService from "../agent/agent.service.js";
 import {
   compileFlowGraph,
   type CompiledAgentConfig,
@@ -51,8 +52,25 @@ export interface FlowServiceRepository {
   ) => Promise<{ count: number }>;
 }
 
+export type FlowTestRunResult = {
+  success: boolean;
+  path: unknown[];
+  selectedRoutes: unknown[];
+  warnings: string[];
+};
+
+type FlowSimulationPayload = {
+  config: Record<string, unknown>;
+  messages: FlowTestRunInput["messages"];
+};
+
+type FlowAiClient = (payload: FlowSimulationPayload) => Promise<FlowTestRunResult>;
+type RuntimeConfigLoader = (agentId: string) => Promise<Record<string, unknown> | null>;
+
 type FlowServiceDeps = {
   repository?: FlowServiceRepository;
+  runtimeConfigLoader?: RuntimeConfigLoader;
+  aiClient?: FlowAiClient;
 };
 
 type CreateFlowArgs = CreateFlowInput & {
@@ -61,6 +79,33 @@ type CreateFlowArgs = CreateFlowInput & {
 };
 
 const defaultRepository: FlowServiceRepository = flowRepository;
+const defaultRuntimeConfigLoader: RuntimeConfigLoader = (agentId) =>
+  agentService.getAgentConfigByIdForRuntime(agentId) as Promise<Record<string, unknown> | null>;
+
+const defaultAiClient: FlowAiClient = async (payload) => {
+  const rawAiApiUrl = process.env.AI_API_URL ?? "http://localhost:5555";
+  const aiApiUrl = rawAiApiUrl.endsWith("/") ? rawAiApiUrl.slice(0, -1) : rawAiApiUrl;
+  const internalApiKey = process.env.INTERNAL_API_KEY ?? "";
+  if (!internalApiKey) {
+    throw new BadRequestError("INTERNAL_API_KEY is required to run flow simulations");
+  }
+
+  const response = await fetch(aiApiUrl + "/flows/simulate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-key": internalApiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const body = await response.text().catch(() => "");
+    throw new BadRequestError("Flow simulation failed (" + response.status + "): " + body);
+  }
+
+  return (await response.json()) as FlowTestRunResult;
+};
 
 export const listFlows = (
   organizationId: string,
@@ -160,11 +205,36 @@ export const deleteFlow = async (
 export const createFlowTestRun = async (
   organizationId: string,
   flowId: string,
-  _input: FlowTestRunInput,
+  input: FlowTestRunInput,
   deps: FlowServiceDeps = {}
 ) => {
-  await getFlow(organizationId, flowId, deps);
-  throw new BadRequestError("Flow test runs are not implemented yet");
+  const repository = deps.repository ?? defaultRepository;
+  const runtimeConfigLoader = deps.runtimeConfigLoader ?? defaultRuntimeConfigLoader;
+  const aiClient = deps.aiClient ?? defaultAiClient;
+  const flow = await getFlow(organizationId, flowId, { repository });
+
+  if (!flow.compiledJson) {
+    throw new BadRequestError("Flow must be compiled before running a test");
+  }
+
+  const runtimeConfig = await runtimeConfigLoader(flow.rootAgentId);
+  if (!runtimeConfig) {
+    throw new NotFoundError("Root agent runtime config not found");
+  }
+
+  return aiClient({
+    config: {
+      ...runtimeConfig,
+      flow: {
+        flowId: flow.flowId,
+        rootAgentId: flow.rootAgentId,
+        name: flow.name,
+        graph: flow.graphJson,
+        compiled: flow.compiledJson,
+      },
+    },
+    messages: input.messages,
+  });
 };
 
 async function validateAndCompileFlow(args: {

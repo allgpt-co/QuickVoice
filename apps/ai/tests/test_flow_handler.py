@@ -8,6 +8,8 @@ sys.path.insert(0, ROOT)
 from handlers.flow_handler import (
     append_flow_path,
     build_flow_transfer_instructions,
+    score_condition,
+    simulate_flow_messages,
     get_current_node_id,
     merge_agent_config_for_node,
     resolve_transfer_target,
@@ -103,6 +105,58 @@ class FlowHandlerTests(unittest.TestCase):
         self.assertIn("transfer_to_flow_agent", instructions)
         self.assertIn("route_id=route-returns", instructions)
         self.assertIn("Customer asks about returns", instructions)
+
+    def test_score_condition_counts_overlapping_keywords(self):
+        self.assertEqual(score_condition("I need to return my order", "return order request"), 2)
+
+    def test_simulate_flow_messages_selects_matching_route(self):
+        config = sample_config()
+        config["flow"]["compiled"]["outgoingByNodeId"]["start"][0]["data"]["condition"] = "Customer wants to return an order"
+
+        result = simulate_flow_messages(
+            config,
+            [{"role": "user", "content": "I need to return my order"}],
+        )
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["selectedRoutes"][0]["routeId"], "route-returns")
+        self.assertEqual(result["path"][-1]["nodeId"], "returns")
+        self.assertEqual(result["path"][-1]["agentId"], "returns-agent")
+
+    def test_simulate_flow_messages_uses_default_route_when_no_condition_matches(self):
+        config = sample_config()
+        compiled = config["flow"]["compiled"]
+        compiled["nodesById"]["fallback"] = {
+            "id": "fallback",
+            "type": "agent",
+            "data": {"agentId": "fallback-agent"},
+        }
+        compiled["agentsByNodeId"]["fallback"] = {"agentId": "fallback-agent"}
+        compiled["outgoingByNodeId"]["start"].append(
+            {
+                "id": "route-default",
+                "target": "fallback",
+                "type": "default",
+                "data": {"label": "Fallback", "priority": 0},
+            }
+        )
+
+        result = simulate_flow_messages(
+            config,
+            [{"role": "user", "content": "I want to update billing details"}],
+        )
+
+        self.assertTrue(result["success"])
+        self.assertEqual(result["selectedRoutes"][0]["routeId"], "route-default")
+        self.assertEqual(result["selectedRoutes"][0]["reason"], "Default route")
+        self.assertEqual(result["path"][-1]["nodeId"], "fallback")
+
+    def test_simulate_flow_messages_reports_missing_start_node(self):
+        result = simulate_flow_messages({"flow": {"compiled": {}}}, [])
+
+        self.assertFalse(result["success"])
+        self.assertEqual(result["path"], [])
+        self.assertEqual(result["warnings"], ["Flow has no start node"])
 
     def test_resolve_transfer_target_rejects_unknown_route_ids(self):
         self.assertIsNone(resolve_transfer_target(sample_config(), "start", "unknown"))

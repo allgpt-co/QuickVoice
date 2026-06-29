@@ -7,6 +7,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from handlers.config_handler import get_config
+from handlers.flow_handler import simulate_flow_messages
 from handlers import kb_handler
 from utils.auth import is_explicit_dev_mode, verify_internal_headers
 
@@ -55,6 +56,24 @@ async def health_check():
 async def read_agent_config(agent_id: str, request: Request):
     _verify_internal(request)
     return await get_config(agent_id)
+
+
+# ── Flow simulation ──────────────────────────────────────────────────────────
+
+class FlowSimulationMessage(BaseModel):
+    role: str
+    content: str
+
+
+class FlowSimulationRequest(BaseModel):
+    config: dict[str, Any]
+    messages: list[FlowSimulationMessage]
+
+
+@app.post("/flows/simulate")
+async def simulate_flow(payload: FlowSimulationRequest, request: Request):
+    _verify_internal(request)
+    return simulate_flow_messages(payload.config, [message.model_dump() for message in payload.messages])
 
 
 # ── KB processing ─────────────────────────────────────────────────────────────

@@ -26,6 +26,52 @@ class ApiTests(unittest.TestCase):
             with TestClient(api.app) as client:
                 self.assertEqual(client.get("/health").status_code, 200)
                 self.assertEqual(client.get("/agents/agent_123/config").status_code, 401)
+                response = client.post("/flows/simulate", json={"config": {}, "messages": []})
+                self.assertEqual(response.status_code, 401)
+
+    def test_flow_simulate_returns_selected_path(self):
+        import api
+
+        config = {
+            "flow": {
+                "compiled": {
+                    "startNodeId": "start",
+                    "nodesById": {
+                        "start": {"id": "start", "type": "start", "data": {"agentId": "agent-root"}},
+                        "returns": {"id": "returns", "type": "agent", "data": {"agentId": "agent-returns"}},
+                    },
+                    "outgoingByNodeId": {
+                        "start": [
+                            {
+                                "id": "route-returns",
+                                "source": "start",
+                                "target": "returns",
+                                "type": "llm_condition",
+                                "data": {"condition": "Customer wants to return an order"},
+                            }
+                        ]
+                    },
+                    "agentsByNodeId": {
+                        "start": {"agentId": "agent-root"},
+                        "returns": {"agentId": "agent-returns"},
+                    },
+                }
+            }
+        }
+
+        with patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}, clear=False):
+            with TestClient(api.app) as client:
+                response = client.post(
+                    "/flows/simulate",
+                    headers={"x-internal-key": "internal-secret"},
+                    json={"config": config, "messages": [{"role": "user", "content": "I need to return my order"}]},
+                )
+
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertTrue(body["success"])
+        self.assertEqual(body["selectedRoutes"][0]["routeId"], "route-returns")
+        self.assertEqual(body["path"][-1]["nodeId"], "returns")
 
     def test_kb_process_returns_accepted_job_and_status_exposes_results(self):
         import api

@@ -108,3 +108,89 @@ def merge_agent_config_for_node(config: dict, node_id: str) -> dict:
         }
     )
     return merged
+
+
+def score_condition(message: str, condition: str) -> int:
+    words = {word.strip(".,!?").lower() for word in message.split() if len(word) > 3}
+    condition_words = {word.strip(".,!?").lower() for word in condition.split() if len(word) > 3}
+    return len(words & condition_words)
+
+
+def simulate_flow_messages(config: dict, messages: list[dict]) -> dict:
+    compiled = (config.get("flow") or {}).get("compiled") or {}
+    start_node_id = compiled.get("startNodeId")
+    nodes_by_id = compiled.get("nodesById") or {}
+    agents_by_node_id = compiled.get("agentsByNodeId") or {}
+    outgoing_by_node_id = compiled.get("outgoingByNodeId") or {}
+    warnings = []
+    selected_routes = []
+    path = []
+
+    if not start_node_id:
+        return {
+            "success": False,
+            "path": path,
+            "selectedRoutes": selected_routes,
+            "warnings": ["Flow has no start node"],
+        }
+
+    current_node_id = start_node_id
+    start_node = nodes_by_id.get(current_node_id) or {}
+    start_agent = (agents_by_node_id.get(current_node_id) or {}).get("agentId") or (start_node.get("data") or {}).get("agentId")
+    path.append({"nodeId": current_node_id, "agentId": start_agent, "reason": None})
+
+    for message in messages:
+        if message.get("role") != "user":
+            continue
+
+        routes = outgoing_by_node_id.get(current_node_id) or []
+        if not routes:
+            warnings.append(f"Node {current_node_id} has no outgoing routes")
+            continue
+
+        best_route = None
+        best_score = 0
+        default_route = None
+        content = str(message.get("content") or "")
+        for route in routes:
+            if route.get("type") == "default" and default_route is None:
+                default_route = route
+                continue
+            score = score_condition(content, ((route.get("data") or {}).get("condition") or ""))
+            if score > best_score:
+                best_score = score
+                best_route = route
+
+        reason = None
+        if best_route is not None and best_score > 0:
+            route = best_route
+            reason = f"Matched {best_score} condition word(s)"
+        elif default_route is not None:
+            route = default_route
+            reason = "Default route"
+        else:
+            warnings.append(f"No route matched from node {current_node_id}")
+            continue
+
+        target_node_id = route.get("target")
+        if not target_node_id:
+            warnings.append(f"Route {route.get('id')} has no target")
+            continue
+
+        target_node = nodes_by_id.get(target_node_id) or {}
+        target_agent = (agents_by_node_id.get(target_node_id) or {}).get("agentId") or (target_node.get("data") or {}).get("agentId")
+        selected_routes.append(
+            {
+                "routeId": route.get("id"),
+                "sourceNodeId": current_node_id,
+                "targetNodeId": target_node_id,
+                "reason": reason,
+            }
+        )
+        path.append({"nodeId": target_node_id, "agentId": target_agent, "reason": reason})
+        current_node_id = target_node_id
+
+        if target_node.get("type") == "end":
+            break
+
+    return {"success": True, "path": path, "selectedRoutes": selected_routes, "warnings": warnings}
