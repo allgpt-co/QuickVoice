@@ -8,6 +8,12 @@ export const queryKeys = {
     detail: (id: string) => [...queryKeys.agents.all, "detail", id] as const,
     config: (id: string) => [...queryKeys.agents.all, "config", id] as const,
   },
+  flows: {
+    all: ["flows"] as const,
+    list: (rootAgentId?: string) =>
+      [...queryKeys.flows.all, "list", rootAgentId ?? null] as const,
+    detail: (flowId: string) => [...queryKeys.flows.all, "detail", flowId] as const,
+  },
   numbers: {
     all: ["numbers"] as const,
     list: () => [...queryKeys.numbers.all, "list"] as const,

@@ -263,6 +263,52 @@ export interface AgentMcpConnection {
   mcpConnection: McpConnection;
 }
 
+export type FlowNodeType = "start" | "agent" | "end";
+export type FlowEdgeType = "llm_condition" | "default";
+
+export interface AgentFlowGraphNode {
+  id: string;
+  type: FlowNodeType;
+  position: { x: number; y: number };
+  data: {
+    label: string;
+    agentId?: string;
+    transferMessage?: string;
+    enableFirstMessage?: boolean;
+  };
+}
+
+export interface AgentFlowGraphEdge {
+  id: string;
+  source: string;
+  target: string;
+  type: FlowEdgeType;
+  data: {
+    label: string;
+    condition?: string;
+    priority: number;
+  };
+}
+
+export interface AgentFlowGraph {
+  version: 1;
+  nodes: AgentFlowGraphNode[];
+  edges: AgentFlowGraphEdge[];
+}
+
+export interface AgentFlow {
+  flowId: string;
+  organizationId: string;
+  rootAgentId: string;
+  name: string;
+  description: string | null;
+  graphJson: AgentFlowGraph;
+  compiledJson: unknown;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface CursorPage<T> {
   data: T[];
   nextCursor: string | null;
