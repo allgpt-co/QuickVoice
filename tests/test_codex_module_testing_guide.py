@@ -71,6 +71,8 @@ class CodexModuleTestingGuideTests(unittest.TestCase):
         )
 
         self.assertEqual(command[:2], ["codex", "exec"])
+        self.assertIn("--model", command)
+        self.assertEqual(command[command.index("--model") + 1], "codex2")
         self.assertIn("--dangerously-bypass-approvals-and-sandbox", command)
         self.assertIn("--ephemeral", command)
         self.assertIn("--json", command)
@@ -78,7 +80,23 @@ class CodexModuleTestingGuideTests(unittest.TestCase):
         self.assertIn(str(REPO_ROOT), command)
         self.assertIn("--output-last-message", command)
 
-    def test_build_prompt_contains_no_edit_rules_paths_ui_ux_and_headings(self):
+    def test_build_codex_command_allows_model_override(self):
+        runner = load_runner()
+        module = runner.select_modules(["apps-ai"])[0]
+
+        command = runner.build_codex_command(
+            repo_root=REPO_ROOT,
+            module=module,
+            output_last_message=REPO_ROOT
+            / ".testing_guide_runs"
+            / "run"
+            / "apps-ai.final.md",
+            model="codex-custom",
+        )
+
+        self.assertEqual(command[command.index("--model") + 1], "codex-custom")
+
+    def test_build_prompt_contains_intern_testing_scope_rules_and_headings(self):
         runner = load_runner()
         module = runner.select_modules(["apps-console"])[0]
 
@@ -88,8 +106,16 @@ class CodexModuleTestingGuideTests(unittest.TestCase):
         self.assertIn("apps/console", prompt)
         self.assertIn("Do not edit", prompt)
         self.assertIn("Do not create", prompt)
-        self.assertIn("UI/UX", prompt)
-        self.assertIn("Manual Feature Test Cases", prompt)
+        self.assertIn("intern", prompt.lower())
+        self.assertIn("SaaS", prompt)
+        self.assertIn("Architecture And Data Flow Testing", prompt)
+        self.assertIn("Functional Test Cases", prompt)
+        self.assertIn("Non-Functional Test Cases", prompt)
+        self.assertIn("Integration And API Test Cases", prompt)
+        self.assertIn("UX, UI, Accessibility, And Compatibility Testing", prompt)
+        self.assertIn("SaaS Business And Operations Test Cases", prompt)
+        self.assertIn("Security, Privacy, And Compliance Checks", prompt)
+        self.assertIn("pass/fail", prompt)
         self.assertIn("Release Acceptance Checklist", prompt)
         self.assertIn("sequential guide run", prompt)
         self.assertIn("abc123", prompt)
@@ -101,6 +127,7 @@ class CodexModuleTestingGuideTests(unittest.TestCase):
         missing = runner.missing_required_headings(module, "## Module Overview\n")
 
         self.assertIn("# Marketing website and public UX Testing Guide", missing)
+        self.assertIn("## Intern Testing Orientation", missing)
         self.assertIn("## Setup And Required Services", missing)
         self.assertNotIn("## Module Overview", missing)
 
@@ -130,6 +157,7 @@ class CodexModuleTestingGuideTests(unittest.TestCase):
         self.assertIn("apps-web", output)
         self.assertIn(str(output_dir.resolve() / "apps-web.md"), output)
         self.assertIn(str(run_dir.resolve() / "apps-web.final.md"), output)
+        self.assertIn("--model codex2", output)
         self.assertIn("--dangerously-bypass-approvals-and-sandbox", output)
 
     def test_run_selected_modules_stops_after_failed_module(self):

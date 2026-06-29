@@ -25,7 +25,7 @@ if str(SCRIPT_DIR) not in sys.path:
 
 from codex_module_audit import (  # noqa: E402
     AuditModule,
-    build_codex_command,
+    build_codex_command as build_base_codex_command,
     display_path,
     git_sha,
     git_status,
@@ -35,15 +35,24 @@ from codex_module_audit import (  # noqa: E402
 )
 
 
+DEFAULT_CODEX_MODEL = "codex2"
+
 REQUIRED_GUIDE_HEADINGS: tuple[str, ...] = (
+    "## Intern Testing Orientation",
     "## Module Overview",
+    "## Architecture And Data Flow Testing",
     "## Setup And Required Services",
     "## Automated Test Commands",
-    "## Manual Feature Test Cases",
-    "## UI/UX And Accessibility Checks",
+    "## Functional Test Cases",
+    "## SaaS Business And Operations Test Cases",
+    "## Integration And API Test Cases",
+    "## Non-Functional Test Cases",
+    "## UX, UI, Accessibility, And Compatibility Testing",
+    "## Security, Privacy, And Compliance Checks",
     "## Edge Cases And Failure Modes",
-    "## Test Data And Fixtures",
+    "## Test Data, Fixtures, Accounts, And Roles",
     "## External Services Or Blocked Checks",
+    "## Regression Risks",
     "## Release Acceptance Checklist",
 )
 
@@ -79,6 +88,22 @@ def required_headings(module: AuditModule) -> tuple[str, ...]:
     return (expected_title_heading(module), *REQUIRED_GUIDE_HEADINGS)
 
 
+def build_codex_command(
+    repo_root: Path,
+    module: AuditModule,
+    output_last_message: Path,
+    *,
+    model: str | None = None,
+) -> list[str]:
+    """Build the Codex command for one intern testing guide session."""
+    return build_base_codex_command(
+        repo_root=repo_root,
+        module=module,
+        output_last_message=output_last_message,
+        model=model if model is not None else DEFAULT_CODEX_MODEL,
+    )
+
+
 def missing_required_headings(module: AuditModule, markdown: str) -> list[str]:
     lines = {line.strip() for line in markdown.splitlines()}
     return [heading for heading in required_headings(module) if heading not in lines]
@@ -87,7 +112,7 @@ def missing_required_headings(module: AuditModule, markdown: str) -> list[str]:
 def build_testing_guide_prompt(module: AuditModule, git_sha: str) -> str:
     paths = "\n".join(f"- `{path}`" for path in module.paths)
     headings = "\n".join(f"- `{heading}`" for heading in required_headings(module))
-    return f"""You are creating a detailed testing guide for one QuickVoice module.
+    return f"""You are creating a detailed intern testing guide for one QuickVoice module.
 
 Module: {module.name}
 Title: {module.title}
@@ -106,10 +131,17 @@ Rules:
 - You may inspect files and run read-only checks, but do not run commands that rewrite tracked files.
 - This is one module in a sequential guide run; return a complete guide for this module only.
 - Do not ask to move to the next module. The runner will stop unless this module is finished successfully.
-- Make the guide actionable for a human tester and QA engineer.
-- Include UI/UX, accessibility, responsive layout, loading/empty/error states, edge cases, and regression coverage where relevant.
-- Include all small user-facing features, module-specific test cases, external service requirements, fixtures, and blocked checks.
-- Mention exact files, routes, commands, environment variables, services, and roles when you can prove them from the repository.
+- Make the guide actionable for an intern tester who has basic command-line skills but limited QuickVoice context.
+- Write concrete pass/fail criteria for every manual scenario and every blocked check.
+- Include exact files, routes, commands, API endpoints, environment variables, services, roles, fixtures, and setup steps when you can prove them from the repository.
+- Cover SaaS concerns where relevant: authentication, onboarding, organizations/tenants, RBAC, billing, settings, customer data boundaries, lifecycle states, support handoff, operational monitoring, retention, and auditability.
+- Cover architecture testing where relevant: module boundaries, data flow, API contracts, database models, background jobs, queues, workers, provider dependencies, configuration, observability, failure handling, and rollback risk.
+- Cover functional testing for all small user-facing and operator-facing features in scope, including happy paths, empty states, loading states, validation, errors, and permission-specific behavior.
+- Cover integration and API testing for internal APIs, external providers, webhooks, auth/session dependencies, persistence, file/object storage, telephony, AI services, and network failure modes where applicable.
+- Cover non-functional testing: performance, reliability, resilience, security, privacy, accessibility, compatibility, data integrity, concurrency, rate limits, and recovery behavior.
+- Cover UX/UI testing: layout, visual hierarchy, responsive breakpoints, keyboard support, screen reader cues, browser/device compatibility, copy clarity, forms, tables, dialogs, toasts, and destructive actions.
+- Include test data, accounts, roles, fixtures, service credentials, and local seed requirements where discoverable.
+- Include regression risks and release acceptance checks an intern can follow without guessing.
 - If credentials, paid services, or live vendors are unavailable, mark the check as blocked rather than guessing.
 
 Return Markdown only. It must contain these exact headings:
@@ -296,7 +328,7 @@ def render_index_markdown(
         f"- Started: `{started_at}`",
         f"- Finished: `{finished_at}`",
         "",
-        "These guides were generated by `scripts/codex_module_testing_guide.py`, which runs one read-only Codex session per module and saves guides only after every selected module succeeds.",
+        "These intern testing guides were generated by `scripts/codex_module_testing_guide.py`, which runs one read-only Codex session per module and saves guides only after every selected module succeeds.",
         "",
         "## Modules",
         "",
@@ -416,7 +448,11 @@ def parse_args(argv: Sequence[str]) -> argparse.Namespace:
         default=90,
         help="Timeout for each module Codex session. Default: 90.",
     )
-    parser.add_argument("--model", default=None, help="Optional Codex model override.")
+    parser.add_argument(
+        "--model",
+        default=None,
+        help=f"Optional Codex model override. Defaults to {DEFAULT_CODEX_MODEL}.",
+    )
     parser.add_argument(
         "--dry-run",
         action="store_true",
