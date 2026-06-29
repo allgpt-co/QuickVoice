@@ -6,6 +6,7 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
 from handlers.flow_handler import (
+    append_flow_path,
     build_flow_transfer_instructions,
     get_current_node_id,
     merge_agent_config_for_node,
@@ -79,6 +80,20 @@ def sample_config():
 
 
 class FlowHandlerTests(unittest.TestCase):
+    def test_append_flow_path_records_node_agent_and_reason(self):
+        call_context = {}
+
+        append_flow_path(call_context, "start", "root-agent")
+        append_flow_path(call_context, "returns", "returns-agent", "Customer needs returns")
+
+        self.assertEqual(
+            call_context["flow_path"],
+            [
+                {"node_id": "start", "agent_id": "root-agent", "reason": None},
+                {"node_id": "returns", "agent_id": "returns-agent", "reason": "Customer needs returns"},
+            ],
+        )
+
     def test_get_current_node_id_reads_start_node(self):
         self.assertEqual(get_current_node_id(sample_config()), "start")
 

@@ -38,12 +38,14 @@ export const saveCallLog = async (input: IngestCallLogArgs) => {
         metadata: redactPii ? redactJson({
           summary: input.metadata?.summary,
           intent: input.metadata?.intent,
+          flow: input.metadata?.flow,
           fromNumber: input.fromNumber,
           toNumber: input.toNumber,
           provider: input.provider,
         } satisfies Prisma.InputJsonObject) : {
           summary: input.metadata?.summary,
           intent: input.metadata?.intent,
+          flow: input.metadata?.flow,
           fromNumber: input.fromNumber,
           toNumber: input.toNumber,
           provider: input.provider,

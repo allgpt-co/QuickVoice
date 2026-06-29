@@ -25,21 +25,31 @@ def build_call_log_payload(
     transcripts: list[dict[str, Any]],
     status: str = "COMPLETED",
 ) -> dict[str, Any]:
+    metadata = {
+        "summary": call_context.get("summary", ""),
+        "intent": call_context.get("intent", ""),
+        "outboundId": call_context.get("outbound_id"),
+    }
+    flow_config = config.get("flow") or {}
+    flow_path = call_context.get("flow_path") or []
+    flow_state = call_context.get("flow_state") or {}
+    if flow_config or flow_path:
+        flow_metadata = {"path": flow_path}
+        if flow_config.get("flowId"):
+            flow_metadata["flowId"] = flow_config.get("flowId")
+        metadata["flow"] = flow_metadata
+
     return {
         "organizationId": _required(config, "organization_id"),
         "userId": config.get("user_id"),
-        "agentId": _required(config, "agent_id"),
+        "agentId": flow_state.get("agent_id") or call_context.get("agent_id") or _required(config, "agent_id"),
         "callId": _required(call_context, "call_id"),
         "startTime": _isoformat(started_at),
         "endTime": _isoformat(ended_at),
         "direction": call_context.get("direction", "inbound"),
         "durationSeconds": max(0, int((ended_at - started_at).total_seconds())),
         "status": status,
-        "metadata": {
-            "summary": call_context.get("summary", ""),
-            "intent": call_context.get("intent", ""),
-            "outboundId": call_context.get("outbound_id"),
-        },
+        "metadata": metadata,
         "recordingSid": recording_path or "",
         "transcripts": [_normalize_transcript_item(item, index) for index, item in enumerate(transcripts)],
         "toNumber": _required(call_context, "to_number"),

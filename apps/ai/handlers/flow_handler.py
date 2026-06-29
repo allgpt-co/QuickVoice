@@ -31,6 +31,11 @@ def build_flow_transfer_instructions(config: dict, node_id: str) -> str:
     )
 
 
+def append_flow_path(call_context: dict, node_id: str, agent_id: str | None, reason: str | None = None):
+    path = call_context.setdefault("flow_path", [])
+    path.append({"node_id": node_id, "agent_id": agent_id, "reason": reason})
+
+
 def resolve_transfer_target(config: dict, node_id: str, route_id: str) -> dict | None:
     route = next(
         (candidate for candidate in get_outgoing_routes(config, node_id) if candidate.get("id") == route_id),

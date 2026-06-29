@@ -69,6 +69,7 @@ class CallLogHandlerTests(unittest.TestCase):
             },
             call_context={
                 "call_id": "room-123",
+                "agent_id": "22222222-2222-4222-8222-222222222222",
                 "from_number": "+15550001111",
                 "to_number": "+15551230000",
             },
@@ -79,6 +80,52 @@ class CallLogHandlerTests(unittest.TestCase):
         )
 
         self.assertEqual(payload["transcripts"][0]["timestamp"], "2024-01-01T00:00:00Z")
+
+
+    def test_build_call_log_payload_includes_flow_metadata(self):
+        payload = build_call_log_payload(
+            config={
+                "agent_id": "8d55565f-1111-4111-8111-f95fd03f0df2",
+                "organization_id": "org_123",
+                "provider": "TWILIO",
+                "flow": {"flowId": "44444444-4444-4444-8444-444444444444"},
+            },
+            call_context={
+                "call_id": "room-123",
+                "agent_id": "22222222-2222-4222-8222-222222222222",
+                "from_number": "+15550001111",
+                "to_number": "+15551230000",
+                "flow_state": {"agent_id": "33333333-3333-4333-8333-333333333333"},
+                "flow_path": [
+                    {"node_id": "start", "agent_id": "8d55565f-1111-4111-8111-f95fd03f0df2", "reason": None},
+                    {
+                        "node_id": "returns",
+                        "agent_id": "22222222-2222-4222-8222-222222222222",
+                        "reason": "Customer needs returns",
+                    },
+                ],
+            },
+            started_at=datetime(2026, 5, 27, 12, 0, 0, tzinfo=timezone.utc),
+            ended_at=datetime(2026, 5, 27, 12, 1, 0, tzinfo=timezone.utc),
+            recording_path=None,
+            transcripts=[],
+        )
+
+        self.assertEqual(payload["agentId"], "33333333-3333-4333-8333-333333333333")
+        self.assertEqual(
+            payload["metadata"]["flow"],
+            {
+                "flowId": "44444444-4444-4444-8444-444444444444",
+                "path": [
+                    {"node_id": "start", "agent_id": "8d55565f-1111-4111-8111-f95fd03f0df2", "reason": None},
+                    {
+                        "node_id": "returns",
+                        "agent_id": "22222222-2222-4222-8222-222222222222",
+                        "reason": "Customer needs returns",
+                    },
+                ],
+            },
+        )
 
     def test_post_call_log_uses_internal_auth_and_posts_to_server_calls_endpoint(self):
         calls = []

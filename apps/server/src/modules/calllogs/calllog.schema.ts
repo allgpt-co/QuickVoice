@@ -32,9 +32,23 @@ export const callLogSchema = z.object({
   status: z.nativeEnum(CallStatus),
   metadata: z
     .object({
-      summary: z.string(),
-      intent: z.string(),
-      outboundId: z.string().uuid().nullable(),
+      summary: z.string().optional(),
+      intent: z.string().optional(),
+      outboundId: z.string().uuid().nullable().optional(),
+      flow: z
+        .object({
+          flowId: z.string().uuid().optional(),
+          path: z
+            .array(
+              z.object({
+                node_id: z.string(),
+                agent_id: z.string().uuid().nullable().optional(),
+                reason: z.string().nullable().optional(),
+              })
+            )
+            .optional(),
+        })
+        .optional(),
     })
     .optional(),
   recordingSid: z.string(),

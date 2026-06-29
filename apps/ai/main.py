@@ -18,6 +18,7 @@ from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
 from handlers.finalization_handler import CallFinalizer
 from handlers.flow_handler import (
+    append_flow_path,
     build_flow_transfer_instructions,
     get_current_node_id,
     merge_agent_config_for_node,
@@ -293,6 +294,14 @@ class FlowAssistant(Assistant):
             redact_sensitive(target.get("agentId")),
             redact_sensitive(reason),
         )
+        append_flow_path(
+            self._call_context,
+            target["targetNodeId"],
+            target.get("agentId"),
+            reason or None,
+        )
+        flow_state = self._call_context.setdefault("flow_state", {})
+        flow_state["agent_id"] = target.get("agentId") or flow_state.get("agent_id")
 
         transfer_message = target.get("transferMessage")
         if transfer_message:
@@ -317,9 +326,10 @@ class FlowAssistant(Assistant):
             return None
 
         child_config = merge_agent_config_for_node(self._config, target["targetNodeId"])
+        self._call_context["agent_id"] = child_config.get("agent_id") or self._call_context.get("agent_id")
         child_context = {
             **self._call_context,
-            "agent_id": child_config.get("agent_id") or self._call_context.get("agent_id"),
+            "agent_id": self._call_context.get("agent_id"),
         }
         child_prompt = build_agent_instructions(child_config, node_id=target["targetNodeId"])
 
@@ -379,6 +389,9 @@ async def entrypoint(ctx: JobContext):
         preemptive_generation=config.get("preemptive_generation", True),
     )
     flow_node_id = get_current_node_id(config)
+    if flow_node_id:
+        call_context.setdefault("flow_state", {})["agent_id"] = config.get("agent_id")
+        append_flow_path(call_context, flow_node_id, config.get("agent_id"))
     system_prompt = build_agent_instructions(config, node_id=flow_node_id)
     if flow_node_id:
         agent = FlowAssistant(
