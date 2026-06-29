@@ -111,6 +111,10 @@ const flowMutationShape = {
   graphJson: flowGraphSchema,
 };
 
+export const listFlowsQuerySchema = z.object({
+  rootAgentId: z.string().uuid().optional(),
+});
+
 export const createFlowSchema = z.object({
   ...flowMutationShape,
   isActive: z.boolean().default(false),
@@ -144,6 +148,7 @@ export type FlowEdgeType = z.infer<typeof flowEdgeTypeSchema>;
 export type FlowGraphNode = z.infer<typeof flowGraphNodeSchema>;
 export type FlowGraphEdge = z.infer<typeof flowGraphEdgeSchema>;
 export type AgentFlowGraph = z.infer<typeof flowGraphSchema>;
+export type ListFlowsQuery = z.infer<typeof listFlowsQuerySchema>;
 export type CreateFlowInput = z.infer<typeof createFlowSchema>;
 export type UpdateFlowInput = z.infer<typeof updateFlowSchema>;
 export type FlowTestRunInput = z.infer<typeof flowTestRunSchema>;

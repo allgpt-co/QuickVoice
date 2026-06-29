@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 import {
   flowGraphSchema,
+  listFlowsQuerySchema,
   updateFlowSchema,
 } from "../../src/modules/flows/flow.schema.js";
 
@@ -58,4 +59,9 @@ test("update flow schema does not default isActive on partial updates", () => {
   assert.equal(result.success, true);
   if (!result.success) return;
   assert.deepEqual(result.data, { name: "Renamed flow" });
+});
+
+test("list flows query validates rootAgentId as uuid", () => {
+  const result = listFlowsQuerySchema.safeParse({ rootAgentId: "not-a-uuid" });
+  assert.equal(result.success, false);
 });
