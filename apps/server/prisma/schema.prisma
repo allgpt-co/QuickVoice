@@ -108,6 +108,7 @@ model User {
   mcpConnections   McpConnection[]
   secrets          Secret[]
   auditLogs        AuditLog[]
+  agentFlows       AgentFlow[]
 
   @@unique([email])
 }
@@ -219,6 +220,7 @@ model Organization {
   campaigns         Campaign[]
   organizationroles OrganizationRole[]
   auditLogs         AuditLog[]
+  agentFlows        AgentFlow[]
 
   @@unique([slug])
   @@index([stripeCustomerId])
@@ -350,6 +352,7 @@ model Agent {
   tools Tool[] @relation("AgentTools")
   mcpConnections AgentMcpConnection[]
   mcpToolExecutionLogs McpToolExecutionLog[]
+  rootFlows AgentFlow[] @relation("AgentFlowRoot")
 
   @@unique([organizationId, agentSlug])
   @@index([userId])
@@ -395,6 +398,28 @@ model AgentConfiguration {
   variables                         Json?
   preemptive_generation             Boolean  @default(false)
   timezone                          String   @default("UTC")
+}
+
+model AgentFlow {
+  flowId         String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId         String?
+  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  rootAgentId    String
+  rootAgent      Agent        @relation("AgentFlowRoot", fields: [rootAgentId], references: [agentId], onDelete: Cascade)
+  name           String
+  description    String?
+  graphJson      Json
+  compiledJson   Json?
+  isActive       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([rootAgentId])
+  @@index([organizationId, rootAgentId, isActive])
+  @@index([userId])
 }
 
 model KnowledgeSource {

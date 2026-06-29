@@ -397,6 +397,7 @@ export const ModelName = {
   PhoneNumber: 'PhoneNumber',
   Agent: 'Agent',
   AgentConfiguration: 'AgentConfiguration',
+  AgentFlow: 'AgentFlow',
   KnowledgeSource: 'KnowledgeSource',
   CallLog: 'CallLog',
   CallTranscript: 'CallTranscript',
@@ -424,7 +425,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "apikey" | "organization" | "organizationRole" | "member" | "invitation" | "subscription" | "phoneNumber" | "agent" | "agentConfiguration" | "knowledgeSource" | "callLog" | "callTranscript" | "outboundCall" | "campaign" | "tool" | "mcpServerCatalogItem" | "mcpConnection" | "agentMcpConnection" | "mcpToolExecutionLog" | "secret" | "auditLog"
+    modelProps: "user" | "session" | "account" | "verification" | "apikey" | "organization" | "organizationRole" | "member" | "invitation" | "subscription" | "phoneNumber" | "agent" | "agentConfiguration" | "agentFlow" | "knowledgeSource" | "callLog" | "callTranscript" | "outboundCall" | "campaign" | "tool" | "mcpServerCatalogItem" | "mcpConnection" | "agentMcpConnection" | "mcpToolExecutionLog" | "secret" | "auditLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1387,6 +1388,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.AgentConfigurationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.AgentConfigurationCountAggregateOutputType> | number
+        }
+      }
+    }
+    AgentFlow: {
+      payload: Prisma.$AgentFlowPayload<ExtArgs>
+      fields: Prisma.AgentFlowFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AgentFlowFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AgentFlowFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        findFirst: {
+          args: Prisma.AgentFlowFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AgentFlowFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        findMany: {
+          args: Prisma.AgentFlowFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>[]
+        }
+        create: {
+          args: Prisma.AgentFlowCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        createMany: {
+          args: Prisma.AgentFlowCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AgentFlowCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>[]
+        }
+        delete: {
+          args: Prisma.AgentFlowDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        update: {
+          args: Prisma.AgentFlowUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        deleteMany: {
+          args: Prisma.AgentFlowDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AgentFlowUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AgentFlowUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>[]
+        }
+        upsert: {
+          args: Prisma.AgentFlowUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AgentFlowPayload>
+        }
+        aggregate: {
+          args: Prisma.AgentFlowAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAgentFlow>
+        }
+        groupBy: {
+          args: Prisma.AgentFlowGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentFlowGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AgentFlowCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AgentFlowCountAggregateOutputType> | number
         }
       }
     }
@@ -2563,6 +2638,23 @@ export const AgentConfigurationScalarFieldEnum = {
 export type AgentConfigurationScalarFieldEnum = (typeof AgentConfigurationScalarFieldEnum)[keyof typeof AgentConfigurationScalarFieldEnum]
 
 
+export const AgentFlowScalarFieldEnum = {
+  flowId: 'flowId',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  rootAgentId: 'rootAgentId',
+  name: 'name',
+  description: 'description',
+  graphJson: 'graphJson',
+  compiledJson: 'compiledJson',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AgentFlowScalarFieldEnum = (typeof AgentFlowScalarFieldEnum)[keyof typeof AgentFlowScalarFieldEnum]
+
+
 export const KnowledgeSourceScalarFieldEnum = {
   kbId: 'kbId',
   organizationId: 'organizationId',
@@ -2804,6 +2896,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
@@ -3147,6 +3246,7 @@ export type GlobalOmitConfig = {
   phoneNumber?: Prisma.PhoneNumberOmit
   agent?: Prisma.AgentOmit
   agentConfiguration?: Prisma.AgentConfigurationOmit
+  agentFlow?: Prisma.AgentFlowOmit
   knowledgeSource?: Prisma.KnowledgeSourceOmit
   callLog?: Prisma.CallLogOmit
   callTranscript?: Prisma.CallTranscriptOmit

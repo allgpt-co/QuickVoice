@@ -83,6 +83,11 @@ export type Agent = Prisma.AgentModel
  */
 export type AgentConfiguration = Prisma.AgentConfigurationModel
 /**
+ * Model AgentFlow
+ *
+ */
+export type AgentFlow = Prisma.AgentFlowModel
+/**
  * Model KnowledgeSource
  *
  */

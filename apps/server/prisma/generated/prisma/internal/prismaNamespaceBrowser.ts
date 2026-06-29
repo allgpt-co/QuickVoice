@@ -64,6 +64,7 @@ export const ModelName = {
   PhoneNumber: 'PhoneNumber',
   Agent: 'Agent',
   AgentConfiguration: 'AgentConfiguration',
+  AgentFlow: 'AgentFlow',
   KnowledgeSource: 'KnowledgeSource',
   CallLog: 'CallLog',
   CallTranscript: 'CallTranscript',
@@ -340,6 +341,23 @@ export const AgentConfigurationScalarFieldEnum = {
 export type AgentConfigurationScalarFieldEnum = (typeof AgentConfigurationScalarFieldEnum)[keyof typeof AgentConfigurationScalarFieldEnum]
 
 
+export const AgentFlowScalarFieldEnum = {
+  flowId: 'flowId',
+  organizationId: 'organizationId',
+  userId: 'userId',
+  rootAgentId: 'rootAgentId',
+  name: 'name',
+  description: 'description',
+  graphJson: 'graphJson',
+  compiledJson: 'compiledJson',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AgentFlowScalarFieldEnum = (typeof AgentFlowScalarFieldEnum)[keyof typeof AgentFlowScalarFieldEnum]
+
+
 export const KnowledgeSourceScalarFieldEnum = {
   kbId: 'kbId',
   organizationId: 'organizationId',
@@ -581,6 +599,13 @@ export const NullableJsonNullValueInput = {
 } as const
 
 export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
+export const JsonNullValueInput = {
+  JsonNull: JsonNull
+} as const
+
+export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
 export const QueryMode = {
