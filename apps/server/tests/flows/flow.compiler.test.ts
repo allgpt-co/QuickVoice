@@ -19,6 +19,8 @@ const agentConfig = (agentId: string, name: string): CompiledAgentConfig => ({
   ttsModel: "aura-2",
   voiceId: "voice-1",
   use_rag: false,
+  tools: [{ toolId: agentId + "-tool" }],
+  mcpConnections: [{ mcpConnectionId: agentId + "-mcp" }],
 });
 
 test("compileFlowGraph sorts outgoing edges by priority", () => {
@@ -73,4 +75,10 @@ test("compileFlowGraph sorts outgoing edges by priority", () => {
     compiled.outgoingByNodeId.start.map((edge) => edge.id),
     ["e2", "e1"]
   );
+  assert.deepEqual(compiled.agentsByNodeId.returns.tools, [
+    { toolId: returnsAgentId + "-tool" },
+  ]);
+  assert.deepEqual(compiled.agentsByNodeId.returns.mcpConnections, [
+    { mcpConnectionId: returnsAgentId + "-mcp" },
+  ]);
 });

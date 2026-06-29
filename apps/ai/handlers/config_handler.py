@@ -38,6 +38,7 @@ DEFAULT_CONFIG = {
     "zero_pii_retention": False,
     "retention_days": None,
     "mcp_connections": [],
+    "flow": None,
 }
 
 
@@ -113,6 +114,7 @@ def normalize_config(raw: dict[str, Any]) -> dict[str, Any]:
             "data_evaluation": _pick(raw, "data_evaluation") or [],
             "tools": _pick(raw, "tools") or [],
             "mcp_connections": _pick(raw, "mcpConnections", "mcp_connections") or [],
+            "flow": _pick(raw, "flow"),
             "initiation_webhook": _pick(raw, "initiation_webhook"),
             "post_call_webhook": _pick(raw, "post_call_webhook"),
             "variables": _pick(raw, "variables"),

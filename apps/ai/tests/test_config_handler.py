@@ -82,6 +82,16 @@ class ConfigHandlerTests(unittest.TestCase):
         self.assertFalse(config["store_call_audio"])
         self.assertTrue(config["zero_pii_retention"])
 
+    def test_normalize_config_preserves_flow(self):
+        flow = {
+            "flowId": "flow-123",
+            "compiled": {"startNodeId": "start"},
+        }
+
+        config = normalize_config({"agentId": "agent_123", "flow": flow})
+
+        self.assertEqual(config["flow"], flow)
+
     def test_get_config_fetches_runtime_config_from_server_with_internal_auth(self):
         calls = []
 

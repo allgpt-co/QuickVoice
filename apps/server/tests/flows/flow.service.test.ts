@@ -17,6 +17,8 @@ const agentConfig = {
   ttsModel: "aura-2",
   voiceId: "voice-1",
   use_rag: false,
+  tools: [],
+  mcpConnections: [],
 };
 
 const baseGraph = {

@@ -79,6 +79,47 @@ export const findAgentsForOrg = async (
           use_rag: true,
         },
       },
+      tools: {
+        select: {
+          toolId: true,
+          organizationId: true,
+          userId: true,
+          name: true,
+          description: true,
+          disable_interruptions: true,
+          force_pre_tool_speech: true,
+          api_url: true,
+          api_method: true,
+          api_headers: true,
+          api_body: true,
+          api_query_params: true,
+          api_path_params: true,
+          response_timeout_secs: true,
+          dynamic_variables: true,
+        },
+      },
+      mcpConnections: {
+        where: { enabled: true },
+        select: {
+          mcpConnection: {
+            select: {
+              mcpConnectionId: true,
+              organizationId: true,
+              userId: true,
+              catalogItemId: true,
+              displayName: true,
+              provider: true,
+              mcpUrl: true,
+              smitheryNamespace: true,
+              smitheryConnectionId: true,
+              status: true,
+              setupUrl: true,
+              tools: true,
+              metadata: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -97,6 +138,8 @@ export const findAgentsForOrg = async (
           ttsModel: agent.configuration.ttsModel,
           voiceId: agent.configuration.voiceId,
           use_rag: agent.configuration.use_rag,
+          tools: agent.tools,
+          mcpConnections: agent.mcpConnections.map((item) => item.mcpConnection),
         }
       : null,
   }));

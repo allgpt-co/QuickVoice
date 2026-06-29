@@ -10,6 +10,8 @@ export interface CompiledAgentConfig {
   ttsModel: string;
   voiceId: string;
   use_rag: boolean;
+  tools: unknown[];
+  mcpConnections: unknown[];
 }
 
 export interface CompiledAgentFlow {

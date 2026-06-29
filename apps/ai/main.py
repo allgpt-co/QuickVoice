@@ -8,6 +8,7 @@ from livekit.agents import (
     LanguageCode,
     TurnHandlingOptions,
     function_tool,
+    get_job_context,
     inference,
     room_io,
 )
@@ -16,6 +17,12 @@ from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
 from handlers.finalization_handler import CallFinalizer
+from handlers.flow_handler import (
+    build_flow_transfer_instructions,
+    get_current_node_id,
+    merge_agent_config_for_node,
+    resolve_transfer_target,
+)
 from handlers.livekit_handler import get_transcripts, recording_path as build_recording_path, start_recording
 from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, parse_arguments_json
 from handlers.privacy_handler import should_store_call_audio
@@ -56,12 +63,33 @@ RAG_TOOL_INSTRUCTIONS = (
 )
 
 
-def build_agent_instructions(config: dict) -> str:
+def build_agent_instructions(config: dict, node_id: str | None = None) -> str:
     instructions = config.get("system_prompt") or DEFAULT_SYSTEM_PROMPT
     if config.get("use_rag"):
         instructions += RAG_TOOL_INSTRUCTIONS
     instructions += build_mcp_tool_instructions(config.get("mcp_connections") or [])
+    if config.get("flow") and node_id:
+        instructions += build_flow_transfer_instructions(config, node_id)
     return instructions
+
+
+def build_agent_pipeline_kwargs(config: dict) -> dict:
+    language = LanguageCode(config.get("agent_language", "en-US"))
+    return {
+        "stt": inference.STT(
+            model=config.get("stt_model", "deepgram/nova-3"),
+            language=language,
+        ),
+        "llm": inference.LLM(
+            model=config.get("llm_model", "google/gemini-2.5-flash"),
+            provider=config.get("llm_provider", "google"),
+        ),
+        "tts": inference.TTS(
+            model=config.get("tts_model", "deepgram/aura-2"),
+            voice=config.get("voice", "aura-2-asteria-en"),
+            language=language,
+        ),
+    }
 
 
 def run_combined_server() -> int:
@@ -116,8 +144,8 @@ def run_combined_server() -> int:
 
 
 class Assistant(Agent):
-    def __init__(self, system_prompt: str, config: dict, call_context: dict):
-        super().__init__(instructions=system_prompt)
+    def __init__(self, system_prompt: str, config: dict, call_context: dict, **kwargs):
+        super().__init__(instructions=system_prompt, **kwargs)
         self._config = config
         self._call_context = call_context
 
@@ -222,6 +250,94 @@ class Assistant(Agent):
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
 
+class FlowAssistant(Assistant):
+    def __init__(
+        self,
+        system_prompt: str,
+        config: dict,
+        call_context: dict,
+        node_id: str,
+        **kwargs,
+    ):
+        super().__init__(
+            system_prompt=system_prompt,
+            config=config,
+            call_context=call_context,
+            **kwargs,
+        )
+        self._node_id = node_id
+
+    @function_tool
+    async def transfer_to_flow_agent(self, route_id: str, reason: str = ""):
+        """
+        Transfer this conversation to the next configured agent flow node.
+
+        Args:
+            route_id: The exact route_id from the available flow routes.
+            reason: A short explanation of why the route matches the user request.
+        """
+        target = resolve_transfer_target(self._config, self._node_id, route_id)
+        if not target:
+            logger.warning(
+                "[flow] rejected unknown route={} from node={}",
+                redact_sensitive(route_id),
+                redact_sensitive(self._node_id),
+            )
+            return "No matching flow route is available."
+
+        logger.info(
+            "[flow] transfer route={} from node={} to node={} agent={} reason={}",
+            redact_sensitive(route_id),
+            redact_sensitive(self._node_id),
+            redact_sensitive(target.get("targetNodeId")),
+            redact_sensitive(target.get("agentId")),
+            redact_sensitive(reason),
+        )
+
+        transfer_message = target.get("transferMessage")
+        if transfer_message:
+            await self.session.say(transfer_message, allow_interruptions=False)
+
+        target_node = target.get("node") or {}
+        if target_node.get("type") == "end":
+            session = self.session
+            job_ctx = get_job_context(required=False)
+
+            if job_ctx:
+                def _on_session_close(_event):
+                    async def _delete_room_on_shutdown():
+                        await job_ctx.delete_room()
+
+                    job_ctx.add_shutdown_callback(_delete_room_on_shutdown)
+                    job_ctx.shutdown(reason="flow_end")
+
+                session.once("close", _on_session_close)
+
+            session.shutdown(drain=True)
+            return None
+
+        child_config = merge_agent_config_for_node(self._config, target["targetNodeId"])
+        child_context = {
+            **self._call_context,
+            "agent_id": child_config.get("agent_id") or self._call_context.get("agent_id"),
+        }
+        child_prompt = build_agent_instructions(child_config, node_id=target["targetNodeId"])
+
+        kwargs = {}
+        chat_ctx = getattr(self, "chat_ctx", None)
+        if chat_ctx is not None:
+            kwargs["chat_ctx"] = chat_ctx.copy(exclude_instructions=True)
+
+        return FlowAssistant(
+            system_prompt=child_prompt,
+            config=child_config,
+            call_context=child_context,
+            node_id=target["targetNodeId"],
+            **build_agent_pipeline_kwargs(child_config),
+            **kwargs,
+        )
+
+
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
@@ -257,29 +373,26 @@ async def entrypoint(ctx: JobContext):
         call_context["provider"] = config["provider"]
 
     session = AgentSession(
-        stt=inference.STT(
-            model=config.get("stt_model", "deepgram/nova-3"),
-            language=LanguageCode(config.get("agent_language", "en-US")),
-        ),
-        llm=inference.LLM(
-            model=config.get("llm_model", "google/gemini-2.5-flash"),
-            provider=config.get("llm_provider", "google"),
-        ),
-        tts=inference.TTS(
-            model=config.get("tts_model", "deepgram/aura-2"),
-            voice=config.get("voice", "aura-2-asteria-en"),
-            language=LanguageCode(config.get("agent_language", "en-US")),
-        ),
+        **build_agent_pipeline_kwargs(config),
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(turn_detection=MultilingualModel()),
         preemptive_generation=config.get("preemptive_generation", True),
     )
-    system_prompt = build_agent_instructions(config)
-    agent = Assistant(
-        system_prompt=system_prompt,
-        config=config,
-        call_context=call_context,
-    )
+    flow_node_id = get_current_node_id(config)
+    system_prompt = build_agent_instructions(config, node_id=flow_node_id)
+    if flow_node_id:
+        agent = FlowAssistant(
+            system_prompt=system_prompt,
+            config=config,
+            call_context=call_context,
+            node_id=flow_node_id,
+        )
+    else:
+        agent = Assistant(
+            system_prompt=system_prompt,
+            config=config,
+            call_context=call_context,
+        )
     await session.start(
         room=ctx.room,
         agent=agent,
@@ -310,7 +423,7 @@ async def entrypoint(ctx: JobContext):
         call_context=call_context,
         started_at=call_start_time,
         recording_path=recording_path,
-        transcript_reader=lambda: get_transcripts(agent),
+        transcript_reader=lambda: get_transcripts(session.current_agent),
     )
 
     async def unified_shutdown_hook():
