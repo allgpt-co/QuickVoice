@@ -190,7 +190,7 @@ jobs:
 
       - name: Build and push server Docker image
         id: server-build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/server/Dockerfile
@@ -248,7 +248,7 @@ jobs:
 
       - name: Build and push AI Docker image
         id: ai-build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: apps/ai
           file: apps/ai/Dockerfile

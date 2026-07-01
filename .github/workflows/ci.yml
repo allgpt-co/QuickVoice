@@ -196,7 +196,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build server image target
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/server/Dockerfile
@@ -219,7 +219,7 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build AI image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: apps/ai
           file: apps/ai/Dockerfile
