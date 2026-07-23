@@ -156,6 +156,14 @@ The default catalog supports Deepgram and Sarvam for STT, AWS Bedrock for LLMs, 
 
 Add real values to `apps/ai/.env.dev` before running live voice sessions:
 
+For Langfuse tracing, also add:
+
+```sh
+LANGFUSE_PUBLIC_KEY=your-public-key
+LANGFUSE_SECRET_KEY=your-secret-key
+LANGFUSE_HOST=https://cloud.langfuse.com
+```
+
 ```sh
 INTERNAL_API_KEY=change-me
 LIVEKIT_URL=wss://your-livekit-host

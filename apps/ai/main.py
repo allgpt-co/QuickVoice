@@ -41,6 +41,7 @@ from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_p
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
 from utils.logger import redact_sensitive
+from utils.langfuse_integration import LangfuseBridge
 import asyncio
 import json
 from datetime import datetime, timezone
@@ -267,6 +268,7 @@ class Assistant(Agent):
         config: dict,
         call_context: dict,
         transcript_collector: TranscriptCollector | None = None,
+        trace: Any | None = None,
     ):
         super().__init__(
             instructions=system_prompt,
@@ -276,6 +278,7 @@ class Assistant(Agent):
         self._call_context = call_context
         self._metadata_collector = CallMetadataCollector(config)
         self._transcript_collector = transcript_collector
+        self._trace = trace
 
     def _rag_enabled(self) -> bool:
         return bool(self._config.get("use_rag"))
@@ -288,6 +291,12 @@ class Assistant(Agent):
         )
 
     async def on_user_turn_completed(self, turn_ctx, new_message) -> None:
+        if self._trace is not None:
+            self._trace.record_event(
+                "user_turn_completed",
+                text=getattr(new_message, "text_content", "") or "",
+            )
+
         if not self._rag_enabled():
             return
 
@@ -367,7 +376,10 @@ class Assistant(Agent):
             identifier: The configured evaluation id or name.
             value: The evaluation result, such as true, false, yes, no, or a short label.
         """
-        return self._metadata_collector.record_evaluation(identifier, value)
+        result = self._metadata_collector.record_evaluation(identifier, value)
+        if self._trace is not None:
+            self._trace.record_evaluation(identifier, value)
+        return result
 
     @function_tool
     async def search_knowledge_base(self, query: str, top_k: int = 5) -> str:
@@ -507,6 +519,17 @@ async def entrypoint(ctx: JobContext):
             }
         ),
     )
+    langfuse_bridge = LangfuseBridge()
+    trace = langfuse_bridge.start_trace(
+        agent_id=call_context.get("agent_id") or config.get("agent_id") or "",
+        call_id=call_context.get("call_id") or call_context.get("callId") or ctx.room.name,
+        user_id=call_context.get("user_id") or metadata.get("user_id"),
+    )
+    if not trace.is_noop:
+        logger.info("Langfuse tracing enabled for call {}", redact_sensitive(call_context.get("call_id") or ctx.room.name))
+    else:
+        logger.info("Langfuse tracing disabled or not configured")
+
     session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
@@ -531,6 +554,7 @@ async def entrypoint(ctx: JobContext):
         config=config,
         call_context=call_context,
         transcript_collector=transcript_collector,
+        trace=trace,
     )
 
     @ctx.room.on("data_received")
@@ -570,6 +594,7 @@ async def entrypoint(ctx: JobContext):
             on_preview_text_stream,
         )
 
+    trace.record_event("session_started", room=ctx.room.name)
     try:
         await session.start(
             room=ctx.room,
@@ -577,6 +602,7 @@ async def entrypoint(ctx: JobContext):
             room_options=build_room_options(),
         )
     except Exception:
+        trace.record_event("session_start_failed", room=ctx.room.name)
         await live_transcript_publisher.close(reason="session_start_failed")
         raise
     speak_first_message(session, config)
@@ -599,6 +625,7 @@ async def entrypoint(ctx: JobContext):
     shutdown_reason = "session_shutdown"
 
     async def unified_shutdown_hook():
+        trace.record_event("session_shutdown", reason=shutdown_reason)
         try:
             await live_transcript_publisher.close(reason=shutdown_reason)
         except Exception as error:
@@ -607,11 +634,14 @@ async def entrypoint(ctx: JobContext):
                 redact_sensitive(str(error)),
             )
         if preview_mode:
+            trace.close()
             return
         try:
             await call_finalizer.finalize()
         except Exception as error:
             logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        finally:
+            trace.close()
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)
