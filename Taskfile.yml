@@ -185,3 +185,9 @@ tasks:
     dir: apps/ai
     cmds:
       - . .env.dev && . .venv/bin/activate && python main.py dev
+
+  langfuse:demo:
+    desc: Send a synthetic voice-call trace to Langfuse
+    dir: apps/ai
+    cmds:
+      - .venv/bin/python scripts/langfuse_demo.py
