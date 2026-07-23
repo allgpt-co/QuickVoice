@@ -8,6 +8,7 @@ from pydantic import BaseModel
 
 from handlers.config_handler import get_config
 from handlers import kb_handler
+from handlers.langfuse_handler import CallTrace as LangfuseCallTrace, is_enabled as langfuse_is_enabled
 from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import VoiceConfigValidationError, resolve_voice_config
 from handlers.voice_session_broker import VoiceSessionBroker, VoiceSessionBrokerError
@@ -178,3 +179,15 @@ async def delete_kb(agent_id: str, kb_id: str, request: Request):
     _verify_internal(request)
     kb_handler.delete_kb_vectors(namespace=agent_id, kb_id=kb_id)
     return {"success": True, "agentId": agent_id, "kbId": kb_id}
+
+
+# ── Langfuse observability ────────────────────────────────────────────────────
+
+@app.get("/observability/status", tags=["Observability"])
+async def observability_status(request: Request):
+    """Check whether Langfuse observability is enabled and reachable."""
+    _verify_internal(request)
+    return {
+        "langfuse_enabled": langfuse_is_enabled(),
+        "host": os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"),
+    }

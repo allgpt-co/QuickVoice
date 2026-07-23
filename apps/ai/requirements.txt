@@ -1,5 +1,6 @@
 livekit-agents[silero,turn-detector]~=1.2
 livekit-api>=1.1,<2
+langfuse~=2.51
 livekit-plugins-aws~=1.6
 livekit-plugins-deepgram~=1.6
 livekit-plugins-elevenlabs~=1.6
