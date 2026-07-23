@@ -47,7 +47,7 @@
     "telnyx": "^6.83.0",
     "twilio": "^6.0.2",
     "ws": "^8.21.0",
-    "zeptomail": "^6.2.1"
+    "zeptomail": "^8.0.1"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",

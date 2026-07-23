@@ -341,8 +341,8 @@ importers:
         specifier: ^8.21.0
         version: 8.21.0
       zeptomail:
-        specifier: ^6.2.1
-        version: 6.2.1
+        specifier: ^8.0.1
+        version: 8.0.1
     devDependencies:
       '@repo/typescript-config':
         specifier: workspace:*
@@ -7266,8 +7266,9 @@ packages:
     resolution: {integrity: sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==}
     engines: {node: '>=18'}
 
-  zeptomail@6.2.1:
-    resolution: {integrity: sha512-5QbN0RACqXrvE4yS0ETvZLx5zC/DRDN2QZlse0HQKMrB4R2G0ciY5rgFZDFUAqssYxCFOyOhKo3QUphRYfrVUg==}
+  zeptomail@8.0.1:
+    resolution: {integrity: sha512-NBvJMPmiX7MXPzwapgRYIaJ32uijNh6uVkbIK+P/qP8X/OCjEn0ngJ+oPBenjWKUWkunXUVdgITwizYspRe47w==}
+    engines: {node: '>=20'}
 
   zeptomatch@2.1.0:
     resolution: {integrity: sha512-KiGErG2J0G82LSpniV0CtIzjlJ10E04j02VOudJsPyPwNZgGnRKQy7I1R7GMyg/QswnE4l7ohSGrQbQbjXPPDA==}
@@ -15013,11 +15014,14 @@ snapshots:
 
   yoctocolors@2.1.2: {}
 
-  zeptomail@6.2.1:
+  zeptomail@8.0.1:
     dependencies:
+      axios: 1.18.0
       node-fetch: 2.7.0
     transitivePeerDependencies:
+      - debug
       - encoding
+      - supports-color
 
   zeptomatch@2.1.0:
     dependencies:
