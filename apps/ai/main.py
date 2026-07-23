@@ -1,5 +1,9 @@
 from dotenv import load_dotenv
 
+import base64
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.util.types import AttributeValue
+from livekit.agents.telemetry import set_tracer_provider
 from livekit import agents, rtc
 from livekit.agents import (
     AgentSession,
@@ -39,6 +43,7 @@ from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
+from utils.auth import is_explicit_dev_mode
 from utils.logger import logger
 from utils.logger import redact_sensitive
 import asyncio
@@ -83,6 +88,24 @@ IVR_TOOL_INSTRUCTIONS = (
     "are unsure which menu option applies."
 )
 
+def setup_langfuse(metadata: dict[str, AttributeValue] | None = None) -> TracerProvider:
+    from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    public_key = os.environ.get("LANGFUSE_PUBLIC_KEY")
+    secret_key = os.environ.get("LANGFUSE_SECRET_KEY")
+    base_url = os.environ.get("LANGFUSE_BASE_URL")
+    if not public_key or not secret_key or not base_url:
+        raise ValueError("LANGFUSE_PUBLIC_KEY, LANGFUSE_SECRET_KEY, and LANGFUSE_BASE_URL must be set")
+
+    auth = base64.b64encode(f"{public_key}:{secret_key}".encode()).decode()
+    os.environ["OTEL_EXPORTER_OTLP_ENDPOINT"] = f"{base_url.rstrip('/')}/api/public/otel"
+    os.environ["OTEL_EXPORTER_OTLP_HEADERS"] = f"Authorization=Basic {auth}"
+
+    provider = TracerProvider()
+    provider.add_span_processor(BatchSpanProcessor(OTLPSpanExporter()))
+    set_tracer_provider(provider, metadata=metadata)
+    return provider
 
 def _config_bool(value) -> bool:
     if isinstance(value, bool):
@@ -161,6 +184,8 @@ def provider_section(value: str | None):
 
 def attach_resolved_voice_config(config: dict) -> dict:
     if isinstance(config.get("voice_config"), dict):
+        return config
+    if is_explicit_dev_mode():
         return config
 
     tts_section = provider_section(config.get("tts_model"))
@@ -438,6 +463,11 @@ async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
     await ctx.connect()
+    trace_provider = setup_langfuse(metadata={"langfuse.session.id": ctx.room.name})
+    async def flush_langfuse_trace():
+        trace_provider.force_flush()
+
+    ctx.add_shutdown_callback(flush_langfuse_trace)
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
         voice_metadata = parse_voice_session_metadata(raw_metadata)
