@@ -22,7 +22,9 @@ from handlers.livekit_handler import recording_path as build_recording_path, sta
 from handlers.live_transcript_publisher import LiveTranscriptPublisher
 from handlers.http_tool_handler import build_http_tool_instructions, call_http_tool, parse_http_tool_arguments
 from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, parse_arguments_json
+from handlers.langfuse_handler import LangfuseCallTracer
 from handlers.privacy_handler import should_store_call_audio
+
 from handlers.rag_handler import RagRetrievalError, get_rag_context
 from handlers.transcript_collector import TranscriptCollector
 from handlers.worker_handler import (
@@ -267,6 +269,7 @@ class Assistant(Agent):
         config: dict,
         call_context: dict,
         transcript_collector: TranscriptCollector | None = None,
+        tracer: LangfuseCallTracer | None = None,
     ):
         super().__init__(
             instructions=system_prompt,
@@ -276,6 +279,7 @@ class Assistant(Agent):
         self._call_context = call_context
         self._metadata_collector = CallMetadataCollector(config)
         self._transcript_collector = transcript_collector
+        self._tracer = tracer
 
     def _rag_enabled(self) -> bool:
         return bool(self._config.get("use_rag"))
@@ -288,6 +292,14 @@ class Assistant(Agent):
         )
 
     async def on_user_turn_completed(self, turn_ctx, new_message) -> None:
+        query = new_message.text_content if hasattr(new_message, "text_content") else ""
+        if callable(query):
+            query = query()
+        query = str(query or "").strip()
+
+        if self._tracer and query:
+            self._tracer.trace_llm_turn(prompt=query, response=None)
+
         if not self._rag_enabled():
             return
 
@@ -296,15 +308,11 @@ class Assistant(Agent):
             logger.warning("[rag] skipped retrieval because agent_id is missing")
             return
 
-        query = new_message.text_content if hasattr(new_message, "text_content") else ""
-        if callable(query):
-            query = query()
-        query = str(query or "").strip()
         if not query:
             return
 
         try:
-            context = await get_rag_context(agent_id=agent_id, query=query)
+            context = await get_rag_context(agent_id=agent_id, query=query, tracer=self._tracer)
         except RagRetrievalError:
             turn_ctx.add_message(
                 role="system",
@@ -341,9 +349,12 @@ class Assistant(Agent):
             if chunk_text:
                 chunks.append(chunk_text)
             yield chunk
+        full_text = "".join(chunks)
+        if self._tracer and full_text:
+            self._tracer.trace_llm_turn(prompt=None, response=full_text)
         if self._transcript_collector is not None:
             self._transcript_collector.on_agent_transcription_final(
-                "".join(chunks),
+                full_text,
                 datetime.now(timezone.utc),
             )
 
@@ -390,7 +401,7 @@ class Assistant(Agent):
             return "A search query is required."
 
         try:
-            context = await get_rag_context(str(agent_id), normalized_query, top_k=top_k)
+            context = await get_rag_context(str(agent_id), normalized_query, top_k=top_k, tracer=self._tracer)
         except RagRetrievalError:
             return "Knowledge base search is temporarily unavailable. Please try again later."
         return context or "No matching knowledge base context found."
@@ -410,6 +421,7 @@ class Assistant(Agent):
             arguments=arguments,
             config=self._config,
             call_context=self._call_context,
+            tracer=self._tracer,
         )
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
@@ -430,7 +442,9 @@ class Assistant(Agent):
             arguments=arguments,
             config=self._config,
             call_context=self._call_context,
+            tracer=self._tracer,
         )
+
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
 
@@ -514,6 +528,7 @@ async def entrypoint(ctx: JobContext):
         ivr_detection=config["ivr_navigation_enabled"],
         preemptive_generation=config.get("preemptive_generation", True),
     )
+    tracer = LangfuseCallTracer(config=config, call_context=call_context)
     call_start_time = datetime.now(timezone.utc)
     live_transcript_publisher = LiveTranscriptPublisher(
         config=config,
@@ -531,6 +546,7 @@ async def entrypoint(ctx: JobContext):
         config=config,
         call_context=call_context,
         transcript_collector=transcript_collector,
+        tracer=tracer,
     )
 
     @ctx.room.on("data_received")
@@ -578,6 +594,7 @@ async def entrypoint(ctx: JobContext):
         )
     except Exception:
         await live_transcript_publisher.close(reason="session_start_failed")
+        tracer.finalize(shutdown_reason="session_start_failed")
         raise
     speak_first_message(session, config)
 
@@ -600,6 +617,13 @@ async def entrypoint(ctx: JobContext):
 
     async def unified_shutdown_hook():
         try:
+            tracer.finalize(shutdown_reason=shutdown_reason)
+        except Exception as error:
+            logger.warning(
+                "[LANGFUSE] Failed to finalize tracer: {}",
+                redact_sensitive(str(error)),
+            )
+        try:
             await live_transcript_publisher.close(reason=shutdown_reason)
         except Exception as error:
             logger.warning(
@@ -612,6 +636,7 @@ async def entrypoint(ctx: JobContext):
             await call_finalizer.finalize()
         except Exception as error:
             logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)

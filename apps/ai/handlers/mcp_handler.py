@@ -46,11 +46,12 @@ async def call_mcp_tool(
     server_api_url: str | None = None,
     internal_api_key: str | None = None,
     post_json=None,
+    tracer: Any = None,
 ):
     started = time.perf_counter()
+    sanitized_arguments = dict(arguments or {})
     try:
         tool = _resolve_allowed_tool(config.get("mcp_connections") or [], connection_id, tool_name)
-        sanitized_arguments = dict(arguments or {})
         if _tool_requires_confirmation(tool):
             raise PermissionError("MCP tool requires trusted user confirmation before execution")
 
@@ -79,23 +80,31 @@ async def call_mcp_tool(
             "x-user-id": str(config.get("user_id") or "internal"),
         }
         result = await asyncio.to_thread(post_json or _post_json, url, headers, payload)
+        latency_ms = int((time.perf_counter() - started) * 1000)
         emit_metric(
             "mcp_tool_execution",
             status="ok",
             connection_id=connection_id,
             tool_name=tool_name,
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
-        return _redact_and_truncate_result(result)
-    except Exception:
+        final_res = _redact_and_truncate_result(result)
+        if tracer and hasattr(tracer, "trace_tool_call"):
+            tracer.trace_tool_call(tool_name, "mcp", sanitized_arguments, final_res, latency_ms)
+        return final_res
+    except Exception as exc:
+        latency_ms = int((time.perf_counter() - started) * 1000)
         emit_metric(
             "mcp_tool_execution",
             status="error",
             connection_id=connection_id,
             tool_name=tool_name,
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
+        if tracer and hasattr(tracer, "trace_tool_call"):
+            tracer.trace_tool_call(tool_name, "mcp", sanitized_arguments, None, latency_ms, error=str(exc))
         raise
+
 
 
 def parse_arguments_json(arguments_json: str | None) -> dict[str, Any]:
