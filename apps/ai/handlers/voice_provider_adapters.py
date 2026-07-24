@@ -2,7 +2,7 @@ import os
 from dataclasses import dataclass
 from typing import Any
 
-from livekit.plugins import aws, deepgram, elevenlabs, sarvam
+from livekit.plugins import aws, deepgram, elevenlabs, google, openai, sarvam
 
 
 class ProviderAdapterError(RuntimeError):
@@ -72,6 +72,16 @@ def _build_llm(config: dict[str, Any]):
             kwargs["api_key"] = access_key
             kwargs["api_secret"] = secret_key
         return aws.LLM(**kwargs)
+    if provider == "google":
+        return google.LLM(
+            model=config["model"],
+            api_key=_required_env("GOOGLE_API_KEY"),
+        )
+    if provider == "openai":
+        return openai.LLM(
+            model=config["model"],
+            api_key=_required_env("OPENAI_API_KEY"),
+        )
     raise ProviderAdapterError(f"unsupported LLM provider: {provider}")
 
 

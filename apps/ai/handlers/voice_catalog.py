@@ -79,6 +79,27 @@ STATIC_VOICE_CATALOG = {
             "runtime_model": "us.amazon.nova-lite-v1:0",
             "streaming": True,
         },
+        {
+            "provider": "google",
+            "id": "gemini-2.5-flash",
+            "label": "Google Gemini 2.5 Flash",
+            "runtime_model": "gemini-2.5-flash",
+            "streaming": True,
+        },
+        {
+            "provider": "openai",
+            "id": "gpt-4o-mini",
+            "label": "OpenAI GPT-4o Mini",
+            "runtime_model": "gpt-4o-mini",
+            "streaming": True,
+        },
+        {
+            "provider": "openai",
+            "id": "gpt-4o",
+            "label": "OpenAI GPT-4o",
+            "runtime_model": "gpt-4o",
+            "streaming": True,
+        },
     ],
     "tts_models": [
         {
