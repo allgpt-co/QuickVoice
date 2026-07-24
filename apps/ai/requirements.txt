@@ -20,3 +20,4 @@ xlrd>=2.0,<3
 httpx>=0.27,<1
 beautifulsoup4>=4.12,<5
 redis>=5,<7
+langfuse>=2.0,<3
