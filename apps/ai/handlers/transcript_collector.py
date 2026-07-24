@@ -3,6 +3,8 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
+from utils.logger import logger, redact_sensitive
+
 SYNTHETIC_USER_PREFIX = "user-transcript-"
 SYNTHETIC_AGENT_PREFIX = "agent-transcript-"
 
@@ -20,6 +22,7 @@ class TranscriptCollector:
     def attach(self, session: Any) -> "TranscriptCollector":
         session.on("conversation_item_added", self.on_conversation_item_added)
         session.on("user_input_transcribed", self.on_user_input_transcribed)
+        logger.info("[TRANSCRIPT_COLLECTOR] attached to session")
         return self
 
     def on_conversation_item_added(self, event: Any) -> None:
@@ -51,6 +54,11 @@ class TranscriptCollector:
         ):
             return
         self._seen_ids.add(message_id)
+        logger.info(
+            "[TRANSCRIPT_COLLECTOR] conversation_item_added role={} id={}",
+            role,
+            redact_sensitive(message_id),
+        )
         self._append(
             {
                 "id": message_id,
@@ -67,6 +75,10 @@ class TranscriptCollector:
         if not text or text == self._last_final_user_transcript:
             return
         self._last_final_user_transcript = text
+        logger.info(
+            "[TRANSCRIPT_COLLECTOR] user_input_transcribed final text={}",
+            redact_sensitive(text),
+        )
 
         # Most final user turns also arrive through conversation_item_added.
         # Keep this as a fallback for STT events that are not materialized into
