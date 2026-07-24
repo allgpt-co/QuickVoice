@@ -318,21 +318,24 @@ rg -n "LIVEKIT_|TWILIO_|TELNYX_|STRIPE_|PINECONE_|SMTP_|AWS_" \
 
 **Out of scope:** Provider pricing comparisons or account setup on behalf of users.
 
-## 10. Validate The Dev Container Configuration In CI
+## 10. Add And Validate A Supported Dev Container
 
-**Proposed title:** `[CI] Validate Dev Container metadata and prerequisite installation`
+**Proposed title:** `[Dev Container] Add a supported contributor container and validate it in CI`
 
-**Why:** A committed Dev Container can silently drift if CI never parses or builds it.
+**Why:** The repository does not yet provide a Dev Container, so contributors need an optional, reproducible environment that is validated rather than implied.
 
 **Scope:**
 
-- Add a narrowly scoped workflow or test for `.devcontainer/devcontainer.json`.
+- Add a minimal `.devcontainer/devcontainer.json` and any narrowly required supporting files.
+- Base the environment on the documented Linux or WSL2 prerequisites without embedding credentials.
+- Add a narrowly scoped workflow or test that parses and builds the configuration.
 - Parse the resolved configuration with the Dev Container CLI.
 - Verify Node, Python, Docker Compose, Corepack, pnpm, and Go Task versions in the built container.
 - Do not start the full application or external provider integrations.
 
 **Acceptance criteria:**
 
+- [ ] The container setup documents its supported host assumptions and resource requirements.
 - [ ] The check runs only when Dev Container or setup files change, unless maintainers choose a scheduled run.
 - [ ] Feature references resolve and the container builds on the selected CI architecture.
 - [ ] Version output proves Node satisfies `>=20.9`.

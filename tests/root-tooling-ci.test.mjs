@@ -19,6 +19,7 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /root-tests:/);
   assert.match(ci, /console:/);
   assert.match(ci, /web:/);
+  assert.match(ci, /docs:/);
   assert.match(ci, /server:/);
   assert.match(ci, /ai-python:/);
   assert.match(ci, /docker-server:/);
@@ -28,6 +29,7 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pnpm check:configs/);
   assert.match(ci, /pnpm --filter console lint/);
   assert.match(ci, /pnpm --filter web build/);
+  assert.match(ci, /pnpm --filter docs build/);
   assert.match(ci, /pnpm --filter server test/);
   assert.match(ci, /node --test tests\/\*\.test\.mjs/);
   assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
