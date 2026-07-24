@@ -53,7 +53,15 @@ import sys
 import time
 
 APP_DIR = Path(__file__).resolve().parent
-load_dotenv(APP_DIR / ".env")
+
+
+def load_runtime_environment() -> None:
+    for env_path in (APP_DIR / ".env.dev", APP_DIR / ".env"):
+        if env_path.exists():
+            load_dotenv(env_path, override=False)
+
+
+load_runtime_environment()
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -635,6 +643,16 @@ async def entrypoint(ctx: JobContext):
         asyncio.create_task(unified_shutdown_hook())
 
 
+def build_worker_options() -> agents.WorkerOptions:
+    return agents.WorkerOptions(
+        entrypoint_fnc=entrypoint,
+        agent_name=os.getenv("LIVEKIT_AGENT_NAME", "quickvoice-voice-agent"),
+        ws_url=os.getenv("LIVEKIT_URL"),
+        api_key=os.getenv("LIVEKIT_API_KEY"),
+        api_secret=os.getenv("LIVEKIT_API_SECRET"),
+    )
+
+
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "serve":
         raise SystemExit(run_combined_server())
@@ -650,9 +668,4 @@ if __name__ == "__main__":
         )
         raise SystemExit(0)
 
-    agents.cli.run_app(
-        agents.WorkerOptions(
-            entrypoint_fnc=entrypoint,
-            agent_name=os.getenv("LIVEKIT_AGENT_NAME", "quickvoice-voice-agent"),
-        )
-    )
+    agents.cli.run_app(build_worker_options())
