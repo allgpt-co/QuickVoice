@@ -253,6 +253,14 @@ export function AgentPreviewPanel({
     addEvent("Microphone", "Waiting for browser permission.");
 
     try {
+      const localTrack = await createLocalAudioTrack({
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      });
+      localTrackRef.current = localTrack;
+      addEvent("Microphone", "Microphone access granted.");
+
       const session = await createPreview.mutateAsync({
         dynamicVariables: dynamicVariablePayload(
           agentVariables,
@@ -279,9 +287,17 @@ export function AgentPreviewPanel({
         .on(RoomEvent.TrackUnsubscribed, (track) => {
           track.detach().forEach((element) => element.remove());
         })
-        .on(RoomEvent.Disconnected, () => {
+        .on(RoomEvent.LocalTrackPublished, (publication) => {
+          if (publication.kind === Track.Kind.Audio) {
+            addEvent("Microphone", "Microphone track published to the agent.");
+          }
+        })
+        .on(RoomEvent.Disconnected, (reason) => {
           cleanupAudioElements();
           setState((current) => (current === "live" ? "ended" : current));
+          setError(
+            `Preview disconnected${reason !== undefined ? ` (reason: ${reason})` : ""}.`,
+          );
         })
         .on(RoomEvent.Reconnecting, () => {
           setState("connecting");
@@ -301,12 +317,6 @@ export function AgentPreviewPanel({
       room.on(RoomEvent.DataReceived, handleLiveKitData);
 
       await room.connect(session.livekitUrl, session.participant.token);
-      const localTrack = await createLocalAudioTrack({
-        echoCancellation: true,
-        noiseSuppression: true,
-        autoGainControl: true,
-      });
-      localTrackRef.current = localTrack;
       await room.localParticipant.publishTrack(localTrack);
       setState("live");
       addEvent("Live", "Speak naturally. The agent can hear your microphone.");
