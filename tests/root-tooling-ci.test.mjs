@@ -13,7 +13,8 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pull_request:/);
   assert.match(ci, /workflow_call:/);
   assert.match(ci, /pnpm install --frozen-lockfile/);
-  assert.match(ci, /runs-on: self-hosted/);
+  assert.doesNotMatch(ci, /runs-on: self-hosted/);
+  assert.match(ci, /runs-on: ubuntu-latest/);
   assert.match(ci, /workspace-config:/);
   assert.match(ci, /root-tests:/);
   assert.match(ci, /console:/);
@@ -52,6 +53,8 @@ test("security audit fails on high advisories and uses explicit suppressions", a
 
   assert.match(workflow, /pnpm audit:deps/);
   assert.match(workflow, /--audit-level high/);
+  assert.doesNotMatch(workflow, /runs-on: self-hosted/);
+  assert.match(workflow, /runs-on: ubuntu-latest/);
   assert.ok(Array.isArray(suppressions.suppressions));
   assert.ok(suppressions.suppressions.length > 0);
 

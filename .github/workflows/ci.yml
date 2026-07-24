@@ -13,7 +13,7 @@ permissions:
 jobs:
   workspace-config:
     name: Workspace Config
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
 
   root-tests:
     name: Root Node Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -64,7 +64,7 @@ jobs:
 
   console:
     name: Console Lint, Types, Build, Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -97,7 +97,7 @@ jobs:
 
   web:
     name: Web Lint, Types, Build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -127,7 +127,7 @@ jobs:
 
   server:
     name: Server Lint, Types, Build, Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -160,7 +160,7 @@ jobs:
 
   ai-python:
     name: AI Python Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout code
@@ -186,7 +186,7 @@ jobs:
 
   docker-server:
     name: Server Docker Validate
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -211,7 +211,7 @@ jobs:
 
   docker-ai:
     name: AI Docker Validate
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout code
@@ -237,7 +237,7 @@ jobs:
 
   quality-summary:
     name: Quality Summary
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: always()
     needs:
