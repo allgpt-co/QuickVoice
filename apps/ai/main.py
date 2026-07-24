@@ -41,6 +41,7 @@ from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_p
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
 from utils.logger import redact_sensitive
+from utils.telemetry import setup_langfuse_tracing
 import asyncio
 import json
 from datetime import datetime, timezone
@@ -438,6 +439,21 @@ async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
     await ctx.connect()
+
+    # --- Langfuse tracing: wire LiveKit's OpenTelemetry tracer to Langfuse ---
+    langfuse_trace_provider = setup_langfuse_tracing(
+        metadata={"langfuse.session.id": ctx.room.name},
+    )
+    if langfuse_trace_provider is not None and hasattr(ctx, "add_shutdown_callback"):
+        async def _flush_langfuse_trace():
+            try:
+                langfuse_trace_provider.force_flush()
+            except Exception as error:  # noqa: BLE001
+                logger.warning("[langfuse] trace flush failed: {}", redact_sensitive(str(error)))
+
+        ctx.add_shutdown_callback(_flush_langfuse_trace)
+    # --- end Langfuse tracing ---
+
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
         voice_metadata = parse_voice_session_metadata(raw_metadata)
