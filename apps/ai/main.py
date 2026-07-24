@@ -1,4 +1,6 @@
 from dotenv import load_dotenv
+from langfuse import Langfuse
+import os
 
 from livekit import agents, rtc
 from livekit.agents import (
@@ -53,6 +55,12 @@ import time
 
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
+# Langfuse client
+langfuse = Langfuse(
+    public_key=os.getenv("LANGFUSE_PUBLIC_KEY"),
+    secret_key=os.getenv("LANGFUSE_SECRET_KEY"),
+    host=os.getenv("LANGFUSE_HOST", "https://cloud.langfuse.com"),
+)
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -276,6 +284,8 @@ class Assistant(Agent):
         self._call_context = call_context
         self._metadata_collector = CallMetadataCollector(config)
         self._transcript_collector = transcript_collector
+        self._current_trace = None
+        self._current_generation = None
 
     def _rag_enabled(self) -> bool:
         return bool(self._config.get("use_rag"))
@@ -302,6 +312,20 @@ class Assistant(Agent):
         query = str(query or "").strip()
         if not query:
             return
+
+        try:
+            self._current_trace = langfuse.trace(
+                name="quickvoice-agent",
+                input=query
+            )
+
+            self._current_generation = self._current_trace.generation(
+                model=self._config.get("llm_model"),
+                input=query
+            )
+
+        except Exception as e:
+            print(e)
 
         try:
             context = await get_rag_context(agent_id=agent_id, query=query)
@@ -336,14 +360,41 @@ class Assistant(Agent):
         output = Agent.default.transcription_node(self, text, model_settings)
         if output is None:
             return
+
         async for chunk in output:
             chunk_text = _transcription_chunk_text(chunk)
             if chunk_text:
                 chunks.append(chunk_text)
             yield chunk
+
+        # Get the final assistant response
+        response_text = "".join(chunks)
+
+        # End Langfuse trace
+        try:
+            if self._current_generation:
+                self._current_generation.end(
+                    output=response_text
+                )
+
+            if self._current_trace:
+                self._current_trace.update(
+                    output=response_text
+                )
+
+            langfuse.flush()
+
+        except Exception as e:
+            logger.warning(f"Langfuse Error: {e}")
+
+        finally:
+            self._current_generation = None
+            self._current_trace = None
+
+        # Existing code
         if self._transcript_collector is not None:
             self._transcript_collector.on_agent_transcription_final(
-                "".join(chunks),
+                response_text,
                 datetime.now(timezone.utc),
             )
 
