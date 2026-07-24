@@ -20,6 +20,7 @@ from handlers.config_handler import get_config
 from handlers.finalization_handler import CallFinalizer
 from handlers.livekit_handler import recording_path as build_recording_path, start_recording
 from handlers.live_transcript_publisher import LiveTranscriptPublisher
+from handlers.langfuse_handler import build_langfuse_metadata, flush_langfuse, setup_langfuse
 from handlers.http_tool_handler import build_http_tool_instructions, call_http_tool, parse_http_tool_arguments
 from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, parse_arguments_json
 from handlers.privacy_handler import should_store_call_audio
@@ -507,6 +508,13 @@ async def entrypoint(ctx: JobContext):
             }
         ),
     )
+    langfuse_trace_provider = setup_langfuse(
+        build_langfuse_metadata(
+            room_name=ctx.room.name,
+            call_context=call_context,
+            config=config,
+        )
+    )
     session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
@@ -606,12 +614,12 @@ async def entrypoint(ctx: JobContext):
                 "[LIVE_TRANSCRIPT] Failed to close publisher: {}",
                 redact_sensitive(str(error)),
             )
-        if preview_mode:
-            return
-        try:
-            await call_finalizer.finalize()
-        except Exception as error:
-            logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        if not preview_mode:
+            try:
+                await call_finalizer.finalize()
+            except Exception as error:
+                logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        flush_langfuse(langfuse_trace_provider)
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)

@@ -5,6 +5,7 @@ livekit-plugins-deepgram~=1.6
 livekit-plugins-elevenlabs~=1.6
 livekit-plugins-sarvam~=1.6
 livekit-plugins-noise-cancellation~=0.2
+opentelemetry-exporter-otlp-proto-http>=1.25,<2
 python-dotenv~=1.0
 pytz>=2024.1,<2027
 loguru~=0.7
