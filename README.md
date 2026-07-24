@@ -189,7 +189,14 @@ DEEPGRAM_API_KEY=your-deepgram-key
 ELEVENLABS_API_KEY=your-elevenlabs-key
 ELEVENLABS_DEFAULT_VOICE_ID=your-voice-id
 SARVAM_API_KEY=your-sarvam-key
+# Optional: Langfuse call-level evaluation tracing
+LANGFUSE_ENABLED=true
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_SECRET_KEY=sk-lf-...
 ```
+
+When Langfuse is enabled, QuickVoice publishes a per-call evaluation trace at shutdown with call-level quality metrics (`call_completed`, `agent_response_rate`, `turn_balance`) and any configured `data_evaluated` results as Langfuse scores.
 
 Run the AI API and worker, then create a session through the embedded broker:
 
