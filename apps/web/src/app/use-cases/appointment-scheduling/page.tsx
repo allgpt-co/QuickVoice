@@ -10,7 +10,6 @@ import {
   AppointmentSchedulingVoiceSection,
   AppointmentSchedulingIntegrationsSection,
   AppointmentSchedulingIndustriesSection,
-  AppointmentSchedulingTestimonialsSection,
   AppointmentSchedulingFaqSection,
   AppointmentSchedulingCtaSection,
 } from "@/components/landing/appointment-scheduling";
@@ -19,7 +18,9 @@ export const metadata: Metadata = {
   title: "AI Appointment Scheduling Voice Agents",
   description:
     "Automate appointment booking, reminders, and rescheduling with AI voice agents. Reduce no-shows by 30%. No coding required. Free trial.",
-  alternates: { canonical: "https://quickvoice.co/use-cases/appointment-scheduling" },
+  alternates: {
+    canonical: "https://quickvoice.co/use-cases/appointment-scheduling",
+  },
   openGraph: {
     title: "AI Appointment Scheduling Voice Agents | QuickVoice",
     description:
@@ -44,9 +45,24 @@ export default async function AppointmentSchedulingPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://quickvoice.co" },
-      { "@type": "ListItem", position: 2, name: "Use Cases", item: "https://quickvoice.co/use-cases" },
-      { "@type": "ListItem", position: 3, name: "Appointment Scheduling", item: "https://quickvoice.co/use-cases/appointment-scheduling" },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://quickvoice.co",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Use Cases",
+        item: "https://quickvoice.co/use-cases",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "Appointment Scheduling",
+        item: "https://quickvoice.co/use-cases/appointment-scheduling",
+      },
     ],
   };
 
@@ -62,17 +78,32 @@ export default async function AppointmentSchedulingPage() {
       <AppointmentSchedulingVoiceSection />
       <AppointmentSchedulingIntegrationsSection />
       <AppointmentSchedulingIndustriesSection />
-      <AppointmentSchedulingTestimonialsSection />
       <AppointmentSchedulingFaqSection />
       <AppointmentSchedulingCtaSection />
       {guideContent && <GuideContentSection content={guideContent} />}
       <RelatedPages
         title="Related Solutions"
         pages={[
-          { title: "Reminders & Collections", href: "/use-cases/reminders-collections", description: "Automated reminders and payment follow-ups" },
-          { title: "Customer Support", href: "/use-cases/customer-support", description: "AI-powered customer support automation" },
-          { title: "Healthcare", href: "/industries/healthcare", description: "AI voice agents for healthcare" },
-          { title: "Education", href: "/industries/education", description: "AI voice agents for education" },
+          {
+            title: "Reminders & Collections",
+            href: "/use-cases/reminders-collections",
+            description: "Automated reminders and payment follow-ups",
+          },
+          {
+            title: "Customer Support",
+            href: "/use-cases/customer-support",
+            description: "AI-powered customer support automation",
+          },
+          {
+            title: "Healthcare",
+            href: "/industries/healthcare",
+            description: "AI voice agents for healthcare",
+          },
+          {
+            title: "Education",
+            href: "/industries/education",
+            description: "AI voice agents for education",
+          },
         ]}
       />
     </div>

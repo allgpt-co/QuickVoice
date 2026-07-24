@@ -10,7 +10,6 @@ import {
   SalesLeadGenCatalogSection,
   SalesLeadGenPostPurchaseSection,
   SalesLeadGenIndustriesSection,
-  SalesLeadGenTestimonialsSection,
   SalesLeadGenCtaSection,
 } from "@/components/landing/sales-lead-gen";
 
@@ -43,9 +42,24 @@ export default async function SalesLeadGenPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://quickvoice.co" },
-      { "@type": "ListItem", position: 2, name: "Use Cases", item: "https://quickvoice.co/use-cases" },
-      { "@type": "ListItem", position: 3, name: "Sales & Lead Generation", item: "https://quickvoice.co/use-cases/sales-lead-gen" },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://quickvoice.co",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Use Cases",
+        item: "https://quickvoice.co/use-cases",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "Sales & Lead Generation",
+        item: "https://quickvoice.co/use-cases/sales-lead-gen",
+      },
     ],
   };
 
@@ -61,16 +75,31 @@ export default async function SalesLeadGenPage() {
       <SalesLeadGenCatalogSection />
       <SalesLeadGenPostPurchaseSection />
       <SalesLeadGenIndustriesSection />
-      <SalesLeadGenTestimonialsSection />
       <SalesLeadGenCtaSection />
       {guideContent && <GuideContentSection content={guideContent} />}
       <RelatedPages
         title="Related Solutions"
         pages={[
-          { title: "Customer Support", href: "/use-cases/customer-support", description: "AI-powered customer support automation" },
-          { title: "Appointment Scheduling", href: "/use-cases/appointment-scheduling", description: "Automated booking and scheduling" },
-          { title: "Automotive", href: "/industries/automotive", description: "AI voice agents for automotive dealerships" },
-          { title: "Real Estate", href: "/industries/real-estate", description: "AI voice agents for real estate" },
+          {
+            title: "Customer Support",
+            href: "/use-cases/customer-support",
+            description: "AI-powered customer support automation",
+          },
+          {
+            title: "Appointment Scheduling",
+            href: "/use-cases/appointment-scheduling",
+            description: "Automated booking and scheduling",
+          },
+          {
+            title: "Automotive",
+            href: "/industries/automotive",
+            description: "AI voice agents for automotive dealerships",
+          },
+          {
+            title: "Real Estate",
+            href: "/industries/real-estate",
+            description: "AI voice agents for real estate",
+          },
         ]}
       />
     </div>

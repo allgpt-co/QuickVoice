@@ -46,7 +46,9 @@ test("required CI workflow gates pull requests with parallel quality shards", as
 
 test("security audit fails on high advisories and uses explicit suppressions", async () => {
   const workflow = await text(".github/workflows/security-audit.yml");
-  const suppressions = JSON.parse(await text("security/audit-suppressions.json"));
+  const suppressions = JSON.parse(
+    await text("security/audit-suppressions.json"),
+  );
 
   assert.match(workflow, /pnpm audit:deps/);
   assert.match(workflow, /--audit-level high/);
@@ -63,7 +65,7 @@ test("security audit fails on high advisories and uses explicit suppressions", a
     assert.ok(suppression.contexts.length > 0);
     for (const context of suppression.contexts) {
       assert.ok(
-        ["production dependencies", "all dependencies"].includes(context)
+        ["production dependencies", "all dependencies"].includes(context),
       );
     }
     const key = `${suppression.module}:${suppression.id}`;
@@ -80,7 +82,10 @@ test("deploy workflows are gated, immutable, scanned, signed, and environment pr
   assert.match(workflow, /build-server:/);
   assert.match(workflow, /build-ai:/);
   assert.match(workflow, /deploy:/);
-  assert.match(workflow, /needs: \[changes, validate-config, build-server, build-ai\]/);
+  assert.match(
+    workflow,
+    /needs: \[changes, validate-config, build-server, build-ai\]/,
+  );
   assert.match(workflow, /environment:/);
   assert.match(workflow, /Validate deployment configuration/);
   assert.match(workflow, /REQUIRED_AWS_ROLE_ARN/);
@@ -107,15 +112,25 @@ test("deploy workflows are gated, immutable, scanned, signed, and environment pr
 
 test("GitHub templates surface contributor workflow expectations", async () => {
   const pr = await text(".github/pull_request_template.md");
-  const issue = await text(".github/ISSUE_TEMPLATE.md");
+  const config = await text(".github/ISSUE_TEMPLATE/config.yml");
+  const bug = await text(".github/ISSUE_TEMPLATE/bug.yml");
+  const setup = await text(".github/ISSUE_TEMPLATE/setup.yml");
+  const docs = await text(".github/ISSUE_TEMPLATE/docs.yml");
+  const feature = await text(".github/ISSUE_TEMPLATE/feature.yml");
 
   assert.match(pr, /task doctor/);
   assert.match(pr, /pnpm ci:local/);
   assert.match(pr, /Dependency changes/);
   assert.match(pr, /UI screenshots/);
   assert.match(pr, /Environment changes/);
-  assert.match(issue, /Blocks `task up:dev`/);
-  assert.match(issue, /Security issue disclosure question only/);
+  assert.match(config, /blank_issues_enabled: false/);
+  assert.match(config, /security\/policy/);
+  assert.match(bug, /Minimal reproduction/);
+  assert.match(bug, /unpatched security vulnerability/);
+  assert.match(setup, /task up:dev/);
+  assert.match(setup, /Native Windows PowerShell/);
+  assert.match(docs, /Repository evidence/);
+  assert.match(feature, /wait for scope agreement and assignment/);
 });
 
 test("server runtime image installs only production server dependencies", async () => {
@@ -123,18 +138,27 @@ test("server runtime image installs only production server dependencies", async 
 
   assert.match(
     dockerfile,
-    /pnpm install --frozen-lockfile --prod --filter server\.\.\./
+    /pnpm install --frozen-lockfile --prod --filter server\.\.\./,
   );
   assert.doesNotMatch(dockerfile, /pnpm .*deploy/);
   assert.match(dockerfile, /apt-get upgrade -y/);
-  assert.match(dockerfile, /COPY packages\/typescript-config packages\/typescript-config/);
+  assert.match(
+    dockerfile,
+    /COPY packages\/typescript-config packages\/typescript-config/,
+  );
   assert.match(dockerfile, /rm -rf[\s\S]*\/root\/\.cache\/node/);
   assert.match(dockerfile, /rm -rf[\s\S]*\/usr\/local\/lib\/node_modules\/npm/);
-  assert.match(dockerfile, /rm -rf[\s\S]*\/usr\/local\/lib\/node_modules\/corepack/);
-  assert.doesNotMatch(dockerfile, /COPY packages\/typescript-config\/package\.json/);
+  assert.match(
+    dockerfile,
+    /rm -rf[\s\S]*\/usr\/local\/lib\/node_modules\/corepack/,
+  );
   assert.doesNotMatch(
     dockerfile,
-    /COPY --from=build .*\/app\/node_modules \/app\/node_modules/
+    /COPY packages\/typescript-config\/package\.json/,
+  );
+  assert.doesNotMatch(
+    dockerfile,
+    /COPY --from=build .*\/app\/node_modules \/app\/node_modules/,
   );
 });
 
@@ -149,12 +173,7 @@ test("server runtime image lets the non-root user run Prisma migrations", async 
 test("Dependabot covers npm, GitHub Actions, Dockerfiles, and AI Python requirements", async () => {
   const dependabot = await text(".github/dependabot.yml");
 
-  for (const ecosystem of [
-    "npm",
-    "github-actions",
-    "docker",
-    "pip",
-  ]) {
+  for (const ecosystem of ["npm", "github-actions", "docker", "pip"]) {
     assert.match(dependabot, new RegExp(`package-ecosystem: "${ecosystem}"`));
   }
 

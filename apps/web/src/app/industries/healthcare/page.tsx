@@ -1,123 +1,216 @@
+import { EvidenceStatusNotice } from "@/components/evidence-status-notice";
 import type { Metadata } from "next";
-
-import { GuideContentSection } from "@/components/landing/GuideContentSection";
-import { RelatedPages } from "@/components/landing/related-pages";
-import { getIndustryContent } from "@/lib/industries";
+import Link from "next/link";
 import {
-  HealthcareHeroSection,
-  HealthcareFeaturesSection,
-  HealthcareBenefitsSection,
-  HealthcareSecuritySection,
-  HealthcareIntegrationsSection,
-  HealthcareFaqSection,
-  HealthcareCtaSection
-} from "@/components/landing/healthcare";
+  ArrowRight,
+  BellRing,
+  CalendarClock,
+  ClipboardList,
+  PhoneIncoming,
+  ShieldCheck,
+  Stethoscope,
+} from "lucide-react";
 
 export const metadata: Metadata = {
-  title: "AI Voice Agents for Healthcare | HIPAA Compliant",
-  description: "Deploy HIPAA-compliant AI voice agents for appointment scheduling, patient reminders, insurance verification, and post-discharge follow-ups. No coding required. Free trial.",
+  title: "Open-Source AI Phone-Agent Infrastructure for Healthcare",
+  description:
+    "Evaluate self-hostable AI phone-agent workflows for healthcare scheduling, reminders, routing, and follow-up with explicit provider and compliance boundaries.",
   alternates: { canonical: "https://quickvoice.co/industries/healthcare" },
   openGraph: {
-    title: "AI Voice Agents for Healthcare | HIPAA Compliant",
-    description: "HIPAA-compliant AI voice agents for appointment scheduling, patient reminders, and healthcare operations.",
+    title: "QuickVoice for Healthcare Workflows",
+    description:
+      "Inspect and adapt open-source phone-agent infrastructure for healthcare workflows. Compliance depends on deployment, controls, contracts, providers, and operations.",
     url: "https://quickvoice.co/industries/healthcare",
     siteName: "QuickVoice",
-    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "AI Voice Agents for Healthcare | HIPAA Compliant",
-    description: "HIPAA-compliant AI voice agents for appointment scheduling, patient reminders, and healthcare operations.",
-    images: ["/og-image.png"],
+    type: "website",
   },
 };
 
-export default async function HealthcarePage() {
-  const guideContent = getIndustryContent("healthcare");
-  const structuredData = {
+const workflows = [
+  {
+    icon: PhoneIncoming,
+    title: "Call intake and routing",
+    description:
+      "Collect the caller’s stated need, apply an approved routing policy, and transfer or escalate when the agent should not continue.",
+  },
+  {
+    icon: CalendarClock,
+    title: "Scheduling workflows",
+    description:
+      "Connect an approved scheduling source, constrain which appointment actions are allowed, and preserve a human handoff for exceptions.",
+  },
+  {
+    icon: BellRing,
+    title: "Reminders and follow-up",
+    description:
+      "Run consent-aware reminder flows with identity checks, minimal disclosure, opt-out handling, and documented escalation paths.",
+  },
+  {
+    icon: ClipboardList,
+    title: "Structured call outcomes",
+    description:
+      "Capture only the operational fields a workflow needs, then review where transcripts, recordings, summaries, and exports are stored.",
+  },
+];
+
+const evaluationQuestions = [
+  "Which data is necessary for this call, and which data must never enter a prompt, transcript, recording, or log?",
+  "How is caller identity checked before sensitive information or actions are allowed?",
+  "Which telephony, speech, model, storage, analytics, and integration providers receive data?",
+  "What happens when the agent is uncertain, a caller withdraws consent, or a provider becomes unavailable?",
+  "Who can view, export, correct, retain, and delete call data in the deployed environment?",
+  "Which contracts, notices, risk assessments, policies, and approvals are required before production use?",
+];
+
+export default function HealthcarePage() {
+  const pageSchema = {
     "@context": "https://schema.org",
     "@type": "WebPage",
-    "name": "Transforming Healthcare Communication with QuickVoice Voice AI Agents",
-    "description": "Revolutionize patient engagement with QuickVoice's cutting-edge Voice AI Agents. Automate call routing, scheduling, and patient interactions for a better healthcare experience.",
-    "url": "https://quickvoice.co/industries/healthcare",
-    "mainEntity": {
-      "@type": "SoftwareApplication",
-      "name": "QuickVoice",
-      "applicationCategory": "BusinessApplication",
-      "operatingSystem": "Web",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      }
-    },
-    "breadcrumb": {
-      "@type": "BreadcrumbList",
-      "itemListElement": [
-        {
-          "@type": "ListItem",
-          "position": 1,
-          "name": "Home",
-          "item": "https://quickvoice.co"
-        },
-        {
-          "@type": "ListItem",
-          "position": 2,
-          "name": "Industries",
-          "item": "https://quickvoice.co/industries"
-        },
-        {
-          "@type": "ListItem",
-          "position": 3,
-          "name": "Healthcare",
-          "item": "https://quickvoice.co/industries/healthcare"
-        }
-      ]
-    }
-  };
-
-  const faqSchema = {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      { "@type": "Question", "name": "How does QuickVoice ensure HIPAA compliance for healthcare organizations?", "acceptedAnswer": { "@type": "Answer", "text": "QuickVoice is fully HIPAA compliant with comprehensive Business Associate Agreements (BAA), automatic PHI redaction from call recordings, encrypted data transmission, and complete audit logs. We maintain SOC 2 Type II certification and follow strict data handling protocols to protect patient information." } },
-      { "@type": "Question", "name": "Can QuickVoice integrate with our existing EHR system like Epic or Cerner?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, QuickVoice offers native integrations with leading EHR systems including Epic, Cerner, athenahealth, Allscripts, NextGen, and eClinicalWorks. Our API-first approach allows seamless data synchronization for patient scheduling, appointment management, and call routing based on patient records." } },
-      { "@type": "Question", "name": "How does the AI-powered call routing work for multiple clinic locations?", "acceptedAnswer": { "@type": "Answer", "text": "QuickVoice uses advanced AI to route calls based on patient ZIP code, spoken location preferences, department needs, and clinic availability. The system can automatically transfer patients to the nearest available clinic, schedule appointments at the most convenient location, and handle complex multi-location routing scenarios without human intervention." } },
-      { "@type": "Question", "name": "What kind of patient data security measures are in place?", "acceptedAnswer": { "@type": "Answer", "text": "We implement enterprise-grade security including end-to-end encryption, automatic PHI redaction, consent capture for all recordings, role-based access controls, and comprehensive audit trails. All data is stored in HIPAA-compliant data centers with regular security assessments and compliance monitoring." } },
-      { "@type": "Question", "name": "How quickly can we implement QuickVoice in our healthcare organization?", "acceptedAnswer": { "@type": "Answer", "text": "QuickVoice offers rapid deployment with our no-code configuration platform. Most healthcare organizations can be up and running within 2-4 weeks, including EHR integration, staff training, and workflow optimization. Our dedicated healthcare implementation team ensures smooth transition with minimal disruption to patient care." } },
-      { "@type": "Question", "name": "Does QuickVoice support multilingual patient communication?", "acceptedAnswer": { "@type": "Answer", "text": "Yes, QuickVoice supports over 100 languages and dialects, making it ideal for diverse patient populations. The AI can automatically detect patient language preferences, provide culturally appropriate responses, and ensure accurate medical terminology translation for better patient understanding and care coordination." } },
-    ],
+    name: "Open-Source AI Phone-Agent Infrastructure for Healthcare",
+    description:
+      "A factual overview of healthcare workflow patterns and deployment review boundaries for QuickVoice.",
+    url: "https://quickvoice.co/industries/healthcare",
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-background text-foreground">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }}
       />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-      />
-      <HealthcareHeroSection />
-      <HealthcareFeaturesSection />
-      <HealthcareBenefitsSection />
-      <HealthcareSecuritySection />
-      <HealthcareIntegrationsSection />
-      <HealthcareFaqSection />
-      <HealthcareCtaSection />
-      {guideContent && <GuideContentSection content={guideContent} />}
-      <RelatedPages
-        title="Related Solutions & Industries"
-        pages={[
-          { title: "24/7 Customer Support", href: "/use-cases/customer-support", description: "AI-powered customer support that never sleeps" },
-          { title: "Appointment Scheduling", href: "/use-cases/appointment-scheduling", description: "Automate booking, reminders, and rescheduling" },
-          { title: "HIPAA Compliance", href: "/compliance/hipaa", description: "Enterprise-grade security for healthcare voice AI" },
-          { title: "Reminders & Collections", href: "/use-cases/reminders-collections", description: "Automated patient reminders and payment follow-ups" },
-          { title: "Financial Services", href: "/industries/financial-services", description: "AI voice agents for banking and insurance" },
-          { title: "Education", href: "/industries/education", description: "AI voice agents for student engagement" },
-        ]}
-      />
-    </div>
+
+      <section className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-16 pt-32 sm:pb-20">
+        <div className="mx-auto max-w-5xl">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 font-mono text-xs uppercase tracking-[0.16em] text-primary">
+            <Stethoscope className="h-4 w-4" aria-hidden="true" />
+            Healthcare workflow infrastructure
+          </div>
+          <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight sm:text-6xl">
+            Build healthcare phone workflows on a stack you can inspect
+          </h1>
+          <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
+            QuickVoice exposes the console, API, agent worker, call data paths,
+            and provider boundaries so a healthcare team can evaluate and adapt
+            them before considering production use.
+          </p>
+
+          <div className="mt-10">
+            <EvidenceStatusNotice title="Healthcare use requires a full deployment review">
+              <p>
+                QuickVoice does not claim that a fresh clone, repository, or
+                generic deployment is HIPAA compliant. Do not process protected
+                health information until your security, privacy, legal, and
+                operational owners approve the exact deployment and all required
+                provider agreements are in place.
+              </p>
+            </EvidenceStatusNotice>
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/open-source"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+            >
+              Inspect the repository
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+            <Link
+              href="/compliance/hipaa"
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-3 font-medium transition hover:bg-muted"
+            >
+              Healthcare deployment checklist
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="px-6 py-16 sm:py-24">
+        <div className="mx-auto max-w-5xl">
+          <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
+            Workflow patterns
+          </p>
+          <h2 className="mt-4 max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
+            Start with bounded, reviewable call flows
+          </h2>
+          <p className="mt-5 max-w-3xl leading-7 text-muted-foreground">
+            These are implementation patterns, not claims of native EHR
+            integrations, clinical decision support, automatic compliance, or
+            guaranteed outcomes.
+          </p>
+
+          <div className="mt-10 grid gap-5 sm:grid-cols-2">
+            {workflows.map((workflow) => (
+              <article
+                key={workflow.title}
+                className="rounded-xl border border-border bg-card p-6"
+              >
+                <workflow.icon
+                  className="h-6 w-6 text-primary"
+                  aria-hidden="true"
+                />
+                <h3 className="mt-5 text-xl font-semibold">{workflow.title}</h3>
+                <p className="mt-3 leading-7 text-muted-foreground">
+                  {workflow.description}
+                </p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-y border-border bg-muted/30 px-6 py-16 sm:py-24">
+        <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <ShieldCheck className="h-8 w-8 text-primary" aria-hidden="true" />
+            <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">
+              Questions to answer before implementation
+            </h2>
+            <p className="mt-5 leading-7 text-muted-foreground">
+              Turn each answer into a testable requirement, named owner, and
+              review artifact.
+            </p>
+          </div>
+
+          <ol className="space-y-4">
+            {evaluationQuestions.map((question, index) => (
+              <li
+                key={question}
+                className="grid grid-cols-[36px_1fr] gap-4 rounded-xl border border-border bg-background p-5"
+              >
+                <span className="font-mono text-sm text-primary">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <p className="leading-7">{question}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="px-6 py-16">
+        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 rounded-2xl border border-primary/25 bg-primary/5 p-8 sm:flex-row sm:items-center sm:p-10">
+          <div>
+            <p className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
+              Source before claims
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold">
+              Review the code-backed boundaries with your team
+            </h2>
+            <p className="mt-2 max-w-2xl leading-7 text-muted-foreground">
+              Start locally, document gaps, and treat every production
+              integration and compliance requirement as an explicit engineering
+              and governance decision.
+            </p>
+          </div>
+          <Link
+            href="/company/contact"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+          >
+            Discuss requirements
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+    </main>
   );
 }

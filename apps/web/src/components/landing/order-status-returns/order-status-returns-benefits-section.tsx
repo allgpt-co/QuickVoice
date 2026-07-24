@@ -99,9 +99,9 @@ export function OrderStatusReturnsBenefitsSection() {
               Why QuickVoice?
             </h2>
             <p className="mx-auto max-w-3xl text-lg text-foreground/70">
-              By leveraging QuickVoice&apos;s AI voice agents, businesses can streamline order
-              status updates and returns, enhancing customer satisfaction and operational
-              efficiency across industries.
+              By leveraging QuickVoice&apos;s AI voice agents, businesses can
+              streamline order status updates and returns, enhancing customer
+              satisfaction and operational efficiency across industries.
             </p>
           </div>
           <div
@@ -190,9 +190,13 @@ export function OrderStatusReturnsBenefitsSection() {
                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
                       <Icon className="h-8 w-8 text-white" />
                     </div>
-                    <div className="text-2xl font-bold text-white mb-2">{stat.number}</div>
+                    <div className="text-2xl font-bold text-white mb-2">
+                      {stat.number}
+                    </div>
                     <div className="text-white/80">{stat.label}</div>
-                    <div className="text-sm text-white/70 mt-1">{stat.description}</div>
+                    <div className="text-sm text-white/70 mt-1">
+                      {stat.description}
+                    </div>
                   </div>
                 );
               })}
@@ -217,8 +221,8 @@ export function OrderStatusReturnsBenefitsSection() {
                 Ready to Transform Your Order Management?
               </h3>
               <p className="mx-auto mb-6 max-w-2xl text-lg text-white/90">
-                Join thousands of businesses already using QuickVoice to streamline their
-                order status updates and returns processing.
+                Evaluate order-status and returns workflows against your own
+                systems, policies, escalation rules, and test data.
               </p>
               <div className="flex justify-center">
                 <a

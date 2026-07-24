@@ -2,11 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, Github } from "lucide-react";
 import Link from "next/link";
 import { Button } from "../ui/button";
 import Logo1 from "../logo1";
-import { DEMO_BOOKING_URL, LOGIN_URL, REGISTER_URL } from "@/lib/links";
+import {
+  DEMO_BOOKING_URL,
+  GITHUB_REPO_URL,
+  LOGIN_URL,
+  REGISTER_URL,
+} from "@/lib/links";
 
 interface NavItem {
   name: string;
@@ -98,9 +103,10 @@ const navItems: NavItem[] = [
     ],
   },
   { name: "Pricing", href: "/pricing" },
+  { name: "Open Source", href: "/open-source" },
   { name: "Blog", href: "/blog" },
   {
-    name: "Customers",
+    name: "Scenarios",
     href: "/case-studies",
     hasDropdown: false,
   },
@@ -152,9 +158,9 @@ export default function Header1() {
           {/* Desktop Nav */}
           <nav
             aria-label="Main navigation"
-            className="hidden lg:flex items-center space-x-8"
+            className="hidden xl:flex items-center space-x-6"
           >
-            <ul className="flex items-center space-x-6">
+            <ul className="flex items-center space-x-5">
               {navItems.map((item) => {
                 const dropdownId = `desktop-nav-${item.name
                   .toLowerCase()
@@ -195,7 +201,9 @@ export default function Header1() {
                       href={item.href}
                       aria-haspopup={item.hasDropdown ? "true" : undefined}
                       aria-expanded={
-                        item.hasDropdown ? activeDropdown === item.name : undefined
+                        item.hasDropdown
+                          ? activeDropdown === item.name
+                          : undefined
                       }
                       aria-controls={item.hasDropdown ? dropdownId : undefined}
                       className="flex items-center space-x-1 font-medium text-foreground hover:text-primary transition"
@@ -270,7 +278,18 @@ export default function Header1() {
 
           {/* Right Side (Auth + CTA) */}
           <div className="flex items-center gap-2">
-            <div className="hidden lg:flex items-center gap-2">
+            <div className="hidden xl:flex items-center gap-2">
+              <Button variant="ghost" asChild>
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-analytics-location="desktop_nav"
+                >
+                  <Github aria-hidden="true" />
+                  GitHub
+                </a>
+              </Button>
               <Button variant="ghost" asChild>
                 <Link href={LOGIN_URL}>Log in</Link>
               </Button>
@@ -283,13 +302,13 @@ export default function Header1() {
             </div>
             <Link
               href={DEMO_BOOKING_URL}
-              className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 text-sm font-medium text-white shadow-xs transition-all hover:bg-primary/90 sm:px-4 lg:hidden"
+              className="inline-flex h-9 items-center justify-center whitespace-nowrap rounded-md bg-primary px-3 text-sm font-medium text-white shadow-xs transition-all hover:bg-primary/90 sm:px-4 xl:hidden"
             >
               Book a Demo
             </Link>
             {/* Mobile Menu Button */}
             <button
-              className="lg:hidden rounded-lg p-2 hover:bg-muted transition"
+              className="xl:hidden rounded-lg p-2 hover:bg-muted transition"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
               aria-expanded={isMobileMenuOpen}
@@ -311,7 +330,7 @@ export default function Header1() {
           <motion.nav
             id="mobile-nav"
             aria-label="Mobile navigation"
-            className="lg:hidden mx-4 mt-2 rounded-xl border border-border bg-background shadow-xl backdrop-blur p-4 space-y-2"
+            className="xl:hidden mx-4 mt-2 rounded-xl border border-border bg-background shadow-xl backdrop-blur p-4 space-y-2"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -411,7 +430,22 @@ export default function Header1() {
             </ul>
             <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
               <Button variant="outline" asChild className="w-full">
-                <Link href={LOGIN_URL} onClick={() => setIsMobileMenuOpen(false)}>
+                <a
+                  href={GITHUB_REPO_URL}
+                  target="_blank"
+                  rel="noreferrer"
+                  data-analytics-location="mobile_nav"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <Github aria-hidden="true" />
+                  View on GitHub
+                </a>
+              </Button>
+              <Button variant="outline" asChild className="w-full">
+                <Link
+                  href={LOGIN_URL}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
                   Log in
                 </Link>
               </Button>

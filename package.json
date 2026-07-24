@@ -22,7 +22,9 @@
     "ci:python": "cd apps/ai && if [ -x .venv/bin/python ]; then .venv/bin/python -m pytest tests; else python3 -m pytest tests; fi",
     "ci:docker": "scripts/ci-docker-build.sh",
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
-    "audit:deps": "node scripts/security-audit.mjs"
+    "audit:deps": "node scripts/security-audit.mjs",
+    "claims:audit": "node scripts/audit-public-claims.mjs",
+    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
@@ -31,7 +33,7 @@
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=18"
+    "node": ">=20.9"
   },
   "dependencies": {
     "better-auth": "^1.6.19"

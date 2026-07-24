@@ -1,0 +1,95 @@
+name: Setup failure
+description: Report a clean-clone, prerequisite, Docker, migration, or local startup blocker.
+title: "[Setup]: "
+labels:
+  - bug
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for failures in `task doctor`, `task up:dev`, dependency installation, Docker Compose, or local migrations.
+
+        QuickVoice's one-command scripts require Linux with Bash >=4. On Windows, use WSL2, a Dev Container, or Codespaces. Placeholder env values do not make live calls, OAuth, billing, email, storage, or other provider-backed features work.
+  - type: dropdown
+    id: host
+    attributes:
+      label: Host environment
+      options:
+        - Linux
+        - macOS with Bash >=4
+        - Windows with WSL2
+        - Dev Container
+        - GitHub Codespaces
+        - Native Windows PowerShell or Command Prompt
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Failing stage
+      options:
+        - task doctor
+        - Environment-file bootstrap
+        - Node dependency install
+        - Python virtualenv or dependency install
+        - Docker Compose startup
+        - Prisma migration
+        - Service startup or readiness
+        - Console or API access after startup
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: versions
+    attributes:
+      label: Tool versions
+      description: Paste version output only; do not paste environment files.
+      placeholder: |
+        bash --version:
+        node --version:
+        pnpm --version:
+        task --version:
+        python3 --version:
+        docker --version:
+        docker compose version:
+        git rev-parse --short HEAD:
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Command and first relevant error
+      description: Include the exact command and a redacted error excerpt.
+      render: shell
+    validations:
+      required: true
+  - type: textarea
+    id: attempts
+    attributes:
+      label: What you already checked
+      placeholder: Note the relevant doctor output, Docker health state, or documentation you followed.
+    validations:
+      required: true
+  - type: dropdown
+    id: provider_boundary
+    attributes:
+      label: Does this require an external provider?
+      options:
+        - No, it fails before provider-backed behavior
+        - Unsure
+        - Yes, it occurs after I configured my own provider account
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I read the README host guidance and setup boundaries.
+          required: true
+        - label: I searched for an existing setup issue or pull request.
+          required: true
+        - label: I did not paste an env file, credential, token, signed URL, or customer data.
+          required: true

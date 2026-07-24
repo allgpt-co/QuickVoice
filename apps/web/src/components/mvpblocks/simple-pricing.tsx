@@ -65,11 +65,7 @@ const PLANS = [
     minutes: "245 mins/mo",
     effectiveRate: "$0.20/min",
     overageRate: "$0.25/min",
-    keyFeatures: [
-      "Basic analytics",
-      "Email support",
-      "Telephony enabled",
-    ],
+    keyFeatures: ["Basic analytics", "Email support", "Telephony enabled"],
     cta: "Subscribe",
     ctaHref: REGISTER_URL,
     popular: false,
@@ -100,8 +96,8 @@ const PLANS = [
     effectiveRate: "$0.15/min",
     overageRate: "$0.20/min",
     keyFeatures: [
-      "HIPAA-ready logging",
-      "BAA available for healthcare",
+      "Retention configuration",
+      "Redaction controls",
       "Priority support",
       "Reserved concurrency",
     ],
@@ -118,7 +114,7 @@ const PLANS = [
     effectiveRate: "$0.15/min",
     overageRate: "Custom",
     keyFeatures: [
-      "Custom SLA & BAA",
+      "Custom commercial terms",
       "Dedicated support",
       "Private networking & SSO/SCIM",
     ],
@@ -133,21 +129,45 @@ const PLANS = [
 /* ------------------------------------------------------------------ */
 
 const FEATURE_ROWS: { label: string; plans: boolean[] }[] = [
-  { label: "Browser playground",        plans: [true,  true,  true,  true,  true,  true] },
-  { label: "API & webhooks",            plans: [false, true,  true,  true,  true,  true] },
-  { label: "Telephony (inbound/outbound)", plans: [false, true, true, true, true, true] },
-  { label: "Call transcripts",          plans: [false, false, false, true,  true,  true] },
-  { label: "PII redaction",             plans: [false, false, false, true,  true,  true] },
-  { label: "Analytics dashboard",       plans: [false, false, true,  true,  true,  true] },
-  { label: "Email support",             plans: [false, false, true,  true,  true,  true] },
-  { label: "Priority support",          plans: [false, false, false, false, true,  true] },
-  { label: "HIPAA-ready logging",       plans: [false, false, false, false, true,  true] },
-  { label: "Reserved concurrency",      plans: [false, false, false, false, true,  true] },
-  { label: "SSO / SCIM",                plans: [false, false, false, false, false, true] },
-  { label: "Custom SLA",                plans: [false, false, false, false, false, true] },
-  { label: "BAA available",             plans: [false, false, false, false, true,  true] },
-  { label: "Private networking",        plans: [false, false, false, false, false, true] },
-  { label: "Dedicated account manager", plans: [false, false, false, false, false, true] },
+  { label: "Browser playground", plans: [true, true, true, true, true, true] },
+  { label: "API & webhooks", plans: [false, true, true, true, true, true] },
+  {
+    label: "Telephony (inbound/outbound)",
+    plans: [false, true, true, true, true, true],
+  },
+  { label: "Call transcripts", plans: [false, false, false, true, true, true] },
+  { label: "PII redaction", plans: [false, false, false, true, true, true] },
+  {
+    label: "Analytics dashboard",
+    plans: [false, false, true, true, true, true],
+  },
+  { label: "Email support", plans: [false, false, true, true, true, true] },
+  {
+    label: "Priority support",
+    plans: [false, false, false, false, true, true],
+  },
+  {
+    label: "Retention configuration",
+    plans: [false, false, false, false, true, true],
+  },
+  {
+    label: "Reserved concurrency",
+    plans: [false, false, false, false, true, true],
+  },
+  { label: "SSO / SCIM", plans: [false, false, false, false, false, true] },
+  { label: "Custom SLA", plans: [false, false, false, false, false, true] },
+  {
+    label: "Redaction controls",
+    plans: [false, false, false, false, true, true],
+  },
+  {
+    label: "Private networking",
+    plans: [false, false, false, false, false, true],
+  },
+  {
+    label: "Dedicated account manager",
+    plans: [false, false, false, false, false, true],
+  },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -177,7 +197,7 @@ const FAQS = [
   },
   {
     q: "Is QuickVoice HIPAA-compliant?",
-    a: "Our Scale and Enterprise healthcare plans include HIPAA-ready logging, and we can sign a Business Associate Agreement (BAA) before any PHI is processed. Contact us to discuss compliance requirements.",
+    a: "The repository or plan selection does not by itself establish HIPAA compliance. A healthcare deployment requires review of the exact configuration, providers, contracts, access controls, retention, operations, and legal obligations. Do not process PHI until your organization completes that review.",
   },
   {
     q: "What payment methods do you accept?",
@@ -202,12 +222,48 @@ const pricingSchema = {
   browserRequirements: "Requires JavaScript. Requires HTML5.",
   url: "https://quickvoice.co/pricing",
   offers: [
-    { "@type": "Offer", name: "Free",       price: "0",    priceCurrency: "USD", description: "1 agent, 15 mins/mo, browser only" },
-    { "@type": "Offer", name: "PAYG",       price: "0",    priceCurrency: "USD", description: "Pay $0.25/min, 1 agent, telephony enabled" },
-    { "@type": "Offer", name: "Starter",    price: "49",   priceCurrency: "USD", description: "3 agents, 245 mins/mo included" },
-    { "@type": "Offer", name: "Growth",     price: "99",   priceCurrency: "USD", description: "5 agents, 600 mins/mo included" },
-    { "@type": "Offer", name: "Scale",      price: "399",  priceCurrency: "USD", description: "10 agents, 2,660 mins/mo included" },
-    { "@type": "Offer", name: "Enterprise", price: "1500", priceCurrency: "USD", description: "Custom agents and minutes, dedicated support" },
+    {
+      "@type": "Offer",
+      name: "Free",
+      price: "0",
+      priceCurrency: "USD",
+      description: "1 agent, 15 mins/mo, browser only",
+    },
+    {
+      "@type": "Offer",
+      name: "PAYG",
+      price: "0",
+      priceCurrency: "USD",
+      description: "Pay $0.25/min, 1 agent, telephony enabled",
+    },
+    {
+      "@type": "Offer",
+      name: "Starter",
+      price: "49",
+      priceCurrency: "USD",
+      description: "3 agents, 245 mins/mo included",
+    },
+    {
+      "@type": "Offer",
+      name: "Growth",
+      price: "99",
+      priceCurrency: "USD",
+      description: "5 agents, 600 mins/mo included",
+    },
+    {
+      "@type": "Offer",
+      name: "Scale",
+      price: "399",
+      priceCurrency: "USD",
+      description: "10 agents, 2,660 mins/mo included",
+    },
+    {
+      "@type": "Offer",
+      name: "Enterprise",
+      price: "1500",
+      priceCurrency: "USD",
+      description: "Custom agents and minutes, dedicated support",
+    },
   ],
 };
 
@@ -617,8 +673,8 @@ export default function PricingPage() {
             Ready to automate your calls?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
-            Join thousands of businesses using QuickVoice to handle inbound and
-            outbound calls with AI voice agents. Start free today.
+            Compare the hosted options with the open-source path, then validate
+            current terms and provider costs for your deployment.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link

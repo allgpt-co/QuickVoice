@@ -11,7 +11,6 @@ import {
   CustomerSupportIntegrationsSection,
   CustomerSupportIndustriesSection,
   CustomerSupportSuccessSection,
-  CustomerSupportTestimonialsSection,
   CustomerSupportFaqSection,
   CustomerSupportCtaSection,
 } from "@/components/landing/customer-support";
@@ -45,9 +44,24 @@ export default async function CustomerSupportPage() {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://quickvoice.co" },
-      { "@type": "ListItem", position: 2, name: "Use Cases", item: "https://quickvoice.co/use-cases" },
-      { "@type": "ListItem", position: 3, name: "Customer Support", item: "https://quickvoice.co/use-cases/customer-support" },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://quickvoice.co",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Use Cases",
+        item: "https://quickvoice.co/use-cases",
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: "Customer Support",
+        item: "https://quickvoice.co/use-cases/customer-support",
+      },
     ],
   };
 
@@ -64,17 +78,32 @@ export default async function CustomerSupportPage() {
       <CustomerSupportIntegrationsSection />
       <CustomerSupportIndustriesSection />
       <CustomerSupportSuccessSection />
-      <CustomerSupportTestimonialsSection />
       <CustomerSupportFaqSection />
       <CustomerSupportCtaSection />
       {guideContent && <GuideContentSection content={guideContent} />}
       <RelatedPages
         title="Related Solutions"
         pages={[
-          { title: "Sales & Lead Generation", href: "/use-cases/sales-lead-gen", description: "AI-powered outbound sales and lead qualification" },
-          { title: "Order Status & Returns", href: "/use-cases/order-status-returns", description: "Automated order tracking and return processing" },
-          { title: "Healthcare", href: "/industries/healthcare", description: "AI voice agents for healthcare organizations" },
-          { title: "E-Commerce", href: "/industries/e-commerce", description: "AI voice agents for online retail" },
+          {
+            title: "Sales & Lead Generation",
+            href: "/use-cases/sales-lead-gen",
+            description: "AI-powered outbound sales and lead qualification",
+          },
+          {
+            title: "Order Status & Returns",
+            href: "/use-cases/order-status-returns",
+            description: "Automated order tracking and return processing",
+          },
+          {
+            title: "Healthcare",
+            href: "/industries/healthcare",
+            description: "AI voice agents for healthcare organizations",
+          },
+          {
+            title: "E-Commerce",
+            href: "/industries/e-commerce",
+            description: "AI voice agents for online retail",
+          },
         ]}
       />
     </div>

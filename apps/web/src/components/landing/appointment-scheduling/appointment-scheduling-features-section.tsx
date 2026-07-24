@@ -69,8 +69,8 @@ export function AppointmentSchedulingFeaturesSection() {
               Why Choose QuickVoice&apos;s AI Appointment Setter?
             </h2>
             <p className="mx-auto max-w-3xl text-lg text-foreground/70">
-              Transform your appointment management with AI-powered scheduling that works around the
-              clock.
+              Transform your appointment management with AI-powered scheduling
+              that works around the clock.
             </p>
           </div>
           <div
@@ -92,7 +92,7 @@ export function AppointmentSchedulingFeaturesSection() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{
                 default: { duration: 0.6, delay: index * 0.1 },
-                y: { duration: 0.2, ease: "easeOut" }
+                y: { duration: 0.2, ease: "easeOut" },
               }}
               viewport={{ once: true }}
               whileHover={{ y: -4 }}
@@ -131,8 +131,8 @@ export function AppointmentSchedulingFeaturesSection() {
               Ready to Automate Your Scheduling?
             </h3>
             <p className="mx-auto mb-6 max-w-2xl text-lg text-foreground/70">
-              Join thousands of businesses already using AI appointment setters to streamline their
-              operations.
+              Evaluate the scheduling flow with your own calendar, permissions,
+              fallback rules, and test data.
             </p>
             <Link
               href={REGISTER_URL}

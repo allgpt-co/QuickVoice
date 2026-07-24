@@ -8,6 +8,8 @@ Website: [quickvoice.co](https://quickvoice.co)
 
 [![GitHub stars](https://img.shields.io/github/stars/allgpt-co/QuickVoice?style=social)](https://github.com/allgpt-co/QuickVoice/stargazers)
 
+> **Project status:** QuickVoice is under active development and has not published a stable release yet. Review the [roadmap](./ROADMAP.md), [draft v0.1.0 notes](./docs/releases/v0.1.0-draft.md), and [known setup boundaries](#setup-boundaries) before evaluating it for production.
+
 <p align="center">
   <img src="./apps/web/public/dashboard.png" alt="QuickVoice console dashboard preview" width="920">
 </p>
@@ -34,13 +36,44 @@ flowchart LR
 
 ## Quick Start
 
-If your machine already has Docker, Docker Compose, Go Task, Node.js `>=18`, and Python 3, the local path is one command:
+The supported one-command development path is a Linux environment with:
+
+- Bash `>=4`
+- Node.js `>=20.9` and Corepack
+- `pnpm@9.0.0` (activated by the setup task)
+- Python 3; Python 3.12 matches CI and the AI runtime image
+- Docker with the Compose v2 plugin
+- [Go Task](https://taskfile.dev/)
+
+Then run:
 
 ```sh
 task up:dev
 ```
 
 `task up` and `task dev` are aliases. Go Task treats spaces as separate task names, so prefer `task up:dev` for the explicit form.
+
+### Choose Your Host
+
+| Host    | Support level                | Guidance                                                                                                                                                                                                                     |
+| ------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux   | Supported                    | Install the prerequisites above, run `task doctor`, then run `task up:dev`.                                                                                                                                                  |
+| macOS   | Supported with current tools | Install Docker Desktop and a modern Bash (`>=4`). The Bash 3.2 bundled with macOS is not sufficient for every orchestration script. Verify `bash --version`, `docker compose version`, and `task --version` before starting. |
+| Windows | Use WSL2                     | Native PowerShell and Command Prompt are not supported by the Bash-based Taskfile scripts. Use WSL2 with Docker Desktop's WSL integration.                                                                                   |
+
+On Debian, Ubuntu, or WSL2, Docker, Python, and the Go toolchain can be installed with:
+
+```sh
+sudo apt-get update
+sudo apt-get install -y docker.io docker-compose-v2 golang-go python3 python3-venv
+sudo usermod -aG docker "$USER"
+go install github.com/go-task/task/v3/cmd/task@latest
+export PATH="$PATH:$HOME/go/bin"
+```
+
+Install Node.js `>=20.9` separately with a version manager or the official Node.js packages; a distribution package may be older than QuickVoice requires. Reconnect the shell after changing Docker group membership. With Docker Desktop on WSL2, enable integration for the WSL distribution instead of installing a second Docker daemon.
+
+On macOS, install Docker Desktop, Go Task, Node.js `>=20.9`, Python, and Bash `>=4` using your preferred package manager. Ensure the modern Bash appears before `/bin/bash` on `PATH`, because the scripts use `#!/usr/bin/env bash`.
 
 First things to open:
 
@@ -50,25 +83,13 @@ First things to open:
 - API docs: `http://localhost:5000/api/v1/docs`
 - AI API health: `http://localhost:5555/health`
 
-On a fresh Ubuntu host, install the missing host tools first:
-
-```sh
-sudo apt-get update
-sudo apt-get install -y docker.io docker-compose-v2 golang-go
-sudo usermod -aG docker "$USER"
-go install github.com/go-task/task/v3/cmd/task@latest
-export PATH="$PATH:$HOME/go/bin"
-```
-
-Reconnect the SSH session after changing Docker group membership. Then run:
-
-```sh
-task up:dev
-```
-
 The task creates local env files from `*.env.dev.example`, activates `pnpm@9.0.0`, installs Node dependencies with the frozen lockfile, creates the AI Python virtualenv, starts Postgres and Redis through `docker-compose.dev.yml`, runs Prisma migrations, and launches the local services above.
 
+### Setup Boundaries
+
 The Docker Compose database credentials are dev-only placeholders (`quickvoice` / `quickvoice`) and the Postgres and Redis ports are bound to `127.0.0.1`. Edit the generated env files after the first run if you need real Google, Stripe, LiveKit, Twilio, Telnyx, SMTP, or AWS credentials. Generated env files are ignored by git.
+
+The placeholder values are enough to inspect local startup paths; they do not make provider-backed actions work. A successful `task up:dev` does not prove that live calls, OAuth, billing, email delivery, object storage, Pinecone retrieval, or production deployment are configured. Real phone calls require LiveKit plus a configured telephony provider and model-provider credentials. Keep production data and credentials out of local issue reproductions.
 
 Optional local email testing is available through a Docker Compose profile:
 
@@ -222,8 +243,10 @@ If QuickVoice helps you evaluate open voice-agent infrastructure, a GitHub star 
 
 QuickVoice is built in public for teams that want programmable, inspectable phone automation.
 
-- Open issues for bugs, gaps, and integration requests.
+- Use the structured issue forms for bugs, setup failures, documentation gaps, and feature proposals.
 - Read [CONTRIBUTING.md](./CONTRIBUTING.md) before submitting a pull request.
+- Review [GOVERNANCE.md](./GOVERNANCE.md), [MAINTAINERS.md](./MAINTAINERS.md), and [SUPPORT.md](./SUPPORT.md) for decisions, ownership, and support boundaries.
+- See [CHANGELOG.md](./CHANGELOG.md) for unreleased changes and [ROADMAP.md](./ROADMAP.md) for non-binding priorities.
 - Report security issues through [SECURITY.md](./SECURITY.md).
 
 ## License

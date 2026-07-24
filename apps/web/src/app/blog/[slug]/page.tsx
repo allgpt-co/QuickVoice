@@ -1,9 +1,9 @@
 import { getPostBySlug, getAllSlugs, getRelatedPosts } from "@/lib/blog";
 import MarkdownRenderer from "@/components/blog/MarkdownRenderer";
+import { EvidenceStatusNotice } from "@/components/evidence-status-notice";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { REGISTER_URL } from "@/lib/links";
 import {
   Calendar,
   Clock,
@@ -36,6 +36,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: post.metaTitle || post.title,
     description: post.metaDescription,
     alternates: { canonical: post.canonical },
+    robots: {
+      index: false,
+      follow: true,
+    },
     openGraph: {
       title: post.metaTitle || post.title,
       description: post.metaDescription,
@@ -198,13 +202,18 @@ export default async function BlogPostPage({ params }: Props) {
             Home
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
-          <Link href="/blog" className="hover:text-foreground transition-colors">
+          <Link
+            href="/blog"
+            className="hover:text-foreground transition-colors"
+          >
             Blog
           </Link>
           <ChevronRight className="h-3.5 w-3.5" />
           <span className={`${meta.color} font-medium`}>{post.category}</span>
           <ChevronRight className="h-3.5 w-3.5 hidden sm:block" />
-          <span className="hidden sm:block text-foreground truncate max-w-xs">{post.title}</span>
+          <span className="hidden sm:block text-foreground truncate max-w-xs">
+            {post.title}
+          </span>
         </div>
       </div>
 
@@ -268,6 +277,18 @@ export default async function BlogPostPage({ params }: Props) {
               )}
             </header>
 
+            <div className="mb-10">
+              <EvidenceStatusNotice title="Editorial content under evidence review">
+                <p>
+                  This article may contain third-party statistics, illustrative
+                  calculations, example organizations, or product claims that
+                  have not yet passed the public claims gate. Verify original
+                  sources and current product behavior before relying on it for
+                  a buying, compliance, launch, or implementation decision.
+                </p>
+              </EvidenceStatusNotice>
+            </div>
+
             {/* Article body */}
             <div className="min-w-0">
               <MarkdownRenderer content={post.content} />
@@ -279,14 +300,17 @@ export default async function BlogPostPage({ params }: Props) {
                 {post.author[0]}
               </div>
               <div>
-                <div className="font-semibold text-foreground">{post.author}</div>
+                <div className="font-semibold text-foreground">
+                  {post.author}
+                </div>
                 {post.authorBio ? (
                   <div className="text-sm text-muted-foreground mt-1">
                     {post.authorBio}
                   </div>
                 ) : (
                   <div className="text-sm text-muted-foreground mt-1">
-                    Writing about AI voice, business automation, and the future of customer communication at QuickVoice.
+                    Writing about AI voice, business automation, and the future
+                    of customer communication at QuickVoice.
                   </div>
                 )}
               </div>
@@ -295,18 +319,22 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Bottom CTA */}
             <div className="mt-12 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-blue-600/5 p-8 text-center">
               <h2 className="text-xl font-bold text-foreground mb-2">
-                Ready to deploy AI voice for your business?
+                Ready to inspect the implementation?
               </h2>
               <p className="text-muted-foreground text-sm mb-5">
-                No code. No credit card. First agent live in under 30 minutes.
+                Review the code-backed product surface, setup prerequisites,
+                provider credentials, and deployment boundaries.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
-                  href={REGISTER_URL}
+                  href="/open-source"
                   className="inline-flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-medium text-white transition-all hover:shadow-lg"
-                  style={{ backgroundImage: "linear-gradient(to right, var(--primary), #1e40af)" }}
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(to right, var(--primary), #1e40af)",
+                  }}
                 >
-                  Start Free Trial
+                  Explore the open-source stack
                 </Link>
                 <Link
                   href="/company/contact"
@@ -328,7 +356,8 @@ export default async function BlogPostPage({ params }: Props) {
                 </h3>
                 <div className="space-y-4">
                   {relatedPosts.map((rel) => {
-                    const relMeta = CATEGORY_META[rel.category] || defaultMeta();
+                    const relMeta =
+                      CATEGORY_META[rel.category] || defaultMeta();
                     return (
                       <Link
                         key={rel.slug}
@@ -336,7 +365,9 @@ export default async function BlogPostPage({ params }: Props) {
                         className="group block"
                       >
                         <div className="flex gap-3 items-start">
-                          <div className={`flex-shrink-0 rounded-lg p-1.5 ${relMeta.bg} ${relMeta.color} mt-0.5`}>
+                          <div
+                            className={`flex-shrink-0 rounded-lg p-1.5 ${relMeta.bg} ${relMeta.color} mt-0.5`}
+                          >
                             {relMeta.icon}
                           </div>
                           <div className="min-w-0">
@@ -359,17 +390,21 @@ export default async function BlogPostPage({ params }: Props) {
             {/* Quick CTA card */}
             <div className="rounded-xl border border-primary/20 bg-gradient-to-b from-primary/10 to-transparent p-5">
               <h3 className="font-semibold text-foreground mb-2 text-sm">
-                Try QuickVoice Free
+                Inspect QuickVoice
               </h3>
               <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Deploy an AI voice agent in under 30 minutes. No code, no credit card, 14-day free trial.
+                Review what runs locally and which credentials and deployment
+                decisions are still required for real calls.
               </p>
               <Link
-                href={REGISTER_URL}
+                href="/open-source"
                 className="block text-center rounded-full py-2 text-sm font-medium text-white transition-all hover:shadow-md"
-                style={{ backgroundImage: "linear-gradient(to right, var(--primary), #1e40af)" }}
+                style={{
+                  backgroundImage:
+                    "linear-gradient(to right, var(--primary), #1e40af)",
+                }}
               >
-                Get Started Free
+                Explore the open-source stack
               </Link>
             </div>
 

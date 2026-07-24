@@ -10,34 +10,36 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import Logo1 from "../logo1";
+import {
+  GITHUB_DOCS_URL,
+  GITHUB_ISSUES_URL,
+  GITHUB_RELEASES_URL,
+  GITHUB_REPO_URL,
+} from "@/lib/links";
 
 const data = {
   facebookLink: "https://www.facebook.com/profile.php?id=61578373598223",
   instaLink: "https://www.instagram.com/quickvoice_co/",
   twitterLink: "https://x.com/QuickVoice_co",
   services: {
-
-    industries: '/industries',
-    useCases: '/use-cases',
+    industries: "/industries",
+    useCases: "/use-cases",
   },
   about: {
-    aboutUs: '/company/about-us',
-    contactUs: '/company/contact',
-    careers: '/company/careers',
+    aboutUs: "/company/about-us",
+    contactUs: "/company/contact",
+    careers: "/company/careers",
   },
   contact: {
-    email: 'info@quickvoice.co',
-    phone: '+1 2184525998',
-    address: 'Delaware, United States',
-
+    email: "info@quickvoice.co",
+    phone: "+1 2184525998",
+    address: "Delaware, United States",
   },
   company: {
     name: "QuickVoice",
     description:
-
-      'QuickVoice is a no-code platform for deploying voice AI agents that automate phone calls across industries.',
-    logo: '/logo.webp',
-
+      "Open-source, self-hostable infrastructure for building and operating AI phone agents.",
+    logo: "/logo.webp",
   },
 };
 
@@ -48,22 +50,28 @@ const socialLinks = [
 ];
 
 const aboutLinks = [
-  { text: 'About Us', href: data.about.aboutUs },
-  { text: 'Contact Us', href: data.about.contactUs },
-  { text: 'Careers', href: data.about.careers },
-  { text: 'Privacy Policy', href: '/privacy-policy' },
-  { text: 'Terms of Service', href: '/terms-of-service' },
+  { text: "About Us", href: data.about.aboutUs },
+  { text: "Contact Us", href: data.about.contactUs },
+  { text: "Careers", href: data.about.careers },
+  { text: "Privacy Policy", href: "/privacy-policy" },
+  { text: "Terms of Service", href: "/terms-of-service" },
 ];
 
 const serviceLinks = [
-  { text: 'Industries', href: data.services.industries },
-  { text: 'Use Cases', href: data.services.useCases },
-  { text: 'Pricing', href: '/pricing' },
-  { text: 'Blog', href: '/blog' },
-  { text: 'Case Studies', href: '/case-studies' },
+  { text: "Industries", href: data.services.industries },
+  { text: "Use Cases", href: data.services.useCases },
+  { text: "Pricing", href: "/pricing" },
+  { text: "Blog", href: "/blog" },
+  { text: "Workflow Scenarios", href: "/case-studies" },
 ];
 
-
+const projectLinks = [
+  { text: "Open Source", href: "/open-source" },
+  { text: "GitHub", href: GITHUB_REPO_URL },
+  { text: "Documentation", href: GITHUB_DOCS_URL },
+  { text: "Issues", href: GITHUB_ISSUES_URL },
+  { text: "Releases", href: GITHUB_RELEASES_URL },
+];
 
 const contactInfo = [
   { icon: Mail, text: data.contact.email },
@@ -72,7 +80,6 @@ const contactInfo = [
 ];
 
 export default function Footer4Col() {
-
   return (
     <footer className="bg-secondary dark:bg-secondary/20 mt-16 w-full place-self-end rounded-t-xl">
       <div className="mx-auto max-w-screen-xl px-4 pt-16 pb-6 sm:px-6 lg:px-8 lg:pt-24">
@@ -103,7 +110,7 @@ export default function Footer4Col() {
             </ul>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 md:grid-cols-3 lg:col-span-2">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-4">
             <div className="text-center sm:text-left">
               <p className="text-lg font-medium">About Us</p>
               <ul className="mt-8 space-y-4 text-sm">
@@ -136,15 +143,45 @@ export default function Footer4Col() {
               </ul>
             </div>
 
-
+            <div className="text-center sm:text-left">
+              <p className="text-lg font-medium">Open Source</p>
+              <ul className="mt-8 space-y-4 text-sm">
+                {projectLinks.map(({ text, href }) => (
+                  <li key={text}>
+                    {href.startsWith("http") ? (
+                      <a
+                        className="text-secondary-foreground/70 transition-colors hover:text-foreground"
+                        href={href}
+                        target="_blank"
+                        rel="noreferrer"
+                        data-analytics-location="footer"
+                      >
+                        {text}
+                      </a>
+                    ) : (
+                      <Link
+                        className="text-secondary-foreground/70 transition-colors hover:text-foreground"
+                        href={href}
+                      >
+                        {text}
+                      </Link>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <div className="text-center sm:text-left">
               <p className="text-lg font-medium">Contact Us</p>
               <ul className="mt-8 space-y-4 text-sm">
                 {contactInfo.map(({ icon: Icon, text, isAddress }) => {
-                  const isEmail = text.includes('@');
-                  const isPhone = text.includes('+') || /^\d/.test(text);
-                  const href = isEmail ? `mailto:${text}` : isPhone ? `tel:${text}` : '#';
+                  const isEmail = text.includes("@");
+                  const isPhone = text.includes("+") || /^\d/.test(text);
+                  const href = isEmail
+                    ? `mailto:${text}`
+                    : isPhone
+                      ? `tel:${text}`
+                      : "#";
 
                   return (
                     <li key={text}>

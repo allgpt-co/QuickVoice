@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { DEMO_BOOKING_URL, REGISTER_URL } from "@/lib/links";
+import { ArrowUpRight, Github } from "lucide-react";
+import { DEMO_BOOKING_URL, GITHUB_REPO_URL, REGISTER_URL } from "@/lib/links";
 
 export default function Globe3D() {
   return (
@@ -52,6 +53,17 @@ export default function Globe3D() {
             >
               Try the Builder
             </Link>
+            <a
+              href={GITHUB_REPO_URL}
+              target="_blank"
+              rel="noreferrer"
+              data-analytics-location="homepage_hero"
+              className="relative inline-flex w-full items-center justify-center gap-2 overflow-hidden rounded-full border border-primary/40 bg-background/80 px-8 py-4 text-center font-semibold text-primary shadow-sm transition-all duration-300 hover:border-primary hover:bg-primary/5 sm:w-auto"
+            >
+              <Github aria-hidden="true" className="size-4" />
+              Open source on GitHub
+              <ArrowUpRight aria-hidden="true" className="size-4" />
+            </a>
           </div>
         </div>
         <motion.div
