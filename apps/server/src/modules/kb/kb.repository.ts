@@ -2,6 +2,7 @@ import { kbStatus } from "../../../prisma/generated/prisma/client.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import prisma from "../../config/prisma.js";
 import type { CreateKbArgs, ListKbArgs } from "./kb.schema.js";
+import type { KbProcessingFailure, KbProcessingSummary } from "./kb-processing-result.js";
 
 // Create one KnowledgeSource row per document in a single transaction.
 // All start as PROCESSING — Agent.knowledgeSourcesCount is NOT updated here;
@@ -65,27 +66,109 @@ export const getByIdForOrg = async (kbId: string, organizationId: string) => {
   });
 };
 
-// Mark KB sources as ACTIVE, set lastIndexedAt, and increment the agent's
-// knowledgeSourcesCount — all atomically.
+// Mark KB sources as ACTIVE, clear earlier diagnostics, and increment the
+// agent count only for rows that were not already active.
 export const markActive = async (kbIds: string[], agentId: string) => {
+  if (kbIds.length === 0) return;
+
   return prisma.$transaction(async (tx) => {
-    await tx.knowledgeSource.updateMany({
-      where: { kbId: { in: kbIds } },
-      data: { status: kbStatus.ACTIVE, lastIndexedAt: new Date() },
+    const activated = await tx.knowledgeSource.updateMany({
+      where: {
+        kbId: { in: kbIds },
+        agentId,
+        status: { not: kbStatus.ACTIVE },
+      },
+      data: {
+        status: kbStatus.ACTIVE,
+        lastIndexedAt: new Date(),
+        errorCode: null,
+        errorMessage: null,
+        errorRetryable: null,
+      },
     });
 
-    await tx.agent.update({
-      where: { agentId },
-      data: { knowledgeSourcesCount: { increment: kbIds.length } },
-    });
+    if (activated.count > 0) {
+      await tx.agent.update({
+        where: { agentId },
+        data: { knowledgeSourcesCount: { increment: activated.count } },
+      });
+    }
   });
 };
 
-// Mark KB sources as ERROR after ingestion failure.
-export const markError = async (kbIds: string[]) => {
+const FALLBACK_PROCESSING_FAILURE: Omit<KbProcessingFailure, "kbId"> = {
+  code: "KB_PROCESSING_FAILED",
+  userMessage:
+    "QuickVoice could not process this document. Try uploading it again. If it still fails, contact your workspace administrator.",
+  retryable: true,
+};
+
+// Mark KB sources as ERROR with a user-safe reason. Raw worker exceptions must
+// never be persisted because the API returns these fields to console users.
+export const markError = async (
+  kbIds: string[],
+  failure: Partial<Omit<KbProcessingFailure, "kbId">> = {},
+) => {
+  if (kbIds.length === 0) return;
+
+  const safeFailure = { ...FALLBACK_PROCESSING_FAILURE, ...failure };
   await prisma.knowledgeSource.updateMany({
     where: { kbId: { in: kbIds } },
-    data: { status: kbStatus.ERROR },
+    data: {
+      status: kbStatus.ERROR,
+      lastIndexedAt: null,
+      errorCode: safeFailure.code,
+      errorMessage: safeFailure.userMessage,
+      errorRetryable: safeFailure.retryable,
+    },
+  });
+};
+
+// Persist mixed job results atomically so one failed document does not turn
+// successfully indexed documents into ERROR rows.
+export const applyProcessingSummary = async (
+  summary: KbProcessingSummary,
+  agentId: string,
+) => {
+  return prisma.$transaction(async (tx) => {
+    if (summary.successfulKbIds.length > 0) {
+      const activated = await tx.knowledgeSource.updateMany({
+        where: {
+          kbId: { in: summary.successfulKbIds },
+          agentId,
+          status: { not: kbStatus.ACTIVE },
+        },
+        data: {
+          status: kbStatus.ACTIVE,
+          lastIndexedAt: new Date(),
+          errorCode: null,
+          errorMessage: null,
+          errorRetryable: null,
+        },
+      });
+
+      if (activated.count > 0) {
+        await tx.agent.update({
+          where: { agentId },
+          data: { knowledgeSourcesCount: { increment: activated.count } },
+        });
+      }
+    }
+
+    await Promise.all(
+      summary.failures.map((failure) =>
+        tx.knowledgeSource.updateMany({
+          where: { kbId: failure.kbId, agentId },
+          data: {
+            status: kbStatus.ERROR,
+            lastIndexedAt: null,
+            errorCode: failure.code,
+            errorMessage: failure.userMessage,
+            errorRetryable: failure.retryable,
+          },
+        }),
+      ),
+    );
   });
 };
 

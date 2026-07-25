@@ -1,6 +1,16 @@
-import { FileText, FileSpreadsheet, Globe } from "lucide-react";
+import {
+  AlertCircle,
+  FileSpreadsheet,
+  FileText,
+  Globe,
+} from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import type { KbSourceType, KbStatus } from "@/src/lib/api/types";
+import type {
+  KbSourceType,
+  KbStatus,
+  KnowledgeSource,
+} from "@/src/lib/api/types";
+import { getKbErrorCopy } from "@/src/components/kb/kb-error-copy";
 
 export interface SourceMeta { Icon: LucideIcon; iconCls: string }
 
@@ -29,8 +39,9 @@ export function StatusChip({ status }: { status: KbStatus }) {
   }
   if (status === "ERROR") {
     return (
-      <span className="inline-flex items-center rounded-sm border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-400">
-        Error
+      <span className="inline-flex items-center gap-1.5 rounded-sm border border-red-500/30 bg-red-500/20 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-red-400">
+        <AlertCircle className="size-3" aria-hidden="true" />
+        Failed
       </span>
     );
   }
@@ -39,5 +50,43 @@ export function StatusChip({ status }: { status: KbStatus }) {
       <span className="size-1.5 animate-pulse rounded-full bg-amber-400" />
       Processing
     </span>
+  );
+}
+
+export function KnowledgeSourceStatus({
+  source,
+  compact = false,
+}: {
+  source: KnowledgeSource;
+  compact?: boolean;
+}) {
+  if (source.status !== "ERROR") {
+    return <StatusChip status={source.status} />;
+  }
+
+  const copy = getKbErrorCopy(source);
+
+  return (
+    <div
+      className={compact ? "max-w-sm space-y-1.5" : "max-w-md space-y-2"}
+      role="status"
+      aria-label={`Document processing failed: ${copy.reason}`}
+    >
+      <StatusChip status={source.status} />
+      <div className="space-y-1 border-l-2 border-red-500/40 pl-2.5">
+        <p className="text-xs font-medium leading-5 text-foreground">
+          {copy.reason}
+        </p>
+        <p className="text-xs leading-5 text-muted-foreground">
+          <span className="font-medium text-foreground/80">How to fix:</span>{" "}
+          {copy.guidance}
+        </p>
+        {source.errorCode ? (
+          <p className="font-mono text-[10px] leading-4 text-muted-foreground/80">
+            Error code: {source.errorCode}
+          </p>
+        ) : null}
+      </div>
+    </div>
   );
 }

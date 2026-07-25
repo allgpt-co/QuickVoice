@@ -20,7 +20,14 @@ export const kbIngest: InngestFunction.Any = inngest.createFunction(
     if (!lambdaUrl) {
       console.warn("[kb-ingest] KB_OPS_URL not set, skipping ingestion");
       if (kbIds.length > 0) {
-        await step.run("mark-error-no-url", () => kbRepository.markError(kbIds));
+        await step.run("mark-error-no-url", () =>
+          kbRepository.markError(kbIds, {
+            code: "KB_PROCESSING_NOT_CONFIGURED",
+            userMessage:
+              "Knowledge processing is not configured for this workspace. Contact your workspace administrator.",
+            retryable: false,
+          }),
+        );
       }
       return { success: false, reason: "KB_OPS_URL not configured" };
     }
@@ -72,7 +79,14 @@ export const kbIngest: InngestFunction.Any = inngest.createFunction(
     } catch (err) {
       // All retries exhausted — mark sources as ERROR.
       if (kbIds.length > 0) {
-        await step.run("mark-error", () => kbRepository.markError(kbIds));
+        await step.run("mark-error", () =>
+          kbRepository.markError(kbIds, {
+            code: "KB_PROCESSING_UNAVAILABLE",
+            userMessage:
+              "The knowledge processing service was unavailable. Try uploading the document again. If it still fails, contact your workspace administrator.",
+            retryable: true,
+          }),
+        );
       }
       throw err;
     }

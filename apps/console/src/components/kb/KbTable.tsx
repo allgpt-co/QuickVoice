@@ -37,7 +37,11 @@ import {
   TableRow,
 } from "@/src/components/ui/table";
 import { Skeleton } from "@/src/components/ui/skeleton";
-import { SOURCE_META, FALLBACK_META, StatusChip } from "@/src/components/kb/kb-utils";
+import {
+  FALLBACK_META,
+  KnowledgeSourceStatus,
+  SOURCE_META,
+} from "@/src/components/kb/kb-utils";
 import { useDeleteKb } from "@/src/hooks/queries/kb";
 import type { Agent, KnowledgeSource } from "@/src/lib/api/types";
 
@@ -147,7 +151,7 @@ export function KbTable({ sources, agents, isLoading }: Props) {
                 <DeleteRow kbId={s.kbId} name={s.name} />
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
-                <StatusChip status={s.status} />
+                <KnowledgeSourceStatus source={s} compact />
                 {agent ? (
                   <span className="text-xs text-muted-foreground">{agent}</span>
                 ) : null}
@@ -169,12 +173,12 @@ export function KbTable({ sources, agents, isLoading }: Props) {
         })}
       </div>
       <div className="hidden overflow-x-auto border bg-card md:block">
-        <Table className="min-w-[860px]">
+        <Table className="min-w-[1080px]">
           <TableHeader>
             <TableRow className="border-b bg-muted/20 hover:bg-muted/20">
               <TableHead className="w-12 pl-4">Type</TableHead>
               <TableHead className="whitespace-nowrap">Name</TableHead>
-              <TableHead className="w-32 whitespace-nowrap">Status</TableHead>
+              <TableHead className="w-[360px] whitespace-nowrap">Status</TableHead>
               <TableHead className="w-36 whitespace-nowrap">Agent</TableHead>
               <TableHead className="w-32 whitespace-nowrap">Uploaded</TableHead>
               <TableHead className="w-32 whitespace-nowrap">Indexed</TableHead>
@@ -207,7 +211,7 @@ export function KbTable({ sources, agents, isLoading }: Props) {
                     ) : null}
                   </TableCell>
 
-                  <TableCell><StatusChip status={s.status} /></TableCell>
+                  <TableCell className="align-top"><KnowledgeSourceStatus source={s} /></TableCell>
 
                   <TableCell className="text-sm">
                     {agent ? (

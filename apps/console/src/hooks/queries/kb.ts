@@ -14,6 +14,10 @@ export function useKbSources(agentId?: string) {
   return useQuery({
     queryKey: queryKeys.kb.list(agentId),
     queryFn: () => kbApi.list(agentId),
+    refetchInterval: (query) =>
+      query.state.data?.some((source) => source.status === "PROCESSING")
+        ? 2_000
+        : false,
   });
 }
 

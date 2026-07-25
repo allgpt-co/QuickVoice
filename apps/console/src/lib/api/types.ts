@@ -257,6 +257,9 @@ export interface KnowledgeSource {
   storagePath: string;
   sourceType: KbSourceType;
   status: KbStatus;
+  errorCode: string | null;
+  errorMessage: string | null;
+  errorRetryable: boolean | null;
   metadata: Record<string, unknown> | null;
   lastIndexedAt: string | null;
   uploadedAt: string;

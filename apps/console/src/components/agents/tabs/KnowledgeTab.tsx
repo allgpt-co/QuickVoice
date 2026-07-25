@@ -11,8 +11,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState } from "@/src/components/common/EmptyState";
-import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
+import { KnowledgeSourceStatus } from "@/src/components/kb/kb-utils";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { kbApi } from "@/src/lib/api/resources/kb";
 import { queryKeys } from "@/src/lib/query-keys";
@@ -32,6 +32,10 @@ export function KnowledgeTab({ agentId }: { agentId: string }) {
  const { data: sources, isLoading } = useQuery({
  queryKey: queryKeys.kb.list(agentId),
  queryFn: () => kbApi.list(agentId),
+ refetchInterval: (query) =>
+ query.state.data?.some((source) => source.status === "PROCESSING")
+ ? 2_000
+ : false,
  });
 
  return (
@@ -71,7 +75,7 @@ export function KnowledgeTab({ agentId }: { agentId: string }) {
  return (
  <div
  key={s.kbId}
- className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+ className="flex flex-col items-start gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-start"
  >
  <div className="flex size-9 items-center justify-center border bg-muted/30">
  <Icon className="size-4" />
@@ -82,12 +86,9 @@ export function KnowledgeTab({ agentId }: { agentId: string }) {
  {s.originalFileName ?? s.sourceType}
  </p>
  </div>
- <Badge
- variant={s.status === "ACTIVE" ? "default" : "secondary"}
- className="shrink-0 uppercase tracking-wide"
- >
- {s.status.toLowerCase()}
- </Badge>
+ <div className="min-w-0 shrink-0 sm:max-w-sm">
+ <KnowledgeSourceStatus source={s} compact />
+ </div>
  </div>
  );
  })}

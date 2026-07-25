@@ -2,8 +2,15 @@ import { Worker } from "bullmq";
 import { redisConnection } from "../config/redis.js";
 import { generateDownloadUrl } from "../config/s3.js";
 import { processKbDocuments } from "../modules/kb/kb-processing-client.js";
-import { assertKbProcessingSucceeded } from "../modules/kb/kb-processing-result.js";
+import {
+  assertKbProcessingSucceeded,
+  KbProcessingFailedError,
+} from "../modules/kb/kb-processing-result.js";
 import * as kbRepository from "../modules/kb/kb.repository.js";
+import {
+  hasExhaustedKbAttempts,
+  safeKbWorkerFailure,
+} from "../modules/kb/kb-worker-failure.js";
 import type { KbJobData, KbJobName } from "../queues/kb.queue.js";
 
 const AI_API_URL = process.env.AI_API_URL ?? "http://localhost:5555";
@@ -42,7 +49,7 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
     });
     assertKbProcessingSucceeded(body, kbIds);
 
-    // 3. Mark all sources as ACTIVE
+    // 3. Mark all sources as ACTIVE and clear any earlier retry diagnostics.
     await kbRepository.markActive(kbIds, agentId);
   },
   {
@@ -53,11 +60,27 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
 
 kbWorker.on("failed", async (job, err) => {
   if (!job) return;
+
+  const maxAttempts = job.opts.attempts ?? 1;
+  if (!hasExhaustedKbAttempts(job.attemptsMade, job.opts.attempts)) {
+    console.warn(
+      `[kb-worker] job ${job.id} attempt ${job.attemptsMade}/${maxAttempts} failed; retry scheduled`,
+      err.message,
+    );
+    return;
+  }
+
   console.error(`[kb-worker] job ${job.id} failed permanently`, err.message);
-  const { kbIds } = job.data;
-  await kbRepository
-    .markError(kbIds)
-    .catch((e) => console.error("[kb-worker] markError failed", e));
+  const { kbIds, agentId } = job.data;
+
+  const persistFailure =
+    err instanceof KbProcessingFailedError
+      ? kbRepository.applyProcessingSummary(err.summary, agentId)
+      : kbRepository.markError(kbIds, safeKbWorkerFailure(err));
+
+  await persistFailure.catch((error) =>
+    console.error("[kb-worker] persisting processing failure failed", error),
+  );
 });
 
 kbWorker.on("completed", (job) => {
