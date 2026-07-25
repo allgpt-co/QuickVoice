@@ -17,8 +17,8 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
         raise VoiceConfigValidationError(f"timezone is not supported: {timezone}")
 
     stt_input = _section(client_config, "stt", defaults["stt"])
-    llm_input = _section(client_config, "llm", defaults["llm"])
-    tts_input = _section(client_config, "tts", defaults["tts"])
+    llm_input = _section(client_config, "llm", defaults["llm"], catalog_options=catalog["llm_models"])
+    tts_input = _section(client_config, "tts", defaults["tts"], catalog_options=catalog["tts_models"])
 
     stt_model = _find_option(
         catalog["stt_models"],
@@ -68,7 +68,7 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
     }
 
 
-def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str]) -> dict[str, str]:
+def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str], catalog_options: list[dict[str, Any]] | None = None) -> dict[str, str]:
     raw = client_config.get(name)
     merged = dict(defaults)
     if isinstance(raw, dict):
@@ -77,6 +77,11 @@ def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str])
         legacy_model = client_config.get(f"{name}Model")
         if legacy_model:
             merged["model"] = legacy_model
+    if catalog_options and merged.get("model") and merged.get("provider"):
+        for option in catalog_options:
+            if option.get("id") == merged["model"] and option.get("provider") != merged["provider"]:
+                merged["provider"] = option["provider"]
+                break
     return merged
 
 

@@ -25,6 +25,9 @@ export function useAgent(id: string) {
     queryFn: () =>
       agentsApi.list().then((all) => all.find((a) => a.agentId === id) ?? null),
     enabled: !!id,
+    // Avoid refetching (and momentarily unmounting the agent page) when the
+    // window regains focus after the browser's microphone permission prompt.
+    refetchOnWindowFocus: false,
   });
 }
 

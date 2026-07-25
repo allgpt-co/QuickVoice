@@ -1,6 +1,7 @@
 from dotenv import load_dotenv
 
 from livekit import agents, rtc
+from pathlib import Path
 from livekit.agents import (
     AgentSession,
     Agent,
@@ -14,6 +15,8 @@ from livekit.agents import (
 from livekit.agents.beta.tools import send_dtmf_events
 from livekit.plugins import noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+import sys
+sys.path.append(str(Path(__file__).parent))
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
@@ -39,6 +42,8 @@ from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
+from langfuse_helper import get_langfuse_client
+from telemetry import flush_telemetry, get_telemetry
 from utils.logger import logger
 from utils.logger import redact_sensitive
 import asyncio
@@ -53,6 +58,13 @@ import time
 
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
+
+# Initialize centralized telemetry (OTel TracerProvider + Langfuse OTLP export).
+# This must run at import time so the TracerProvider is registered before any
+# ``get_tracer()`` calls in the rest of the module.
+telemetry = get_telemetry()
+tracer_provider = telemetry.tracer_provider
+
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -304,7 +316,20 @@ class Assistant(Agent):
             return
 
         try:
-            context = await get_rag_context(agent_id=agent_id, query=query)
+            context = await asyncio.wait_for(
+                get_rag_context(agent_id=agent_id, query=query),
+                timeout=5.0,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("[rag] retrieval timed out for agent={}", redact_sensitive(agent_id))
+            turn_ctx.add_message(
+                role="system",
+                content=(
+                    "Knowledge base retrieval timed out. "
+                    "Answer based on your general knowledge and tell the user the knowledge base is slow."
+                ),
+            )
+            return
         except RagRetrievalError:
             turn_ctx.add_message(
                 role="system",
@@ -333,14 +358,40 @@ class Assistant(Agent):
 
     async def transcription_node(self, text, model_settings):
         chunks: list[str] = []
-        output = Agent.default.transcription_node(self, text, model_settings)
-        if output is None:
+        logger.info("[TRANSCRIPTION_NODE] called")
+        try:
+            output = Agent.default.transcription_node(self, text, model_settings)
+        except Exception as error:
+            logger.error(
+                "[TRANSCRIPTION_NODE] failed to obtain output generator: {}",
+                redact_sensitive(str(error)),
+            )
             return
-        async for chunk in output:
-            chunk_text = _transcription_chunk_text(chunk)
-            if chunk_text:
-                chunks.append(chunk_text)
-            yield chunk
+        if output is None:
+            logger.warning("[TRANSCRIPTION_NODE] output is None — skipping")
+            return
+        chunk_count = 0
+        try:
+            async for chunk in output:
+                chunk_count += 1
+                try:
+                    chunk_text = _transcription_chunk_text(chunk)
+                    if chunk_text:
+                        chunks.append(chunk_text)
+                    yield chunk
+                except Exception as chunk_error:
+                    logger.error(
+                        "[TRANSCRIPTION_NODE] chunk processing error: {}",
+                        redact_sensitive(str(chunk_error)),
+                    )
+                    break
+        except Exception as iteration_error:
+            logger.error(
+                "[TRANSCRIPTION_NODE] generator iteration failed after {} chunks: {}",
+                chunk_count,
+                redact_sensitive(str(iteration_error)),
+            )
+        logger.info("[TRANSCRIPTION_NODE] completed with {} chunks", chunk_count)
         if self._transcript_collector is not None:
             self._transcript_collector.on_agent_transcription_final(
                 "".join(chunks),
@@ -432,6 +483,27 @@ class Assistant(Agent):
             call_context=self._call_context,
         )
         return json.dumps(result.get("data", result), ensure_ascii=False)
+
+
+async def _safe_consume_preview_text_stream(
+    reader,
+    *,
+    participant_identity,
+    preview_mode,
+    generate_reply,
+):
+    try:
+        await consume_preview_user_transcript_stream(
+            reader,
+            participant_identity=participant_identity,
+            preview_mode=preview_mode,
+            generate_reply=generate_reply,
+        )
+    except Exception as error:
+        logger.error(
+            "[preview] text stream consumer error: {}",
+            redact_sensitive(str(error)),
+        )
 
 
 async def entrypoint(ctx: JobContext):
@@ -535,25 +607,31 @@ async def entrypoint(ctx: JobContext):
 
     @ctx.room.on("data_received")
     def on_data_received(data_packet):
-        participant = getattr(data_packet, "participant", None)
-        text = parse_preview_user_transcript_packet(
-            getattr(data_packet, "data", b""),
-            topic=getattr(data_packet, "topic", None),
-            participant_identity=getattr(participant, "identity", None),
-            preview_mode=preview_mode,
-        )
-        if not text:
-            return
+        try:
+            participant = getattr(data_packet, "participant", None)
+            text = parse_preview_user_transcript_packet(
+                getattr(data_packet, "data", b""),
+                topic=getattr(data_packet, "topic", None),
+                participant_identity=getattr(participant, "identity", None),
+                preview_mode=preview_mode,
+            )
+            if not text:
+                return
 
-        logger.info(
-            "[preview] received browser transcript from {}",
-            redact_sensitive(getattr(participant, "identity", "")),
-        )
-        session.generate_reply(user_input=text, allow_interruptions=True)
+            logger.info(
+                "[preview] received browser transcript from {}",
+                redact_sensitive(getattr(participant, "identity", "")),
+            )
+            session.generate_reply(user_input=text, allow_interruptions=True)
+        except Exception as error:
+            logger.error(
+                "[preview] data_received handler error: {}",
+                redact_sensitive(str(error)),
+            )
 
     def on_preview_text_stream(reader, participant_identity):
         asyncio.create_task(
-            consume_preview_user_transcript_stream(
+            _safe_consume_preview_text_stream(
                 reader,
                 participant_identity=participant_identity,
                 preview_mode=preview_mode,
@@ -570,13 +648,33 @@ async def entrypoint(ctx: JobContext):
             on_preview_text_stream,
         )
 
+    session.on(
+        "user_speaking",
+        lambda: logger.info("[SESSION_EVENT] user_speaking"),
+    )
+    session.on(
+        "user_stopped_speaking",
+        lambda: logger.info("[SESSION_EVENT] user_stopped_speaking"),
+    )
+    session.on(
+        "agent_speech_started",
+        lambda: logger.info("[SESSION_EVENT] agent_speech_started"),
+    )
+    session.on(
+        "agent_speech_finished",
+        lambda: logger.info("[SESSION_EVENT] agent_speech_finished"),
+    )
+
+    langfuse = None
     try:
         await session.start(
             room=ctx.room,
             agent=agent,
             room_options=build_room_options(),
         )
-    except Exception:
+        # Initialize Langfuse client for session-level tracing
+        langfuse = get_langfuse_client()
+    except Exception as error:
         await live_transcript_publisher.close(reason="session_start_failed")
         raise
     speak_first_message(session, config)
@@ -612,6 +710,20 @@ async def entrypoint(ctx: JobContext):
             await call_finalizer.finalize()
         except Exception as error:
             logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        # Flush Langfuse client on shutdown
+        if langfuse:
+            try:
+                if hasattr(langfuse, "shutdown"):
+                    await langfuse.shutdown()
+                else:
+                    langfuse.flush()
+            except Exception as err:
+                logger.warning("[LANGFUSE] Shutdown error: {}", redact_sensitive(str(err)))
+        # Flush OTel spans (best-effort)
+        try:
+            flush_telemetry(telemetry)
+        except Exception as err:
+            logger.warning("[TELEMETRY] Flush error: {}", redact_sensitive(str(err)))
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)

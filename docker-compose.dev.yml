@@ -37,6 +37,25 @@ services:
       retries: 20
       start_period: 5s
 
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: quickvoice-dev-livekit
+    restart: unless-stopped
+    environment:
+      LIVEKIT_KEYS: "devkey: secret"
+      LIVEKIT_LOGGING: "warn"
+    command: --dev --bind=0.0.0.0
+    ports:
+      - "127.0.0.1:7880:7880"
+      - "127.0.0.1:7881:7881"
+      - "50000-50100:50000-50100/udp"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7880 || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
   mailpit:
     image: axllent/mailpit:v1.23
     container_name: quickvoice-dev-mailpit

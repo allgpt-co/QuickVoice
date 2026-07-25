@@ -69,6 +69,9 @@ async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
     when the embedding/vector provider fails.
     """
     started = time.perf_counter()
+    api_key = os.environ.get("PINECONE_API_KEY", "")
+    if not api_key or api_key.startswith("dev-") or "your-pinecone" in os.environ.get("PINECONE_HOST", ""):
+        return ""
     try:
         vector = await embed_query(query)
         index = _index()
