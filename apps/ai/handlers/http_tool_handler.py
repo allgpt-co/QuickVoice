@@ -46,31 +46,40 @@ async def call_http_tool(
     config: dict[str, Any],
     call_context: dict[str, Any],
     fetch=None,
+    tracer: Any = None,
 ) -> Any:
     started = time.perf_counter()
+    sanitized_arguments = dict(arguments or {})
     try:
         tool = _resolve_tool(config.get("tools") or [], tool_name)
         request = _build_tool_request(
             tool=tool,
-            arguments=arguments or {},
+            arguments=sanitized_arguments,
             config=config,
             call_context=call_context,
         )
         result = await asyncio.to_thread(fetch or _fetch_tool_request, request)
+        latency_ms = int((time.perf_counter() - started) * 1000)
         emit_metric(
             "http_tool_execution",
             status="ok",
             tool_name=tool_name,
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
-        return _redact_and_truncate_result(result)
-    except Exception:
+        final_res = _redact_and_truncate_result(result)
+        if tracer and hasattr(tracer, "trace_tool_call"):
+            tracer.trace_tool_call(tool_name, "http", sanitized_arguments, final_res, latency_ms)
+        return final_res
+    except Exception as exc:
+        latency_ms = int((time.perf_counter() - started) * 1000)
         emit_metric(
             "http_tool_execution",
             status="error",
             tool_name=tool_name,
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
+        if tracer and hasattr(tracer, "trace_tool_call"):
+            tracer.trace_tool_call(tool_name, "http", sanitized_arguments, None, latency_ms, error=str(exc))
         raise
 
 

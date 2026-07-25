@@ -6,7 +6,9 @@ for the given agent namespace.
 import os
 import asyncio
 import time
+from typing import Any
 from utils.metrics import emit_metric
+
 from utils.logger import logger, redact_sensitive
 from utils.pinecone_client import pinecone_client, pinecone_host
 
@@ -61,7 +63,7 @@ async def embed_query(query: str) -> list[float]:
     return embeddings[0]
 
 
-async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
+async def get_rag_context(agent_id: str, query: str, top_k: int = 5, tracer: Any = None) -> str:
     """
     Embed `query`, query Pinecone in the agent's namespace, and return
     the concatenated top-k chunk texts ready for injection into a system prompt.
@@ -81,15 +83,18 @@ async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
             include_metadata=True,
         )
         matches = resp.get("matches", [])
+        latency_ms = int((time.perf_counter() - started) * 1000)
         if not matches:
             emit_metric(
                 "rag_retrieval",
                 status="miss",
                 agent_id=agent_id,
                 top_k=top_k,
-                latency_ms=int((time.perf_counter() - started) * 1000),
+                latency_ms=latency_ms,
             )
             logger.info("[rag] miss {}", redact_sensitive({"agent": agent_id, "top_k": top_k}))
+            if tracer and hasattr(tracer, "trace_rag"):
+                tracer.trace_rag(query, top_k, "", latency_ms)
             return ""
 
         parts = []
@@ -113,27 +118,34 @@ async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
                     citation += f" score={float(score):.2f}"
                 parts.append(f"[{citation}]\n{text}")
 
+        res = "\n\n---\n\n".join(parts)
         emit_metric(
             "rag_retrieval",
             status="hit",
             agent_id=agent_id,
             top_k=top_k,
             matches=len(parts),
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
         logger.info("[rag] hit {}", redact_sensitive({"agent": agent_id, "matches": len(parts)}))
-        return "\n\n---\n\n".join(parts)
+        if tracer and hasattr(tracer, "trace_rag"):
+            tracer.trace_rag(query, top_k, res, latency_ms)
+        return res
 
     except Exception as exc:
+        latency_ms = int((time.perf_counter() - started) * 1000)
         emit_metric(
             "rag_retrieval",
             status="error",
             agent_id=agent_id,
             top_k=top_k,
-            latency_ms=int((time.perf_counter() - started) * 1000),
+            latency_ms=latency_ms,
         )
         logger.warning("[rag] retrieval failed {}", redact_sensitive({"agent": agent_id, "error": str(exc)}))
+        if tracer and hasattr(tracer, "trace_rag"):
+            tracer.trace_rag(query, top_k, "", latency_ms, error=str(exc))
         raise RagRetrievalError("Knowledge base retrieval failed") from exc
+
 
 
 def _chunk_id_from_metadata(metadata: dict) -> str:
