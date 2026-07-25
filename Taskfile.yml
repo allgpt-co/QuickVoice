@@ -175,7 +175,7 @@ tasks:
       - deps:python
     dir: apps/ai
     cmds:
-      - . .env.dev && . .venv/bin/activate && python main.py api
+      - set -a && . .env.dev && set +a && . .venv/bin/activate && python main.py api
 
   ai:worker:
     desc: Run only the LiveKit AI worker
@@ -184,4 +184,4 @@ tasks:
       - deps:python
     dir: apps/ai
     cmds:
-      - . .env.dev && . .venv/bin/activate && python main.py dev
+      - set -a && . .env.dev && set +a && . .venv/bin/activate && python main.py dev
