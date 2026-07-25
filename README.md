@@ -68,6 +68,24 @@ task up:dev
 
 The task creates local env files from `*.env.dev.example`, activates `pnpm@9.0.0`, installs Node dependencies with the frozen lockfile, creates the AI Python virtualenv, starts Postgres and Redis through `docker-compose.dev.yml`, runs Prisma migrations, and launches the local services above.
 
+### Langfuse tracing
+
+QuickVoice can optionally export AI runtime traces to Langfuse for session-level observability and call diagnostics. The integration is implemented in `apps/ai/handlers/langfuse_handler.py` and wired from `apps/ai/main.py`.
+
+Enable tracing by setting the following values in `apps/ai/.env.dev` or `apps/ai/.env.dev.example`:
+
+- `LANGFUSE_PUBLIC_KEY`
+- `LANGFUSE_SECRET_KEY`
+- `LANGFUSE_BASE_URL` (defaults to `https://cloud.langfuse.com`)
+
+When enabled, the AI service sends OpenTelemetry spans for agent sessions, LiveKit call metadata, and LLM operations to Langfuse. Startup logs show `[LANGFUSE] tracing enabled` when the integration is active, and the service flushes pending traces cleanly on shutdown.
+
+Verify the handler behavior with:
+
+```sh
+./apps/ai/.venv/bin/python -m pytest -q apps/ai/tests/test_langfuse_handler.py
+```
+
 The Docker Compose database credentials are dev-only placeholders (`quickvoice` / `quickvoice`) and the Postgres and Redis ports are bound to `127.0.0.1`. Edit the generated env files after the first run if you need real Google, Stripe, LiveKit, Twilio, Telnyx, SMTP, or AWS credentials. Generated env files are ignored by git.
 
 Optional local email testing is available through a Docker Compose profile:
