@@ -100,8 +100,8 @@ const PLANS = [
     effectiveRate: "$0.15/min",
     overageRate: "$0.20/min",
     keyFeatures: [
-      "HIPAA-ready logging",
-      "BAA available for healthcare",
+      "Retention configuration",
+      "Redaction controls",
       "Priority support",
       "Reserved concurrency",
     ],
@@ -119,7 +119,7 @@ const PLANS = [
     effectiveRate: "$0.15/min",
     overageRate: "Custom",
     keyFeatures: [
-      "Custom SLA & BAA",
+      "Custom commercial terms",
       "Dedicated support",
       "Private networking & SSO/SCIM",
     ],
@@ -153,7 +153,7 @@ const FEATURE_ROWS: { label: string; plans: boolean[] }[] = [
     plans: [false, false, false, false, true, true],
   },
   {
-    label: "HIPAA-ready logging",
+    label: "Retention configuration",
     plans: [false, false, false, false, true, true],
   },
   {
@@ -162,7 +162,10 @@ const FEATURE_ROWS: { label: string; plans: boolean[] }[] = [
   },
   { label: "SSO / SCIM", plans: [false, false, false, false, false, true] },
   { label: "Custom SLA", plans: [false, false, false, false, false, true] },
-  { label: "BAA available", plans: [false, false, false, false, true, true] },
+  {
+    label: "Redaction controls",
+    plans: [false, false, false, false, true, true],
+  },
   {
     label: "Private networking",
     plans: [false, false, false, false, false, true],
@@ -200,7 +203,7 @@ const FAQS = [
   },
   {
     q: "Is QuickVoice HIPAA-compliant?",
-    a: "Our Scale and Enterprise healthcare plans include HIPAA-ready logging, and we can sign a Business Associate Agreement (BAA) before any PHI is processed. Contact us to discuss compliance requirements.",
+    a: "The repository or plan selection does not by itself establish HIPAA compliance. A healthcare deployment requires review of the exact configuration, providers, contracts, access controls, retention, operations, and legal obligations. Do not process PHI until your organization completes that review.",
   },
   {
     q: "What payment methods do you accept?",
@@ -343,8 +346,8 @@ export default function PricingPage() {
                   "Support, scheduling, collections, or sales",
                 ],
                 [
-                  "Compliance",
-                  "HIPAA, BAA, retention, redaction, and audit needs",
+                  "Regulated data",
+                  "Contracts, retention, redaction, access, and audit needs",
                 ],
               ].map(([label, value]) => (
                 <div
@@ -745,8 +748,8 @@ export default function PricingPage() {
             Ready to automate your calls?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
-            Join thousands of businesses using QuickVoice to handle inbound and
-            outbound calls with AI voice agents. Start free today.
+            Compare the hosted options with the open-source path, then validate
+            current terms and provider costs for your deployment.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link

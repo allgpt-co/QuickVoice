@@ -32,7 +32,7 @@
     "dotenv": "^17.4.1",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.2",
-    "fast-xml-parser": "^5.9.3",
+    "fast-xml-parser": "^5.10.1",
     "fflate": "^0.8.3",
     "helmet": "^8.1.0",
     "inngest": "^4.7.0",

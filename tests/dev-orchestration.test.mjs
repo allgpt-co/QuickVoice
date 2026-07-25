@@ -20,7 +20,10 @@ async function isExecutable(path) {
 async function* walkRepoFiles(url) {
   for (const entry of await readdir(url, { withFileTypes: true })) {
     if (entry.isDirectory()) {
-      if (!REPO_SCAN_IGNORES.has(entry.name) && !entry.name.startsWith("node_modules")) {
+      if (
+        !REPO_SCAN_IGNORES.has(entry.name) &&
+        !entry.name.startsWith("node_modules")
+      ) {
         yield* walkRepoFiles(new URL(`${entry.name}/`, url));
       }
       continue;
@@ -62,8 +65,14 @@ test("Taskfile exposes one-command dev orchestration", async () => {
 test("Taskfile exposes safe Docker teardown and optional Mailpit controls", async () => {
   const taskfile = await text("Taskfile.yml");
 
-  assert.match(taskfile, /docker:down:[\s\S]*deps:[\s\S]*- env:dev[\s\S]*docker compose -f \{\{\.COMPOSE_FILE\}\} --env-file \.env\.dev down/);
-  assert.match(taskfile, /docker:reset:[\s\S]*deps:[\s\S]*- env:dev[\s\S]*docker compose -f \{\{\.COMPOSE_FILE\}\} --env-file \.env\.dev down -v/);
+  assert.match(
+    taskfile,
+    /docker:down:[\s\S]*deps:[\s\S]*- env:dev[\s\S]*docker compose -f \{\{\.COMPOSE_FILE\}\} --env-file \.env\.dev down/,
+  );
+  assert.match(
+    taskfile,
+    /docker:reset:[\s\S]*deps:[\s\S]*- env:dev[\s\S]*docker compose -f \{\{\.COMPOSE_FILE\}\} --env-file \.env\.dev down -v/,
+  );
   assert.match(taskfile, /mail:up:[\s\S]*--profile mail up -d mailpit/);
   assert.match(taskfile, /mail:up:[\s\S]*http:\/\/localhost:8025/);
   assert.match(taskfile, /mail:down:[\s\S]*--profile mail stop mailpit/);
@@ -127,7 +136,11 @@ test("app gitignores allow development env templates to be tracked", async () =>
     "apps/web/.gitignore",
   ]) {
     const body = await text(path);
-    assert.match(body, /!\.env\.dev\.example/, `${path} should unignore .env.dev.example`);
+    assert.match(
+      body,
+      /!\.env\.dev\.example/,
+      `${path} should unignore .env.dev.example`,
+    );
   }
 });
 
@@ -138,9 +151,18 @@ test("dev env bootstrap preflights every source before copying", async () => {
   assert.match(script, /missing=0/);
   assert.match(script, /for src in "\$\{required_sources\[@\]\}"/);
   assert.match(script, /exit 1/);
-  assert.match(script, /copy_if_missing "\$ROOT\/apps\/server\/\.env\.dev\.example"/);
-  assert.match(script, /copy_if_missing "\$ROOT\/apps\/console\/\.env\.dev\.example"/);
-  assert.match(script, /copy_if_missing "\$ROOT\/apps\/web\/\.env\.dev\.example"/);
+  assert.match(
+    script,
+    /copy_if_missing "\$ROOT\/apps\/server\/\.env\.dev\.example"/,
+  );
+  assert.match(
+    script,
+    /copy_if_missing "\$ROOT\/apps\/console\/\.env\.dev\.example"/,
+  );
+  assert.match(
+    script,
+    /copy_if_missing "\$ROOT\/apps\/web\/\.env\.dev\.example"/,
+  );
   assert.match(script, /Generated files/);
   assert.match(script, /Local-only defaults/);
   assert.match(script, /External features blocked until configured/);
@@ -156,13 +178,18 @@ test("local dependency install is frozen by default", async () => {
 test("doctor checks env templates, ports, Redis, and Compose health", async () => {
   const script = await text("scripts/dev-doctor.sh");
 
+  assert.match(script, /Bash >= 4 is required/);
+  assert.match(script, /Node\.js >= 20\.9 is required/);
   assert.match(script, /check_env_templates/);
   assert.match(script, /check_port/);
   assert.match(script, /check_port "\$\{POSTGRES_PORT:-5432\}" "Postgres"/);
   assert.match(script, /check_port "\$\{REDIS_PORT:-6379\}" "Redis"/);
   assert.match(script, /check_redis/);
   assert.match(script, /check_compose_health/);
-  assert.match(script, /docker compose -f "\$COMPOSE_FILE" --env-file "\$ENV_EXAMPLE" config/);
+  assert.match(
+    script,
+    /docker compose -f "\$COMPOSE_FILE" --env-file "\$ENV_EXAMPLE" config/,
+  );
 });
 
 test("root package exposes aggregate CI and test scripts", async () => {
@@ -171,11 +198,21 @@ test("root package exposes aggregate CI and test scripts", async () => {
   assert.equal(pkg.scripts.dev, "task up:dev");
   assert.equal(pkg.scripts["dev:turbo"], "turbo run dev");
   assert.match(pkg.scripts.test, /node --test tests\/\*\.test\.mjs/);
-  assert.match(pkg.scripts.test, /node --test apps\/console\/tests\/\*\.test\.mjs/);
+  assert.match(
+    pkg.scripts.test,
+    /node --test apps\/console\/tests\/\*\.test\.mjs/,
+  );
   assert.match(pkg.scripts.test, /pnpm --filter server test/);
-  assert.equal(pkg.scripts["ci:local"], "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker");
-  assert.equal(pkg.scripts["check:tasks"], "node scripts/verify-turbo-tasks.mjs");
+  assert.equal(
+    pkg.scripts["ci:local"],
+    "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
+  );
+  assert.equal(
+    pkg.scripts["check:tasks"],
+    "node scripts/verify-turbo-tasks.mjs",
+  );
   assert.equal(pkg.scripts["audit:deps"], "node scripts/security-audit.mjs");
+  assert.equal(pkg.engines.node, ">=20.9");
 });
 
 test("Turborepo build outputs include Next and server artifacts", async () => {
@@ -198,7 +235,11 @@ test("workspace packages expose expected Turborepo quality tasks", async () => {
   for (const [path, scripts] of Object.entries(expected)) {
     const pkg = JSON.parse(await text(path));
     for (const script of scripts) {
-      assert.equal(typeof pkg.scripts?.[script], "string", `${path} missing ${script}`);
+      assert.equal(
+        typeof pkg.scripts?.[script],
+        "string",
+        `${path} missing ${script}`,
+      );
     }
   }
 });
@@ -210,10 +251,11 @@ test("pnpm lockfile is the only tracked package-manager lockfile", async () => {
     lockfiles.push(relative(root.pathname, file.pathname));
   }
 
-  const packageManagerLockfiles = lockfiles
-    .filter((path) =>
-      /(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml)$/.test(path)
-    );
+  const packageManagerLockfiles = lockfiles.filter((path) =>
+    /(^|\/)(package-lock\.json|npm-shrinkwrap\.json|yarn\.lock|pnpm-lock\.yaml)$/.test(
+      path,
+    ),
+  );
 
   assert.deepEqual(packageManagerLockfiles.sort(), ["pnpm-lock.yaml"]);
 });
@@ -225,7 +267,11 @@ test("helper scripts are executable and wired for local dev", async () => {
     "scripts/dev-node-deps.sh",
     "scripts/dev-up.sh",
   ]) {
-    assert.equal(await isExecutable(path), true, `${path} should be executable`);
+    assert.equal(
+      await isExecutable(path),
+      true,
+      `${path} should be executable`,
+    );
   }
 
   const up = await text("scripts/dev-up.sh");

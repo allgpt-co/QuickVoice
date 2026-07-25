@@ -8,14 +8,14 @@ import {
 export const metadata: Metadata = {
   title: "AI Voice Agent Use Cases — Support, Scheduling, Sales",
   description:
-    "Automate customer support, appointment scheduling, outbound sales, order tracking, collections, and HR screening with QuickVoice AI voice agents. No-code. Free trial.",
+    "Explore AI phone-agent workflow patterns for support, scheduling, sales, order tracking, collections, and operations with explicit implementation boundaries.",
   alternates: {
     canonical: "https://quickvoice.co/use-cases",
   },
   openGraph: {
     title: "AI Voice Agent Use Cases",
     description:
-      "Explore how QuickVoice AI voice agents automate support, scheduling, sales, collections, and more. HIPAA compliant. 100+ languages.",
+      "Explore how QuickVoice can be adapted for support, scheduling, sales, collections, and other bounded phone workflows.",
     type: "website",
     url: "https://quickvoice.co/use-cases",
     siteName: "QuickVoice",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AI Voice Agent Use Cases",
     description:
-      "Explore how QuickVoice AI voice agents automate support, scheduling, sales, collections, and more. HIPAA compliant. 100+ languages.",
+      "Explore how QuickVoice can be adapted for support, scheduling, sales, collections, and other bounded phone workflows.",
     images: ["/og-image.png"],
   },
 };
@@ -37,17 +37,6 @@ const structuredData = {
   description:
     "Discover how QuickVoice's AI-powered voice agents automate workflows, enhance customer experiences, and drive operational efficiency across customer support, sales, scheduling, and more.",
   url: "https://quickvoice.co/use-cases",
-  mainEntity: {
-    "@type": "SoftwareApplication",
-    name: "QuickVoice",
-    applicationCategory: "BusinessApplication",
-    operatingSystem: "Web",
-    offers: {
-      "@type": "Offer",
-      price: "0",
-      priceCurrency: "USD",
-    },
-  },
   breadcrumb: {
     "@type": "BreadcrumbList",
     itemListElement: [

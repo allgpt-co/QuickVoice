@@ -1,18 +1,28 @@
 import { getAllPosts, type BlogPost } from "@/lib/blog";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Calendar, Clock, ChevronRight, BookOpen, TrendingUp, Layers, BarChart2, GitCompare, Building2, Search } from "lucide-react";
-import { REGISTER_URL } from "@/lib/links";
+import {
+  Calendar,
+  Clock,
+  ChevronRight,
+  BookOpen,
+  TrendingUp,
+  Layers,
+  BarChart2,
+  GitCompare,
+  Building2,
+  Search,
+} from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Blog — AI Voice Agent Guides & Insights",
   description:
-    "Expert articles on AI voice agents, no-code deployment, industry playbooks, and ROI analysis. Updated weekly by the QuickVoice team.",
+    "Editorial guides on AI phone agents, architecture, workflow design, industry considerations, and evaluation. Verify cited sources before relying on a claim.",
   alternates: { canonical: "https://quickvoice.co/blog" },
   openGraph: {
     title: "QuickVoice Blog — AI Voice Agent Insights",
     description:
-      "Expert articles on AI voice agents, no-code deployment, industry playbooks, ROI analysis, and conversational AI.",
+      "Editorial guides on AI phone agents, architecture, workflow design, industry considerations, and evaluation.",
     type: "website",
     url: "https://quickvoice.co/blog",
     siteName: "QuickVoice",
@@ -22,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "QuickVoice Blog — AI Voice Agent Insights",
     description:
-      "Expert articles on AI voice agents, no-code deployment, industry playbooks, ROI analysis, and conversational AI.",
+      "Editorial guides on AI phone agents, architecture, workflow design, industry considerations, and evaluation.",
     images: ["/og-image.png"],
   },
 };
@@ -118,7 +128,9 @@ interface BlogIndexPageProps {
   searchParams?: Promise<{ q?: string | string[] }> | { q?: string | string[] };
 }
 
-export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps) {
+export default async function BlogIndexPage({
+  searchParams,
+}: BlogIndexPageProps) {
   const params = searchParams ? await searchParams : {};
   const query = normalizeSearchQuery(params.q);
   const allPosts = getAllPosts();
@@ -147,8 +159,18 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://quickvoice.co" },
-      { "@type": "ListItem", position: 2, name: "Blog", item: "https://quickvoice.co/blog" },
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://quickvoice.co",
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Blog",
+        item: "https://quickvoice.co/blog",
+      },
     ],
   };
 
@@ -175,7 +197,9 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
               <span className="text-primary">Guides & Playbooks</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Deep-dive articles on deploying AI voice agents, industry ROI data, comparison guides, and practical how-tos — written by practitioners, for business operators.
+              Deep-dive articles on deploying AI voice agents, industry ROI
+              data, comparison guides, and practical how-tos — written by
+              practitioners, for business operators.
             </p>
           </div>
         </div>
@@ -219,8 +243,7 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
           {query && (
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Showing {filteredPosts.length}{" "}
-              {filteredPosts.length === 1 ? "article" : "articles"}{" "}
-              for &quot;
+              {filteredPosts.length === 1 ? "article" : "articles"} for &quot;
               {query}&quot;.
             </p>
           )}
@@ -240,10 +263,18 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
                       {/* Category badge */}
                       <div
                         className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium mb-4 ${
-                          (CATEGORY_META[featured.category] || defaultMeta(featured.category)).bg
+                          (
+                            CATEGORY_META[featured.category] ||
+                            defaultMeta(featured.category)
+                          ).bg
                         } ${(CATEGORY_META[featured.category] || defaultMeta(featured.category)).color}`}
                       >
-                        {(CATEGORY_META[featured.category] || defaultMeta(featured.category)).icon}
+                        {
+                          (
+                            CATEGORY_META[featured.category] ||
+                            defaultMeta(featured.category)
+                          ).icon
+                        }
                         {featured.category}
                       </div>
                       <h3 className="text-2xl md:text-3xl font-bold text-foreground mb-4 group-hover:text-primary transition-colors leading-snug">
@@ -295,10 +326,12 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
 
         {filteredPosts.length === 0 && (
           <section className="mb-16 rounded-2xl border border-border bg-card p-10 text-center">
-            <h2 className="text-xl font-bold text-foreground">No articles found</h2>
+            <h2 className="text-xl font-bold text-foreground">
+              No articles found
+            </h2>
             <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
-              Try a broader keyword or clear the search to browse every published
-              QuickVoice guide.
+              Try a broader keyword or clear the search to browse every
+              published QuickVoice guide.
             </p>
           </section>
         )}
@@ -316,8 +349,12 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
                     {meta.icon}
                   </div>
                   <div>
-                    <h2 className="text-xl font-bold text-foreground">{category}</h2>
-                    <p className="text-xs text-muted-foreground">{meta.description}</p>
+                    <h2 className="text-xl font-bold text-foreground">
+                      {category}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {meta.description}
+                    </p>
                   </div>
                 </div>
                 <span className="text-sm text-muted-foreground hidden sm:block">
@@ -379,18 +416,23 @@ export default async function BlogIndexPage({ searchParams }: BlogIndexPageProps
         {/* Bottom CTA */}
         <section className="mt-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-blue-600/5 p-10 text-center">
           <h2 className="text-2xl font-bold text-foreground mb-3">
-            Ready to deploy your first AI voice agent?
+            Ready to inspect the implementation?
           </h2>
           <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-            Everything you read about here is live in QuickVoice. Start free — no credit card, no code, first agent live in under 30 minutes.
+            Separate editorial ideas from code-backed capabilities, then review
+            the setup prerequisites and provider boundaries in the open-source
+            repository.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href={REGISTER_URL}
+              href="/open-source"
               className="inline-flex items-center justify-center gap-2 rounded-full px-7 py-3 font-medium text-white transition-all hover:shadow-lg"
-              style={{ backgroundImage: "linear-gradient(to right, var(--primary), #1e40af)" }}
+              style={{
+                backgroundImage:
+                  "linear-gradient(to right, var(--primary), #1e40af)",
+              }}
             >
-              Start Free Trial
+              Explore the open-source stack
             </Link>
             <Link
               href="/company/contact"

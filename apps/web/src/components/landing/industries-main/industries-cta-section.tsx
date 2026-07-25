@@ -46,8 +46,8 @@ export function IndustriesCtaSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Join thousands of businesses already using QuickVoice to automate customer interactions
-              and drive operational excellence.
+              Start with one reviewable call workflow, make its provider and
+              data boundaries explicit, and expand only after it is tested.
             </motion.p>
 
             <motion.div

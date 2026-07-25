@@ -1,0 +1,79 @@
+name: Feature proposal
+description: Propose one user problem and a maintainable outcome before implementation.
+title: "[Feature]: "
+labels:
+  - enhancement
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem before prescribing a broad solution. New providers, auth, billing, database, telephony, worker, public API, security, and deployment changes need design agreement before a pull request.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Who has the problem, what are they trying to do, and what blocks them today?
+    validations:
+      required: true
+  - type: textarea
+    id: current_workaround
+    attributes:
+      label: Current workaround
+      description: Explain what can be done with QuickVoice today, if anything.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Proposed outcome
+      description: Describe observable behavior and boundaries, not only an implementation.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - Local development tooling
+        - Console
+        - API server
+        - AI API or worker
+        - Telephony provider
+        - Speech or model provider
+        - Knowledge base or tools
+        - Authentication or organizations
+        - Billing
+        - Deployment or operations
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Dependencies and boundaries
+      description: Note migrations, APIs, provider accounts, privacy, security, consent, cost, or backwards-compatibility considerations.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Suggested acceptance criteria
+      placeholder: |
+        - [ ] Observable outcome one
+        - [ ] Observable outcome two
+        - [ ] Tests and docs cover the change
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched the roadmap, open issues, and pull requests for this proposal.
+          required: true
+        - label: I will wait for scope agreement and assignment before opening a non-trivial implementation pull request.
+          required: true
+        - label: This proposal does not depend on publishing credentials or private customer data.
+          required: true

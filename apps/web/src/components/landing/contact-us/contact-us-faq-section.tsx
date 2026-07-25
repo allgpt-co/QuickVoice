@@ -3,58 +3,60 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { MinusIcon, PlusIcon } from "lucide-react";
-import { Badge } from '@/components/ui/badge';
+import { Badge } from "@/components/ui/badge";
 
 const faqs = [
   {
-    question: "What types of voice agents can QuickVoice create for my business?",
+    question:
+      "What types of voice agents can QuickVoice create for my business?",
     answer:
-      "QuickVoice can create specialized voice agents for customer support, sales, appointment scheduling, lead qualification, order processing, and more. Our AI agents are trained on your specific business data and can handle complex conversations while maintaining your brand voice and tone.",
+      "QuickVoice can be adapted for bounded workflows such as support intake, scheduling, reminders, qualification, and routing. The exact behavior depends on the prompts, knowledge, tools, providers, safeguards, and escalation rules you configure.",
   },
   {
     question: "How quickly can I deploy a voice agent for my business?",
     answer:
-      "Most voice agents can be deployed within 1-2 weeks. The timeline depends on complexity, integrations needed, and data preparation. Our team works closely with you to ensure a smooth deployment process with comprehensive testing and training.",
+      "There is no universal production timeline. A local evaluation still needs the documented host prerequisites, while real calls need LiveKit plus Twilio or Telnyx credentials. Production timing depends on integrations, data, testing, security, legal, and operational review.",
   },
   {
-    question: "Can voice agents integrate with my existing CRM and business systems?",
+    question:
+      "Can voice agents integrate with my existing CRM and business systems?",
     answer:
-      "Yes, QuickVoice offers native integrations with over 200+ popular business tools including Salesforce, HubSpot, Zendesk, Microsoft Dynamics, and custom APIs. Our integration specialists ensure seamless data flow between your voice agents and existing systems.",
+      "QuickVoice includes API, MCP, and custom tool paths that can be adapted for approved external systems. Confirm each target system, authentication method, data contract, side effect, rate limit, and failure path before treating it as an integration.",
   },
   {
     question: "What languages and accents do your voice agents support?",
     answer:
-      "Our voice agents support 50+ languages with natural accents and regional variations. We offer multilingual support for global businesses, including English, Spanish, French, German, Italian, Japanese, Korean, Arabic, Hindi, and many more with authentic local accents.",
+      "Language and voice availability depends on the speech and voice providers configured in your deployment. Test every intended language, accent, terminology set, transfer rule, and fallback path before publishing a support claim.",
   },
   {
     question: "How do you ensure voice agent quality and accuracy?",
     answer:
-      "We use advanced AI training with your specific business data, continuous learning algorithms, and comprehensive testing. Our quality assurance includes A/B testing, performance monitoring, and regular updates to ensure your voice agents deliver accurate, helpful responses that improve over time.",
+      "Quality is workflow-specific. Build a representative test set, evaluate tool completion and handoffs, monitor failures, review recordings or transcripts where lawful, and keep high-impact decisions with authorized humans.",
   },
   {
     question: "What security and compliance measures are in place?",
     answer:
-      "QuickVoice is SOC 2 Type II certified and compliant with HIPAA, PCI DSS, and GDPR. We use enterprise-grade encryption, secure data centers, and comprehensive audit trails. All voice interactions are encrypted and stored securely with complete privacy protection.",
+      "The repository makes relevant paths inspectable, but it does not establish a certification or compliance status. Review the exact deployment, providers, contracts, access controls, retention, logs, incident response, and operating procedures with qualified owners.",
   },
   {
     question: "How quickly can I get started with QuickVoice?",
     answer:
-      "You can get started with QuickVoice in just a few minutes. Our no-code platform allows you to create and deploy voice agents without any technical expertise. Most businesses see results within the first week.",
+      "Start with the repository quickstart and prerequisites. The local product surface can be evaluated without live carrier traffic; real calls and production services require provider credentials and deliberate deployment choices.",
   },
   {
     question: "What industries do you serve?",
     answer:
-      "We serve businesses across all industries including healthcare, financial services, retail, real estate, automotive, travel, education, and more. Our voice agents are customizable for any business need.",
+      "The repository contains workflow examples for several industries. Those examples are starting points, not proof of customers, regulatory suitability, or support for every industry requirement.",
   },
   {
     question: "Do I need technical knowledge to use QuickVoice?",
     answer:
-      "No technical knowledge required! QuickVoice is designed as a no-code platform, making it easy for anyone to create and manage voice agents. Our intuitive interface guides you through the entire process.",
+      "The console provides configuration interfaces, but self-hosting and production operation still require technical work across Docker, providers, credentials, data, security, integrations, and monitoring.",
   },
   {
     question: "What support do you provide?",
     answer:
-      "We provide comprehensive support including setup assistance, training, and ongoing technical support. Our team is available via phone, email, and chat to help you succeed with your voice automation goals.",
+      "Use the public repository for issues and contribution guidance. Contact the QuickVoice team to confirm the current scope, response times, and commercial terms for managed implementation or support.",
   },
 ];
 
@@ -78,7 +80,8 @@ export function ContactUsFaqSection() {
           </h2>
 
           <p className="text-muted-foreground max-w-2xl text-center">
-            Get answers to common questions about QuickVoice and our voice AI solutions.
+            Get answers to common questions about QuickVoice and our voice AI
+            solutions.
           </p>
         </div>
 
@@ -98,8 +101,8 @@ export function ContactUsFaqSection() {
                   whileHover={{ scale: 1.02, y: -2 }}
                   className={`border-border h-fit overflow-hidden rounded-xl border transition-all duration-300 ${
                     isOpen
-                      ? 'shadow-3xl bg-card/50 border-primary/30'
-                      : 'bg-card/50 hover:border-primary/20'
+                      ? "shadow-3xl bg-card/50 border-primary/30"
+                      : "bg-card/50 hover:border-primary/20"
                   }`}
                   style={{ minHeight: "88px" }}
                 >

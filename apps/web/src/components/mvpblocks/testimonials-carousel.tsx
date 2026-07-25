@@ -1,56 +1,13 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import { cn } from '@/lib/utils';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { motion } from 'framer-motion';
-import { Quote } from 'lucide-react';
+import React, { useEffect } from "react";
+import useEmblaCarousel from "embla-carousel-react";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { motion } from "framer-motion";
+import { Quote } from "lucide-react";
 
-const defaultTestimonials = [
-  {
-    text: "We deployed our first AI voice agent in under 10 minutes. It now handles 70% of appointment scheduling calls without any human intervention.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=SM&backgroundColor=6366f1",
-    name: "Sarah M.",
-    username: "Practice Manager",
-    role: "Multi-Location Healthcare Group",
-  },
-  {
-    text: "HIPAA compliance was non-negotiable for us. QuickVoice gave us the security certifications we needed while dramatically reducing missed calls.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=JT&backgroundColor=8b5cf6",
-    name: "James T.",
-    username: "Director of Operations",
-    role: "Regional Hospital System",
-  },
-  {
-    text: "The CRM integration alone saved our team 15 hours per week. Every call is logged, transcribed, and synced to HubSpot automatically.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=MR&backgroundColor=2563eb",
-    name: "Michael R.",
-    username: "VP of Sales",
-    role: "B2B SaaS Company",
-  },
-  {
-    text: "We went from missing 40% of after-hours calls to capturing every single inquiry. Our lead conversion rate increased by 35% in the first month.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=LK&backgroundColor=7c3aed",
-    name: "Lisa K.",
-    username: "Business Development Lead",
-    role: "Commercial Real Estate Firm",
-  },
-  {
-    text: "Multi-language support was the deciding factor. Our AI agents now handle calls in English, Spanish, and French across all our locations.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=DP&backgroundColor=4f46e5",
-    name: "David P.",
-    username: "Customer Experience Director",
-    role: "National Retail Chain",
-  },
-  {
-    text: "We replaced our legacy IVR with QuickVoice and saw customer satisfaction scores jump from 3.2 to 4.6 out of 5 within 60 days.",
-    imageSrc: "https://api.dicebear.com/7.x/initials/svg?seed=RW&backgroundColor=6d28d9",
-    name: "Rachel W.",
-    username: "Contact Center Manager",
-    role: "Financial Services Provider",
-  },
-];
+const defaultTestimonials: NonNullable<TestimonialProps["testimonials"]> = [];
 
 interface TestimonialProps {
   testimonials?: {
@@ -68,15 +25,15 @@ interface TestimonialProps {
 
 export default function TestimonialsCarousel({
   testimonials = defaultTestimonials,
-  title = 'Trusted by Over 100 Companies Worldwide',
-  subtitle = 'From healthcare startups to global e-commerce leaders, businesses across every sector trust QuickVoice to automate and elevate their communications.',
+  title = "Verified customer stories coming soon",
+  subtitle = "QuickVoice only publishes testimonials and outcome metrics after the customer, source, scope, and approval are documented.",
   autoplaySpeed = 3000,
   className,
 }: TestimonialProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     loop: true,
-    align: 'center',
-    containScroll: 'trimSnaps',
+    align: "center",
+    containScroll: "trimSnaps",
     dragFree: true,
   });
 
@@ -95,7 +52,7 @@ export default function TestimonialsCarousel({
   return (
     <section
       id="testimonials"
-      className={cn('relative overflow-hidden py-20 md:py-28', className)}
+      className={cn("relative overflow-hidden py-20 md:py-28", className)}
     >
       <div className="absolute inset-0 -z-10">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--primary)/0.2),transparent_60%)]" />
@@ -134,9 +91,7 @@ export default function TestimonialsCarousel({
                 key={`${testimonial.name}-${index}`}
                 className="flex-shrink-0 basis-[350px] md:basis-[400px] px-4"
               >
-                <div
-                  className="border-border from-secondary/20 to-card relative h-full rounded-2xl border bg-gradient-to-b p-6 shadow-md backdrop-blur-sm"
-                >
+                <div className="border-border from-secondary/20 to-card relative h-full rounded-2xl border bg-gradient-to-b p-6 shadow-md backdrop-blur-sm">
                   {/* Enhanced decorative gradients */}
                   <div className="from-primary/15 to-card absolute -top-5 -left-5 -z-10 h-40 w-40 rounded-full bg-gradient-to-b blur-md" />
                   <div className="from-primary/10 absolute -right-10 -bottom-10 -z-10 h-32 w-32 rounded-full bg-gradient-to-t to-transparent opacity-70 blur-xl" />

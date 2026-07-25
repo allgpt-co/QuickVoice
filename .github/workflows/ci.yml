@@ -13,7 +13,7 @@ permissions:
 jobs:
   workspace-config:
     name: Workspace Config
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -40,7 +40,7 @@ jobs:
 
   root-tests:
     name: Root Node Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout code
@@ -64,7 +64,7 @@ jobs:
 
   console:
     name: Console Lint, Types, Build, Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -97,7 +97,7 @@ jobs:
 
   web:
     name: Web Lint, Types, Build
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -125,9 +125,39 @@ jobs:
       - name: Build web
         run: pnpm --filter web build
 
+  docs:
+    name: Docs Lint, Types, Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint docs
+        run: pnpm --filter docs lint
+
+      - name: Typecheck docs
+        run: pnpm --filter docs check-types
+
+      - name: Build docs
+        run: pnpm --filter docs build
+
   server:
     name: Server Lint, Types, Build, Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -160,7 +190,7 @@ jobs:
 
   ai-python:
     name: AI Python Tests
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - name: Checkout code
@@ -186,7 +216,7 @@ jobs:
 
   docker-server:
     name: Server Docker Validate
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
       - name: Checkout code
@@ -211,7 +241,7 @@ jobs:
 
   docker-ai:
     name: AI Docker Validate
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - name: Checkout code
@@ -237,7 +267,7 @@ jobs:
 
   quality-summary:
     name: Quality Summary
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     if: always()
     needs:
@@ -245,6 +275,7 @@ jobs:
       - root-tests
       - console
       - web
+      - docs
       - server
       - ai-python
       - docker-server
@@ -258,6 +289,7 @@ jobs:
             echo "- Root tests: ${{ needs.root-tests.result }}"
             echo "- Console: ${{ needs.console.result }}"
             echo "- Web: ${{ needs.web.result }}"
+            echo "- Docs: ${{ needs.docs.result }}"
             echo "- Server: ${{ needs.server.result }}"
             echo "- AI Python: ${{ needs.ai-python.result }}"
             echo "- Server Docker: ${{ needs.docker-server.result }}"
@@ -272,6 +304,7 @@ jobs:
             "${{ needs.root-tests.result }}" \
             "${{ needs.console.result }}" \
             "${{ needs.web.result }}" \
+            "${{ needs.docs.result }}" \
             "${{ needs.server.result }}" \
             "${{ needs.ai-python.result }}" \
             "${{ needs.docker-server.result }}" \

@@ -8,14 +8,14 @@ import {
 export const metadata: Metadata = {
   title: "AI Voice Agent Solutions by Industry",
   description:
-    "QuickVoice AI voice agents serve healthcare, real estate, finance, e-commerce, logistics, and 10+ more industries. No-code deployment. HIPAA compliant. Free trial.",
+    "Explore how open-source AI phone-agent infrastructure can be adapted for healthcare, real estate, finance, e-commerce, logistics, and other industries.",
   alternates: {
     canonical: "https://quickvoice.co/industries",
   },
   openGraph: {
     title: "AI Voice Agent Solutions by Industry",
     description:
-      "Discover AI voice agent solutions tailored to your industry. HIPAA compliant. 100+ languages. Deploy in 2 minutes.",
+      "Explore bounded AI phone-agent workflows by industry, with explicit provider, data, and deployment boundaries.",
     type: "website",
     url: "https://quickvoice.co/industries",
     siteName: "QuickVoice",
@@ -25,7 +25,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AI Voice Agent Solutions by Industry",
     description:
-      "Discover AI voice agent solutions tailored to your industry. HIPAA compliant. 100+ languages. Deploy in 2 minutes.",
+      "Explore bounded AI phone-agent workflows by industry, with explicit provider, data, and deployment boundaries.",
     images: ["/og-image.png"],
   },
 };

@@ -9,7 +9,7 @@ const features = [
   "Personalized Recommendations",
   "24/7 Sales Support",
   "Multi-channel Engagement",
-  "Enterprise Security"
+  "Enterprise Security",
 ];
 
 export function SalesLeadGenCtaSection() {
@@ -31,8 +31,8 @@ export function SalesLeadGenCtaSection() {
               Ready to Transform Your Sales Process?
             </h2>
             <p className="mx-auto max-w-3xl text-lg font-light leading-relaxed text-purple-100">
-              Join thousands of companies already using AI sales agents to increase conversions,
-              reduce costs, and deliver exceptional customer experiences.
+              Inspect the workflow, define consent and escalation rules, and
+              measure outcomes against a documented baseline.
             </p>
           </div>
 

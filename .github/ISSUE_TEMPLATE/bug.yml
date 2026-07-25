@@ -1,0 +1,98 @@
+name: Bug report
+description: Report reproducible behavior that appears incorrect.
+title: "[Bug]: "
+labels:
+  - bug
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve QuickVoice. Search open issues and pull requests before submitting.
+
+        **Do not include credentials, signed URLs, real phone numbers, recordings, transcripts, customer data, or unpatched vulnerability details.** Follow `SECURITY.md` for security reports.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where does the problem occur?
+      options:
+        - Local development tooling
+        - Console
+        - API server
+        - AI API or worker
+        - Telephony
+        - Knowledge base or tools
+        - Authentication or organizations
+        - Billing
+        - Documentation
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Describe one problem and its user-visible impact.
+      placeholder: A concise description of what is broken and who it affects.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: List the smallest command, route, or click path that reproduces the behavior.
+      placeholder: |
+        1. Run ...
+        2. Open ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      placeholder: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: Include the first relevant error after removing secrets and personal data.
+      placeholder: What happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include versions relevant to the failure.
+      placeholder: |
+        Host: Linux / macOS / WSL2 / Dev Container / Codespaces
+        Node:
+        pnpm:
+        Bash:
+        Python:
+        Docker and Docker Compose:
+        QuickVoice commit:
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Additional evidence
+      description: Add redacted logs, screenshots, or a minimal repository if needed.
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched open issues and pull requests for this problem.
+          required: true
+        - label: I reduced this to one reproducible issue.
+          required: true
+        - label: I removed credentials, personal data, recordings, transcripts, and customer content.
+          required: true
+        - label: This is not a public disclosure of an unpatched security vulnerability.
+          required: true

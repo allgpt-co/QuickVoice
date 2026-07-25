@@ -63,33 +63,33 @@ export const metadata: Metadata = {
 const FEATURES = [
   {
     icon: Clock,
-    title: "24/7 Availability",
+    title: "Configurable Availability",
     description:
-      "Your AI answering service never sleeps. Every call is picked up instantly — nights, weekends, and holidays included.",
+      "Define business-hour, after-hours, transfer, and fallback behavior for the deployment you operate.",
   },
   {
     icon: Globe,
-    title: "100+ Languages",
+    title: "Provider-Backed Languages",
     description:
-      "Serve callers in their preferred language with real-time multilingual support. No additional staff required.",
+      "Configure and test the languages offered by the speech and voice providers in your deployment.",
   },
   {
     icon: Zap,
-    title: "Instant Call Handling",
+    title: "Real-Time Call Handling",
     description:
-      "Zero hold times. Callers get immediate, context-aware responses powered by natural language processing.",
+      "Use a LiveKit-based runtime for interactive calls, then measure latency and capacity in your own provider and infrastructure configuration.",
   },
   {
     icon: Bot,
-    title: "Human-Like Conversations",
+    title: "Configurable Conversations",
     description:
-      "Advanced AI voice models deliver natural, empathetic dialogue that callers trust and prefer over robotic IVR menus.",
+      "Choose prompts, voices, knowledge, tools, and escalation behavior for a bounded call workflow.",
   },
   {
     icon: ShieldCheck,
-    title: "Enterprise Security",
+    title: "Inspectable Security Boundaries",
     description:
-      "SOC 2 Type II certified, HIPAA-ready logging, end-to-end encryption, and PII redaction built in.",
+      "Review permissions, logs, redaction, retention, secrets, storage, URLs, and provider boundaries before production use.",
   },
   {
     icon: BarChart3,
@@ -190,7 +190,7 @@ const FAQS = [
   },
   {
     q: "How does QuickVoice compare to a traditional answering service?",
-    a: "QuickVoice answers every call instantly with zero hold time, operates 24/7/365, supports 100+ languages, and costs as little as $0.20 per minute. Traditional services typically charge $1-3 per minute, are limited by staff availability, and may put callers on hold during peak periods.",
+    a: "QuickVoice exposes a configurable software stack rather than staffing a live-operator service. Compare the full costs, service quality, escalation behavior, provider limits, and operational responsibility for your own call volume before choosing either model.",
   },
   {
     q: "Can the AI answering service transfer calls to a live person?",
@@ -198,11 +198,11 @@ const FAQS = [
   },
   {
     q: "Is QuickVoice HIPAA compliant for healthcare use?",
-    a: "Yes. Our Scale and Enterprise plans include HIPAA-ready logging, automatic PHI redaction, and we can sign a Business Associate Agreement (BAA). This makes QuickVoice suitable for medical offices, dental clinics, and other healthcare organizations.",
+    a: "The repository or plan selection does not establish HIPAA compliance. Healthcare use requires review of the exact deployment, providers, contracts, access controls, retention, redaction, incident response, and operating procedures before any PHI is processed.",
   },
   {
     q: "How long does it take to set up?",
-    a: "Most businesses are live in under 5 minutes. You create an AI agent in the QuickVoice dashboard, configure your greeting and call-handling rules, and forward your business phone number. No coding or hardware is required.",
+    a: "You can inspect the local product surface after installing the documented prerequisites. Real calls require LiveKit plus Twilio or Telnyx credentials; production timing depends on integrations, testing, safeguards, and deployment choices.",
   },
   {
     q: "What happens if the AI cannot handle a caller's request?",
@@ -282,12 +282,12 @@ export default function AIAnsweringServicePage() {
             AI Answering Service
           </p>
           <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-            Never Miss a Call Again
+            Build an answering workflow you can inspect
           </h1>
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-            QuickVoice&apos;s AI answering service picks up every call
-            instantly, 24/7, in over 100 languages — at a fraction of the cost
-            of a traditional answering service. No hold music. No missed leads.
+            Configure how calls are answered, routed, escalated, logged, and
+            retained on a self-hostable stack with explicit telephony, speech,
+            model, and infrastructure dependencies.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link
@@ -446,18 +446,17 @@ export default function AIAnsweringServicePage() {
                 <h3 className="text-xl font-bold">QuickVoice AI</h3>
               </div>
               <div className="mb-6 flex items-baseline gap-1">
-                <span className="text-4xl font-bold">$0.20</span>
-                <span className="text-muted-foreground">/min</span>
+                <span className="text-4xl font-bold">Configurable</span>
               </div>
               <ul className="space-y-3 text-sm">
                 {[
-                  "24/7/365 availability",
-                  "Zero hold time",
-                  "100+ languages included",
-                  "Unlimited concurrent calls",
-                  "Real-time analytics dashboard",
-                  "No contracts or setup fees",
-                  "Live in under 5 minutes",
+                  "Business-hours and after-hours rules",
+                  "Provider-backed language configuration",
+                  "Measured concurrency and latency",
+                  "Call logs and operational dashboards",
+                  "Human transfer and fallback paths",
+                  "Explicit provider and infrastructure costs",
+                  "Production readiness review",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
@@ -543,9 +542,8 @@ export default function AIAnsweringServicePage() {
             Ready to Let AI Answer Your Calls?
           </h2>
           <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
-            Join thousands of businesses that trust QuickVoice to deliver
-            instant, professional call handling around the clock. Book a demo to
-            map your call volume, transfer rules, and rollout plan.
+            Map your call volume, transfer rules, provider requirements, and
+            rollout safeguards before moving a workflow into production.
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Link

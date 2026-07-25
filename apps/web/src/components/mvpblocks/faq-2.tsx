@@ -77,13 +77,6 @@ const faqItems: FaqItem[] = [
       "Yes. The AGPL repo is designed to be inspected and extended, including agents, knowledge sources, campaigns, permissions, billing paths, provider integrations, and deployment choices.",
     category: "integration",
   },
-  {
-    id: "10",
-    question: "Is there a free trial available?",
-    answer:
-      "Yes, the Free plan includes 15 browser-only minutes each month so you can test the builder before a production launch. No credit card is required.",
-    category: "pricing",
-  },
 ];
 
 const categories = [
