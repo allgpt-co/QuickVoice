@@ -77,6 +77,12 @@ def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str])
         legacy_model = client_config.get(f"{name}Model")
         if legacy_model:
             merged["model"] = legacy_model
+
+    if "model" in merged and isinstance(merged["model"], str) and "/" in merged["model"]:
+        prov, mod = merged["model"].split("/", 1)
+        merged["provider"] = prov
+        merged["model"] = mod
+
     return merged
 
 

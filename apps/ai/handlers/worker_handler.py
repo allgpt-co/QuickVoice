@@ -412,7 +412,7 @@ def render_dynamic_variables(template: str, variables: dict[str, Any]) -> str:
 def speak_first_message(session: Any, config: dict[str, Any]):
     first_message = (config.get("first_message") or "").strip()
     if not first_message:
-        return None
+        first_message = "Hello! Thanks for calling support. Tell me what happened, and I will collect the details needed for the next step."
     return session.say(first_message, allow_interruptions=True)
 
 

@@ -123,22 +123,81 @@ export function AgentPreviewPanel({
     );
   }, []);
 
+  const recentMessagesRef = useRef<{ role: string; text: string; time: number }[]>([]);
+  const [isAgentThinking, setIsAgentThinking] = useState(false);
+
   const addConversationMessage = useCallback(
     (role: ConversationMessage["role"], text: string, pending = false) => {
       const trimmedText = text.trim();
       if (!trimmedText) return;
 
-      setConversationMessages((current) =>
-        [
+      if (role === "user") {
+        setInterimTranscript("");
+        setIsAgentThinking(true);
+      } else if (role === "agent") {
+        setIsAgentThinking(false);
+      }
+
+      const now = Date.now();
+      const isDuplicate = recentMessagesRef.current.some(
+        (m) => m.role === role && m.text.toLowerCase() === trimmedText.toLowerCase() && now - m.time < 4000,
+      );
+      if (isDuplicate) return;
+
+      recentMessagesRef.current = recentMessagesRef.current
+        .filter((m) => now - m.time < 4000)
+        .concat({ role, text: trimmedText, time: now });
+
+      setConversationMessages((current) => {
+        if (current.length === 0) {
+          return [{ id: `${now}-0`, role, text: trimmedText, pending }];
+        }
+
+        const lastMsg = current[current.length - 1];
+
+        // Deduplicate identical last message
+        if (
+          lastMsg.role === role &&
+          lastMsg.text.toLowerCase() === trimmedText.toLowerCase()
+        ) {
+          return current;
+        }
+
+        // Merge consecutive user messages into a single bubble so brief pauses don't split speech
+        if (role === "user" && lastMsg.role === "user") {
+          const lastLower = lastMsg.text.toLowerCase();
+          const newLower = trimmedText.toLowerCase();
+
+          // If new transcript extends the last transcript, replace it
+          if (newLower.startsWith(lastLower)) {
+            const updated = [...current];
+            updated[updated.length - 1] = {
+              ...lastMsg,
+              text: trimmedText,
+            };
+            return updated.slice(-24);
+          }
+
+          // Otherwise concatenate into the single user turn bubble
+          const mergedText = `${lastMsg.text} ${trimmedText}`;
+          const updated = [...current];
+          updated[updated.length - 1] = {
+            ...lastMsg,
+            text: mergedText,
+          };
+          return updated.slice(-24);
+        }
+
+        return [
           ...current,
           {
-            id: `${Date.now()}-${current.length}`,
+            id: `${now}-${current.length}`,
             role,
             text: trimmedText,
             pending,
           },
-        ].slice(-24),
-      );
+        ].slice(-24);
+      });
     },
     [],
   );
@@ -160,6 +219,7 @@ export function AgentPreviewPanel({
           ? "agent"
           : "user";
         if (isFinal) {
+          setInterimTranscript("");
           addConversationMessage(role, text);
         } else if (role === "user") {
           setInterimTranscript(text);
@@ -223,6 +283,8 @@ export function AgentPreviewPanel({
     disconnectPreview();
     setMuted(false);
     setPreview(null);
+    setIsAgentThinking(false);
+    setInterimTranscript("");
     setState((current) => (current === "idle" ? "idle" : "ended"));
   }, [disconnectPreview]);
 
@@ -241,6 +303,8 @@ export function AgentPreviewPanel({
 
     setError(null);
     setEvents([]);
+    setIsAgentThinking(false);
+    setInterimTranscript("");
     setConversationMessages([
       {
         id: `${Date.now()}-call-started`,
@@ -525,6 +589,28 @@ export function AgentPreviewPanel({
               </div>
             ) : (
               <div className="flex min-h-full flex-col justify-end gap-3">
+                {state === "connecting" && conversationMessages.length <= 1 ? (
+                  <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+                    <div className="flex size-14 items-center justify-center rounded-full border bg-muted/40">
+                      <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Connecting to agent…</p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Setting up your live preview room. This may take a few seconds.
+                      </p>
+                    </div>
+                    <div className="flex gap-1">
+                      {[0, 1, 2].map((i) => (
+                        <span
+                          key={i}
+                          className="size-1.5 animate-bounce rounded-full bg-muted-foreground/50"
+                          style={{ animationDelay: `${i * 150}ms` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
                 {conversationMessages.map((message) => (
                   <div
                     key={message.id}
@@ -541,9 +627,19 @@ export function AgentPreviewPanel({
                     {message.text}
                   </div>
                 ))}
-                {interimTranscript ? (
-                  <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-primary/80 px-3 py-2 text-sm leading-relaxed text-primary-foreground opacity-80">
+                {interimTranscript && !conversationMessages.some(m => m.role === "user" && m.text.toLowerCase().includes(interimTranscript.toLowerCase())) ? (
+                  <div className="ml-auto max-w-[85%] rounded-2xl rounded-br-md bg-primary/80 px-3 py-2 text-sm leading-relaxed text-primary-foreground opacity-80 animate-pulse">
                     {interimTranscript}
+                  </div>
+                ) : null}
+                {isAgentThinking ? (
+                  <div className="mr-auto flex items-center gap-2.5 max-w-[85%] rounded-2xl rounded-bl-md border bg-card px-4 py-2.5 text-sm text-muted-foreground shadow-sm">
+                    <span className="text-xs font-medium text-muted-foreground">{agentName} is thinking</span>
+                    <div className="flex gap-1 items-center">
+                      <span className="size-1.5 animate-bounce rounded-full bg-primary/70" style={{ animationDelay: "0ms" }} />
+                      <span className="size-1.5 animate-bounce rounded-full bg-primary/70" style={{ animationDelay: "150ms" }} />
+                      <span className="size-1.5 animate-bounce rounded-full bg-primary/70" style={{ animationDelay: "300ms" }} />
+                    </div>
                   </div>
                 ) : null}
                 {conversationMessages.length === 1 && !interimTranscript ? (

@@ -14,19 +14,19 @@ tasks:
   doctor:
     desc: Check host prerequisites for local development
     cmds:
-      - ./scripts/dev-doctor.sh
+      - bash ./scripts/dev-doctor.sh
 
   env:dev:
     desc: Create local development env files from templates
     cmds:
-      - ./scripts/dev-env.sh
+      - bash ./scripts/dev-env.sh
 
   deps:node:
     desc: Install Node workspace dependencies with pnpm
     env:
       PNPM_VERSION: "{{.PNPM_VERSION}}"
     cmds:
-      - ./scripts/dev-node-deps.sh
+      - bash ./scripts/dev-node-deps.sh
 
   deps:update:
     desc: Explicitly update the pnpm lockfile when dependency changes are intended
@@ -40,8 +40,8 @@ tasks:
     desc: Create the AI Python virtualenv and install requirements
     dir: apps/ai
     cmds:
-      - python3 -m venv .venv
-      - . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - python -m venv .venv
+      - bash -c ". .venv/Scripts/activate 2>/dev/null || . .venv/bin/activate; python -m pip install --upgrade pip && python -m pip install -r requirements.txt"
 
   deps:
     desc: Install Node and Python dependencies
@@ -90,7 +90,7 @@ tasks:
   dev:clear:
     desc: Stop stale QuickVoice local dev processes
     cmds:
-      - ./scripts/dev-clear-processes.sh
+      - bash ./scripts/dev-clear-processes.sh
 
   db:migrate:
     desc: Apply Prisma migrations to the local development database
@@ -130,7 +130,7 @@ tasks:
       - task: deps:python
       - task: docker:up
       - task: db:migrate
-      - ./scripts/dev-up.sh
+      - bash ./scripts/dev-up.sh
 
   up:
     desc: Alias for up:dev

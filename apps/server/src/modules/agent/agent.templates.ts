@@ -5,11 +5,11 @@ type ConfiguredTemplateSlug = Exclude<AgentTemplateSlug, "blank">;
 
 const baseConfig = {
   agent_language: "en",
-  llmModel: "gpt-4o-mini",
+  llmModel: "openai/gpt-4o-mini",
   sttModel: "nova-3",
-  ttsModel: "aura-2",
+  ttsModel: "eleven_flash_v2_5",
   use_rag: false,
-  voiceId: "aura-2-asteria-en",
+  voiceId: "EXAVITQu4vr4xnSDxMaL",
   initiation_webhook: null,
   post_call_webhook: null,
   variables: {
