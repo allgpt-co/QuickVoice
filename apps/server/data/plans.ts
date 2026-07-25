@@ -16,7 +16,7 @@ export const plans = [
     priceId: "price_1S7ELSA4eYYbeMAj3rNKXxYE",
     price_fixed: "price_1S7ELSA4eYYbeMAj3rNKXxYE",
     price_metered: "price_1S7ELSA4eYYbeMAjPTNFDUew",
-    lineItems: [{ priceId: "price_1S7ELSA4eYYbeMAjPTNFDUew" }],
+    lineItems: [{ price: "price_1S7ELSA4eYYbeMAjPTNFDUew" }],
     minutes: 245,
   },
   {
@@ -28,7 +28,7 @@ export const plans = [
     priceId: "price_1S7ELUA4eYYbeMAjbIheJRtc",
     price_fixed: "price_1S7ELUA4eYYbeMAjbIheJRtc",
     price_metered: "price_1S7ELUA4eYYbeMAj16PRr0oZ",
-    lineItems: [{ priceId: "price_1S7ELUA4eYYbeMAj16PRr0oZ" }],
+    lineItems: [{ price: "price_1S7ELUA4eYYbeMAj16PRr0oZ" }],
     minutes: 600,
   },
   {
@@ -40,7 +40,7 @@ export const plans = [
     priceId: "price_1S7ELRA4eYYbeMAjmMcBgFoH",
     price_fixed: "price_1S7ELRA4eYYbeMAjmMcBgFoH",
     price_metered: "price_1S7ELRA4eYYbeMAj6e4XnOqB",
-    lineItems: [{ priceId: "price_1S7ELRA4eYYbeMAj6e4XnOqB" }],
+    lineItems: [{ price: "price_1S7ELRA4eYYbeMAj6e4XnOqB" }],
     minutes: 2660,
   },
 ];
