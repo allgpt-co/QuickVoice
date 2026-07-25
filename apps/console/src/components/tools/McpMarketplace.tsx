@@ -110,11 +110,13 @@ function AppLogo({ item }: { item: McpCatalogItem }) {
 
 function MarketplaceAction({
   item,
+  isDisabled,
   isPending,
   onConnect,
   onSetup,
 }: {
   item: McpCatalogItem;
+  isDisabled: boolean;
   isPending: boolean;
   onConnect: () => void;
   onSetup: (setupUrl: string, mcpConnectionId: string) => void;
@@ -163,7 +165,7 @@ function MarketplaceAction({
 
   if (item.connectionStatus === "ERROR" || item.connectionStatus === "DISCONNECTED") {
     return (
-      <Button variant="outline" size="sm" disabled={isPending} onClick={onConnect}>
+      <Button variant="outline" size="sm" disabled={isDisabled} onClick={onConnect}>
         {isPending ? <Loader2 className="size-4 animate-spin" /> : <AlertCircle className="size-4" />}
         Retry setup
       </Button>
@@ -171,7 +173,7 @@ function MarketplaceAction({
   }
 
   return (
-    <Button size="sm" disabled={isPending} onClick={onConnect}>
+    <Button size="sm" disabled={isDisabled} onClick={onConnect}>
       {isPending ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
       Connect
     </Button>
@@ -205,6 +207,8 @@ export function McpMarketplace() {
   const catalog = data?.items.length ? data.items : isError ? FALLBACK_CATALOG : [];
   const pagination = data?.pagination;
   const customUrlValidation = validateCustomMcpUrl(customUrl);
+  const isCustomConnectPending =
+    connectMcp.isPending && Boolean(connectMcp.variables?.customUrl);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -352,7 +356,11 @@ export function McpMarketplace() {
             className="lg:mt-6"
             disabled={!customUrlValidation.isValid || connectMcp.isPending}
           >
-            {connectMcp.isPending ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
+            {isCustomConnectPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <PlugZap className="size-4" />
+            )}
             Connect
           </Button>
         </form>
@@ -464,7 +472,11 @@ export function McpMarketplace() {
               </div>
               <MarketplaceAction
                 item={item}
-                isPending={connectMcp.isPending}
+                isDisabled={connectMcp.isPending}
+                isPending={
+                  connectMcp.isPending &&
+                  connectMcp.variables?.catalogSlug === item.slug
+                }
                 onConnect={() => connectMcp.mutate({ catalogSlug: item.slug })}
                 onSetup={openMcpSetup}
               />
