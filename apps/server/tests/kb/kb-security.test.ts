@@ -3,7 +3,10 @@ import { afterEach, test } from "node:test";
 
 import prisma from "../../src/config/prisma.js";
 import { BadRequestError } from "../../src/common/errors/badRequest.js";
-import { createKbApiSchema } from "../../src/modules/kb/kb.schema.js";
+import {
+  createKbApiSchema,
+  updateKbApiSchema,
+} from "../../src/modules/kb/kb.schema.js";
 import * as kbRepository from "../../src/modules/kb/kb.repository.js";
 
 const originalTransaction = prisma.$transaction.bind(prisma);
@@ -59,6 +62,58 @@ test("createKnowledgeSources verifies the target agent belongs to the active org
       ],
     }),
     BadRequestError
+  );
+  assert.equal(writes.length, 0);
+});
+
+
+test("updateKbApiSchema accepts editable fields and strips tenant identifiers", () => {
+  const parsed = updateKbApiSchema.parse({
+    name: "Updated pricing",
+    agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+    url: "https://docs.quickvoice.test/new-pricing",
+    organizationId: "attacker_org",
+    userId: "attacker_user",
+  });
+
+  assert.deepEqual(Object.keys(parsed).sort(), ["agentId", "name", "url"]);
+});
+
+test("updateKbApiSchema rejects an empty update", () => {
+  assert.throws(() => updateKbApiSchema.parse({}), /At least one field/);
+});
+
+test("prepareKnowledgeSourceUpdate rejects agents outside the active organization before writes", async () => {
+  const writes: unknown[] = [];
+  prisma.$transaction = (async (callback: (tx: unknown) => Promise<unknown>) => {
+    return callback({
+      knowledgeSource: {
+        findFirst: async () => ({
+          kbId: "kb_1",
+          organizationId: "org_123",
+          agentId: "old_agent",
+          status: "ACTIVE",
+        }),
+        update: async (args: unknown) => {
+          writes.push(args);
+          return args;
+        },
+      },
+      agent: {
+        findFirst: async () => null,
+      },
+    });
+  }) as typeof prisma.$transaction;
+
+  await assert.rejects(
+    kbRepository.prepareKnowledgeSourceUpdate({
+      kbId: "kb_1",
+      organizationId: "org_123",
+      name: "Updated pricing",
+      agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+      storagePath: "https://docs.quickvoice.test/new-pricing",
+    }),
+    BadRequestError,
   );
   assert.equal(writes.length, 0);
 });

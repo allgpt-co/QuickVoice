@@ -79,6 +79,19 @@ export const auth = betterAuth({
         enabled: true,
         defaultPlan: "free",
         plans: plans,
+        authorizeReference: async ({ user, referenceId }) => {
+          const member = await prisma.member.findUnique({
+            where: {
+              organizationId_userId: {
+                organizationId: referenceId,
+                userId: user.id,
+              },
+            },
+            select: { id: true },
+          });
+
+          return member !== null;
+        },
       },
       organization: {
         enabled: true,

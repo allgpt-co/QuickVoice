@@ -6,7 +6,7 @@ export const RESOURCES = [
   { id: "agent", label: "Agents", actions: ["create", "read", "update", "delete"] },
   { id: "agentConfiguration", label: "Agent config", actions: ["create", "read", "update", "delete"] },
   { id: "phoneNumber", label: "Phone numbers", actions: ["create", "read", "update", "delete"] },
-  { id: "knowledgeSource", label: "Knowledge base", actions: ["create", "read", "delete"] },
+  { id: "knowledgeSource", label: "Knowledge base", actions: ["create", "read", "update", "delete"] },
   { id: "callLogs", label: "Call logs", actions: ["read", "delete"] },
   { id: "outboundCalls", label: "Outbound calls", actions: ["create", "read", "delete"] },
   { id: "campaigns", label: "Campaigns", actions: ["create", "read", "delete"] },

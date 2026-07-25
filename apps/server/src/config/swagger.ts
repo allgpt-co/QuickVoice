@@ -299,12 +299,25 @@ export const swaggerSpec = {
           },
         },
       },
+      UpdateKbRequest: {
+        type: "object",
+        minProperties: 1,
+        properties: {
+          name: { type: "string", minLength: 1, maxLength: 200 },
+          agentId: { type: "string", format: "uuid" },
+          url: {
+            type: "string",
+            format: "uri",
+            description: "Editable only for URL knowledge sources.",
+          },
+        },
+      },
       KbDocument: {
         type: "object",
         required: ["name", "sourceType"],
         properties: {
           name: { type: "string", example: "Pricing FAQ" },
-          sourceType: { type: "string", enum: ["PDF", "TXT", "CSV", "DOCX", "URL"] },
+          sourceType: { type: "string", enum: ["PDF", "TXT", "CSV", "DOCX", "XLSX", "XLS", "URL"] },
           url: { type: "string", format: "uri", nullable: true },
           s3Key: { type: "string", nullable: true },
           originalFileName: { type: "string", nullable: true },
@@ -1026,6 +1039,29 @@ export const swaggerSpec = {
       },
     },
     "/kb/{kbId}": {
+      patch: {
+        tags: ["Knowledge Base"],
+        summary: "Update and reprocess a knowledge source",
+        description:
+          "Updates supported source configuration. Name or agent changes reprocess any source; URL changes are supported for URL sources only.",
+        security: userAuthSecurity,
+        parameters: [{ name: "kbId", in: "path", required: true, schema: { type: "string" } }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateKbRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Knowledge source updated and queued for processing" },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
       delete: {
         tags: ["Knowledge Base"],
         summary: "Delete a knowledge source",

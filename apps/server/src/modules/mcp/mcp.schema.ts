@@ -1,9 +1,29 @@
 import { z } from "zod";
 
+const customMcpUrlSchema = z
+  .string()
+  .trim()
+  .url()
+  .superRefine((value, context) => {
+    const parsed = new URL(value);
+    if (parsed.protocol !== "https:") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Custom MCP URL must use HTTPS",
+      });
+    }
+    if (parsed.username || parsed.password) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "URL credentials are not allowed",
+      });
+    }
+  });
+
 export const connectMcpSchema = z.object({
-  catalogSlug: z.string().min(1).optional(),
-  customUrl: z.string().url().optional(),
-  displayName: z.string().min(1).max(100).optional(),
+  catalogSlug: z.string().trim().min(1).optional(),
+  customUrl: customMcpUrlSchema.optional(),
+  displayName: z.string().trim().min(1).max(100).optional(),
 }).refine((data) => Boolean(data.catalogSlug) !== Boolean(data.customUrl), {
   message: "Provide either catalogSlug or customUrl",
 });

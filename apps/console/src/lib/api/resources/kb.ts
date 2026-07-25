@@ -20,6 +20,12 @@ export interface CreateKbInput {
   documents: KbDocumentInput[];
 }
 
+export interface UpdateKbInput {
+  name?: string;
+  agentId?: string;
+  url?: string;
+}
+
 export interface UploadUrlResponse {
   uploadUrl: string;
   s3Key: string;
@@ -34,6 +40,16 @@ export const kbApi = {
   },
   create: async (input: CreateKbInput): Promise<KnowledgeSource[]> => {
     const res = await apiClient.post<ApiEnvelope<KnowledgeSource[]>>("/kb", input);
+    return res.data.data;
+  },
+  update: async (
+    kbId: string,
+    input: UpdateKbInput,
+  ): Promise<KnowledgeSource> => {
+    const res = await apiClient.patch<ApiEnvelope<KnowledgeSource>>(
+      `/kb/${kbId}`,
+      input,
+    );
     return res.data.data;
   },
   remove: async (kbId: string): Promise<void> => {

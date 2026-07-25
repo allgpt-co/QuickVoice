@@ -66,6 +66,61 @@ export const getByIdForOrg = async (kbId: string, organizationId: string) => {
   });
 };
 
+export const prepareKnowledgeSourceUpdate = async (input: {
+  kbId: string;
+  organizationId: string;
+  name: string;
+  agentId: string;
+  storagePath: string;
+}) => {
+  return prisma.$transaction(async (tx) => {
+    const source = await tx.knowledgeSource.findFirst({
+      where: { kbId: input.kbId, organizationId: input.organizationId },
+    });
+    if (!source) return null;
+
+    if (source.status === kbStatus.PROCESSING) {
+      throw new BadRequestError(
+        "Wait for document processing to finish before editing this entry",
+      );
+    }
+
+    const agent = await tx.agent.findFirst({
+      where: {
+        agentId: input.agentId,
+        organizationId: input.organizationId,
+      },
+      select: { agentId: true },
+    });
+    if (!agent) {
+      throw new BadRequestError("Agent not found in active organization");
+    }
+
+    const row = await tx.knowledgeSource.update({
+      where: { kbId: input.kbId },
+      data: {
+        name: input.name,
+        agentId: input.agentId,
+        storagePath: input.storagePath,
+        status: kbStatus.PROCESSING,
+        lastIndexedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        errorRetryable: null,
+      },
+    });
+
+    if (source.status === kbStatus.ACTIVE && source.agentId) {
+      await tx.agent.update({
+        where: { agentId: source.agentId },
+        data: { knowledgeSourcesCount: { decrement: 1 } },
+      });
+    }
+
+    return { row, previousAgentId: source.agentId };
+  });
+};
+
 // Mark KB sources as ACTIVE, clear earlier diagnostics, and increment the
 // agent count only for rows that were not already active.
 export const markActive = async (kbIds: string[], agentId: string) => {

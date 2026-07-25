@@ -69,6 +69,30 @@ export async function processKbDocuments({
   });
 }
 
+export async function deleteKbDocumentVectors({
+  aiApiUrl,
+  internalApiKey,
+  agentId,
+  kbId,
+  fetchImpl = fetch,
+}: {
+  aiApiUrl: string;
+  internalApiKey: string;
+  agentId: string;
+  kbId: string;
+  fetchImpl?: FetchLike;
+}) {
+  const baseUrl = trimTrailingSlashes(aiApiUrl);
+  await fetchJson(
+    fetchImpl,
+    `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}`,
+    {
+      method: "DELETE",
+      headers: { "x-internal-key": internalApiKey },
+    },
+  );
+}
+
 async function pollKbJob({
   fetchImpl,
   statusUrl,

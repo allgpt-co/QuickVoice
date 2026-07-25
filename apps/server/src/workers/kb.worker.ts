@@ -1,7 +1,10 @@
 import { Worker } from "bullmq";
 import { redisConnection } from "../config/redis.js";
 import { generateDownloadUrl } from "../config/s3.js";
-import { processKbDocuments } from "../modules/kb/kb-processing-client.js";
+import {
+  deleteKbDocumentVectors,
+  processKbDocuments,
+} from "../modules/kb/kb-processing-client.js";
 import {
   assertKbProcessingSucceeded,
   KbProcessingFailedError,
@@ -27,7 +30,30 @@ const KB_PROCESSING_TIMEOUT_MS = numberFromEnv(
 export const kbWorker = new Worker<KbJobData, void, KbJobName>(
   "kb-ingest",
   async (job) => {
-    const { kbIds, agentId, organizationId, documents } = job.data;
+    const {
+      kbIds,
+      agentId,
+      organizationId,
+      documents,
+      replaceExisting,
+      previousAgentId,
+    } = job.data;
+
+    // Edited sources must remove their earlier vectors first. This also clears
+    // the old namespace when the source is reassigned to another agent.
+    if (replaceExisting) {
+      const namespaceToReplace = previousAgentId ?? agentId;
+      await Promise.all(
+        kbIds.map((kbId) =>
+          deleteKbDocumentVectors({
+            aiApiUrl: AI_API_URL,
+            internalApiKey: INTERNAL_API_KEY,
+            agentId: namespaceToReplace,
+            kbId,
+          }),
+        ),
+      );
+    }
 
     // 1. Generate presigned download URLs for S3-backed documents
     const enriched = await Promise.all(

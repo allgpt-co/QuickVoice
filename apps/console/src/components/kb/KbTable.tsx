@@ -8,6 +8,7 @@ import {
   ChevronsRight,
   Loader2,
   MoreHorizontal,
+  Pencil,
   Trash2,
 } from "lucide-react";
 
@@ -42,6 +43,7 @@ import {
   KnowledgeSourceStatus,
   SOURCE_META,
 } from "@/src/components/kb/kb-utils";
+import { EditKbDialog } from "@/src/components/kb/EditKbDialog";
 import { useDeleteKb } from "@/src/hooks/queries/kb";
 import type { Agent, KnowledgeSource } from "@/src/lib/api/types";
 
@@ -56,7 +58,13 @@ function fmtDate(iso: string | null) {
   });
 }
 
-function DeleteRow({ kbId, name }: { kbId: string; name: string }) {
+function RowActions({
+  source,
+  onEdit,
+}: {
+  source: KnowledgeSource;
+  onEdit: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const del = useDeleteKb();
 
@@ -68,7 +76,10 @@ function DeleteRow({ kbId, name }: { kbId: string; name: string }) {
             <MoreHorizontal className="size-4" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-36">
+        <DropdownMenuContent align="end" className="w-40">
+          <DropdownMenuItem onClick={onEdit}>
+            <Pencil className="size-4" /> View / edit
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => setOpen(true)}
             className="text-destructive focus:text-destructive"
@@ -81,7 +92,7 @@ function DeleteRow({ kbId, name }: { kbId: string; name: string }) {
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete &quot;{name}&quot;?</AlertDialogTitle>
+            <AlertDialogTitle>Delete &quot;{source.name}&quot;?</AlertDialogTitle>
             <AlertDialogDescription>
               This removes the document from any agents currently referencing it.
             </AlertDialogDescription>
@@ -89,7 +100,7 @@ function DeleteRow({ kbId, name }: { kbId: string; name: string }) {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={async () => { await del.mutateAsync(kbId); setOpen(false); }}
+              onClick={async () => { await del.mutateAsync(source.kbId); setOpen(false); }}
               disabled={del.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
@@ -110,6 +121,9 @@ interface Props {
 
 export function KbTable({ sources, agents, isLoading }: Props) {
   const [page, setPage] = useState(1);
+  const [editingKbId, setEditingKbId] = useState<string | null>(null);
+  const editingSource =
+    sources.find((source) => source.kbId === editingKbId) ?? null;
 
   const agentName = (id: string | null) =>
     agents?.find((a) => a.agentId === id)?.name ?? null;
@@ -141,14 +155,20 @@ export function KbTable({ sources, agents, isLoading }: Props) {
                   <Icon className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{s.name}</p>
+                  <button
+                    type="button"
+                    onClick={() => setEditingKbId(s.kbId)}
+                    className="block w-full truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    {s.name}
+                  </button>
                   {s.originalFileName ? (
                     <p className="truncate text-xs text-muted-foreground">
                       {s.originalFileName}
                     </p>
                   ) : null}
                 </div>
-                <DeleteRow kbId={s.kbId} name={s.name} />
+                <RowActions source={s} onEdit={() => setEditingKbId(s.kbId)} />
               </div>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <KnowledgeSourceStatus source={s} compact />
@@ -203,7 +223,13 @@ export function KbTable({ sources, agents, isLoading }: Props) {
 
                   {/* name + filename */}
                   <TableCell>
-                    <p className="max-w-[260px] truncate font-medium text-sm">{s.name}</p>
+                    <button
+                      type="button"
+                      onClick={() => setEditingKbId(s.kbId)}
+                      className="max-w-[260px] truncate text-left text-sm font-medium underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      {s.name}
+                    </button>
                     {s.originalFileName ? (
                       <p className="max-w-[260px] truncate text-xs text-muted-foreground">
                         {s.originalFileName}
@@ -230,7 +256,7 @@ export function KbTable({ sources, agents, isLoading }: Props) {
                   </TableCell>
 
                   <TableCell className="pr-4 text-right">
-                    <DeleteRow kbId={s.kbId} name={s.name} />
+                    <RowActions source={s} onEdit={() => setEditingKbId(s.kbId)} />
                   </TableCell>
                 </TableRow>
               );
@@ -261,6 +287,14 @@ export function KbTable({ sources, agents, isLoading }: Props) {
           </div>
         </div>
       </div>
+
+      <EditKbDialog
+        source={editingSource}
+        agents={agents ?? []}
+        onOpenChange={(open) => {
+          if (!open) setEditingKbId(null);
+        }}
+      />
     </div>
   );
 }
