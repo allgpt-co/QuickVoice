@@ -11,6 +11,21 @@ QuickVoice is an actively developed, pre-stable open-source project. This roadma
 
 Priorities may change in response to security findings, setup failures, maintainer capacity, and real user feedback. Propose or discuss roadmap changes through the feature issue form rather than opening a broad implementation pull request.
 
+## Comprehensive Product Roadmap
+
+The implementation backlog for expanding QuickVoice into a comprehensive AI voice-agent platform is tracked in [roadmap issue #76](https://github.com/allgpt-co/QuickVoice/issues/76). It is organized into eight design epics:
+
+- [Visual orchestration, versions, and deployment](https://github.com/allgpt-co/QuickVoice/issues/77)
+- [Templates, onboarding, and solution blueprints](https://github.com/allgpt-co/QuickVoice/issues/78)
+- [Customer data and campaigns](https://github.com/allgpt-co/QuickVoice/issues/79)
+- [Analytics, conversation intelligence, evaluations, and experiments](https://github.com/allgpt-co/QuickVoice/issues/80)
+- [API, MCP, integrations, and data portability](https://github.com/allgpt-co/QuickVoice/issues/81)
+- [Telephony, channels, and runtime reliability](https://github.com/allgpt-co/QuickVoice/issues/82)
+- [Enterprise governance, security, privacy, and compliance controls](https://github.com/allgpt-co/QuickVoice/issues/83)
+- [Platform UX, collaboration, commercial operations, and ecosystem](https://github.com/allgpt-co/QuickVoice/issues/84)
+
+These issues describe proposed outcomes and acceptance criteria. They do not imply that the capabilities have shipped or that QuickVoice holds a compliance certification.
+
 ## Release Baseline
 
 - Make a clean-clone local setup repeatable on Linux, macOS with modern Bash, and WSL2.
@@ -44,8 +59,8 @@ The roadmap does not mean QuickVoice currently provides:
 - A zero-configuration hosted phone-agent service.
 - Working live calls without provider accounts and credentials.
 - A compliance certification or automatic compliance for a deployment.
-- Guaranteed compatibility before a stable release.
-- Guaranteed response, fix, or delivery times.
+- Compatibility is not guaranteed before a stable release.
+- Response, fix, or delivery times are not guaranteed.
 - Support for native Windows PowerShell orchestration.
 
 See [SUPPORT.md](./SUPPORT.md) for help boundaries, [GOVERNANCE.md](./GOVERNANCE.md) for decisions, and [CHANGELOG.md](./CHANGELOG.md) for changes that have actually landed.
