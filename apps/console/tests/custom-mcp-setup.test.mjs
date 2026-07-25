@@ -65,7 +65,10 @@ test("custom MCP form explains endpoint requirements, naming, and follow-up setu
 
   assert.match(source, /Before you connect/);
   assert.match(source, /full public HTTPS endpoint/i);
-  assert.match(source, /Legacy \\/sse endpoints are accepted/);
+  assert.match(
+    source,
+    /Legacy <code>\/sse<\/code>\{" "\}\s+endpoints are accepted/
+  );
   assert.match(source, /Display name/);
   assert.match(source, /only inside QuickVoice/i);
   assert.match(source, /complete it after connecting/i);

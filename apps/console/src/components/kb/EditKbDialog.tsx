@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Loader2, Save } from "lucide-react";
 
 import { KnowledgeSourceStatus } from "@/src/components/kb/kb-utils";
@@ -45,37 +45,53 @@ function Detail({ label, value }: { label: string; value: string }) {
   );
 }
 
+type EditKbDialogProps = {
+  source: KnowledgeSource | null;
+  agents: Agent[];
+  onOpenChange: (open: boolean) => void;
+};
+
+type EditKbDialogContentProps = Omit<EditKbDialogProps, "source"> & {
+  source: KnowledgeSource;
+};
+
 export function EditKbDialog({
   source,
   agents,
   onOpenChange,
-}: {
-  source: KnowledgeSource | null;
-  agents: Agent[];
-  onOpenChange: (open: boolean) => void;
-}) {
-  const [name, setName] = useState("");
-  const [agentId, setAgentId] = useState("");
-  const [url, setUrl] = useState("");
+}: EditKbDialogProps) {
+  if (!source) {
+    return null;
+  }
+
+  return (
+    <EditKbDialogContent
+      key={source.kbId}
+      source={source}
+      agents={agents}
+      onOpenChange={onOpenChange}
+    />
+  );
+}
+
+function EditKbDialogContent({
+  source,
+  agents,
+  onOpenChange,
+}: EditKbDialogContentProps) {
+  const [name, setName] = useState(source.name);
+  const [agentId, setAgentId] = useState(source.agentId ?? "");
+  const [url, setUrl] = useState(
+    source.sourceType === "URL" ? source.storagePath : ""
+  );
   const update = useUpdateKb();
 
-  useEffect(() => {
-    if (!source) return;
-    setName(source.name);
-    setAgentId(source.agentId ?? "");
-    setUrl(source.sourceType === "URL" ? source.storagePath : "");
-  }, [source]);
-
   const metadata = useMemo(() => {
-    if (!source?.metadata || Object.keys(source.metadata).length === 0) {
+    if (!source.metadata || Object.keys(source.metadata).length === 0) {
       return "No metadata stored for this entry.";
     }
     return JSON.stringify(source.metadata, null, 2);
   }, [source]);
-
-  if (!source) {
-    return null;
-  }
 
   const isProcessing = source.status === "PROCESSING";
   const canSave =

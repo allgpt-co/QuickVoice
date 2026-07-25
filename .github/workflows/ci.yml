@@ -176,6 +176,13 @@ jobs:
       - name: Install Node dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Generate Prisma client
+        run: pnpm --filter server exec prisma generate
+        env:
+          # Prisma config requires a syntactically valid URL during generation,
+          # but `prisma generate` does not connect to the database.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/quickvoice_ci
+
       - name: Lint server
         run: pnpm --filter server lint
 

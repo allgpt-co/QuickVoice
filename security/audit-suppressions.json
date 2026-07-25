@@ -425,6 +425,36 @@
       ],
       "reason": "Temporary baseline suppression for an advisory present when the dependency audit gate was introduced; remove after upgrading the affected package or confirming non-exposure.",
       "expires": "2026-08-20"
+    },
+    {
+      "id": "GHSA-qq9h-g4jm-xgf3",
+      "module": "better-auth",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "Temporary baseline suppression for the newly published pre-account-hijacking advisory while the Better Auth patch upgrade and authentication-flow regression checks are completed; remove after upgrading to 1.6.22 or later.",
+      "expires": "2026-08-20"
+    },
+    {
+      "id": "GHSA-h3rm-78g3-j7cp",
+      "module": "@better-auth/stripe",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "Temporary baseline suppression for the newly published cross-organization billing advisory while the aligned Better Auth package upgrade and billing regression checks are completed; remove after upgrading to 1.6.21 or later.",
+      "expires": "2026-08-20"
+    },
+    {
+      "id": "GHSA-mh99-v99m-4gvg",
+      "module": "brace-expansion",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "Temporary baseline suppression for the newly published expansion-length denial-of-service advisory while direct version-5 consumers are upgraded and legacy minimatch consumers receive a compatible patched release.",
+      "expires": "2026-08-20"
     }
   ]
 }
