@@ -9,7 +9,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint --max-warnings=0",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {
     "@better-auth/api-key": "^1.6.2",

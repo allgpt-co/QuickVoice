@@ -1,0 +1,33 @@
+{
+  "name": "QuickVoice Contributor",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/python:1": {
+      "version": "3.12"
+    },
+    "ghcr.io/devcontainers/features/go:1": {
+      "version": "1.24"
+    },
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2"
+    }
+  },
+  "postCreateCommand": "corepack prepare pnpm@9.0.0 --activate && go install github.com/go-task/task/v3/cmd/task@latest && task doctor",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "bradlc.vscode-tailwindcss",
+        "Prisma.prisma",
+        "ms-python.python"
+      ]
+    }
+  },
+  "remoteEnv": {
+    "PATH": "${containerEnv:PATH}:${containerEnv:HOME}/go/bin"
+  }
+}

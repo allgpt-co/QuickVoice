@@ -76,3 +76,33 @@ test("configureAgentSchema defaults IVR navigation on", () => {
 
   assert.equal(parsed.ivr_navigation_enabled, true);
 });
+
+test("configureAgentSchema defaults evaluation checks to deterministic and accepts AI-judged checks", () => {
+  const parsed = configureAgentSchema.parse({
+    agent_language: "en",
+    firstMessage: "Hello from the agent.",
+    systemPrompt: "You are a helpful assistant.",
+    llmModel: "gpt-4o-mini",
+    sttModel: "nova-3",
+    ttsModel: "aura-2",
+    use_rag: false,
+    voiceId: "aura-2-asteria-en",
+    data_needed: [],
+    data_evaluation: [
+      { id: "identity", name: "Identity confirmed", criteria: "Caller identity was confirmed." },
+      {
+        id: "tone",
+        name: "Empathetic tone",
+        criteria: "Agent responded empathetically.",
+        evaluationType: "probabilistic",
+      },
+    ],
+    initiation_webhook: null,
+    post_call_webhook: null,
+    preemptive_generation: false,
+    timezone: "UTC",
+  });
+
+  assert.equal(parsed.data_evaluation[0]?.evaluationType, "deterministic");
+  assert.equal(parsed.data_evaluation[1]?.evaluationType, "probabilistic");
+});

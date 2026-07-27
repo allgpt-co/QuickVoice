@@ -6,6 +6,23 @@ import {
   dispatchBatchCampaign,
   importBatchCampaignRecipients,
 } from "../../src/modules/outbound/outbound-batch.service.js";
+import { outboundRuntimeJobId } from "../../src/modules/outbound/outbound-runtime-state.js";
+
+test("outboundRuntimeJobId creates stable BullMQ-safe checkpoint ids", () => {
+  assert.equal(
+    outboundRuntimeJobId("batch-import", "campaign_123"),
+    "outbound-batch-import-campaign_123"
+  );
+  assert.equal(
+    outboundRuntimeJobId("batch-dispatch", "campaign:123"),
+    "outbound-batch-dispatch-campaign_123"
+  );
+  assert.equal(
+    outboundRuntimeJobId("call-dispatch", " outbound/123 "),
+    "outbound-call-dispatch-outbound_123"
+  );
+  assert.throws(() => outboundRuntimeJobId("call-dispatch", "   "), /non-empty identifier/);
+});
 
 test("createBatchCampaign queues the import job with a BullMQ-safe custom id", async () => {
   const calls: unknown[] = [];

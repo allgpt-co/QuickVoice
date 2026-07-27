@@ -1,0 +1,13 @@
+import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import test from "node:test";
+
+test("docs OpenAPI contract stays internally consistent", () => {
+  const result = spawnSync("pnpm", ["--filter", "docs", "validate:openapi"], {
+    cwd: process.cwd(),
+    encoding: "utf8",
+  });
+
+  assert.equal(result.status, 0, [result.stdout, result.stderr].filter(Boolean).join("\n"));
+  assert.match(result.stdout, /OpenAPI contract validation passed/);
+});

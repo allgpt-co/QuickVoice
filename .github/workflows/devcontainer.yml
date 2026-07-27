@@ -1,0 +1,41 @@
+name: Dev Container
+
+on:
+  pull_request:
+    paths:
+      - ".devcontainer/**"
+      - "docs/setup/**"
+      - "Taskfile.yml"
+      - "scripts/dev-doctor.sh"
+      - ".github/workflows/devcontainer.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-devcontainer:
+    name: Parse and build Dev Container
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v5
+        with:
+          node-version: "24"
+
+      - name: Parse Dev Container configuration
+        run: npx --yes @devcontainers/cli read-configuration --workspace-folder .
+
+      - name: Build Dev Container
+        run: npx --yes @devcontainers/cli build --workspace-folder .
+
+      - name: Report validation scope
+        run: |
+          cat >> "$GITHUB_STEP_SUMMARY" <<'SUMMARY'
+          ## Dev Container validation
+
+          Parsed and built the QuickVoice contributor Dev Container. This check does not start QuickVoice services and does not require repository secrets.
+          SUMMARY

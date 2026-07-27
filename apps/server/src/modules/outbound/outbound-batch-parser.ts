@@ -73,6 +73,17 @@ export function parseBatchRecipients(
       return;
     }
 
+    const formulaField = findSpreadsheetFormulaField(raw);
+    if (formulaField) {
+      invalidRows.push({
+        rowNumber,
+        phoneNumber,
+        error: `Spreadsheet formulas are not allowed in recipient imports (${formulaField})`,
+        raw,
+      });
+      return;
+    }
+
     if (phoneNumber.trim().length < 10) {
       invalidRows.push({
         rowNumber,
@@ -299,6 +310,25 @@ function rowToRecord(headers: string[], row: string[]) {
 
 function isEmptyRecord(record: Record<string, string>) {
   return Object.values(record).every((value) => value.length === 0);
+}
+
+function findSpreadsheetFormulaField(record: Record<string, string>) {
+  for (const [key, value] of Object.entries(record)) {
+    if (!value) continue;
+    if (key === "phone_number" && isSafePhoneNumberCell(value)) continue;
+    if (isSpreadsheetFormula(value)) return key;
+  }
+  return null;
+}
+
+function isSafePhoneNumberCell(value: string) {
+  return /^\+?[0-9 .()\-]{10,20}$/.test(value.trim());
+}
+
+function isSpreadsheetFormula(value: string) {
+  const trimmed = value.trimStart();
+  if (!trimmed) return false;
+  return /^[=+@]|^-(?!\d)/.test(trimmed);
 }
 
 function nullableTrim(value: string | undefined) {

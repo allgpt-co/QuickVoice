@@ -200,7 +200,7 @@ test("root package exposes aggregate CI and test scripts", async () => {
   assert.match(pkg.scripts.test, /node --test tests\/\*\.test\.mjs/);
   assert.match(
     pkg.scripts.test,
-    /node --test apps\/console\/tests\/\*\.test\.mjs/,
+    /pnpm --filter console test/,
   );
   assert.match(pkg.scripts.test, /pnpm --filter server test/);
   assert.equal(

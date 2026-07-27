@@ -26,7 +26,7 @@ For a local setup report, include:
 - The first relevant error and the smallest reproduction.
 - Whether the failure occurs before or after external provider configuration is needed.
 
-Redact secrets and personal data. Replace tokens, keys, account identifiers, real phone numbers, email addresses, recordings, transcripts, and customer content with obvious placeholders. If an error message contains a signed URL or authorization header, remove it before posting.
+Redact secrets and personal data. Replace tokens, keys, account identifiers, real phone numbers, email addresses, recordings, transcripts, and customer content with obvious placeholders. Use the [safe reproduction data guide](./docs/community/safe-reproduction-data.md) for public examples. If an error message contains a signed URL or authorization header, remove it before posting.
 
 ## Support Boundaries
 

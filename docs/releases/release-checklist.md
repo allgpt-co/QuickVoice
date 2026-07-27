@@ -20,6 +20,7 @@ Use Node.js `>=20.9`; CI currently uses a newer supported Node version. Start fr
 ```sh
 corepack prepare pnpm@9.0.0 --activate
 pnpm install --frozen-lockfile
+pnpm release:check -- v0.1.0 --draft
 pnpm check:tasks
 pnpm check:configs
 pnpm lint
@@ -29,7 +30,7 @@ pnpm build
 
 - [ ] Each command passes at the release commit.
 - [ ] Any warning accepted for release is copied into the release PR with an owner and follow-up issue.
-- [ ] Documentation links and GitHub issue-form YAML pass their schema/sanity checks.
+- [ ] Release metadata, documentation links, and GitHub issue-form YAML pass their schema/sanity checks.
 - [ ] If a Dev Container configuration is present, it resolves and builds from a clean cache.
 
 ## 3. Automated Tests And Images

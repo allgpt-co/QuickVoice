@@ -93,7 +93,7 @@ jobs:
         run: pnpm --filter console build
 
       - name: Run console tests
-        run: node --test apps/console/tests/*.test.mjs
+        run: pnpm --filter console test
 
   web:
     name: Web Lint, Types, Build

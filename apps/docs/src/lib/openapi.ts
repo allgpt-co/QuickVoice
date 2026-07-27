@@ -1,4 +1,4 @@
-import { apiBaseUrl, apiGroups, type ApiEndpoint, type ApiMethod } from "@/data/api-reference";
+import { apiBaseUrl, apiGroups, type ApiEndpoint, type ApiMethod } from "../data/api-reference";
 
 type OpenApiParameter = {
   name: string;
@@ -30,6 +30,7 @@ type OpenApiOperation = {
   responses: Record<string, { description: string }>;
   "x-quickvoice-source": string;
   "x-quickvoice-permission"?: string;
+  "x-quickvoice-lifecycle": string;
 };
 
 type OpenApiPathItem = Partial<Record<Lowercase<ApiMethod>, OpenApiOperation>>;
@@ -119,6 +120,7 @@ function buildPathItem(endpoint: ApiEndpoint, tag: string): OpenApiPathItem {
       security: buildSecurity(endpoint),
       responses: buildResponses(endpoint),
       "x-quickvoice-source": endpoint.source,
+      "x-quickvoice-lifecycle": endpoint.lifecycle,
       ...(endpoint.permission ? { "x-quickvoice-permission": endpoint.permission } : {}),
     },
   };

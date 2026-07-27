@@ -58,3 +58,55 @@ test("requirePermission allows API keys with the required route permission", asy
 
   assert.deepEqual(nextCalls, [undefined]);
 });
+
+test("requirePermission denies unknown route permissions even when an API key has wildcard access", async () => {
+  const middleware = requirePermission({ imaginaryResource: ["read"] });
+  const errors: unknown[] = [];
+
+  await middleware(
+    {
+      auth: {
+        userId: "user_123",
+        activeOrganizationId: "org_123",
+        authMethod: "apiKey",
+        session: null,
+        apiKeyPermissions: { "*": ["*"] },
+      },
+      headers: {},
+    } as any,
+    {} as any,
+    (error?: unknown) => {
+      errors.push(error);
+    }
+  );
+
+  assert.equal(errors.length, 1);
+  assert.ok(errors[0] instanceof ForbiddenError);
+  assert.match((errors[0] as Error).message, /Unknown permission requested/);
+});
+
+test("requirePermission denies unknown actions on registered resources", async () => {
+  const middleware = requirePermission({ phoneNumber: ["publish"] });
+  const errors: unknown[] = [];
+
+  await middleware(
+    {
+      auth: {
+        userId: "user_123",
+        activeOrganizationId: "org_123",
+        authMethod: "apiKey",
+        session: null,
+        apiKeyPermissions: { "*": ["*"] },
+      },
+      headers: {},
+    } as any,
+    {} as any,
+    (error?: unknown) => {
+      errors.push(error);
+    }
+  );
+
+  assert.equal(errors.length, 1);
+  assert.ok(errors[0] instanceof ForbiddenError);
+  assert.match((errors[0] as Error).message, /Unknown permission requested/);
+});

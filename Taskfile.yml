@@ -16,6 +16,11 @@ tasks:
     cmds:
       - ./scripts/dev-doctor.sh
 
+  api:smoke:
+    desc: Credential-free local API health smoke check
+    cmds:
+      - pnpm smoke:api
+
   env:dev:
     desc: Create local development env files from templates
     cmds:

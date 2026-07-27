@@ -32,6 +32,26 @@ The console expects the API at the URL configured by `NEXT_PUBLIC_SERVER_URL` (t
 
 Placeholder values in `.env.dev.example` are safe development markers, not working provider accounts. Do not add real credentials to tracked files or public bug reports. See the root [setup boundaries](../../README.md#setup-boundaries) and [support policy](../../SUPPORT.md).
 
+## API Connectivity And CORS Diagnostics
+
+Start with the API health route before debugging the console UI:
+
+```sh
+task server:dev
+pnpm smoke:api
+```
+
+The console reads `NEXT_PUBLIC_SERVER_URL` from `apps/console/.env.local`, which `task env:dev` creates from `apps/console/.env.dev.example`. Restart `task console:dev` after changing `.env.local`; Next.js only exposes `NEXT_PUBLIC_*` values that were present when the dev server started.
+
+Default local ports are console `3000` and API `5000`. A browser CORS or network error usually means one of these is true:
+
+- the API server is not running or not healthy;
+- `NEXT_PUBLIC_SERVER_URL` points at the wrong host or port;
+- the API CORS allowlist does not include the console origin;
+- authentication failed after the browser successfully reached the API.
+
+Do not disable browser security or broaden CORS as a workaround. Share redacted Network panel evidence only: method, path, status code, and the first error line. Do not share cookies, authorization headers, full HAR files, signed URLs, or customer data.
+
 ## Checks
 
 Run package-specific checks from the repository root:
@@ -40,7 +60,7 @@ Run package-specific checks from the repository root:
 pnpm --filter console lint
 pnpm --filter console check-types
 pnpm --filter console build
-node --test apps/console/tests/*.test.mjs
+pnpm --filter console test
 ```
 
 Use the root `pnpm test` or `pnpm ci:local` when a console change also affects shared configuration or API contracts.

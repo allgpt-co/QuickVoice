@@ -10,7 +10,7 @@ body:
       value: |
         Use this form for failures in `task doctor`, `task up:dev`, dependency installation, Docker Compose, or local migrations.
 
-        QuickVoice's one-command scripts require Linux with Bash >=4. On Windows, use WSL2, a Dev Container, or Codespaces. Placeholder env values do not make live calls, OAuth, billing, email, storage, or other provider-backed features work.
+        QuickVoice's one-command scripts require Linux with Bash >=4. On Windows, use WSL2, a Dev Container, or Codespaces. See docs/setup/windows-wsl2.md, docs/setup/macos.md, docs/setup/docker-health.md, and docs/setup/provider-boundaries.md before posting. Placeholder env values do not make live calls, OAuth, billing, email, storage, or other provider-backed features work.
   - type: dropdown
     id: host
     attributes:

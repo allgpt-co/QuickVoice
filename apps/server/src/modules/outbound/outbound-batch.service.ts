@@ -10,6 +10,7 @@ import {
   dispatchScheduledOutboundCall,
   enforcePlanQuota,
 } from "./outbound-call.service.js";
+import { outboundRuntimeJobId } from "./outbound-runtime-state.js";
 import type {
   BatchUploadUrlQuery,
   CreateBatchCampaignArgs,
@@ -133,7 +134,7 @@ export async function createBatchCampaign(
     "import",
     { campaignId: campaign.campaignId },
     {
-      jobId: `outbound-batch-import-${campaign.campaignId}`,
+      jobId: outboundRuntimeJobId("batch-import", campaign.campaignId),
       removeOnComplete: 100,
       removeOnFail: 200,
     }
@@ -249,7 +250,7 @@ export async function importBatchCampaignRecipients(
     { campaignId: campaign.campaignId },
     {
       delay: dispatchDelay(campaign.scheduledAt, now()),
-      jobId: `outbound-batch-dispatch-${campaign.campaignId}`,
+      jobId: outboundRuntimeJobId("batch-dispatch", campaign.campaignId),
       removeOnComplete: 100,
       removeOnFail: 200,
     }
@@ -280,7 +281,7 @@ export async function dispatchBatchCampaign(
         "dispatch-call",
         { outboundId },
         {
-          jobId: `outbound-call-dispatch-${outboundId}`,
+          jobId: outboundRuntimeJobId("call-dispatch", outboundId),
           removeOnComplete: 100,
           removeOnFail: 200,
         }

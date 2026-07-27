@@ -42,6 +42,7 @@ export interface ConfigureAgentInput {
     id: string;
     name: string;
     criteria: string;
+    evaluationType?: "deterministic" | "probabilistic";
   }>;
   initiation_webhook: WebhookInit | null;
   post_call_webhook: WebhookPost | null;

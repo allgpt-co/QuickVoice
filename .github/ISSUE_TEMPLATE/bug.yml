@@ -10,7 +10,7 @@ body:
       value: |
         Thanks for helping improve QuickVoice. Search open issues and pull requests before submitting.
 
-        **Do not include credentials, signed URLs, real phone numbers, recordings, transcripts, customer data, or unpatched vulnerability details.** Follow `SECURITY.md` for security reports.
+        **Do not include credentials, signed URLs, real phone numbers, recordings, transcripts, customer data, or unpatched vulnerability details.** Use `docs/community/safe-reproduction-data.md` for safe examples. Follow `SECURITY.md` for security reports.
   - type: dropdown
     id: area
     attributes:
@@ -92,7 +92,7 @@ body:
           required: true
         - label: I reduced this to one reproducible issue.
           required: true
-        - label: I removed credentials, personal data, recordings, transcripts, and customer content.
+        - label: I used synthetic reproduction data and removed credentials, personal data, recordings, transcripts, and customer content.
           required: true
         - label: This is not a public disclosure of an unpatched security vulnerability.
           required: true

@@ -6,8 +6,7 @@ import {
   memberAc,
 } from "better-auth/plugins/organization/access";
 
-const statement = {
-  ...defaultStatements,
+export const customPermissionRegistry = {
   agent: ["create", "read", "update", "delete"],
   agentConfiguration: ["create", "read", "update", "delete"],
   agentWidget: ["create", "read", "update", "delete"],
@@ -18,6 +17,11 @@ const statement = {
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+} as const;
+
+const statement = {
+  ...defaultStatements,
+  ...customPermissionRegistry,
 } as const;
 
 const ac = createAccessControl(statement);
@@ -70,3 +74,11 @@ const member = ac.newRole({
 const roles = { owner, admin, member };
 
 export { ac, owner, admin, member, roles };
+
+export function isRegisteredPermission(resource: string, action: string) {
+  const actions = customPermissionRegistry[resource as keyof typeof customPermissionRegistry] as readonly string[] | undefined;
+  if (actions?.includes(action)) return true;
+
+  const defaultActions = defaultStatements[resource as keyof typeof defaultStatements] as readonly string[] | undefined;
+  return defaultActions?.includes(action) === true;
+}

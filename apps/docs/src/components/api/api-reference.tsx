@@ -14,6 +14,12 @@ import {
   type ApiMethod,
 } from "@/data/api-reference";
 
+const lifecycleLabel: Record<ApiEndpoint["lifecycle"], string> = {
+  "public-v1": "Public v1 contract",
+  "internal-runtime": "Internal runtime only",
+  "public-widget-origin": "Public widget origin-gated",
+};
+
 const methodClass: Record<ApiMethod, string> = {
   GET: "border-emerald-500/30 bg-emerald-500/10 text-emerald-300",
   POST: "border-sky-500/30 bg-sky-500/10 text-sky-300",
@@ -198,6 +204,7 @@ function EndpointRow({ endpoint }: Readonly<{ endpoint: ApiEndpoint }>) {
       <div className="grid gap-4 border-t border-white/10 bg-black/20 p-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div className="grid gap-4 md:grid-cols-2">
           <InfoBlock label="Authentication" values={[endpoint.auth]} />
+          <InfoBlock label="Lifecycle" values={[lifecycleLabel[endpoint.lifecycle]]} />
           <InfoBlock label="Permission" values={[endpoint.permission ?? "Not permission-gated"]} />
           {endpoint.params ? <InfoBlock label="Path parameters" values={endpoint.params} /> : null}
           {endpoint.query ? <InfoBlock label="Query parameters" values={endpoint.query} /> : null}

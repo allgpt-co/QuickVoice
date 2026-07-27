@@ -39,6 +39,13 @@ export interface AgentBucket {
   successRate: number;
 }
 
+export interface DashboardMetricDefinition {
+  id: string;
+  unit: "count" | "minutes" | "seconds" | "ratio";
+  description: string;
+  timestampBasis: string;
+}
+
 export interface DashboardSummary {
   range: DashboardRange;
   period: {
@@ -48,6 +55,7 @@ export interface DashboardSummary {
     previousTo: string;
   };
   totals: DashboardTotals;
+  metrics?: Record<keyof DashboardTotals, DashboardMetricDefinition>;
   deltas: DashboardTotals;
   series: DashboardSeriesPoint[];
   statusBreakdown: StatusBreakdownPoint[];

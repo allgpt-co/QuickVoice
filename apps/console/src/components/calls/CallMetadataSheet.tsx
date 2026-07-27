@@ -36,14 +36,14 @@ function fmtDuration(s: number | null) {
 function DirectionValue({ direction }: { direction: string | null }) {
   if (direction === "outbound") {
     return (
-      <span className="inline-flex items-center gap-1.5 font-semibold text-sky-400">
+      <span className="inline-flex items-center gap-1.5 font-semibold text-sky-600 dark:text-sky-400">
         <PhoneOutgoing className="size-4" /> Outbound
       </span>
     );
   }
   if (direction === "inbound") {
     return (
-      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-400">
+      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
         <PhoneIncoming className="size-4" /> Inbound
       </span>
     );
@@ -54,14 +54,14 @@ function DirectionValue({ direction }: { direction: string | null }) {
 function StatusValue({ status }: { status: CallStatus }) {
   if (status === "COMPLETED") {
     return (
-      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-400">
+      <span className="inline-flex items-center gap-1.5 font-semibold text-emerald-600 dark:text-emerald-400">
         <CheckCircle2 className="size-4" /> Completed
       </span>
     );
   }
   if (status === "FAILED" || status === "NOT_ANSWERED") {
     return (
-      <span className="inline-flex items-center gap-1.5 font-semibold text-red-400">
+      <span className="inline-flex items-center gap-1.5 font-semibold text-red-600 dark:text-red-400">
         <XCircle className="size-4" /> {status === "FAILED" ? "Failed" : "Not Answered"}
       </span>
     );
@@ -75,9 +75,9 @@ function StatusValue({ status }: { status: CallStatus }) {
 
 function StatCell({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-1">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <div className="text-sm">{children}</div>
+    <div className="rounded-xl border bg-muted/30 p-3 transition-colors dark:bg-muted/20">
+      <p className="text-xs font-medium text-muted-foreground">{label}</p>
+      <div className="mt-1 text-sm font-medium text-foreground">{children}</div>
     </div>
   );
 }
@@ -148,19 +148,19 @@ export function CallMetadataSheet({ call, onClose }: Props) {
 
   return (
     <Sheet open={!!call} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <SheetContent side="right" className="flex flex-col gap-0 p-0 sm:max-w-xl">
-        <SheetHeader className="border-b p-5">
-          <SheetTitle>Call Details</SheetTitle>
-          <SheetDescription>
+      <SheetContent side="right" className="flex !w-full flex-col gap-0 overflow-hidden p-0 sm:!max-w-xl lg:!max-w-2xl">
+        <SheetHeader className="border-b bg-background/95 p-5 backdrop-blur sm:p-6">
+          <SheetTitle className="text-lg font-semibold">Call Details</SheetTitle>
+          <SheetDescription className="truncate pr-8">
             {call?.callId.slice(0, 8)}… · {call ? new Date(call.startTime ?? "").toLocaleString() : ""}
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-6 overflow-y-auto p-5">
+        <div className="flex-1 space-y-6 overflow-y-auto bg-muted/20 p-5 sm:p-6">
 
           {/* ── Summary card ── */}
-          <div className="rounded-xl bg-[#0d1f3c] p-4">
-            <div className="grid grid-cols-2 gap-y-4">
+          <div className="rounded-2xl border bg-card p-3 shadow-sm">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <StatCell label="Caller">
                 <span className="font-semibold">{call?.callerId ?? "Unknown"}</span>
               </StatCell>
@@ -180,8 +180,8 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {meta.intent ? (
             <>
               <div className="space-y-2">
-                <h3 className="text-base font-bold">Call Intent</h3>
-                <p className="font-mono text-sm text-muted-foreground">{String(meta.intent)}</p>
+                <h3 className="text-sm font-semibold text-foreground">Call Intent</h3>
+                <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{String(meta.intent)}</p>
               </div>
               <Separator />
             </>
@@ -191,8 +191,8 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {meta.summary ? (
             <>
               <div className="space-y-2">
-                <h3 className="text-base font-bold">Call Summary</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{String(meta.summary)}</p>
+                <h3 className="text-sm font-semibold text-foreground">Call Summary</h3>
+                <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{String(meta.summary)}</p>
               </div>
               <Separator />
             </>
@@ -202,8 +202,8 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {meta.reason ? (
             <>
               <div className="space-y-2">
-                <h3 className="text-base font-bold">Call Reason</h3>
-                <p className="text-sm leading-relaxed text-muted-foreground">{String(meta.reason)}</p>
+                <h3 className="text-sm font-semibold text-foreground">Call Reason</h3>
+                <p className="whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{String(meta.reason)}</p>
               </div>
               <Separator />
             </>
@@ -213,12 +213,12 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {additionalMetadata.length > 0 ? (
             <>
               <div className="space-y-3">
-                <h3 className="text-base font-bold">Additional Metadata</h3>
+                <h3 className="text-sm font-semibold text-foreground">Additional Metadata</h3>
                 <div className="grid gap-3 sm:grid-cols-2">
                   {additionalMetadata.map(([key, value]) => (
-                    <div key={key} className="space-y-1 rounded-lg bg-[#0d1f3c] p-4">
-                      <p className="text-xs text-muted-foreground">{formatMetadataLabel(key)}</p>
-                      <p className="break-words text-sm font-semibold">{displayValue(value)}</p>
+                    <div key={key} className="space-y-1 rounded-xl border bg-card p-4 shadow-sm dark:bg-muted/20">
+                      <p className="text-xs font-medium text-muted-foreground">{formatMetadataLabel(key)}</p>
+                      <p className="break-words text-sm font-semibold text-foreground">{displayValue(value)}</p>
                     </div>
                   ))}
                 </div>
@@ -231,16 +231,16 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {extracted.length > 0 ? (
             <>
               <div className="space-y-3">
-                <h3 className="text-base font-bold">Extracted Data</h3>
+                <h3 className="text-sm font-semibold text-foreground">Extracted Data</h3>
                 {extracted.map((item, i) => (
-                  <div key={i} className="space-y-1 rounded-lg bg-[#0d1f3c] p-4">
+                  <div key={i} className="space-y-1 rounded-xl border bg-card p-4 shadow-sm dark:bg-muted/20">
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground">{item.name}</span>
                       <Badge className="bg-blue-600 text-[10px] text-white hover:bg-blue-600">
                         {item.type}
                       </Badge>
                     </div>
-                    <p className="text-sm font-bold">{displayValue(item.value)}</p>
+                    <p className="text-sm font-semibold text-foreground">{displayValue(item.value)}</p>
                     {item.description ? (
                       <p className="text-xs text-muted-foreground">{item.description}</p>
                     ) : null}
@@ -254,14 +254,14 @@ export function CallMetadataSheet({ call, onClose }: Props) {
           {/* ── Evaluation ── */}
           {evaluation.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="text-base font-bold">Evaluation</h3>
+              <h3 className="text-sm font-semibold text-foreground">Evaluation</h3>
               {evaluation.map((item, i) => (
-                <div key={i} className="space-y-1 rounded-lg bg-[#0d1f3c] p-4">
+                <div key={i} className="space-y-1 rounded-xl border bg-card p-4 shadow-sm dark:bg-muted/20">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-muted-foreground">{item.identifier}</span>
                     <Badge variant="secondary" className="text-[10px]">eval</Badge>
                   </div>
-                  <p className="text-sm font-bold">{displayValue(item.value)}</p>
+                  <p className="text-sm font-semibold text-foreground">{displayValue(item.value)}</p>
                   {item.description ? (
                     <p className="text-xs text-muted-foreground">{item.description}</p>
                   ) : null}

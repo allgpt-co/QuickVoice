@@ -23,6 +23,7 @@ type DataItem = ConfigureAgentInput["data_needed"][number];
 type EvaluationItem = ConfigureAgentInput["data_evaluation"][number];
 
 const DATA_TYPES = ["string", "number", "boolean", "date", "choice"] as const;
+const EVALUATION_TYPES = ["deterministic", "probabilistic"] as const;
 
 function createId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
@@ -51,6 +52,8 @@ function normalizeEvaluations(value: unknown): EvaluationItem[] {
     id: typeof item.id === "string" ? item.id : createId(),
     name: typeof item.name === "string" ? item.name : "",
     criteria: typeof item.criteria === "string" ? item.criteria : "",
+    evaluationType:
+      item.evaluationType === "probabilistic" ? "probabilistic" : "deterministic",
   }));
 }
 
@@ -67,6 +70,7 @@ const EMPTY_DATA_ITEM = {
 const EMPTY_EVALUATION = {
   name: "",
   criteria: "",
+  evaluationType: "deterministic" as const,
 };
 
 export function AnalysisTab({ agentId }: { agentId: string }) {
@@ -165,6 +169,7 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
         id: createId(),
         name: newEvaluation.name.trim(),
         criteria: newEvaluation.criteria.trim(),
+        evaluationType: newEvaluation.evaluationType,
       },
     ]);
     setNewEvaluation(EMPTY_EVALUATION);
@@ -294,19 +299,41 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
         <div className="mb-5 space-y-1">
           <h2 className="text-base font-semibold">Call evaluation</h2>
           <p className="text-sm text-muted-foreground">
-            Define quality checks that should be evaluated after a call ends.
+            Define quality checks that should be evaluated after a call ends. Mark whether each check is deterministic or AI-judged.
           </p>
         </div>
 
         <div className="space-y-3">
           {evaluations.map((item) => (
-            <div key={item.id} className="grid gap-3 border p-4 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)_auto]">
+            <div key={item.id} className="grid gap-3 border p-4 lg:grid-cols-[minmax(0,180px)_160px_minmax(0,1fr)_auto]">
               <div className="space-y-2">
                 <Label>Name</Label>
                 <Input
                   value={item.name}
                   onChange={(event) => updateEvaluation(item.id, { name: event.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>Check type</Label>
+                <Select
+                  value={item.evaluationType ?? "deterministic"}
+                  onValueChange={(evaluationType) =>
+                    updateEvaluation(item.id, {
+                      evaluationType: evaluationType as EvaluationItem["evaluationType"],
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {EVALUATION_TYPES.map((type) => (
+                      <SelectItem key={type} value={type} className="capitalize">
+                        {type === "probabilistic" ? "AI-judged" : "Deterministic"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label>Criteria</Label>
@@ -330,7 +357,7 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
             </div>
           ))}
 
-          <div className="grid gap-3 border border-dashed bg-muted/20 p-4 lg:grid-cols-[minmax(0,240px)_minmax(0,1fr)_auto]">
+          <div className="grid gap-3 border border-dashed bg-muted/20 p-4 lg:grid-cols-[minmax(0,180px)_160px_minmax(0,1fr)_auto]">
             <div className="space-y-2">
               <Label>Name</Label>
               <Input
@@ -338,6 +365,29 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
                 value={newEvaluation.name}
                 onChange={(event) => setNewEvaluation((item) => ({ ...item, name: event.target.value }))}
               />
+            </div>
+            <div className="space-y-2">
+              <Label>Check type</Label>
+              <Select
+                value={newEvaluation.evaluationType}
+                onValueChange={(evaluationType) =>
+                  setNewEvaluation((item) => ({
+                    ...item,
+                    evaluationType: evaluationType as typeof EMPTY_EVALUATION.evaluationType,
+                  }))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {EVALUATION_TYPES.map((type) => (
+                    <SelectItem key={type} value={type} className="capitalize">
+                      {type === "probabilistic" ? "AI-judged" : "Deterministic"}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Criteria</Label>

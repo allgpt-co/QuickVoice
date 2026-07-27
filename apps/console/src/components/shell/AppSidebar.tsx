@@ -13,6 +13,7 @@ import {
   KeyRound,
   Moon,
   Sun,
+  FlaskConical,
 } from "lucide-react";
 import { useTheme } from "next-themes";
 
@@ -30,16 +31,25 @@ import {
 import { NavMain, type NavItem } from "@/src/components/shell/NavMain";
 import { OrgSwitcher } from "@/src/components/shell/OrgSwitcher";
 import { NavUser, type NavUserProps } from "@/src/components/shell/NavUser";
+import { CONSOLE_LIFECYCLE_AREAS, type ConsoleLifecycleAreaId } from "@/src/lib/console-ia";
 
-const primaryNav: NavItem[] = [
+const operateNav: NavItem[] = [
   { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { title: "Agents", href: "/agents", icon: Bot },
-  { title: "Phone numbers", href: "/numbers", icon: Phone },
-  { title: "Outbound", href: "/outbound", icon: PhoneOutgoing },
   { title: "Call logs", href: "/calls", icon: PhoneCall },
+];
+
+const buildNav: NavItem[] = [
+  { title: "Agents", href: "/agents", icon: Bot },
   { title: "Knowledge base", href: "/kb", icon: BookOpen },
   { title: "Tools", href: "/tools", icon: Wrench },
   { title: "Secrets", href: "/secrets", icon: KeyRound },
+];
+
+const testNav: NavItem[] = [{ title: "Testing", href: "/testing", icon: FlaskConical }];
+
+const deployNav: NavItem[] = [
+  { title: "Phone numbers", href: "/numbers", icon: Phone },
+  { title: "Outbound", href: "/outbound", icon: PhoneOutgoing },
 ];
 
 const settingsNav: NavItem[] = [
@@ -57,6 +67,10 @@ const settingsNav: NavItem[] = [
     ],
   },
 ];
+
+function areaLabel(area: ConsoleLifecycleAreaId) {
+  return CONSOLE_LIFECYCLE_AREAS[area].title;
+}
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -96,9 +110,15 @@ export function AppSidebar({
         <OrgSwitcher activeOrgId={activeOrgId} />
       </SidebarHeader>
       <SidebarContent className="gap-1 py-2.5">
-        <NavMain label="Platform" items={primaryNav} />
+        <NavMain label={areaLabel("operate")} items={operateNav} />
         <SidebarSeparator className="mx-5 bg-sidebar-border/50" />
-        <NavMain label="Workspace" items={settingsNav} />
+        <NavMain label={areaLabel("build")} items={buildNav} />
+        <SidebarSeparator className="mx-5 bg-sidebar-border/50" />
+        <NavMain label={areaLabel("test")} items={testNav} />
+        <SidebarSeparator className="mx-5 bg-sidebar-border/50" />
+        <NavMain label={areaLabel("deploy")} items={deployNav} />
+        <SidebarSeparator className="mx-5 bg-sidebar-border/50" />
+        <NavMain label={areaLabel("improve")} items={settingsNav} />
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border/60 p-3.5">
         <ThemeToggle />

@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,mjs,json,md,ts,tsx}\"",
     "check-types": "turbo run check-types",
-    "test": "node --test tests/*.test.mjs && node --test apps/console/tests/*.test.mjs && pnpm --filter server test",
+    "test": "node --test tests/*.test.mjs && pnpm --filter console test && pnpm --filter server test",
     "test:dev-orchestration": "node --test tests/dev-orchestration.test.mjs",
     "check:tasks": "node scripts/verify-turbo-tasks.mjs",
     "check:configs": "pnpm --filter @repo/eslint-config lint && pnpm --filter @repo/typescript-config lint",
@@ -24,7 +24,11 @@
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
     "audit:deps": "node scripts/security-audit.mjs",
     "claims:audit": "node scripts/audit-public-claims.mjs",
-    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
+    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source",
+    "docs:links": "node scripts/check-markdown-links.mjs",
+    "env:check": "node scripts/check-env-templates.mjs",
+    "release:check": "node scripts/check-release-metadata.mjs",
+    "smoke:api": "node scripts/local-api-health-smoke.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",

@@ -1,5 +1,6 @@
 import { CallStatus } from "../../../prisma/generated/prisma/client.js";
 import * as dashboardRepository from "./dashboard.repository.js";
+import { dashboardMetricRegistry } from "./dashboard.metrics.js";
 import type {
   DashboardRange,
   DashboardSummaryArgs,
@@ -257,6 +258,7 @@ export const getDashboardSummary = async (args: DashboardSummaryArgs) => {
       previousTo: range.start.toISOString(),
     },
     totals,
+    metrics: dashboardMetricRegistry,
     deltas: {
       calls: delta(totals.calls, previous.calls),
       minutes: delta(totals.minutes, previous.minutes),

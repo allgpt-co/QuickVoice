@@ -20,6 +20,10 @@ warn() {
   printf '[warn] %s\n' "$1"
 }
 
+skip_runtime_checks() {
+  [ "${QUICKVOICE_DOCTOR_SKIP_RUNTIME:-}" = "1" ]
+}
+
 load_dev_env() {
   local env_file="$ROOT/.env.dev"
   if [ ! -f "$env_file" ]; then
@@ -161,37 +165,45 @@ fi
 
 if command -v python3 >/dev/null 2>&1; then
   ok "Python is installed: $(python3 --version)"
-  load_dev_env
-  check_port "${SERVER_PORT:-5000}" "server"
-  check_port "${CONSOLE_PORT:-3000}" "console"
-  check_port "${WEB_PORT:-3001}" "web"
-  check_port "${POSTGRES_PORT:-5432}" "Postgres"
-  check_port "${REDIS_PORT:-6379}" "Redis"
-  check_port "${AI_API_PORT:-5555}" "AI API"
-  check_redis
+  if skip_runtime_checks; then
+    warn "Runtime port and Redis checks skipped by QUICKVOICE_DOCTOR_SKIP_RUNTIME=1"
+  else
+    load_dev_env
+    check_port "${SERVER_PORT:-5000}" "server"
+    check_port "${CONSOLE_PORT:-3000}" "console"
+    check_port "${WEB_PORT:-3001}" "web"
+    check_port "${POSTGRES_PORT:-5432}" "Postgres"
+    check_port "${REDIS_PORT:-6379}" "Redis"
+    check_port "${AI_API_PORT:-5555}" "AI API"
+    check_redis
+  fi
 else
   fail "python3 is required for apps/ai."
 fi
 
 if command -v docker >/dev/null 2>&1; then
   ok "Docker CLI is installed"
-  if docker compose version >/dev/null 2>&1; then
-    ok "Docker Compose v2 is installed: $(docker compose version --short)"
-    if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_EXAMPLE" config >/dev/null; then
-      ok "Docker Compose dev file is valid"
+  if skip_runtime_checks; then
+    warn "Docker Compose and daemon checks skipped by QUICKVOICE_DOCTOR_SKIP_RUNTIME=1"
+  else
+    if docker compose version >/dev/null 2>&1; then
+      ok "Docker Compose v2 is installed: $(docker compose version --short)"
+      if docker compose -f "$COMPOSE_FILE" --env-file "$ENV_EXAMPLE" config >/dev/null; then
+        ok "Docker Compose dev file is valid"
+      else
+        fail "Docker Compose dev file is invalid"
+      fi
     else
-      fail "Docker Compose dev file is invalid"
+      fail "Docker Compose v2 plugin is required."
     fi
-  else
-    fail "Docker Compose v2 plugin is required."
-  fi
 
-  if docker info >/dev/null 2>&1; then
-    ok "Docker daemon is reachable"
-    check_compose_health postgres
-    check_compose_health redis
-  else
-    fail "Docker daemon is not reachable. Start Docker or add your user to the docker group."
+    if docker info >/dev/null 2>&1; then
+      ok "Docker daemon is reachable"
+      check_compose_health postgres
+      check_compose_health redis
+    else
+      fail "Docker daemon is not reachable. Start Docker or add your user to the docker group."
+    fi
   fi
 else
   fail "Docker is required for local Postgres and Redis."

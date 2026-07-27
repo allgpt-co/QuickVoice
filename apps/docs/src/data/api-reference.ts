@@ -1,10 +1,13 @@
 export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE" | "OPTIONS";
 
+export type ApiLifecycle = "public-v1" | "internal-runtime" | "public-widget-origin";
+
 export type ApiEndpoint = {
   method: ApiMethod;
   path: string;
   summary: string;
   auth: string;
+  lifecycle: ApiLifecycle;
   permission?: string;
   source: string;
   query?: string[];
@@ -201,5 +204,11 @@ function endpoint(
   body?: string[],
   response = "200 { success, message, data }",
 ): ApiEndpoint {
-  return { method, path, summary, auth, permission, source, query, params, body, response };
+  return { method, path, summary, auth, lifecycle: classifyLifecycle(path, auth), permission, source, query, params, body, response };
+}
+
+function classifyLifecycle(path: string, auth: string): ApiLifecycle {
+  if (auth.toLowerCase().includes("internal")) return "internal-runtime";
+  if (path.startsWith("/public/widgets/")) return "public-widget-origin";
+  return "public-v1";
 }

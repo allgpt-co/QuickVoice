@@ -18,6 +18,7 @@ import type { IncomingHttpHeaders } from "node:http";
 import { Request, Response, NextFunction, RequestHandler } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth.js";
+import { isRegisteredPermission } from "../lib/permissions.js";
 import { UnauthenticatedError } from "../common/errors/unauthenticated.js";
 import { ForbiddenError } from "../common/errors/forbidden.js";
 import type { RequestAuth } from "../types/express.js";
@@ -64,6 +65,10 @@ export const requirePermission =
 
       if (!req.auth.activeOrganizationId) {
         throw new ForbiddenError("No active organization for this request");
+      }
+
+      if (!isPermissionRequestRegistered(permissions)) {
+        throw new ForbiddenError("Unknown permission requested");
       }
 
       if (req.auth.authMethod === "apiKey") {
@@ -124,3 +129,9 @@ export function hasApiKeyPermission(
 }
 
 export default requirePermission;
+
+function isPermissionRequestRegistered(permissions: Permissions) {
+  return Object.entries(permissions).every(([resource, actions]) =>
+    actions.every((action) => isRegisteredPermission(resource, action))
+  );
+}

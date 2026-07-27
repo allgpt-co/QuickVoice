@@ -60,6 +60,7 @@ task up:dev
 | Linux   | Supported                    | Install the prerequisites above, run `task doctor`, then run `task up:dev`.                                                                                                                                                  |
 | macOS   | Supported with current tools | Install Docker Desktop and a modern Bash (`>=4`). The Bash 3.2 bundled with macOS is not sufficient for every orchestration script. Verify `bash --version`, `docker compose version`, and `task --version` before starting. |
 | Windows | Use WSL2                     | Native PowerShell and Command Prompt are not supported by the Bash-based Taskfile scripts. Use WSL2 with Docker Desktop's WSL integration.                                                                                   |
+| Dev Container | Optional contributor path | See [the Dev Container guide](./.devcontainer/README.md). It installs local tooling only and does not include provider credentials. |
 
 On Debian, Ubuntu, or WSL2, Docker, Python, and the Go toolchain can be installed with:
 
@@ -73,6 +74,8 @@ export PATH="$PATH:$HOME/go/bin"
 
 Install Node.js `>=20.9` separately with a version manager or the official Node.js packages; a distribution package may be older than QuickVoice requires. Reconnect the shell after changing Docker group membership. With Docker Desktop on WSL2, enable integration for the WSL distribution instead of installing a second Docker daemon.
 
+The repository includes `.node-version` as a convenience for version managers. It pins the maintainer-tested major used by CI, but `package.json` remains the source of truth for the supported Node range (`>=20.9`).
+
 On macOS, install Docker Desktop, Go Task, Node.js `>=20.9`, Python, and Bash `>=4` using your preferred package manager. Ensure the modern Bash appears before `/bin/bash` on `PATH`, because the scripts use `#!/usr/bin/env bash`.
 
 First things to open:
@@ -84,6 +87,15 @@ First things to open:
 - AI API health: `http://localhost:5555/health`
 
 The task creates local env files from `*.env.dev.example`, activates `pnpm@9.0.0`, installs Node dependencies with the frozen lockfile, creates the AI Python virtualenv, starts Postgres and Redis through `docker-compose.dev.yml`, runs Prisma migrations, and launches the local services above.
+
+### Setup Guides
+
+- [Windows WSL2 troubleshooting](./docs/setup/windows-wsl2.md)
+- [macOS prerequisites and Bash troubleshooting](./docs/setup/macos.md)
+- [Postgres and Redis Docker health](./docs/setup/docker-health.md)
+- [Credential-free Mailpit smoke testing](./docs/setup/mailpit-smoke.md)
+- [Provider boundaries and local substitutes](./docs/setup/provider-boundaries.md)
+- [Safe reproduction data](./docs/community/safe-reproduction-data.md)
 
 ### Setup Boundaries
 
@@ -122,6 +134,8 @@ pnpm check-types
 pnpm test
 pnpm ci:local
 pnpm audit:deps -- --audit-level high
+pnpm docs:links
+pnpm env:check
 ```
 
 ## Why QuickVoice

@@ -121,6 +121,29 @@ test("parseBatchRecipients returns invalid rows for missing phone numbers", () =
   ]);
 });
 
+test("parseBatchRecipients rejects spreadsheet formula injection values", () => {
+  const csv = [
+    "phone_number,first_message,city,notes",
+    "+15550001111,=HYPERLINK(\"https://evil.example\"),Austin,ok",
+    "+15550002222,Hello,@SUM(1+1),ok",
+    "=IMPORTXML(\"https://evil.example\"),Hello,Dallas,ok",
+    "+15550003333,Hello,Dallas,-cmd",
+  ].join("\n");
+
+  const result = parseBatchRecipients(Buffer.from(csv), "recipients.csv");
+
+  assert.equal(result.validRows.length, 0);
+  assert.deepEqual(
+    result.invalidRows.map((row) => ({ rowNumber: row.rowNumber, error: row.error })),
+    [
+      { rowNumber: 2, error: "Spreadsheet formulas are not allowed in recipient imports (first_message)" },
+      { rowNumber: 3, error: "Spreadsheet formulas are not allowed in recipient imports (city)" },
+      { rowNumber: 4, error: "Spreadsheet formulas are not allowed in recipient imports (phone_number)" },
+      { rowNumber: 5, error: "Spreadsheet formulas are not allowed in recipient imports (notes)" },
+    ]
+  );
+});
+
 test("parseBatchRecipients rejects legacy XLS files", () => {
   assert.throws(
     () => parseBatchRecipients(Buffer.from("not xls"), "recipients.xls"),

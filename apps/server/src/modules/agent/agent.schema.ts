@@ -53,6 +53,7 @@ export const dataEvaluationSchema = z.object({
   id: z.string(),
   name: z.string().min(1, "Data evaluation name is required"),
   criteria: z.string().min(1, "Data evaluation criteria is required"),
+  evaluationType: z.enum(["deterministic", "probabilistic"]).default("deterministic"),
 });
 
 export const initiation_webhookSchema = z

@@ -6,6 +6,7 @@ import {
   BookOpen,
   Bot,
   Gauge,
+  GitBranch,
   Globe2,
   Settings,
   ClipboardCheck,
@@ -22,11 +23,13 @@ import { AdvancedTab } from "@/src/components/agents/tabs/AdvancedTab";
 import { AnalysisTab } from "@/src/components/agents/tabs/AnalysisTab";
 import { LimitsTab } from "@/src/components/agents/tabs/LimitsTab";
 import { WebsiteWidgetTab } from "@/src/components/agents/tabs/WebsiteWidgetTab";
+import { WorkflowTab } from "@/src/components/agents/tabs/WorkflowTab";
 
 const TABS = [
   { id: "behavior", label: "Behavior", icon: Bot },
   { id: "voice", label: "Models & Voices", icon: AudioLines },
   { id: "analysis", label: "Analysis", icon: ClipboardCheck },
+  { id: "workflow", label: "Workflow beta", icon: GitBranch },
   { id: "webhooks", label: "Webhooks", icon: Webhook },
   { id: "tools", label: "Tools", icon: Wrench },
   { id: "widget", label: "Website widget", icon: Globe2 },
@@ -78,6 +81,9 @@ export function AgentTabs({ agentId }: { agentId: string }) {
       </TabsContent>
       <TabsContent value="analysis" className="mt-6 min-w-0">
         <AnalysisTab agentId={agentId} />
+      </TabsContent>
+      <TabsContent value="workflow" className="mt-6 min-w-0">
+        <WorkflowTab agentId={agentId} />
       </TabsContent>
       <TabsContent value="webhooks" className="mt-6 min-w-0">
         <WebhooksTab agentId={agentId} />
