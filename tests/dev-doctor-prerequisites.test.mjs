@@ -33,9 +33,16 @@ function resolveCommand(command) {
 function toBashPath(nativePath) {
   if (process.platform !== "win32") return nativePath;
 
-  const result = spawnSync(BASH, ["-lc", 'cygpath -u "$1"', "quickvoice-path", nativePath], {
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    BASH,
+    [
+      "-lc",
+      'if command -v cygpath >/dev/null 2>&1; then cygpath -u "$1"; elif command -v wslpath >/dev/null 2>&1; then wslpath -u "$1"; else printf "%s\n" "$1"; fi',
+      "quickvoice-path",
+      nativePath,
+    ],
+    { encoding: "utf8" },
+  );
   if (!result.error && result.status === 0 && result.stdout.trim()) {
     return result.stdout.trim();
   }
