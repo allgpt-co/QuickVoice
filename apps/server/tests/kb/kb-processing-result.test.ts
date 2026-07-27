@@ -73,7 +73,6 @@ test("assertKbProcessingSucceeded rejects missing document results", () => {
   );
 });
 
-
 test("summarizeKbProcessing preserves user-safe error details for persistence", () => {
   const summary = summarizeKbProcessing(
     {
@@ -117,7 +116,8 @@ test("assertKbProcessingSucceeded exposes mixed results without leaking raw erro
               kbId: "kb_failed",
               status: "error",
               code: "KB_EMPTY_TEXT",
-              userMessage: "No readable text was found in this knowledge source.",
+              userMessage:
+                "No readable text was found in this knowledge source.",
               error: "sensitive raw parser detail",
               retryable: false,
             },
@@ -148,4 +148,31 @@ test("summarizeKbProcessing creates an actionable failure for a missing result",
   assert.equal(summary.failures[0]?.code, "KB_PROCESSING_RESULT_MISSING");
   assert.equal(summary.failures[0]?.retryable, true);
   assert.match(summary.failures[0]?.userMessage ?? "", /uploading it again/i);
+});
+
+test("assertKbProcessingSucceeded marks permanent document failures unrecoverable", () => {
+  let error: (Error & { retryable?: boolean }) | undefined;
+  try {
+    assertKbProcessingSucceeded(
+      {
+        documents: [
+          {
+            kbId: "kb_1",
+            status: "error",
+            error: "Parser details",
+            userMessage: "Upload a readable document.",
+            retryable: false,
+          },
+        ],
+      },
+      ["kb_1"],
+    );
+  } catch (caught) {
+    error = caught as Error & { retryable?: boolean };
+  }
+
+  assert.equal(error?.name, "UnrecoverableError");
+  assert.equal(error?.retryable, false);
+  assert.match(error?.message ?? "", /Upload a readable document/);
+  assert.doesNotMatch(error?.message ?? "", /Parser details/);
 });

@@ -337,24 +337,21 @@ model Agent {
   name                  String
   templateId            String?
   isActive              Boolean             @default(true)
-  // TODO : Change in backend and frontend
+  // Tracks whether an AgentConfiguration has been created.
   isConfigured          Boolean             @default(false)
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
   configuration         AgentConfiguration?
   widgets               AgentWidget[]
-  // TODO : Change in API, removed callLog[]
+  // Denormalized counters keep agent-list reads inexpensive.
   callLogsCount         Int                 @default(0)
   callLogs              CallLog[]
   phoneNumbers          PhoneNumber[]
   knowledgeSources      KnowledgeSource[]
   outboundCalls         OutboundCall[]
   campaigns             Campaign[]
-  // TODO : Change in API also fetch in agent config page, removed knowledgeSources[]
   knowledgeSourcesCount Int                 @default(0)
-  // TODO:Change in API, removed phoneNumbers[]
   phoneNumbersCount     Int                 @default(0)
-  // TODO: Fetch tools in agent config, removed tools[]
   toolsCount            Int                 @default(0)
 
   tools Tool[] @relation("AgentTools")
@@ -375,7 +372,7 @@ model AgentConfiguration {
   temperature                       Float    @default(0.7)
   data_needed                       Json?    @default("[]")
   data_evaluation                   Json?    @default("[]")
-  // TODO: Add voiceId to the enum
+  // Provider-defined catalog identifier; not constrained to one provider enum.
   voiceId                           String
   concurrent_calls_limit            Int
   conversation_retention_days       Int      @default(30)
@@ -510,9 +507,8 @@ model CallLog {
   dataEvaluation     Json?            @default("[]")
   // Future-use fields
   callCostCents      Int?
-  // TODO Remove include transcripts from api call
   transcripts        CallTranscript[]
-  // TODO Change in api for delete and fetch credits
+  // Soft-deleted rows retain only the minimum operational tombstone.
   deleted            Boolean          @default(false)
   outbound           OutboundCall?    
 

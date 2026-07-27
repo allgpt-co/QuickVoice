@@ -60,7 +60,7 @@ node --test tests/<new-link-checker-test>.test.mjs
 **Acceptance criteria:**
 
 - [ ] The chosen file contains one valid Node version.
-- [ ] The version satisfies `>=20.9`.
+- [ ] The version satisfies `^20.19 || ^22.13 || >=24`.
 - [ ] A narrow test fails if the version falls below the engine requirement.
 - [ ] README setup guidance explains that the file is a convenience, not the complete support range.
 
@@ -93,7 +93,7 @@ node -p "process.version"
 **Acceptance criteria:**
 
 - [ ] Tests do not install packages or alter the contributor's global `PATH`.
-- [ ] Unsupported Node output names the `>=20.9` requirement.
+- [ ] Unsupported Node output names the `^20.19 || ^22.13 || >=24` requirement.
 - [ ] Missing-tool output names the exact prerequisite.
 - [ ] Temporary files are cleaned up on success and failure.
 - [ ] The test runs in Linux CI without provider credentials.
@@ -338,7 +338,7 @@ rg -n "LIVEKIT_|TWILIO_|TELNYX_|STRIPE_|PINECONE_|SMTP_|AWS_" \
 - [ ] The container setup documents its supported host assumptions and resource requirements.
 - [ ] The check runs only when Dev Container or setup files change, unless maintainers choose a scheduled run.
 - [ ] Feature references resolve and the container builds on the selected CI architecture.
-- [ ] Version output proves Node satisfies `>=20.9`.
+- [ ] Version output proves Node satisfies `^20.19 || ^22.13 || >=24`.
 - [ ] The check does not require repository secrets.
 - [ ] Failures identify whether parsing, feature installation, build, or post-create setup failed.
 

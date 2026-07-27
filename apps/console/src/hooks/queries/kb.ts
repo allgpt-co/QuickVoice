@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 import {
@@ -42,13 +38,8 @@ export function useCreateKb() {
 export function useUpdateKb() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({
-      kbId,
-      input,
-    }: {
-      kbId: string;
-      input: UpdateKbInput;
-    }) => kbApi.update(kbId, input),
+    mutationFn: ({ kbId, input }: { kbId: string; input: UpdateKbInput }) =>
+      kbApi.update(kbId, input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.kb.all });
       qc.invalidateQueries({ queryKey: queryKeys.agents.all });
@@ -70,6 +61,20 @@ export function useDeleteKb() {
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not delete document");
+    },
+  });
+}
+
+export function useRetryKb() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (kbId: string) => kbApi.retry(kbId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.kb.all });
+      toast.success("Document queued for retry");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Could not retry document");
     },
   });
 }

@@ -48,8 +48,8 @@ export const createAgentWithConfiguration = async (
     await tx.agentConfiguration.create({
       data: {
         agentId: newAgent.agentId,
-        ...toPrismaConfigData(configuration),
         ...agentConfigCreateDefaults,
+        ...toPrismaConfigData(configuration),
       },
     });
 
@@ -70,6 +70,15 @@ export const findBySlug = async (
     },
   });
 };
+
+export const findByIdForOrg = async (
+  organizationId: string,
+  agentId: string
+) =>
+  prisma.agent.findFirst({
+    where: { agentId, organizationId },
+    select: { agentId: true },
+  });
 
 
 export const getAgents = async (organizationId: string) => {
@@ -100,10 +109,40 @@ export const deleteAgent = async (
   organizationId: string,
   agentId: string
 ) => {
-  return prisma.agent.deleteMany({
-    where: { agentId, organizationId },
+  return prisma.$transaction(async (tx) => {
+    await tx.secret.deleteMany({
+      where: {
+        organizationId,
+        name: { startsWith: `agent:${agentId}:` },
+      },
+    });
+    return tx.agent.deleteMany({
+      where: { agentId, organizationId },
+    });
   });
 };
+
+export const getAgentDeletionContext = async (
+  organizationId: string,
+  agentId: string
+) =>
+  prisma.agent.findFirst({
+    where: { agentId, organizationId },
+    select: {
+      agentId: true,
+      phoneNumbers: {
+        select: { phId: true },
+      },
+      knowledgeSources: {
+        select: {
+          kbId: true,
+          agentId: true,
+          storagePath: true,
+          sourceType: true,
+        },
+      },
+    },
+  });
 
 export const configureAgent = async (
   organizationId: string,
@@ -141,8 +180,8 @@ export const configureAgent = async (
       tx.agentConfiguration.create({
         data: {
           agentId,
-          ...prismaConfigData,
           ...agentConfigCreateDefaults,
+          ...prismaConfigData,
         },
       }),
       tx.agent.update({

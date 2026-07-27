@@ -41,7 +41,9 @@ import {
   uniqueDynamicVariableNames,
 } from "@/src/lib/agents/dynamic-variables";
 
-const ACCEPT_STRING = ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const ACCEPT_STRING =
+  ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+const MAX_BATCH_UPLOAD_BYTES = 5 * 1024 * 1024;
 
 function asDialableAgents(agents: Agent[], numbers: PhoneNumber[]) {
   return agents
@@ -71,12 +73,20 @@ function templateFileName(agentName: string | undefined) {
 }
 
 export function BatchCallForm() {
-  const { data: agents = [], isLoading: agentsLoading, refetch: refetchAgents } = useAgents();
-  const { data: numbers = [], isLoading: numbersLoading, refetch: refetchNumbers } = useNumbers();
+  const {
+    data: agents = [],
+    isLoading: agentsLoading,
+    refetch: refetchAgents,
+  } = useAgents();
+  const {
+    data: numbers = [],
+    isLoading: numbersLoading,
+    refetch: refetchNumbers,
+  } = useNumbers();
   const createBatch = useCreateBatchCampaign();
   const dialableAgents = useMemo(
     () => asDialableAgents(agents, numbers),
-    [agents, numbers]
+    [agents, numbers],
   );
 
   const fileRef = useRef<HTMLInputElement>(null);
@@ -84,37 +94,45 @@ export function BatchCallForm() {
   const [requestedFromNumber, setRequestedFromNumber] = useState("");
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
-  const [scheduleMode, setScheduleMode] = useState<"instant" | "later">("instant");
+  const [scheduleMode, setScheduleMode] = useState<"instant" | "later">(
+    "instant",
+  );
   const [scheduledAt, setScheduledAt] = useState("");
   const [ringingTimeoutSeconds, setRingingTimeoutSeconds] = useState(60);
   const [formError, setFormError] = useState<string | null>(null);
-  const [createdCampaignName, setCreatedCampaignName] = useState<string | null>(null);
+  const [createdCampaignName, setCreatedCampaignName] = useState<string | null>(
+    null,
+  );
 
-  const agentId = dialableAgents.some((agent) => agent.agentId === requestedAgentId)
+  const agentId = dialableAgents.some(
+    (agent) => agent.agentId === requestedAgentId,
+  )
     ? requestedAgentId
-    : dialableAgents[0]?.agentId ?? "";
-  const selectedAgent = dialableAgents.find((agent) => agent.agentId === agentId);
+    : (dialableAgents[0]?.agentId ?? "");
+  const selectedAgent = dialableAgents.find(
+    (agent) => agent.agentId === agentId,
+  );
   const fromNumber = selectedAgent?.numbers.some(
-    (number) => number.number === requestedFromNumber
+    (number) => number.number === requestedFromNumber,
   )
     ? requestedFromNumber
-    : selectedAgent?.numbers[0]?.number ?? "";
+    : (selectedAgent?.numbers[0]?.number ?? "");
   const { data: selectedAgentConfig } = useAgentConfig(agentId);
   const selectedAgentVariables = useMemo(
     () => normalizeAgentVariables(selectedAgentConfig?.variables),
-    [selectedAgentConfig?.variables]
+    [selectedAgentConfig?.variables],
   );
   const dynamicVariableNames = useMemo(
     () => uniqueDynamicVariableNames(selectedAgentVariables),
-    [selectedAgentVariables]
+    [selectedAgentVariables],
   );
   const templateHeader = useMemo(
     () => buildBatchTemplateHeader(dynamicVariableNames),
-    [dynamicVariableNames]
+    [dynamicVariableNames],
   );
   const templateCsv = useMemo(
     () => buildBatchTemplateCsv(dynamicVariableNames),
-    [dynamicVariableNames]
+    [dynamicVariableNames],
   );
 
   const isLoading = agentsLoading || numbersLoading;
@@ -133,7 +151,9 @@ export function BatchCallForm() {
 
   function selectAgent(nextAgentId: string) {
     setRequestedAgentId(nextAgentId);
-    const nextAgent = dialableAgents.find((agent) => agent.agentId === nextAgentId);
+    const nextAgent = dialableAgents.find(
+      (agent) => agent.agentId === nextAgentId,
+    );
     setRequestedFromNumber(nextAgent?.numbers[0]?.number ?? "");
   }
 
@@ -174,18 +194,21 @@ export function BatchCallForm() {
     });
 
     if (!parsed.success) {
-      setFormError(parsed.error.issues[0]?.message ?? "Check the batch details");
+      setFormError(
+        parsed.error.issues[0]?.message ?? "Check the batch details",
+      );
       return;
     }
 
     try {
       const upload = await outboundApi.getBatchUploadUrl(
         parsed.data.file.name,
-        contentTypeFor(parsed.data.file)
+        contentTypeFor(parsed.data.file),
+        parsed.data.file.size,
       );
       const uploadRes = await fetch(upload.uploadUrl, {
         method: "PUT",
-        headers: { "Content-Type": contentTypeFor(parsed.data.file) },
+        headers: { "Content-Type": upload.contentType },
         body: parsed.data.file,
       });
       if (!uploadRes.ok) {
@@ -213,14 +236,14 @@ export function BatchCallForm() {
       setRingingTimeoutSeconds(60);
       resetFileInput();
     } catch (error) {
-      setFormError(error instanceof Error ? error.message : "Could not create batch");
+      setFormError(
+        error instanceof Error ? error.message : "Could not create batch",
+      );
     }
   }
 
   if (isLoading) {
-    return (
-      <div className="h-[620px] animate-pulse border bg-card" />
-    );
+    return <div className="h-[620px] animate-pulse border bg-card" />;
   }
 
   if (dialableAgents.length === 0) {
@@ -241,8 +264,10 @@ export function BatchCallForm() {
   return (
     <form onSubmit={onSubmit} className="border bg-card">
       <div className="flex flex-col gap-2 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-base font-semibold text-foreground">Batch campaigns</h2>
-        <Badge variant="outline">CSV, XLSX</Badge>
+        <h2 className="text-base font-semibold text-foreground">
+          Batch campaigns
+        </h2>
+        <Badge variant="outline">CSV or XLSX</Badge>
       </div>
 
       <div className="grid gap-5 p-5">
@@ -265,7 +290,9 @@ export function BatchCallForm() {
               min={10}
               max={180}
               value={ringingTimeoutSeconds}
-              onChange={(event) => setRingingTimeoutSeconds(Number(event.target.value))}
+              onChange={(event) =>
+                setRingingTimeoutSeconds(Number(event.target.value))
+              }
             />
           </div>
         </div>
@@ -308,10 +335,20 @@ export function BatchCallForm() {
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <Label>Recipient file</Label>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={copyHeader}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={copyHeader}
+              >
                 <Copy /> Copy header
               </Button>
-              <Button type="button" variant="ghost" size="sm" onClick={downloadTemplate}>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={downloadTemplate}
+              >
                 <Download /> Download CSV
               </Button>
             </div>
@@ -353,7 +390,16 @@ export function BatchCallForm() {
             type="file"
             accept={ACCEPT_STRING}
             className="hidden"
-            onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+            onChange={(event) => {
+              const selected = event.target.files?.[0] ?? null;
+              if (selected && selected.size > MAX_BATCH_UPLOAD_BYTES) {
+                setFormError("Recipient file exceeds the 5 MB upload limit");
+                resetFileInput();
+                return;
+              }
+              setFormError(null);
+              setFile(selected);
+            }}
           />
         </div>
 

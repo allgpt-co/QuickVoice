@@ -81,9 +81,12 @@ test("initiation webhook response variables are editable and saved", async () =>
   assert.match(webhooksTab, /Response variables/);
   assert.match(webhooksTab, /webhookVariableNamePattern = \/\^\[A-Za-z_\]\[A-Za-z0-9_\]\*\$\//);
   assert.match(webhooksTab, /const dynamic_variables = recordFromRows\(initiationVariableRows\)/);
-  assert.match(webhooksTab, /fetch dynamic variables and caller context/);
+  assert.match(webhooksTab, /fetch dynamic variables\s+and caller context/);
   assert.match(webhooksTab, /JSON paths from the webhook response/);
-  assert.match(webhooksTab, /Object\.keys\(dynamic_variables\)\.length > 0 \? \{ dynamic_variables \} : \{\}/);
+  assert.match(
+    webhooksTab,
+    /Object\.keys\(dynamic_variables\)\.length > 0[\s\S]*\? \{ dynamic_variables \}[\s\S]*: \{\}/,
+  );
 });
 
 test("AI runtime merges initiation webhook variables before rendering prompts", async () => {

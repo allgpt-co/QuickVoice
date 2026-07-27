@@ -225,7 +225,8 @@ export default function Footer4Col() {
 
         <div className="mt-12 border-t pt-6">
           <p className="text-center text-sm text-secondary-foreground/70">
-            &copy; {new Date().getFullYear()} QuickVoice. All rights reserved.
+            &copy; {new Date().getFullYear()} QuickVoice contributors. MIT
+            licensed.
           </p>
         </div>
       </div>

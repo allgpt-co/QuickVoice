@@ -179,7 +179,7 @@ test("doctor checks env templates, ports, Redis, and Compose health", async () =
   const script = await text("scripts/dev-doctor.sh");
 
   assert.match(script, /Bash >= 4 is required/);
-  assert.match(script, /Node\.js >= 20\.9 is required/);
+  assert.match(script, /Node\.js \^20\.19, \^22\.13, or >=24 is required/);
   assert.match(script, /check_env_templates/);
   assert.match(script, /check_port/);
   assert.match(script, /check_port "\$\{POSTGRES_PORT:-5432\}" "Postgres"/);
@@ -212,7 +212,7 @@ test("root package exposes aggregate CI and test scripts", async () => {
     "node scripts/verify-turbo-tasks.mjs",
   );
   assert.equal(pkg.scripts["audit:deps"], "node scripts/security-audit.mjs");
-  assert.equal(pkg.engines.node, ">=20.9");
+  assert.equal(pkg.engines.node, "^20.19 || ^22.13 || >=24");
 });
 
 test("Turborepo build outputs include Next and server artifacts", async () => {

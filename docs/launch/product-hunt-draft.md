@@ -44,7 +44,7 @@ Use whichever current Product Hunt topics fit at submission time. Likely candida
 ```text
 Hi Product Hunt, we are launching QuickVoice as an open-source Retell alternative for AI phone agents.
 
-The short version: most voice-agent platforms are closed hosted APIs. That is convenient, but it limits how much teams can inspect, self-host, customize, and reason about privacy or provider costs. QuickVoice puts the app, console, API, LiveKit-powered worker, database path, telephony integration points, knowledge bases, call logs, outbound campaigns, billing paths, and local orchestration in one AGPL repo.
+The short version: most voice-agent platforms are closed hosted APIs. That is convenient, but it limits how much teams can inspect, self-host, customize, and reason about privacy or provider costs. QuickVoice puts the app, console, API, LiveKit-powered worker, database path, telephony integration points, knowledge bases, call logs, outbound campaigns, billing paths, and local orchestration in one MIT-licensed repo.
 
 GitHub: https://github.com/allgpt-co/QuickVoice
 
@@ -80,7 +80,7 @@ Use only real assets from the repo or fresh captures from a local run with demo 
 ```text
 QuickVoice is live on Product Hunt today.
 
-It is an AGPL stack for AI phone agents that you can inspect, self-host, and extend: console, API, LiveKit worker, telephony integration points, knowledge bases, call logs, campaigns, and local dev tooling.
+It is an MIT-licensed stack for AI phone agents that you can inspect, self-host, and extend: console, API, LiveKit worker, telephony integration points, knowledge bases, call logs, campaigns, and local dev tooling.
 
 [PRODUCT_HUNT_URL]
 ```

@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -15,6 +15,7 @@ import {
   serverBaseUrl,
   trustedOrigins,
 } from "../config/origins.js";
+import { cleanupOrganizationBeforeDeletion } from "../modules/organization/organization-cleanup.service.js";
 
 // ─── Better Auth server instance ────────────────────────────────────────────
 export const auth = betterAuth({
@@ -69,6 +70,34 @@ export const auth = betterAuth({
       roles,
       dynamicAccessControl: {
         enabled: true,
+      },
+      organizationHooks: {
+        beforeDeleteOrganization: async ({ organization: org }) => {
+          try {
+            await cleanupOrganizationBeforeDeletion({
+              organizationId: org.id,
+              stripeCustomerId:
+                typeof org.stripeCustomerId === "string"
+                  ? org.stripeCustomerId
+                  : null,
+            });
+          } catch (error) {
+            console.error(
+              "[organization] external cleanup blocked deletion",
+              {
+                organizationId: org.id,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "Unknown cleanup error",
+              },
+            );
+            throw new APIError("BAD_REQUEST", {
+              message:
+                "Organization cleanup failed. No database deletion was performed; retry after checking provider connectivity.",
+            });
+          }
+        },
       },
     }),
     stripe({

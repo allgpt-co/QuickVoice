@@ -15,7 +15,7 @@ Complete the checklist on a dedicated release pull request. A draft release note
 
 ## 2. Install And Static Checks
 
-Use Node.js `>=20.9`; CI currently uses a newer supported Node version. Start from a clean dependency install.
+Use Node.js `^20.19 || ^22.13 || >=24`; CI currently uses Node 24. Start from a clean dependency install.
 
 ```sh
 corepack prepare pnpm@9.0.0 --activate

@@ -110,6 +110,18 @@ export const mcpTools = [
     "risk": "read"
   },
   {
+    "name": "update_knowledge_source",
+    "method": "PATCH",
+    "path": "/kb/:kbId",
+    "auth": "x-api-key/session; knowledgeSource:update",
+    "description": "Update supported knowledge source fields and queue reprocessing.",
+    "requestSchema": "params kbId; body { name?, agentId?, url? }",
+    "responseSchema": "KnowledgeSource",
+    "file": "apps/server/src/modules/kb/kb.route.ts",
+    "mappingReason": "Mutates source configuration and refreshes indexed content.",
+    "risk": "write"
+  },
+  {
     "name": "delete_knowledge_source",
     "method": "DELETE",
     "path": "/kb/:kbId",
@@ -823,7 +835,7 @@ export const mcpExcludedApis = [
 ] as const;
 
 export const mcpReferenceStats = {
-  toolCount: 35,
+  toolCount: 36,
   resourceCount: 26,
   excludedCount: 9,
 } as const;

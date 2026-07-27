@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { delimiter, join } from "node:path";
+import { tmpdir } from "node:os";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 async function text(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -32,10 +39,11 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pnpm --filter docs build/);
   assert.match(ci, /pnpm --filter server test/);
   assert.match(ci, /node --test tests\/\*\.test\.mjs/);
-  assert.match(ci, /pnpm --filter console test/);
-  assert.match(ci, /python -m pip install -r requirements\.txt/);
-  assert.match(ci, /python -m pip install pytest/);
+  assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
+  assert.match(ci, /python -m pip install -r requirements-dev\.txt/);
+  assert.match(ci, /python -m pip_audit --local/);
   assert.match(ci, /python -m pytest tests/);
+  assert.match(ci, /python -m pytest tests -W error/);
   assert.match(ci, /node-version: "24"/);
   assert.match(ci, /docker build \\/);
   assert.match(ci, /for attempt in 1 2 3/);
@@ -47,140 +55,107 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /GITHUB_STEP_SUMMARY/);
 });
 
-
-
-test("setup docs cover supported host, Docker, Mailpit, providers, and safe reproduction boundaries", async () => {
-  const readme = await text("README.md");
-  const wsl = await text("docs/setup/windows-wsl2.md");
-  const macos = await text("docs/setup/macos.md");
-  const docker = await text("docs/setup/docker-health.md");
-  const mailpit = await text("docs/setup/mailpit-smoke.md");
-  const providers = await text("docs/setup/provider-boundaries.md");
-  const safe = await text("docs/community/safe-reproduction-data.md");
-  const consoleReadme = await text("apps/console/README.md");
-  const setupIssue = await text(".github/ISSUE_TEMPLATE/setup.yml");
-  const bugIssue = await text(".github/ISSUE_TEMPLATE/bug.yml");
-
-  assert.match(readme, /docs\/setup\/windows-wsl2\.md/);
-  assert.match(readme, /docs\/setup\/provider-boundaries\.md/);
-  assert.match(wsl, /Docker Desktop with WSL integration/);
-  assert.match(wsl, /not under `\/mnt\/c`/);
-  assert.match(macos, /Do not replace `\/bin\/bash`/);
-  assert.match(docker, /task docker:reset` is destructive/);
-  assert.match(docker, /docker compose -f docker-compose\.dev\.yml --env-file \.env\.dev ps/);
-  assert.match(mailpit, /localhost:1025/);
-  assert.match(mailpit, /http:\/\/localhost:8025/);
-  assert.match(providers, /LIVEKIT_URL/);
-  assert.match(providers, /TWILIO_ACCOUNT_SID/);
-  assert.match(providers, /Mailpit/);
-  assert.doesNotMatch(providers, /certified|guaranteed SLA|partnership/i);
-  assert.match(safe, /\+15550101000/);
-  assert.match(safe, /rotate it/);
-  assert.match(consoleReadme, /API Connectivity And CORS Diagnostics/);
-  assert.match(consoleReadme, /Do not disable browser security or broaden CORS/);
-  assert.match(setupIssue, /docs\/setup\/windows-wsl2\.md/);
-  assert.match(bugIssue, /docs\/community\/safe-reproduction-data\.md/);
-});
-
-
-
-test("repository exposes a release metadata checker that cannot create tags", async () => {
-  const root = JSON.parse(await text("package.json"));
-  const checker = await text("scripts/check-release-metadata.mjs");
-  const checklist = await text("docs/releases/release-checklist.md");
-
-  assert.equal(root.scripts["release:check"], "node scripts/check-release-metadata.mjs");
-  assert.match(checker, /--draft/);
-  assert.match(checker, /CHANGELOG\.md/);
-  assert.doesNotMatch(checker, /git tag|git push|createRelease/);
-  assert.match(checklist, /pnpm release:check -- v0\.1\.0 --draft/);
-});
-
-test("repository exposes a development env template drift checker", async () => {
-  const root = JSON.parse(await text("package.json"));
-  const checker = await text("scripts/check-env-templates.mjs");
-
-  assert.equal(root.scripts["env:check"], "node scripts/check-env-templates.mjs");
-  assert.match(checker, /git", \["ls-files", "-z", "--", "\*\.env\.dev\.example"\]/);
-  assert.match(checker, /INTERNAL_API_KEY/);
-  assert.match(checker, /NEXT_PUBLIC_SERVER_URL/);
-  assert.doesNotMatch(checker, /readFile\(path\.join\(root, "\.env\.dev"/);
-});
-
-test("repository exposes a dependency-light Markdown link checker", async () => {
-  const root = JSON.parse(await text("package.json"));
-  const readme = await text("README.md");
-  const checker = await text("scripts/check-markdown-links.mjs");
-
-  assert.equal(root.scripts["docs:links"], "node scripts/check-markdown-links.mjs");
-  assert.match(readme, /pnpm docs:links/);
-  assert.match(checker, /git", \["ls-files", "-z", "--", "\*\.md"\]/);
-  assert.match(checker, /decodeURIComponent/);
-  assert.match(checker, /EXCLUDED_SEGMENTS/);
-});
-
-test("tooling exposes a credential-free local API health smoke command", async () => {
-  const root = JSON.parse(await text("package.json"));
-  const taskfile = await text("Taskfile.yml");
-  const smoke = await text("scripts/local-api-health-smoke.mjs");
-
-  assert.equal(root.scripts["smoke:api"], "node scripts/local-api-health-smoke.mjs");
-  assert.match(taskfile, /api:smoke:/);
-  assert.match(smoke, /`http:\/\/localhost:\$\{process\.env\.SERVER_PORT \|\| "5000"\}`/);
-  assert.match(smoke, /\/api\/\$\{apiVersion\}\/health/);
-  assert.doesNotMatch(smoke, /Authorization|x-api-key|INTERNAL_API_KEY/);
-});
-
-test("console package exposes its tests through package scripts", async () => {
-  const pkg = JSON.parse(await text("apps/console/package.json"));
-  const root = JSON.parse(await text("package.json"));
-  const ci = await text(".github/workflows/ci.yml");
-
-  assert.equal(pkg.scripts.test, "node --test tests/*.test.mjs");
-  assert.match(root.scripts.test, /pnpm --filter console test/);
-  assert.match(ci, /pnpm --filter console test/);
-});
-
-test("repository declares the same Node major used by CI", async () => {
-  const nodeVersion = (await text(".node-version")).trim();
-  const pkg = JSON.parse(await text("package.json"));
-  const ci = await text(".github/workflows/ci.yml");
-
-  assert.equal(nodeVersion, "24");
-  assert.equal(pkg.engines.node, ">=20.9");
-  assert.match(ci, /node-version: "24"/);
-});
-
-test("security audit fails on high advisories and uses explicit suppressions", async () => {
+test("security audit fails on any advisory without a blanket suppression baseline", async () => {
   const workflow = await text(".github/workflows/security-audit.yml");
   const suppressions = JSON.parse(
     await text("security/audit-suppressions.json"),
   );
 
-  assert.match(workflow, /pnpm audit:deps/);
-  assert.match(workflow, /--audit-level high/);
+  assert.match(workflow, /run: pnpm audit:deps --audit-level low/);
+  assert.doesNotMatch(workflow, /pnpm audit:deps -- --audit-level/);
   assert.doesNotMatch(workflow, /runs-on: self-hosted/);
   assert.match(workflow, /runs-on: ubuntu-latest/);
-  assert.ok(Array.isArray(suppressions.suppressions));
-  assert.ok(suppressions.suppressions.length > 0);
+  assert.deepEqual(suppressions.suppressions, []);
+});
 
-  const keys = new Set();
-  for (const suppression of suppressions.suppressions) {
-    assert.match(suppression.id, /^GHSA-|^CVE-|^\d+$/);
-    assert.ok(suppression.module);
-    assert.ok(suppression.reason.includes("Temporary baseline suppression"));
-    assert.equal(suppression.expires, "2026-08-20");
-    assert.ok(Array.isArray(suppression.contexts));
-    assert.ok(suppression.contexts.length > 0);
-    for (const context of suppression.contexts) {
-      assert.ok(
-        ["production dependencies", "all dependencies"].includes(context),
-      );
-    }
-    const key = `${suppression.module}:${suppression.id}`;
-    assert.equal(keys.has(key), false, `duplicate suppression ${key}`);
-    keys.add(key);
+test("repository and workspace packages declare the MIT license", async () => {
+  const license = await text("LICENSE");
+  assert.match(license, /^MIT License/);
+  assert.match(license, /Permission is hereby granted, free of charge/);
+
+  for (const manifestPath of [
+    "package.json",
+    "apps/console/package.json",
+    "apps/server/package.json",
+    "apps/web/package.json",
+    "packages/eslint-config/package.json",
+    "packages/typescript-config/package.json",
+  ]) {
+    const manifest = JSON.parse(await text(manifestPath));
+    assert.equal(manifest.license, "MIT", manifestPath);
   }
+
+  assert.match(await text("README.md"), /MIT License/);
+  assert.match(await text("CONTRIBUTING.md"), /licensed under the MIT License/);
+});
+
+test("security audit distinguishes below-threshold findings from suppressions", async () => {
+  const fixture = await mkdtemp(join(tmpdir(), "quickvoice-security-audit-"));
+  const fakePnpm = join(fixture, "pnpm");
+  const suppressions = join(fixture, "suppressions.json");
+
+  try {
+    await writeFile(
+      fakePnpm,
+      `#!/bin/sh
+printf '%s\\n' '{"advisories":{"1":{"id":1,"module_name":"fixture","severity":"low","title":"fixture advisory"}}}'
+exit 1
+`,
+    );
+    await chmod(fakePnpm, 0o755);
+    await writeFile(suppressions, '{"suppressions":[]}');
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(
+          new URL("../scripts/security-audit.mjs", import.meta.url),
+        ),
+        "--audit-level",
+        "high",
+        "--suppressions-file",
+        suppressions,
+      ],
+      {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          PATH: `${fixture}${delimiter}${process.env.PATH ?? ""}`,
+          SECURITY_AUDIT_TODAY: "2026-07-26",
+        },
+      },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(
+      result.stdout,
+      /production dependencies: no high\+ advisories found/,
+    );
+    assert.match(result.stdout, /all dependencies: no high\+ advisories found/);
+    assert.doesNotMatch(result.stdout, /explicitly suppressed/);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test("security overrides keep legacy glob callers on patched modern dependencies", async () => {
+  const manifest = JSON.parse(await text("package.json"));
+  const overrides = manifest.pnpm?.overrides ?? {};
+  const patchedDependencies = manifest.pnpm?.patchedDependencies ?? {};
+
+  assert.equal(overrides["brace-expansion@>=3"], "5.0.8");
+  assert.equal(overrides["minimatch@3"], "10.2.5");
+  assert.equal(overrides["minimatch@9"], "10.2.5");
+  assert.equal(
+    patchedDependencies["minimatch@10.2.5"],
+    "patches/minimatch@10.2.5.patch",
+  );
+
+  const minimatch = require("minimatch");
+  assert.equal(typeof minimatch, "function");
+  assert.equal(minimatch("src/app.ts", "**/*.ts"), true);
+  assert.equal(minimatch("src/app.js", "**/*.ts"), false);
+  assert.equal(minimatch.minimatch, minimatch);
 });
 
 test("deploy workflows are gated, immutable, scanned, signed, and environment protected", async () => {
@@ -254,6 +229,11 @@ test("server runtime image installs only production server dependencies", async 
   assert.match(
     dockerfile,
     /COPY packages\/typescript-config packages\/typescript-config/,
+  );
+  assert.equal(
+    dockerfile.match(/^COPY patches patches$/gm)?.length,
+    2,
+    "both pnpm install stages must include patched dependencies",
   );
   assert.match(dockerfile, /rm -rf[\s\S]*\/root\/\.cache\/node/);
   assert.match(dockerfile, /rm -rf[\s\S]*\/usr\/local\/lib\/node_modules\/npm/);

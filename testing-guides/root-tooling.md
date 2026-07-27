@@ -31,7 +31,7 @@ Local orchestration is centered on `Taskfile.yml`. The one-command path is `pnpm
 CI has three workflow surfaces:
 
 - `.github/workflows/ci.yml`: PR, push to `main`, and `workflow_call`; installs Node, pnpm, Python, Docker Buildx, then runs `pnpm ci:local`.
-- `.github/workflows/security-audit.yml`: PR, push to `main`, and Mondays at `03:00 UTC`; runs `pnpm audit:deps -- --audit-level high`.
+- `.github/workflows/security-audit.yml`: PR, push to `main`, and Mondays at `03:00 UTC`; runs `pnpm audit:deps -- --audit-level low`.
 - `.github/workflows/backend-build.yml`: push to `main` for backend-related paths and manual dispatch; calls CI, builds server/AI images, pushes immutable SHA-tagged images to ECR, runs Trivy, signs with cosign, deploys to ECS, waits for service stability, and writes rollback metadata.
 
 ## Architecture And Data Flow Testing
@@ -331,7 +331,7 @@ Pass if there are no matches. Fail if live-looking Stripe, webhook, or AWS acces
 Dependency audit:
 
 ```sh
-pnpm audit:deps -- --audit-level high
+pnpm audit:deps -- --audit-level low
 ```
 
 Pass if no unsuppressed high or critical advisories remain and suppressions are valid. Fail if new unsuppressed advisories appear. Block if pnpm or registry access is unavailable.
@@ -439,7 +439,7 @@ Highest-risk regressions:
 - [ ] `task db:seed` is tested with an existing user or org and does not cross tenant boundaries.
 - [ ] `task up:dev` starts expected services and health endpoints respond.
 - [ ] `pnpm ci:local` passes in an environment with dependencies, Python requirements, and Docker Buildx.
-- [ ] `pnpm audit:deps -- --audit-level high` passes or every temporary suppression has explicit owner sign-off before `2026-07-19`.
+- [ ] `pnpm audit:deps -- --audit-level low` passes or every temporary suppression has explicit owner sign-off before its expiry date.
 - [ ] GitHub PR checks for CI and Security Audit pass on the branch.
 - [ ] Backend deploy workflow is tested or explicitly blocked with missing AWS/GitHub variables documented.
 - [ ] If deploying backend, images are scanned, signed, digest-deployed to ECS, service stability is reached, and rollback metadata is captured.

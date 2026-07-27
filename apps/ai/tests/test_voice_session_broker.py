@@ -18,7 +18,7 @@ class VoiceSessionBrokerTests(unittest.IsolatedAsyncioTestCase):
             {
                 "LIVEKIT_URL": "wss://livekit.example.com",
                 "LIVEKIT_API_KEY": "key",
-                "LIVEKIT_API_SECRET": "secret",
+                "LIVEKIT_API_SECRET": "test-livekit-secret-at-least-32-bytes",
                 "LIVEKIT_AGENT_NAME": "QuickVoice",
             },
             clear=True,
@@ -45,7 +45,7 @@ class VoiceSessionBrokerTests(unittest.IsolatedAsyncioTestCase):
             {
                 "LIVEKIT_URL": "wss://livekit.example.com",
                 "LIVEKIT_API_KEY": "key",
-                "LIVEKIT_API_SECRET": "secret",
+                "LIVEKIT_API_SECRET": "test-livekit-secret-at-least-32-bytes",
                 "LIVEKIT_AGENT_NAME": "QuickVoice",
                 "SESSION_TOKEN_TTL_SECONDS": "900",
             },

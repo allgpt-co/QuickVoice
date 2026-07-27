@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   createBatchCampaign,
+  createBatchUploadUrl,
   dispatchBatchCampaign,
   importBatchCampaignRecipients,
 } from "../../src/modules/outbound/outbound-batch.service.js";
@@ -24,6 +25,36 @@ test("outboundRuntimeJobId creates stable BullMQ-safe checkpoint ids", () => {
   assert.throws(() => outboundRuntimeJobId("call-dispatch", "   "), /non-empty identifier/);
 });
 
+const TEST_UPLOAD_ID = "8d55565f-1111-4111-8111-f95fd03f0df2";
+
+test("createBatchUploadUrl signs the normalized type and exact content length", async () => {
+  const calls: unknown[][] = [];
+  const result = await createBatchUploadUrl(
+    {
+      organizationId: "org_123",
+      fileName: "recipients.CSV",
+      contentType: "text/csv; charset=utf-8",
+      fileSize: 1_024,
+    },
+    {
+      randomUUID: () => TEST_UPLOAD_ID,
+      generateUploadUrl: async (...args) => {
+        calls.push(args);
+        return "https://storage.example/upload";
+      },
+    }
+  );
+
+  assert.deepEqual(calls, [
+    [
+      `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
+      "text/csv",
+      1_024,
+    ],
+  ]);
+  assert.equal(result.contentType, "text/csv");
+});
+
 test("createBatchCampaign queues the import job with a BullMQ-safe custom id", async () => {
   const calls: unknown[] = [];
   const campaign = {
@@ -34,7 +65,7 @@ test("createBatchCampaign queues the import job with a BullMQ-safe custom id", a
     agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
     fromNumber: "+15551230000",
     scheduledAt: null,
-    sourceFileKey: "outbound-batches/org_123/file.csv",
+    sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
     sourceFileName: "file.csv",
     ringingTimeoutSeconds: 45,
     timezone: "UTC",
@@ -69,7 +100,7 @@ test("createBatchCampaign queues the import job with a BullMQ-safe custom id", a
       name: "June renewals",
       agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
       fromNumber: "+15551230000",
-      sourceFileKey: "outbound-batches/org_123/file.csv",
+      sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
       sourceFileName: "file.csv",
       scheduledAt: null,
       timezone: "UTC",
@@ -112,7 +143,7 @@ test("importBatchCampaignRecipients persists valid and invalid file rows and sch
         agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
         fromNumber: "+15551230000",
         scheduledAt,
-        sourceFileKey: "outbound-batches/org_123/file.csv",
+        sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
         sourceFileName: "file.csv",
         ringingTimeoutSeconds: 45,
       };
@@ -193,6 +224,66 @@ test("importBatchCampaignRecipients persists valid and invalid file rows and sch
       removeOnFail: 200,
     },
   ]);
+});
+
+test("importBatchCampaignRecipients rejects oversized recipient sets and marks the campaign failed", async () => {
+  const previousLimit = process.env.OUTBOUND_BATCH_MAX_RECIPIENTS;
+  process.env.OUTBOUND_BATCH_MAX_RECIPIENTS = "1";
+  let failedCampaignId: string | null = null;
+  let rowsCreated = false;
+
+  try {
+    await assert.rejects(
+      importBatchCampaignRecipients(
+        { campaignId: "campaign_oversized" },
+        {
+          repository: {
+            getCampaignForImport: async (campaignId: string) => ({
+              campaignId,
+              organizationId: "org_123",
+              userId: "user_123",
+              agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+              fromNumber: "+15551230000",
+              scheduledAt: null,
+              sourceFileKey: "outbound-batches/org_123/file.csv",
+              sourceFileName: "file.csv",
+              ringingTimeoutSeconds: 45,
+            }),
+            createBatchOutboundCalls: async () => {
+              rowsCreated = true;
+              return { count: 0 };
+            },
+            markBatchImported: async () => ({}),
+            markCampaignFailed: async (campaignId: string) => {
+              failedCampaignId = campaignId;
+              return { count: 1 };
+            },
+          },
+          queue: {
+            add: async () => undefined,
+          },
+          readFile: async () =>
+            Buffer.from(
+              [
+                "phone_number",
+                "+15550001111",
+                "+15550002222",
+              ].join("\n")
+            ),
+        }
+      ),
+      /1 recipient limit/
+    );
+  } finally {
+    if (previousLimit === undefined) {
+      delete process.env.OUTBOUND_BATCH_MAX_RECIPIENTS;
+    } else {
+      process.env.OUTBOUND_BATCH_MAX_RECIPIENTS = previousLimit;
+    }
+  }
+
+  assert.equal(rowsCreated, false);
+  assert.equal(failedCampaignId, "campaign_oversized");
 });
 
 test("dispatchBatchCampaign queues dispatch-call jobs with BullMQ-safe custom ids", async () => {
@@ -283,7 +374,7 @@ test("createBatchCampaign rejects immediately when plan minutes are exhausted", 
         name: "June renewals",
         agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
         fromNumber: "+15551230000",
-        sourceFileKey: "outbound-batches/org_123/file.csv",
+        sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
         sourceFileName: "file.csv",
         scheduledAt: null,
         timezone: "UTC",

@@ -11,9 +11,15 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import { Input } from "@/src/components/ui/input";
+import { Badge } from "@/src/components/ui/badge";
 import { useAgents } from "@/src/hooks/queries/agents";
 
 const ALL = "__all__";
+const RANGE_LABELS: Record<string, string> = {
+  "24h": "Last 24 hours",
+  "7d": "Last 7 days",
+  "30d": "Last 30 days",
+};
 
 export function CallFilters() {
   const router = useRouter();
@@ -26,9 +32,11 @@ export function CallFilters() {
   const direction = params.get("direction") ?? ALL;
   const from = params.get("from") ?? "";
   const to = params.get("to") ?? "";
+  const range = params.get("range") ?? "";
 
   function update(key: string, value: string | null) {
     const next = new URLSearchParams(params);
+    if (key === "from" || key === "to") next.delete("range");
     if (!value || value === ALL) next.delete(key);
     else next.set(key, value);
     router.replace(`${pathname}?${next.toString()}`);
@@ -38,10 +46,19 @@ export function CallFilters() {
     router.replace(pathname);
   }
 
-  const hasFilters = agentId !== ALL || status !== ALL || direction !== ALL || from || to;
+  const hasFilters =
+    agentId !== ALL ||
+    status !== ALL ||
+    direction !== ALL ||
+    Boolean(from) ||
+    Boolean(to) ||
+    Boolean(range);
 
   return (
     <div className="flex flex-wrap items-center gap-2">
+      {RANGE_LABELS[range] ? (
+        <Badge variant="outline">{RANGE_LABELS[range]}</Badge>
+      ) : null}
       <Select value={agentId} onValueChange={(v) => update("agentId", v)}>
         <SelectTrigger className="w-[180px]">
           <SelectValue placeholder="All agents" />

@@ -25,7 +25,7 @@ The console expects the API at the URL configured by `NEXT_PUBLIC_SERVER_URL` (t
 
 ## Requirements And Boundaries
 
-- Node.js `>=20.9` and `pnpm@9.0.0`
+- Node.js `^20.19 || ^22.13 || >=24` and `pnpm@9.0.0`
 - A Linux environment with Bash `>=4`; use WSL2 on Windows
 - The root API and its local data services for authenticated product flows
 - External credentials for OAuth, billing, LiveKit, telephony, storage, email delivery, and model-provider actions
