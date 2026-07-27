@@ -138,7 +138,7 @@ export function validateHandoffPolicy(policy: HandoffPolicy): string[] {
 
     const terminalIndex = actions.findIndex((action) => TERMINAL_FALLBACKS.has(action));
     if (terminalIndex === -1) issues.push(`${reason} fallback has no terminal action`);
-    if (actions.includes("next_target") && terminalIndex === actions.length - 1) {
+    if (actions.at(-1) === "next_target") {
       issues.push(`${reason} fallback can loop forever after next_target`);
     }
   }

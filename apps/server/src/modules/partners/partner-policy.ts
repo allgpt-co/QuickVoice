@@ -82,13 +82,21 @@ function parseHex(value: string): [number, number, number] {
   const match = value.trim().match(/^#([0-9a-f]{6})$/i);
   if (!match) throw new Error(`invalid hex color: ${value}`);
   const raw = match[1];
-  return [0, 2, 4].map((offset) => Number.parseInt(raw.slice(offset, offset + 2), 16)) as [number, number, number];
+  if (!raw) throw new Error(`invalid hex color: ${value}`);
+  return [
+    Number.parseInt(raw.slice(0, 2), 16),
+    Number.parseInt(raw.slice(2, 4), 16),
+    Number.parseInt(raw.slice(4, 6), 16),
+  ];
 }
 
 function luminance(rgb: [number, number, number]) {
-  const [r, g, b] = rgb.map((channel) => {
+  const normalize = (channel: number) => {
     const normalized = channel / 255;
     return normalized <= 0.03928 ? normalized / 12.92 : ((normalized + 0.055) / 1.055) ** 2.4;
-  });
+  };
+  const r = normalize(rgb[0]);
+  const g = normalize(rgb[1]);
+  const b = normalize(rgb[2]);
   return 0.2126 * r + 0.7152 * g + 0.0722 * b;
 }

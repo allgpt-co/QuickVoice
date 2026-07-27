@@ -57,8 +57,8 @@ export function normalizeTranscriptSearchQuery(args: Omit<TranscriptSearchQuery,
   return {
     ...args,
     text,
-    phrases: [...new Set(args.phrases ?? [])].map((phrase) => phrase.trim()).filter(Boolean),
-    excludes: [...new Set(args.excludes ?? [])].map((exclude) => exclude.trim()).filter(Boolean),
+    phrases: [...new Set((args.phrases ?? []).map((phrase) => phrase.trim()).filter(Boolean))],
+    excludes: [...new Set((args.excludes ?? []).map((exclude) => exclude.trim()).filter(Boolean))],
     limit: Math.min(Math.max(args.limit ?? 25, 1), 100),
   };
 }

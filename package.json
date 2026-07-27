@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,mjs,json,md,ts,tsx}\"",
     "check-types": "turbo run check-types",
-    "test": "node --test tests/*.test.mjs && pnpm --filter console test && pnpm --filter server test",
+    "test": "node scripts/run-node-tests.mjs tests && pnpm --filter console test && pnpm --filter server test",
     "test:dev-orchestration": "node --test tests/dev-orchestration.test.mjs",
     "check:tasks": "node scripts/verify-turbo-tasks.mjs",
     "check:configs": "pnpm --filter @repo/eslint-config lint && pnpm --filter @repo/typescript-config lint",

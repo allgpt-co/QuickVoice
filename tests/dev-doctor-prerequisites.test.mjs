@@ -69,7 +69,7 @@ test("dev doctor reports unsupported Node with the required version", async () =
       const result = await runDoctor(binDir);
 
       assert.equal(result.code, 1);
-      assert.match(result.stderr, /Node\.js >= 20\.9 is required\. Found: v18\.19\.0/);
+      assert.match(result.stderr, /Node\.js \^20\.19, \^22\.13, or >=24 is required\. Found: v18\.19\.0/);
     },
   );
 });

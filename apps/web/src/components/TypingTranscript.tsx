@@ -33,6 +33,20 @@ export function TypingTranscript({
     intervalsRef.current.clear();
   }, []);
 
+  const applyCurrentTime = useCallback(
+    (nextTime: number) => {
+      if (nextTime < prevTime.current) {
+        const validIndex = transcript.findLastIndex((line) => line.time <= nextTime);
+        clearTypingIntervals();
+        setTypedLines((prev) => prev.slice(0, validIndex + 1));
+      }
+
+      prevTime.current = nextTime;
+      setCurrentTime(nextTime);
+    },
+    [clearTypingIntervals, transcript],
+  );
+
   /** Attach after the nested audio element exists; some marketing pages mount it after this component. */
   useEffect(() => {
     let cleanup: (() => void) | undefined;
@@ -42,12 +56,12 @@ export function TypingTranscript({
 
       const onPlay = () => {
         setAudioIsPlaying(true);
-        setCurrentTime(audio.currentTime);
+        applyCurrentTime(audio.currentTime);
       };
       const onPause = () => setAudioIsPlaying(false);
       const onEnded = () => setAudioIsPlaying(false);
       const onTimeUpdate = () => {
-        if (!audio.paused) setCurrentTime(audio.currentTime);
+        if (!audio.paused) applyCurrentTime(audio.currentTime);
       };
 
       audio.addEventListener("play", onPlay);
@@ -72,20 +86,7 @@ export function TypingTranscript({
       clearInterval(poll);
       cleanup?.();
     };
-  }, [audioRef]);
-
-  /** Handle backward seek */
-  useEffect(() => {
-    if (!playbackActive) return;
-
-    if (currentTime < prevTime.current) {
-      const validIndex = transcript.findLastIndex((line) => line.time <= currentTime);
-      clearTypingIntervals();
-      setTypedLines((prev) => prev.slice(0, validIndex + 1));
-    }
-
-    prevTime.current = currentTime;
-  }, [currentTime, transcript, playbackActive, clearTypingIntervals]);
+  }, [audioRef, applyCurrentTime]);
 
   /** Pause should stop character timers without losing already typed text. */
   useEffect(() => {

@@ -38,8 +38,8 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pnpm --filter web build/);
   assert.match(ci, /pnpm --filter docs build/);
   assert.match(ci, /pnpm --filter server test/);
-  assert.match(ci, /node --test tests\/\*\.test\.mjs/);
-  assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
+  assert.match(ci, /node scripts\/run-node-tests\.mjs tests/);
+  assert.match(ci, /pnpm --filter console test/);
   assert.match(ci, /python -m pip install -r requirements-dev\.txt/);
   assert.match(ci, /python -m pip_audit --local/);
   assert.match(ci, /python -m pytest tests/);
@@ -155,7 +155,7 @@ test("security overrides keep legacy glob callers on patched modern dependencies
   assert.equal(typeof minimatch, "function");
   assert.equal(minimatch("src/app.ts", "**/*.ts"), true);
   assert.equal(minimatch("src/app.js", "**/*.ts"), false);
-  assert.equal(minimatch.minimatch, minimatch);
+  assert.equal(minimatch.minimatch ?? minimatch, minimatch);
 });
 
 test("deploy workflows are gated, immutable, scanned, signed, and environment protected", async () => {

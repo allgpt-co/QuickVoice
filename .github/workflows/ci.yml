@@ -60,7 +60,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run root tests
-        run: node --test tests/*.test.mjs
+        run: node scripts/run-node-tests.mjs tests
 
   console:
     name: Console Lint, Types, Build, Tests

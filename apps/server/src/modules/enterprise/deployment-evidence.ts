@@ -21,6 +21,10 @@ export type DeploymentProfile = {
   components: ComponentInventory[];
 };
 
+type DeploymentProfileDrift =
+  | { componentId: string; kind: "added" }
+  | { componentId: string; kind: "changed"; changes: string[] };
+
 export type BackupRun = {
   backupRunId: string;
   startedAt: string;
@@ -55,14 +59,14 @@ export function validateDeploymentProfile(profile: DeploymentProfile) {
 
 export function detectDeploymentProfileDrift(previous: DeploymentProfile, next: DeploymentProfile) {
   const previousById = new Map(previous.components.map((component) => [component.componentId, component]));
-  return next.components.flatMap((component) => {
+  return next.components.flatMap((component): DeploymentProfileDrift[] => {
     const previousComponent = previousById.get(component.componentId);
-    if (!previousComponent) return [{ componentId: component.componentId, kind: "added" as const }];
+    if (!previousComponent) return [{ componentId: component.componentId, kind: "added" }];
     const changes: string[] = [];
     if (previousComponent.region !== component.region) changes.push("region");
     if (previousComponent.status !== component.status) changes.push("status");
     if (previousComponent.encryptionProfileId !== component.encryptionProfileId) changes.push("encryption");
-    return changes.length > 0 ? [{ componentId: component.componentId, kind: "changed" as const, changes }] : [];
+    return changes.length > 0 ? [{ componentId: component.componentId, kind: "changed", changes }] : [];
   });
 }
 

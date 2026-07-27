@@ -42,7 +42,7 @@ export type BudgetThresholdDecision = {
   severity: "ok" | "warning" | "critical";
 };
 
-const SENSITIVE_DIMENSION_PATTERN = /(phone|email|transcript|prompt|message|recording|secret|token|password|payload|authorization)/i;
+const SENSITIVE_DIMENSION_PATTERN = /(phone|email|transcript|prompt|message|recording|secret|token|password|payload|authorization|api[-_]?key)/i;
 
 export function buildUsageLedgerEntry(args: Omit<UsageLedgerEntry, "idempotencyKey" | "ingestedAt" | "dimensions"> & {
   ingestedAt?: Date;

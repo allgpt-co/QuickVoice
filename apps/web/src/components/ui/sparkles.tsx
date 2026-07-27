@@ -1,6 +1,6 @@
 "use client";
-import React, { useId } from "react";
-import Particles, { ParticlesProvider } from "@tsparticles/react";
+import { useEffect, useId, useState } from "react";
+import Particles, { initParticlesEngine } from "@tsparticles/react";
 import type { Container, Engine } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
 import { cn } from "@/lib/utils";
@@ -22,11 +22,30 @@ const initializeParticles = async (engine: Engine) => {
   await loadSlim(engine);
 };
 
-export const SparklesCore = (props: ParticlesProps) => (
-  <ParticlesProvider init={initializeParticles}>
-    <SparklesCanvas {...props} />
-  </ParticlesProvider>
-);
+let particlesEngineReadyPromise: Promise<void> | null = null;
+
+function ensureParticlesEngineReady() {
+  particlesEngineReadyPromise ??= initParticlesEngine(initializeParticles);
+  return particlesEngineReadyPromise;
+}
+
+export const SparklesCore = (props: ParticlesProps) => {
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    ensureParticlesEngineReady().then(() => {
+      if (mounted) setIsReady(true);
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (!isReady) return null;
+  return <SparklesCanvas {...props} />;
+};
 
 const SparklesCanvas = (props: ParticlesProps) => {
   const {

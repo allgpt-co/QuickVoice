@@ -91,7 +91,8 @@ export function evaluateShareGrantAccess(grant: BlueprintShareGrant, request: { 
 }
 
 function scanContent(path: string, value: unknown, issues: string[]) {
-  if (FORBIDDEN_CONTENT.test(path)) issues.push(`blueprint content contains forbidden field ${path}`);
+  const fieldName = path.split(".").at(-1) ?? path;
+  if (FORBIDDEN_CONTENT.test(fieldName)) issues.push(`blueprint content contains forbidden field ${path}`);
   if (typeof value === "string" && UNSAFE_URL.test(value)) issues.push(`blueprint content contains unsafe URL at ${path}`);
   if (!value || typeof value !== "object") return;
   for (const [key, child] of Object.entries(value as Record<string, unknown>)) scanContent(`${path}.${key}`, child, issues);

@@ -41,7 +41,9 @@ export type AnalyticsQueryPlan = {
   asyncReason?: string;
 };
 
-const CANONICAL_METRIC_IDS = new Set(Object.values(dashboardMetricRegistry).map((metric) => metric.id));
+const CANONICAL_METRIC_IDS: ReadonlySet<string> = new Set(
+  Object.values(dashboardMetricRegistry).map((metric) => metric.id)
+);
 const ALLOWED_DIMENSIONS = new Set([
   "agent_id",
   "campaign_id",

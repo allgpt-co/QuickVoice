@@ -34,11 +34,13 @@ export function validateCampaignVariables(definitions: CampaignVariableDefinitio
       else if (definition.required) findings.push({ variable: definition.name, severity: "error", reason: "required value missing" });
       continue;
     }
+    const stringValue = String(value);
+    const hasPromptInjectionRisk = typeof value === "string" && PROMPT_INJECTION_PATTERN.test(value);
+    if (hasPromptInjectionRisk) findings.push({ variable: definition.name, severity: "warning", reason: "recipient text contains instruction-like content" });
     if (!matchesVariableType(definition, value)) findings.push({ variable: definition.name, severity: "error", reason: `expected ${definition.type}` });
-    if (definition.allowedValues && !definition.allowedValues.includes(String(value))) findings.push({ variable: definition.name, severity: "error", reason: "value not allowed" });
-    if (definition.maxLength && String(value).length > definition.maxLength) findings.push({ variable: definition.name, severity: "error", reason: "value exceeds max length" });
+    if (definition.allowedValues && !definition.allowedValues.includes(stringValue)) findings.push({ variable: definition.name, severity: "error", reason: "value not allowed" });
+    if (!hasPromptInjectionRisk && definition.maxLength && stringValue.length > definition.maxLength) findings.push({ variable: definition.name, severity: "error", reason: "value exceeds max length" });
     if (definition.sensitive) findings.push({ variable: definition.name, severity: "warning", reason: "sensitive value requires permissioned destination" });
-    if (typeof value === "string" && PROMPT_INJECTION_PATTERN.test(value)) findings.push({ variable: definition.name, severity: "warning", reason: "recipient text contains instruction-like content" });
   }
   return findings;
 }

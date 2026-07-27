@@ -197,7 +197,7 @@ test("root package exposes aggregate CI and test scripts", async () => {
 
   assert.equal(pkg.scripts.dev, "task up:dev");
   assert.equal(pkg.scripts["dev:turbo"], "turbo run dev");
-  assert.match(pkg.scripts.test, /node --test tests\/\*\.test\.mjs/);
+  assert.match(pkg.scripts.test, /node scripts\/run-node-tests\.mjs tests/);
   assert.match(
     pkg.scripts.test,
     /pnpm --filter console test/,
