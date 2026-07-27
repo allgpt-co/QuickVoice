@@ -30,6 +30,19 @@ function resolveCommand(command) {
   return null;
 }
 
+function toBashPath(nativePath) {
+  if (process.platform !== "win32") return nativePath;
+
+  const result = spawnSync(BASH, ["-lc", 'cygpath -u "$1"', "quickvoice-path", nativePath], {
+    encoding: "utf8",
+  });
+  if (!result.error && result.status === 0 && result.stdout.trim()) {
+    return result.stdout.trim();
+  }
+
+  return nativePath.replace(/\\/g, "/").replace(/^([A-Za-z]):\//, (_, drive) => `/${drive.toLowerCase()}/`);
+}
+
 const bashOnly = BASH ? {} : { skip: "dev-doctor prerequisite checks require Bash" };
 
 async function withBin(stubs, callback) {
@@ -66,7 +79,7 @@ function runDoctor(binDir) {
     const child = spawn(BASH, [DOCTOR], {
       cwd: ROOT,
       env: {
-        PATH: binDir,
+        PATH: toBashPath(binDir),
         QUICKVOICE_DOCTOR_SKIP_RUNTIME: "1",
       },
       stdio: ["ignore", "pipe", "pipe"],
