@@ -13,7 +13,7 @@
     "lint": "tsc --noEmit --pretty false",
     "start": "node dist/src/index.js",
     "check-types": "tsc --noEmit",
-    "test": "tsx --test tests/**/*.test.ts",
+    "test": "node ../../scripts/run-tsx-tests.mjs tests",
     "seed": "tsx prisma/seed.ts",
     "import:smithery-catalog": "tsx prisma/import-smithery-catalog.ts"
   },
