@@ -43,6 +43,30 @@ function toBashPath(nativePath) {
   return nativePath.replace(/\\/g, "/").replace(/^([A-Za-z]):\//, (_, drive) => `/${drive.toLowerCase()}/`);
 }
 
+function bashSupportPaths() {
+  if (process.platform !== "win32" || !BASH) return [];
+
+  const bashDir = path.dirname(BASH);
+  const gitRoot = path.basename(bashDir).toLowerCase() === "bin" ? path.dirname(bashDir) : path.dirname(path.dirname(bashDir));
+  return [bashDir, path.join(gitRoot, "usr", "bin"), path.join(gitRoot, "bin")]
+    .map(toBashPath)
+    .filter((entry, index, entries) => entry && entries.indexOf(entry) === index);
+}
+
+function doctorPath(binDir) {
+  return [toBashPath(binDir), ...bashSupportPaths(), "/usr/bin", "/bin"].join(":");
+}
+
+function formatDoctorResult(result) {
+  return [
+    `exit code: ${result.code}`,
+    result.stdout && `stdout:\n${result.stdout}`,
+    result.stderr && `stderr:\n${result.stderr}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 const bashOnly = BASH ? {} : { skip: "dev-doctor prerequisite checks require Bash" };
 
 async function withBin(stubs, callback) {
@@ -79,7 +103,8 @@ function runDoctor(binDir) {
     const child = spawn(BASH, [DOCTOR], {
       cwd: ROOT,
       env: {
-        PATH: toBashPath(binDir),
+        ...process.env,
+        PATH: doctorPath(binDir),
         QUICKVOICE_DOCTOR_SKIP_RUNTIME: "1",
       },
       stdio: ["ignore", "pipe", "pipe"],
@@ -104,7 +129,7 @@ test("dev doctor reports unsupported Node with the required version", bashOnly, 
     async (binDir) => {
       const result = await runDoctor(binDir);
 
-      assert.equal(result.code, 1);
+      assert.equal(result.code, 1, formatDoctorResult(result));
       assert.match(result.stderr, /Node\.js \^20\.19, \^22\.13, or >=24 is required\. Found: v18\.19\.0/);
     },
   );
@@ -116,7 +141,7 @@ test("dev doctor reports missing Corepack by exact prerequisite name", bashOnly,
   await withBin(stubs, async (binDir) => {
     const result = await runDoctor(binDir);
 
-    assert.equal(result.code, 1);
+    assert.equal(result.code, 1, formatDoctorResult(result));
     assert.match(result.stderr, /corepack is required to activate pnpm@9\.0\.0/);
   });
 });
@@ -127,7 +152,7 @@ test("dev doctor reports missing Go Task by exact prerequisite name", bashOnly, 
   await withBin(stubs, async (binDir) => {
     const result = await runDoctor(binDir);
 
-    assert.equal(result.code, 1);
+    assert.equal(result.code, 1, formatDoctorResult(result));
     assert.match(result.stderr, /go-task is not installed/);
   });
 });
