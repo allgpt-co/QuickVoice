@@ -1,0 +1,151 @@
+# Required repository or production-docs environment variables:
+#   AWS_ROLE_ARN                     GitHub OIDC deployment role
+#   DOCS_S3_BUCKET                   Dedicated S3 bucket name (without s3://)
+#   CLOUDFRONT_DISTRIBUTION_ID       CloudFront distribution ID
+# Optional: AWS_REGION (defaults to us-east-1), NEXT_PUBLIC_GA_MEASUREMENT_ID
+# The AWS role, S3 bucket, and CloudFront distribution must already exist.
+
+name: Deploy QuickVoice Docs
+
+on:
+  workflow_run:
+    workflows:
+      - CI
+    types:
+      - completed
+  workflow_dispatch: {}
+
+concurrency:
+  group: quickvoice-docs-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    name: Build and deploy docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment:
+      name: production-docs
+    if: >-
+      (
+        github.event_name == 'workflow_dispatch' &&
+        github.ref == 'refs/heads/main'
+      ) ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      DOCS_S3_BUCKET: ${{ vars.DOCS_S3_BUCKET }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+      NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint docs
+        run: pnpm --filter docs lint
+
+      - name: Typecheck docs
+        run: pnpm --filter docs check-types
+
+      - name: Build static docs
+        run: pnpm --filter docs build
+
+      - name: Validate deployment files
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f apps/docs/out/index.html
+          test -d apps/docs/out/_next/static
+
+          if [ -z "${AWS_ROLE_ARN}" ] || [ -z "${DOCS_S3_BUCKET}" ] || [ -z "${CLOUDFRONT_DISTRIBUTION_ID}" ]; then
+            echo "Missing AWS_ROLE_ARN, DOCS_S3_BUCKET, or CLOUDFRONT_DISTRIBUTION_ID."
+            exit 1
+          fi
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Upload docs to S3
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws s3 sync \
+            apps/docs/out/_next/static/ \
+            "s3://${DOCS_S3_BUCKET}/_next/static/" \
+            --delete \
+            --cache-control "public,max-age=31536000,immutable" \
+            --only-show-errors
+
+          aws s3 sync \
+            apps/docs/out/ \
+            "s3://${DOCS_S3_BUCKET}/" \
+            --delete \
+            --exclude "_next/static/*" \
+            --exclude "index.html" \
+            --cache-control "public,max-age=0,must-revalidate" \
+            --only-show-errors
+
+          aws s3 cp \
+            apps/docs/out/index.html \
+            "s3://${DOCS_S3_BUCKET}/index.html" \
+            --cache-control "no-cache,no-store,must-revalidate" \
+            --content-type "text/html; charset=utf-8" \
+            --only-show-errors
+
+      - name: Invalidate CloudFront
+        id: invalidate
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          invalidation_id="$(aws cloudfront create-invalidation \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --paths "/*" \
+            --query 'Invalidation.Id' \
+            --output text)"
+
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --id "${invalidation_id}"
+
+          echo "invalidation_id=${invalidation_id}" >> "${GITHUB_OUTPUT}"
+
+      - name: Write deployment summary
+        shell: bash
+        run: |
+          {
+            echo "## QuickVoice docs deployed"
+            echo "- Commit: ${{ github.event.workflow_run.head_sha || github.sha }}"
+            echo "- S3 bucket: ${DOCS_S3_BUCKET}"
+            echo "- CloudFront distribution: ${CLOUDFRONT_DISTRIBUTION_ID}"
+            echo "- Invalidation: ${{ steps.invalidate.outputs.invalidation_id }}"
+          } >> "${GITHUB_STEP_SUMMARY}"
