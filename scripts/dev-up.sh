@@ -3,6 +3,23 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+free_port() {
+  local port="$1"
+  local pids=""
+
+  if command -v lsof >/dev/null 2>&1; then
+    pids="$(lsof -ti "tcp:${port}" 2>/dev/null || true)"
+  elif command -v fuser >/dev/null 2>&1; then
+    pids="$(fuser "${port}/tcp" 2>/dev/null || true)"
+  fi
+
+  if [ -n "$pids" ]; then
+    for pid in $pids; do
+      kill "$pid" >/dev/null 2>&1 || true
+    done
+  fi
+}
+
 if [ -f "$ROOT/.env.dev" ]; then
   set -a
   # shellcheck disable=SC1091
@@ -86,6 +103,13 @@ start_service() {
   shift 2
 
   start_background "$name" "$*" run_in_dir "$dir" "$@"
+}
+
+ensure_ports_free() {
+  free_port "$SERVER_PORT"
+  free_port "$CONSOLE_PORT"
+  free_port "$WEB_PORT"
+  free_port "$AI_API_PORT"
 }
 
 print_service_summary() {
@@ -181,6 +205,7 @@ wait_for_service_exit() {
   return "$status"
 }
 
+ensure_ports_free
 start_service "server" "apps/server" env DOTENV_CONFIG_PATH=.env.dev PORT="$SERVER_PORT" pnpm dev
 start_service "console" "apps/console" pnpm dev --port "$CONSOLE_PORT"
 start_service "web" "apps/web" pnpm dev --port "$WEB_PORT"

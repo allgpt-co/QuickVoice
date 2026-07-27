@@ -21,6 +21,10 @@ export async function reportCallMinutesUsage(args: ReportCallUsageArgs) {
   }
 
   const { stripeClient } = await import("../../config/stripe.js");
+  if (!stripeClient) {
+    return { skipped: true, reason: "stripe_not_configured" };
+  }
+
   const billableMinutes = Math.max(1, Math.ceil(args.durationSeconds / 60));
   await stripeClient.billing.meterEvents.create({
     event_name: eventName,

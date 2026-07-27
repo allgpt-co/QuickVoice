@@ -1,3 +1,7 @@
 import Stripe from "stripe";
 
- export const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY!)
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY?.trim();
+
+export const stripeClient = stripeSecretKey && !stripeSecretKey.startsWith("sk_test_dev_placeholder")
+  ? new Stripe(stripeSecretKey)
+  : null;
