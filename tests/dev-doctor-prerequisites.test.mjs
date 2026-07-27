@@ -100,7 +100,7 @@ function healthyStubs(overrides = {}) {
 
 function runDoctor(binDir) {
   return new Promise((resolve) => {
-    const child = spawn(BASH, [DOCTOR], {
+    const child = spawn(BASH, [toBashPath(DOCTOR)], {
       cwd: ROOT,
       env: {
         ...process.env,
