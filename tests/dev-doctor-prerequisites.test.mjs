@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { chmod, mkdtemp, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -8,6 +8,18 @@ import { test } from "node:test";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DOCTOR = path.join(ROOT, "scripts/dev-doctor.sh");
+const BASH = findBash();
+
+function findBash() {
+  const candidates = process.platform === "win32" ? ["bash.exe", "bash"] : ["/bin/bash", "bash"];
+  for (const candidate of candidates) {
+    const result = spawnSync(candidate, ["--version"], { encoding: "utf8" });
+    if (!result.error) return candidate;
+  }
+  return null;
+}
+
+const bashOnly = BASH ? {} : { skip: "dev-doctor prerequisite checks require Bash" };
 
 async function withBin(stubs, callback) {
   const dir = await mkdtemp(path.join(os.tmpdir(), "quickvoice-doctor-bin-"));
@@ -40,7 +52,7 @@ function healthyStubs(overrides = {}) {
 
 function runDoctor(binDir) {
   return new Promise((resolve) => {
-    const child = spawn("/bin/bash", [DOCTOR], {
+    const child = spawn(BASH, [DOCTOR], {
       cwd: ROOT,
       env: {
         PATH: binDir,
@@ -60,7 +72,7 @@ function runDoctor(binDir) {
   });
 }
 
-test("dev doctor reports unsupported Node with the required version", async () => {
+test("dev doctor reports unsupported Node with the required version", bashOnly, async () => {
   await withBin(
     healthyStubs({
       node: 'if [ "$1" = "-v" ]; then echo "v18.19.0"; exit 0; fi; exit 1',
@@ -74,7 +86,7 @@ test("dev doctor reports unsupported Node with the required version", async () =
   );
 });
 
-test("dev doctor reports missing Corepack by exact prerequisite name", async () => {
+test("dev doctor reports missing Corepack by exact prerequisite name", bashOnly, async () => {
   const stubs = healthyStubs();
   delete stubs.corepack;
   await withBin(stubs, async (binDir) => {
@@ -85,7 +97,7 @@ test("dev doctor reports missing Corepack by exact prerequisite name", async () 
   });
 });
 
-test("dev doctor reports missing Go Task by exact prerequisite name", async () => {
+test("dev doctor reports missing Go Task by exact prerequisite name", bashOnly, async () => {
   const stubs = healthyStubs();
   delete stubs.task;
   await withBin(stubs, async (binDir) => {

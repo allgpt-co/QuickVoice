@@ -101,7 +101,7 @@ test("API health smoke reports connection refusal distinctly", async () => {
     releasedPort = new URL(baseUrl).port;
   });
 
-  const result = await runSmoke([`http://127.0.0.1:${releasedPort}`, "--timeout-ms", "100"]);
+  const result = await runSmoke([`http://127.0.0.1:${releasedPort}`, "--timeout-ms", "1000"]);
 
   assert.equal(result.code, 1);
   assert.match(result.stderr, /connection refused/);

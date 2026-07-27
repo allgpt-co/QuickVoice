@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useId, useState } from "react";
-import Particles, { initParticlesEngine } from "@tsparticles/react";
+import type { ComponentType } from "react";
+import Particles from "@tsparticles/react";
+import type { IParticlesProps } from "@tsparticles/react";
 import type { Container, Engine } from "@tsparticles/engine";
 import { loadSlim } from "@tsparticles/slim";
 import { cn } from "@/lib/utils";
@@ -22,10 +24,27 @@ const initializeParticles = async (engine: Engine) => {
   await loadSlim(engine);
 };
 
+type ParticlesModule = typeof import("@tsparticles/react") & {
+  initParticlesEngine?: (callback: (engine: Engine) => Promise<void>) => Promise<void>;
+};
+
+type LegacyParticlesProps = IParticlesProps & {
+  init?: (engine: Engine) => Promise<void>;
+};
+
+const ParticlesWithLegacyInit = Particles as ComponentType<LegacyParticlesProps>;
+
 let particlesEngineReadyPromise: Promise<void> | null = null;
 
-function ensureParticlesEngineReady() {
-  particlesEngineReadyPromise ??= initParticlesEngine(initializeParticles);
+function ensureParticlesEngineReady(): Promise<void> {
+  if (!particlesEngineReadyPromise) {
+    particlesEngineReadyPromise = import("@tsparticles/react").then(async (module: ParticlesModule) => {
+      if (typeof module.initParticlesEngine === "function") {
+        await module.initParticlesEngine(initializeParticles);
+      }
+    });
+  }
+
   return particlesEngineReadyPromise;
 }
 
@@ -74,8 +93,9 @@ const SparklesCanvas = (props: ParticlesProps) => {
   const generatedId = useId();
   return (
     <motion.div animate={controls} className={cn("opacity-0", className)}>
-      <Particles
+      <ParticlesWithLegacyInit
         id={id || generatedId}
+        init={initializeParticles}
         className={cn("h-full w-full")}
         particlesLoaded={particlesLoaded}
         options={{

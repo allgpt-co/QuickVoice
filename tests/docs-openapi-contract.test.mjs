@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
 
+const PNPM = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+
 test("docs OpenAPI contract stays internally consistent", () => {
-  const result = spawnSync("pnpm", ["--filter", "docs", "validate:openapi"], {
+  const result = spawnSync(PNPM, ["--filter", "docs", "validate:openapi"], {
     cwd: process.cwd(),
     encoding: "utf8",
   });
