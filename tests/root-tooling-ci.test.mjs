@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { chmod, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createRequire } from "node:module";
+import { delimiter, join } from "node:path";
+import { tmpdir } from "node:os";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
+
+const require = createRequire(import.meta.url);
 
 async function text(path) {
   return readFile(new URL(`../${path}`, import.meta.url), "utf8");
@@ -33,9 +40,10 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pnpm --filter server test/);
   assert.match(ci, /node --test tests\/\*\.test\.mjs/);
   assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
-  assert.match(ci, /python -m pip install -r requirements\.txt/);
-  assert.match(ci, /python -m pip install pytest/);
+  assert.match(ci, /python -m pip install -r requirements-dev\.txt/);
+  assert.match(ci, /python -m pip_audit --local/);
   assert.match(ci, /python -m pytest tests/);
+  assert.match(ci, /python -m pytest tests -W error/);
   assert.match(ci, /node-version: "24"/);
   assert.match(ci, /docker build \\/);
   assert.match(ci, /for attempt in 1 2 3/);
@@ -47,36 +55,107 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /GITHUB_STEP_SUMMARY/);
 });
 
-test("security audit fails on high advisories and uses explicit suppressions", async () => {
+test("security audit fails on any advisory without a blanket suppression baseline", async () => {
   const workflow = await text(".github/workflows/security-audit.yml");
   const suppressions = JSON.parse(
     await text("security/audit-suppressions.json"),
   );
 
   assert.match(workflow, /pnpm audit:deps/);
-  assert.match(workflow, /--audit-level high/);
+  assert.match(workflow, /--audit-level low/);
   assert.doesNotMatch(workflow, /runs-on: self-hosted/);
   assert.match(workflow, /runs-on: ubuntu-latest/);
-  assert.ok(Array.isArray(suppressions.suppressions));
-  assert.ok(suppressions.suppressions.length > 0);
+  assert.deepEqual(suppressions.suppressions, []);
+});
 
-  const keys = new Set();
-  for (const suppression of suppressions.suppressions) {
-    assert.match(suppression.id, /^GHSA-|^CVE-|^\d+$/);
-    assert.ok(suppression.module);
-    assert.ok(suppression.reason.includes("Temporary baseline suppression"));
-    assert.equal(suppression.expires, "2026-08-20");
-    assert.ok(Array.isArray(suppression.contexts));
-    assert.ok(suppression.contexts.length > 0);
-    for (const context of suppression.contexts) {
-      assert.ok(
-        ["production dependencies", "all dependencies"].includes(context),
-      );
-    }
-    const key = `${suppression.module}:${suppression.id}`;
-    assert.equal(keys.has(key), false, `duplicate suppression ${key}`);
-    keys.add(key);
+test("repository and workspace packages declare the MIT license", async () => {
+  const license = await text("LICENSE");
+  assert.match(license, /^MIT License/);
+  assert.match(license, /Permission is hereby granted, free of charge/);
+
+  for (const manifestPath of [
+    "package.json",
+    "apps/console/package.json",
+    "apps/server/package.json",
+    "apps/web/package.json",
+    "packages/eslint-config/package.json",
+    "packages/typescript-config/package.json",
+  ]) {
+    const manifest = JSON.parse(await text(manifestPath));
+    assert.equal(manifest.license, "MIT", manifestPath);
   }
+
+  assert.match(await text("README.md"), /MIT License/);
+  assert.match(await text("CONTRIBUTING.md"), /licensed under the MIT License/);
+});
+
+test("security audit distinguishes below-threshold findings from suppressions", async () => {
+  const fixture = await mkdtemp(join(tmpdir(), "quickvoice-security-audit-"));
+  const fakePnpm = join(fixture, "pnpm");
+  const suppressions = join(fixture, "suppressions.json");
+
+  try {
+    await writeFile(
+      fakePnpm,
+      `#!/bin/sh
+printf '%s\\n' '{"advisories":{"1":{"id":1,"module_name":"fixture","severity":"low","title":"fixture advisory"}}}'
+exit 1
+`,
+    );
+    await chmod(fakePnpm, 0o755);
+    await writeFile(suppressions, '{"suppressions":[]}');
+
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(
+          new URL("../scripts/security-audit.mjs", import.meta.url),
+        ),
+        "--audit-level",
+        "high",
+        "--suppressions-file",
+        suppressions,
+      ],
+      {
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          PATH: `${fixture}${delimiter}${process.env.PATH ?? ""}`,
+          SECURITY_AUDIT_TODAY: "2026-07-26",
+        },
+      },
+    );
+
+    assert.equal(result.status, 0, result.stderr);
+    assert.match(
+      result.stdout,
+      /production dependencies: no high\+ advisories found/,
+    );
+    assert.match(result.stdout, /all dependencies: no high\+ advisories found/);
+    assert.doesNotMatch(result.stdout, /explicitly suppressed/);
+  } finally {
+    await rm(fixture, { recursive: true, force: true });
+  }
+});
+
+test("security overrides keep legacy glob callers on patched modern dependencies", async () => {
+  const manifest = JSON.parse(await text("package.json"));
+  const overrides = manifest.pnpm?.overrides ?? {};
+  const patchedDependencies = manifest.pnpm?.patchedDependencies ?? {};
+
+  assert.equal(overrides["brace-expansion@>=3"], "5.0.8");
+  assert.equal(overrides["minimatch@3"], "10.2.5");
+  assert.equal(overrides["minimatch@9"], "10.2.5");
+  assert.equal(
+    patchedDependencies["minimatch@10.2.5"],
+    "patches/minimatch@10.2.5.patch",
+  );
+
+  const minimatch = require("minimatch");
+  assert.equal(typeof minimatch, "function");
+  assert.equal(minimatch("src/app.ts", "**/*.ts"), true);
+  assert.equal(minimatch("src/app.js", "**/*.ts"), false);
+  assert.equal(minimatch.minimatch, minimatch);
 });
 
 test("deploy workflows are gated, immutable, scanned, signed, and environment protected", async () => {

@@ -165,7 +165,7 @@ const faqSchema = {
       name: "Can I customize QuickVoice?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. The AGPL repo is designed to be inspected and extended, including agents, knowledge sources, campaigns, permissions, billing paths, provider integrations, and deployment choices.",
+        text: "Yes. The MIT-licensed repo is designed to be inspected and extended, including agents, knowledge sources, campaigns, permissions, billing paths, provider integrations, and deployment choices.",
       },
     },
   ],

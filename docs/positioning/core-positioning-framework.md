@@ -2,7 +2,7 @@
 
 ## Technical Reality Check
 
-QuickVoice is AGPL, self-hostable AI phone-agent infrastructure for engineering-led teams that want source-level control over voice automation. The repository is a pnpm/Turborepo monorepo with a Next.js marketing site, Next.js console, Express/TypeScript API server, Prisma/Postgres data layer, Redis/BullMQ queues, Python FastAPI AI service, and LiveKit Agents worker.
+QuickVoice is MIT-licensed, self-hostable AI phone-agent infrastructure for engineering-led teams that want source-level control over voice automation. The repository is a pnpm/Turborepo monorepo with a Next.js marketing site, Next.js console, Express/TypeScript API server, Prisma/Postgres data layer, Redis/BullMQ queues, Python FastAPI AI service, and LiveKit Agents worker.
 
 The voice runtime is built around LiveKit, not a custom socket stack. The worker uses LiveKit Agents with STT, LLM, TTS, Silero VAD, multilingual turn detection, noise cancellation, interruptible first messages, and optional preemptive generation. Telephony is implemented through Twilio and Telnyx provisioning plus LiveKit SIP trunk binding.
 
@@ -51,13 +51,13 @@ QuickVoice separates the platform from the vendors underneath it. Teams can oper
 
 ## Definitive Positioning Statement
 
-For engineering-led teams who need AI phone agents without surrendering runtime control, data ownership, and provider economics, QuickVoice is open-source voice-agent infrastructure that lets them run, inspect, and extend the full calling stack. Unlike closed platforms such as Retell, Vapi, or Bland AI, QuickVoice exposes the console, API, LiveKit worker, database schema, telephony integrations, knowledge base pipeline, call logs, retention controls, and outbound campaign logic in one AGPL repo. Teams get the convenience of a productized stack with the control of owned infrastructure.
+For engineering-led teams who need AI phone agents without surrendering runtime control, data ownership, and provider economics, QuickVoice is open-source voice-agent infrastructure that lets them run, inspect, and extend the full calling stack. Unlike closed platforms such as Retell, Vapi, or Bland AI, QuickVoice exposes the console, API, LiveKit worker, database schema, telephony integrations, knowledge base pipeline, call logs, retention controls, and outbound campaign logic in one MIT-licensed repo. Teams get the convenience of a productized stack with the control of owned infrastructure.
 
 ## Messaging Guardrails
 
 Use these claims:
 
-- Open-source, AGPL, self-hostable AI phone-agent infrastructure.
+- Open-source, MIT-licensed, self-hostable AI phone-agent infrastructure.
 - LiveKit-powered runtime with Twilio and Telnyx telephony integration points.
 - Inspectable data paths for call logs, recordings, transcripts, knowledge bases, MCP tools, auth, permissions, and retention.
 - Bring-your-own providers for voice runtime, telephony, storage, model inference, vector search, and billing.

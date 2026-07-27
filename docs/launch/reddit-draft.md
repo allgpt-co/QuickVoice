@@ -13,14 +13,14 @@ Use a text post if the community prefers context over link drops. Disclose that 
 ## Candidate Angles
 
 - Self-hosting angle: teams that want to run the voice-agent stack themselves.
-- Open-source angle: AGPL repo with app, API, worker, and telephony integrations.
+- Open-source angle: MIT-licensed repo with app, API, worker, and telephony integrations.
 - Programming angle: architecture and local development path for an AI phone-agent monorepo.
 - Voice AI angle: open-source Retell alternative for teams that want inspectable infrastructure.
 
 ## Title Drafts
 
 ```text
-I am working on an AGPL self-hostable stack for AI phone agents
+I am working on an MIT-licensed self-hostable stack for AI phone agents
 ```
 
 ```text
@@ -73,7 +73,7 @@ I am especially interested in whether the local setup and provider boundary note
 For an open-source community:
 
 ```text
-The license is AGPL-3.0-only. I would like feedback on whether the contribution docs and issue flow are clear enough for people who want to inspect or extend the stack.
+The license is MIT. I would like feedback on whether the contribution docs and issue flow are clear enough for people who want to inspect or extend the stack.
 ```
 
 For a programming community:

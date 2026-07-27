@@ -58,10 +58,16 @@ export type CancelOutboundCallInput = z.infer<typeof cancelOutboundCallSchema>;
 const supportedBatchExtension = /\.(csv|xlsx)$/i;
 
 export const batchUploadUrlQuerySchema = z.object({
-  fileName: z.string().min(1).refine((value) => supportedBatchExtension.test(value), {
-    message: "Batch file must be a CSV or XLSX file",
-  }),
-  contentType: z.string().min(1),
+  fileName: z
+    .string()
+    .trim()
+    .min(1)
+    .max(255)
+    .refine((value) => supportedBatchExtension.test(value), {
+      message: "Batch file must be a CSV or XLSX file",
+    }),
+  contentType: z.string().trim().min(1).max(255),
+  fileSize: z.coerce.number().int().positive(),
 });
 
 export const createBatchCampaignSchema = z
@@ -69,8 +75,8 @@ export const createBatchCampaignSchema = z
     name: z.string().trim().min(1, "Campaign name is required"),
     agentId: z.string().uuid(),
     fromNumber: z.string().min(10, "From number must be at least 10 digits"),
-    sourceFileKey: z.string().min(1, "Uploaded file key is required"),
-    sourceFileName: z.string().min(1, "Uploaded file name is required"),
+    sourceFileKey: z.string().min(1, "Uploaded file key is required").max(1_024),
+    sourceFileName: z.string().min(1, "Uploaded file name is required").max(255),
     scheduledAt: z.coerce.date().optional().nullable(),
     timezone: z.string().trim().min(1).default("UTC"),
     ringingTimeoutSeconds: z.coerce.number().int().min(10).max(180).default(60),

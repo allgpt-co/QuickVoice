@@ -101,12 +101,14 @@ export const generateDownloadUrl = async (
 export const generateUploadUrl = async (
   key: string,
   contentType: string,
+  contentLength?: number,
   expiresIn = 900
 ): Promise<string> => {
   const command = new PutObjectCommand({
     Bucket: getBucket(),
     Key: key,
     ContentType: contentType,
+    ...(contentLength === undefined ? {} : { ContentLength: contentLength }),
   });
   return getSignedUrl(s3, command, { expiresIn });
 };

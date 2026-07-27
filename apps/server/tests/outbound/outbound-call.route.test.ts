@@ -4,6 +4,8 @@ import express from "express";
 import type { NextFunction, Request, Response } from "express";
 import type { Server } from "node:http";
 
+import { requestJson } from "../helpers/http-client.js";
+
 let server: Server;
 let baseUrl: string;
 let serviceArgs: unknown[] = [];
@@ -22,7 +24,8 @@ before(async () => {
   process.env.BETTER_AUTH_SECRET ||= "test-secret-with-adequate-length-32chars";
   process.env.GOOGLE_CLIENT_ID ||= "test-google-client-id";
   process.env.GOOGLE_CLIENT_SECRET ||= "test-google-client-secret";
-  const { createOutboundCallRouter } = await import("../../src/modules/outbound/outbound-call.route.js");
+  const { createOutboundCallRouter } =
+    await import("../../src/modules/outbound/outbound-call.route.js");
   const app = express();
   app.use(express.json());
   app.use(
@@ -37,13 +40,28 @@ before(async () => {
         };
         next();
       },
-      requireCreatePermission: (_req: Request, _res: Response, next: NextFunction) => next(),
-      requireReadPermission: (_req: Request, _res: Response, next: NextFunction) => next(),
-      requireDeletePermission: (_req: Request, _res: Response, next: NextFunction) => next(),
+      requireCreatePermission: (
+        _req: Request,
+        _res: Response,
+        next: NextFunction,
+      ) => next(),
+      requireReadPermission: (
+        _req: Request,
+        _res: Response,
+        next: NextFunction,
+      ) => next(),
+      requireDeletePermission: (
+        _req: Request,
+        _res: Response,
+        next: NextFunction,
+      ) => next(),
       createQuickOutboundCall: async (args: unknown) => {
         serviceArgs.push(args);
         return {
-          outbound: { outboundId: "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113", status: "IN_PROGRESS" },
+          outbound: {
+            outboundId: "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
+            status: "IN_PROGRESS",
+          },
           livekitParticipant: { participantId: "sip-participant-123" },
         };
       },
@@ -125,7 +143,7 @@ before(async () => {
           outboundCalls: [],
         };
       },
-    } as any)
+    } as any),
   );
 
   await new Promise<void>((resolve) => {
@@ -144,7 +162,7 @@ after(async () => {
 
 test("POST /quick validates and dispatches a quick outbound call", async () => {
   serviceArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/quick`, {
+  const response = await requestJson(`${baseUrl}/api/v1/outbound-calls/quick`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -158,7 +176,10 @@ test("POST /quick validates and dispatches a quick outbound call", async () => {
   assert.equal(response.status, 201);
   const body = await response.json();
   assert.equal(body.success, true);
-  assert.equal(body.data.outbound.outboundId, "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
+  assert.equal(
+    body.data.outbound.outboundId,
+    "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
+  );
   assert.equal(serviceArgs.length, 1);
   assert.deepEqual(serviceArgs[0], {
     organizationId: "org_123",
@@ -172,8 +193,8 @@ test("POST /quick validates and dispatches a quick outbound call", async () => {
 
 test("GET / returns outbound calls with count and applied filters", async () => {
   listArgs = [];
-  const response = await fetch(
-    `${baseUrl}/api/v1/outbound-calls?status=FAILED&agentId=8d55565f-1111-4111-8111-f95fd03f0df2&limit=10&cursor=out_123`
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls?status=FAILED&agentId=8d55565f-1111-4111-8111-f95fd03f0df2&limit=10&cursor=out_123`,
   );
 
   assert.equal(response.status, 200);
@@ -192,8 +213,8 @@ test("GET / returns outbound calls with count and applied filters", async () => 
 
 test("GET /batch-upload-url returns a presigned outbound batch upload target", async () => {
   uploadUrlArgs = [];
-  const response = await fetch(
-    `${baseUrl}/api/v1/outbound-calls/batch-upload-url?fileName=recipients.csv&contentType=text/csv`
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batch-upload-url?fileName=recipients.csv&contentType=text/csv&fileSize=1024`,
   );
 
   assert.equal(response.status, 200);
@@ -204,25 +225,29 @@ test("GET /batch-upload-url returns a presigned outbound batch upload target", a
     organizationId: "org_123",
     fileName: "recipients.csv",
     contentType: "text/csv",
+    fileSize: 1024,
   });
 });
 
 test("POST /batches validates and creates a scheduled batch campaign", async () => {
   batchArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/batches`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      name: "June renewals",
-      agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
-      fromNumber: "+15551230000",
-      sourceFileKey: "outbound-batches/org_123/recipients.csv",
-      sourceFileName: "recipients.csv",
-      scheduledAt: "2026-06-21T10:05:00.000Z",
-      timezone: "UTC",
-      ringingTimeoutSeconds: 45,
-    }),
-  });
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: "June renewals",
+        agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+        fromNumber: "+15551230000",
+        sourceFileKey: "outbound-batches/org_123/recipients.csv",
+        sourceFileName: "recipients.csv",
+        scheduledAt: "2026-06-21T10:05:00.000Z",
+        timezone: "UTC",
+        ringingTimeoutSeconds: 45,
+      }),
+    },
+  );
 
   assert.equal(response.status, 201);
   const body = await response.json();
@@ -244,8 +269,8 @@ test("POST /batches validates and creates a scheduled batch campaign", async () 
 
 test("GET /batches returns batch campaigns before outbound id routing", async () => {
   listBatchArgs = [];
-  const response = await fetch(
-    `${baseUrl}/api/v1/outbound-calls/batches?agentId=8d55565f-1111-4111-8111-f95fd03f0df2`
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches?agentId=8d55565f-1111-4111-8111-f95fd03f0df2`,
   );
 
   assert.equal(response.status, 200);
@@ -260,7 +285,9 @@ test("GET /batches returns batch campaigns before outbound id routing", async ()
 
 test("GET /batches/:campaignId returns batch detail before outbound id routing", async () => {
   batchDetailArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/batches/campaign_123`);
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123`,
+  );
 
   assert.equal(response.status, 200);
   const body = await response.json();
@@ -274,7 +301,9 @@ test("GET /batches/:campaignId returns batch detail before outbound id routing",
 
 test("GET /:outboundId returns call detail with failure reason", async () => {
   getArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/out_failed`);
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/out_failed`,
+  );
 
   assert.equal(response.status, 200);
   const body = await response.json();
@@ -289,7 +318,9 @@ test("GET /:outboundId returns call detail with failure reason", async () => {
 
 test("GET /:outboundId/status returns a compact polling payload", async () => {
   getArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/out_failed/status`);
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/out_failed/status`,
+  );
 
   assert.equal(response.status, 200);
   const body = await response.json();
@@ -308,11 +339,14 @@ test("GET /:outboundId/status returns a compact polling payload", async () => {
 
 test("POST /:outboundId/cancel records a cancellation reason", async () => {
   cancelArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/out_scheduled/cancel`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ reason: "No longer needed" }),
-  });
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/out_scheduled/cancel`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: "No longer needed" }),
+    },
+  );
 
   assert.equal(response.status, 200);
   const body = await response.json();
@@ -328,9 +362,12 @@ test("POST /:outboundId/cancel records a cancellation reason", async () => {
 
 test("POST /:outboundId/retry dispatches a replacement call", async () => {
   retryArgs = [];
-  const response = await fetch(`${baseUrl}/api/v1/outbound-calls/out_failed/retry`, {
-    method: "POST",
-  });
+  const response = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/out_failed/retry`,
+    {
+      method: "POST",
+    },
+  );
 
   assert.equal(response.status, 201);
   const body = await response.json();

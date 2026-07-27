@@ -117,6 +117,22 @@ class LiveKitHandlerTests(unittest.TestCase):
         self.assertEqual(s3_upload.secret, "aws-secret")
         self.assertEqual(s3_upload.session_token, "aws-session-token")
 
+    def test_recording_storage_config_requires_an_explicit_bucket(self):
+        with patch.dict(
+            os.environ,
+            {
+                "AWS_ACCESS_KEY_ID": "aws-access",
+                "AWS_SECRET_ACCESS_KEY": "aws-secret",
+                "AWS_REGION": "us-west-2",
+            },
+            clear=True,
+        ):
+            with self.assertRaisesRegex(
+                RuntimeError,
+                "Missing recording storage env: bucket",
+            ):
+                get_recording_storage_config()
+
 
 if __name__ == "__main__":
     unittest.main()

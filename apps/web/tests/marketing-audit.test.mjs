@@ -102,14 +102,20 @@ test("pricing, FAQ, and HIPAA copy use aligned public claims", () => {
   const faq = read("src/components/mvpblocks/faq-2.tsx");
   const hipaa = read("src/app/compliance/hipaa/page.tsx");
 
-  assert.match(pricing, /BAA available[\s\S]+plans:\s*\[false, false, false, false, true, true\]/);
-  assert.doesNotMatch(pricing, /BAA\) on the Enterprise tier/);
+  assert.doesNotMatch(pricing, /BAA available/);
+  assert.match(
+    pricing,
+    /repository or plan selection does not by itself establish HIPAA compliance/,
+  );
   assert.doesNotMatch(homepage, /up to 100 minutes of calls/);
   assert.doesNotMatch(faq, /up to 100 minutes of calls/);
-  assert.match(homepage, /15 browser-only minutes/);
-  assert.match(faq, /15 browser-only minutes/);
-  assert.match(hipaa, /Scale and Enterprise healthcare customers/);
-  assert.doesNotMatch(hipaa, /every healthcare customer/);
+  assert.match(pricing, /15 browser-only minutes/);
+  assert.match(hipaa, /HIPAA is a deployment outcome, not a repository badge/);
+  assert.match(
+    hipaa,
+    /open-source repository does not by itself establish HIPAA/,
+  );
+  assert.doesNotMatch(hipaa, /fully HIPAA compliant/i);
 });
 
 test("desktop nav, FAQ accordions, and landmarks are keyboard-accessible", () => {

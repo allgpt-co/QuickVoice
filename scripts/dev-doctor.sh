@@ -144,13 +144,13 @@ else
 fi
 
 if command -v node >/dev/null 2>&1; then
-  if node -e 'const [major, minor] = process.versions.node.split(".").map(Number); process.exit(major > 20 || (major === 20 && minor >= 9) ? 0 : 1)' >/dev/null 2>&1; then
+  if node -e 'const [major, minor] = process.versions.node.split(".").map(Number); const supported = (major === 20 && minor >= 19) || (major === 22 && minor >= 13) || major >= 24; process.exit(supported ? 0 : 1)' >/dev/null 2>&1; then
     ok "Node.js is installed: $(node -v)"
   else
-    fail "Node.js >= 20.9 is required. Found: $(node -v)"
+    fail "Node.js ^20.19, ^22.13, or >=24 is required. Found: $(node -v)"
   fi
 else
-  fail "Node.js >= 20.9 is required."
+  fail "Node.js ^20.19, ^22.13, or >=24 is required."
 fi
 
 if command -v corepack >/dev/null 2>&1; then
@@ -207,7 +207,7 @@ Install hints for Ubuntu or WSL2:
   go install github.com/go-task/task/v3/cmd/task@latest
   export PATH="$PATH:$HOME/go/bin"
 
-Install Node.js >= 20.9 with a Node version manager or the official Node.js
+Install Node.js ^20.19, ^22.13, or >=24 with a Node version manager or the official Node.js
 packages; the Node.js version in a distribution repository may be too old.
 After changing docker group membership, reconnect your SSH session.
 EOF

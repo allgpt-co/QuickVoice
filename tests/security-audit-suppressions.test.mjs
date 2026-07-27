@@ -93,3 +93,17 @@ test("security audit writes suppression counts and expiring-soon warnings to the
   assert.match(summary, /Expiring within 30 days: 1/);
   assert.match(summary, /example-package GHSA-soon expires on 2026-07-01/);
 });
+
+test("security audit rejects unknown severity levels instead of silently using high", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "quickvoice-audit-"));
+  await writeFakePnpm(dir);
+
+  const result = runSecurityAudit(
+    ["--audit-level", "severe", "--check-suppressions-only"],
+    {},
+    dir
+  );
+
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /Invalid --audit-level "severe"/);
+});

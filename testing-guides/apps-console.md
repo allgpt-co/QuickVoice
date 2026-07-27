@@ -181,13 +181,13 @@ Do not treat skipped vendor behavior as passed. If a command cannot run because 
    - Test `/dashboard?range=24h`, `7d`, `30d`, invalid range, refresh button, offline mode, stale data banner, partial data notice, KPI cards, charts, recent calls, empty dashboard, `401`, and `403`.
    - Pass: invalid range defaults to `7d`; range switch updates URL; refresh is disabled offline; permission errors use role-aware copy; charts expose accessible hidden data tables; KPI links route to `/calls` with expected filters.
    - Fail: dashboard hides API errors as empty state, offline refresh stays enabled, charts have no non-visual equivalent, or drilldown filters are dropped.
-   - Known risk: dashboard links include `range`, but `/calls` currently reads `agentId`, `status`, `direction`, `from`, and `to`; fail release if expected date filtering from `range` is not implemented or documented.
+   - Verify dashboard `range` drilldowns are converted to stable ISO `from`/`to` filters and calendar dates cover the full selected local day.
 
 7. Agents list:
    - Test `/agents` loading skeleton, empty state, create dialog, template selection (`business`, `medical`, `blank`, `support`), name validation, active toggle, configured chip, pagination, mobile cards, desktop table, row navigation, edit menu, and delete dialog.
    - Pass: create sends selected `templateId`, routes to `/agents/{id}?tab=behavior`, active toggle persists, empty/error states offer retry or create, mobile and desktop layouts both expose key actions.
    - Fail: template choice is ignored, toggle changes UI without server persistence, table controls resize unexpectedly, or delete reports success when the resource remains.
-   - Contract failure to verify: console calls `DELETE /agents/{id}`, but server routes at this commit do not expose `DELETE /agents/:id`. Record agent deletion as failed until backend route or UI behavior is corrected.
+   - Verify agent deletion unlinks provider/LiveKit number bindings and removes KB storage/vector assets before deleting the database row.
 
 8. Agent detail and configuration:
    - Test `/agents/[id]` tabs: behavior, voice, webhooks, tools, knowledge, limits, advanced.
@@ -201,8 +201,8 @@ Do not treat skipped vendor behavior as passed. If a command cannot run because 
 
 10. Call detail:
    - Test `/calls/[id]` for completed call, in-progress call, missing call, no recording, no transcript, extracted data JSON, evaluation JSON, and delete.
-   - Pass: header shows caller/status/direction/duration/agent/id; audio empty state appears when no recording; transcript empty state appears when none; delete warning says object-storage recordings are not affected.
-   - Fail: missing call crashes, transcript speaker labels are wrong, or destructive copy overpromises deletion of recordings.
+   - Pass: header shows caller/status/direction/duration/agent/id; audio empty state appears when no recording; transcript empty state appears when none; delete removes object-storage audio and retained transcript/PII content.
+   - Fail: missing call crashes, transcript speaker labels are wrong, or destructive cleanup failure still hides the call.
 
 11. Numbers:
    - Test `/numbers` loading, empty, error retry, search drawer, provider `twilio`/`telnyx`, country uppercase, area code, result list, buy action, assignment select, unassign, copy number, provider chips, unassigned banner, mobile cards.
@@ -254,7 +254,7 @@ Do not treat skipped vendor behavior as passed. If a command cannot run because 
    - Test free/starter/growth/scale plan cards, current plan detection, upgrade, billing portal, contact sales, and usage display.
    - Pass: current active/trialing subscription is marked; upgrade uses success/cancel URLs based on console origin; portal opens only when backend returns URL; contact sales uses `mailto:sales@quickvoice.ai`.
    - Fail: wrong plan marked current, checkout opens for unavailable price, or portal failure is silent.
-   - Blocked: real checkout/portal/metered billing is blocked without Stripe keys and configured prices. Usage telemetry is not implemented in console and should remain blocked, not passed.
+   - Blocked: real checkout/portal/metered billing is blocked without Stripe keys and configured prices. Local usage aggregation can still be verified from seeded call durations.
 
 20. Settings API keys:
    - Test list, create with name min 2, one-time key modal, copy, “I’ve saved it”, masked prefix, active/disabled status, created date, and revoke confirmation.
@@ -516,13 +516,8 @@ Every blocked check must include: service name, missing env var or credential, r
 
 ## Regression Risks
 
-- Agent deletion is wired in console but the server route is missing at this commit.
-- Dashboard drilldown preserves `range`, but calls page does not currently convert `range` into `from/to`.
-- `apps/console/.env.dev.example` lists `NEXT_PUBLIC_CONSOLE_URL=http://localhost:3001` while `Taskfile.yml` defaults console to port `3000`; OAuth and billing callback origins need close testing.
-- Billing usage telemetry copy exists, but usage data is not implemented in console.
-- Outbound batch UI mentions XLS in copy while upload support is CSV/XLSX-oriented.
+- File upload flows can leave unreferenced direct-upload objects if the browser closes after S3 succeeds but before record creation; configure short lifecycle expiration on upload prefixes.
 - Role name validation allows underscore by regex although copy emphasizes dashes.
-- File upload flows can create confusing states if S3 succeeds but downstream AI/queue processing fails.
 - Query cache isolation depends on clearing React Query during org switch.
 - Hidden mobile table/card actions can regress because many pages maintain separate desktop and mobile layouts.
 - API-key UI creates keys, but permissioned API-key behavior depends on metadata/permissions not fully exposed in the visible form.

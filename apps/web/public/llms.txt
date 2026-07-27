@@ -6,7 +6,7 @@
 
 QuickVoice is open-source, self-hostable AI phone-agent infrastructure for
 engineering-led teams that want to run, inspect, and extend the voice-agent
-stack. The AGPL repository includes a Next.js website, Next.js customer
+stack. The MIT-licensed repository includes a Next.js website, Next.js customer
 console, Express/TypeScript API server, Python FastAPI AI service, LiveKit
 Agents worker, Postgres/Prisma data model, Redis/BullMQ queues, telephony
 integration points, knowledge bases, call logs, outbound campaigns, billing
@@ -20,7 +20,7 @@ their own provider credentials.
 
 ## Key Facts
 
-- License: AGPL-3.0-only.
+- License: MIT.
 - Category: open-source, self-hostable AI phone-agent infrastructure.
 - Primary audience: engineering-led teams, platform teams, CTOs, and technical buyers that need control over runtime behavior, call data, provider boundaries, deployment architecture, privacy review, and cost structure.
 - Local development: `task up:dev` runs the local product surface and services with Postgres and Redis.

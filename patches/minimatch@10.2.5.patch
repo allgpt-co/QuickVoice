@@ -1,0 +1,13 @@
+diff --git a/dist/commonjs/index.js b/dist/commonjs/index.js
+index 5a6983481b78583d75c89a17c5a8371b059171ff..7d2669503aadda4888f878735a22dd8159b567cc 100644
+--- a/dist/commonjs/index.js
++++ b/dist/commonjs/index.js
+@@ -1124,4 +1124,8 @@ exports.minimatch.AST = ast_js_1.AST;
+ exports.minimatch.Minimatch = Minimatch;
+ exports.minimatch.escape = escape_js_1.escape;
+ exports.minimatch.unescape = unescape_js_1.unescape;
++// Preserve the callable CommonJS API expected by minimatch 3 and 9 consumers
++// while exposing the modern named exports on the function object.
++Object.assign(exports.minimatch, exports);
++module.exports = exports.minimatch;
+ //# sourceMappingURL=index.js.map

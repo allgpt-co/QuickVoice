@@ -8,7 +8,7 @@ The goal is concentrated, qualified GitHub traffic from people who can inspect t
 
 Say what is real:
 
-- QuickVoice is an AGPL, self-hostable stack for AI phone agents.
+- QuickVoice is an MIT-licensed, self-hostable stack for AI phone agents.
 - QuickVoice is positioned as the open-source Retell alternative for teams that want control over the voice-agent stack.
 - The repo includes the website, console, API, AI/LiveKit worker, Postgres/Redis setup, telephony bindings, knowledge bases, call logs, campaigns, billing paths, and local orchestration.
 - The core tradeoff is control versus convenience: self-hosting, privacy review, provider choice, cost visibility, and extensibility versus a fully managed hosted API.
@@ -131,7 +131,7 @@ Useful response frames:
 - Production readiness: "The repo is intended to be inspectable and self-hostable. We are not claiming a managed production SLA from the open-source repo."
 - Compliance: "We should not claim HIPAA, SOC 2, or similar compliance from the repo alone. That depends on deployment, controls, provider agreements, and operating process."
 - Comparison to Retell or other closed platforms: "The tradeoff is control versus convenience. QuickVoice exposes the stack so teams can inspect, self-host, and modify it; a hosted voice-agent API will usually be faster if you only need a managed endpoint."
-- License: "QuickVoice is AGPL-3.0-only. Network use of modified versions has source-sharing obligations. Teams that need different terms should discuss a commercial license."
+- License: "QuickVoice uses the permissive MIT License. Teams may use, modify, distribute, sublicense, and sell copies while retaining the license notice."
 
 ## Launch Links To Fill In
 
