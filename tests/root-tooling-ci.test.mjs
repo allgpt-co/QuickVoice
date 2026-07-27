@@ -61,8 +61,8 @@ test("security audit fails on any advisory without a blanket suppression baselin
     await text("security/audit-suppressions.json"),
   );
 
-  assert.match(workflow, /pnpm audit:deps/);
-  assert.match(workflow, /--audit-level low/);
+  assert.match(workflow, /run: pnpm audit:deps --audit-level low/);
+  assert.doesNotMatch(workflow, /pnpm audit:deps -- --audit-level/);
   assert.doesNotMatch(workflow, /runs-on: self-hosted/);
   assert.match(workflow, /runs-on: ubuntu-latest/);
   assert.deepEqual(suppressions.suppressions, []);
@@ -229,6 +229,11 @@ test("server runtime image installs only production server dependencies", async 
   assert.match(
     dockerfile,
     /COPY packages\/typescript-config packages\/typescript-config/,
+  );
+  assert.equal(
+    dockerfile.match(/^COPY patches patches$/gm)?.length,
+    2,
+    "both pnpm install stages must include patched dependencies",
   );
   assert.match(dockerfile, /rm -rf[\s\S]*\/root\/\.cache\/node/);
   assert.match(dockerfile, /rm -rf[\s\S]*\/usr\/local\/lib\/node_modules\/npm/);
