@@ -218,11 +218,11 @@ function parseAuditJson(stdout) {
 }
 
 function runAudit(context, extraArgs) {
-  const pnpmCommand = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
+  const pnpmCommand = process.env.SECURITY_AUDIT_PNPM_COMMAND ?? (process.platform === "win32" ? "pnpm.cmd" : "pnpm");
   const result = spawnSync(
     pnpmCommand,
     ["audit", "--json", "--audit-level", auditLevel, ...extraArgs],
-    { encoding: "utf8", maxBuffer: 256 * 1024 * 1024 }
+    { encoding: "utf8", maxBuffer: 256 * 1024 * 1024, shell: process.platform === "win32" }
   );
 
   if (result.error) {

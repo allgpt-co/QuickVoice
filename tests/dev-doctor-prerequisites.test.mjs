@@ -14,8 +14,19 @@ function findBash() {
   const candidates = process.platform === "win32" ? ["bash.exe", "bash"] : ["/bin/bash", "bash"];
   for (const candidate of candidates) {
     const result = spawnSync(candidate, ["--version"], { encoding: "utf8" });
-    if (!result.error) return candidate;
+    if (result.error) continue;
+    if (path.isAbsolute(candidate)) return candidate;
+    return resolveCommand(candidate) ?? candidate;
   }
+  return null;
+}
+
+function resolveCommand(command) {
+  if (process.platform === "win32") {
+    const result = spawnSync("where.exe", [command], { encoding: "utf8" });
+    return result.stdout?.split(/\r?\n/).find(Boolean)?.trim() ?? null;
+  }
+
   return null;
 }
 

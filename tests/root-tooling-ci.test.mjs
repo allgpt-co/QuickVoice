@@ -91,18 +91,20 @@ test("repository and workspace packages declare the MIT license", async () => {
 
 test("security audit distinguishes below-threshold findings from suppressions", async () => {
   const fixture = await mkdtemp(join(tmpdir(), "quickvoice-security-audit-"));
-  const fakePnpm = join(fixture, "pnpm");
+  const fakePnpm = join(fixture, process.platform === "win32" ? "pnpm.cmd" : "pnpm");
   const suppressions = join(fixture, "suppressions.json");
 
   try {
     await writeFile(
       fakePnpm,
-      `#!/bin/sh
+      process.platform === "win32"
+        ? `@echo off\r\necho {"advisories":{"1":{"id":1,"module_name":"fixture","severity":"low","title":"fixture advisory"}}}\r\nexit /b 1\r\n`
+        : `#!/bin/sh
 printf '%s\\n' '{"advisories":{"1":{"id":1,"module_name":"fixture","severity":"low","title":"fixture advisory"}}}'
 exit 1
 `,
     );
-    await chmod(fakePnpm, 0o755);
+    if (process.platform !== "win32") await chmod(fakePnpm, 0o755);
     await writeFile(suppressions, '{"suppressions":[]}');
 
     const result = spawnSync(
@@ -122,6 +124,7 @@ exit 1
           ...process.env,
           PATH: `${fixture}${delimiter}${process.env.PATH ?? ""}`,
           SECURITY_AUDIT_TODAY: "2026-07-26",
+          SECURITY_AUDIT_PNPM_COMMAND: fakePnpm,
         },
       },
     );
