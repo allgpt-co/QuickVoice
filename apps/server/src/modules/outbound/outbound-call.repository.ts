@@ -1,7 +1,15 @@
-import { CallStatus, CampaignStatus, OutboundCallMode, Prisma } from "../../../prisma/generated/prisma/client.js";
+import {
+  CallStatus,
+  CampaignStatus,
+  OutboundCallMode,
+  Prisma,
+} from "../../../prisma/generated/prisma/client.js";
 import { plans } from "../../../data/plans.js";
 import prisma from "../../config/prisma.js";
-import type { ListOutboundCallsArgs, QuickOutboundCallArgs } from "./outbound-call.schema.js";
+import type {
+  ListOutboundCallsArgs,
+  QuickOutboundCallArgs,
+} from "./outbound-call.schema.js";
 
 type CreateQuickCallInput = QuickOutboundCallArgs & {
   status: typeof CallStatus.SCHEDULED;
@@ -94,7 +102,7 @@ export async function getForOrg(outboundId: string, organizationId: string) {
 
 export async function markInProgress(
   outboundId: string,
-  optionalData: Prisma.InputJsonObject
+  optionalData: Prisma.InputJsonObject,
 ) {
   return prisma.outboundCall.update({
     where: { outboundId },
@@ -320,7 +328,9 @@ export async function getCampaignForImport(campaignId: string) {
   });
 }
 
-export async function createBatchOutboundCalls(rows: CreateBatchOutboundCallInput[]) {
+export async function createBatchOutboundCalls(
+  rows: CreateBatchOutboundCallInput[],
+) {
   if (rows.length === 0) return { count: 0 };
   return prisma.outboundCall.createMany({
     data: rows,
@@ -329,7 +339,11 @@ export async function createBatchOutboundCalls(rows: CreateBatchOutboundCallInpu
 
 export async function markBatchImported(
   campaignId: string,
-  stats: { totalRecipients: number; validRecipients: number; invalidRecipients: number }
+  stats: {
+    totalRecipients: number;
+    validRecipients: number;
+    invalidRecipients: number;
+  },
 ) {
   return prisma.campaign.update({
     where: { campaignId },
@@ -385,7 +399,23 @@ export async function markCampaignCancelled(args: {
   return getBatchCampaignDetail(args);
 }
 
-export async function getMonthlyUsage(organizationId: string, now = new Date()) {
+export async function markCampaignFailed(campaignId: string) {
+  return prisma.campaign.updateMany({
+    where: {
+      campaignId,
+      status: CampaignStatus.SCHEDULED,
+    },
+    data: {
+      status: CampaignStatus.FAILED,
+      completedAt: new Date(),
+    },
+  });
+}
+
+export async function getMonthlyUsage(
+  organizationId: string,
+  now = new Date(),
+) {
   const [organization, usage] = await prisma.$transaction([
     prisma.organization.findUnique({
       where: { id: organizationId },
@@ -416,7 +446,9 @@ function startOfUtcMonth(date: Date) {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 }
 
-function outboundWhere(args: ListOutboundCallsArgs): Prisma.OutboundCallWhereInput {
+function outboundWhere(
+  args: ListOutboundCallsArgs,
+): Prisma.OutboundCallWhereInput {
   return {
     organizationId: args.organizationId,
     ...(args.agentId ? { agentId: args.agentId } : {}),

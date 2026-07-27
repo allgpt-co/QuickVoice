@@ -44,9 +44,7 @@ const ACCEPT_STRING = Object.keys(ACCEPTED_TYPES)
   .concat([".pdf", ".txt", ".csv", ".docx", ".xlsx", ".xls"])
   .join(",");
 
-function deriveSourceType(file: File): KbSourceType {
-  return ACCEPTED_TYPES[file.type] ?? "TXT";
-}
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
 
 export function UploadDialog({ defaultAgentId }: { defaultAgentId?: string }) {
   const [open, setOpen] = useState(false);
@@ -94,13 +92,22 @@ export function UploadDialog({ defaultAgentId }: { defaultAgentId?: string }) {
         });
       } else {
         if (!file || !fileName.trim()) { toast.error("File and a display name are required"); return; }
-        const sourceType = deriveSourceType(file);
+        if (file.size > MAX_UPLOAD_BYTES) {
+          toast.error("File exceeds the 10 MB upload limit");
+          return;
+        }
+        const requestedContentType = file.type || "application/octet-stream";
         // 1. Get presigned upload URL
-        const { uploadUrl, s3Key } = await kbApi.getUploadUrl(file.name, file.type || "application/octet-stream");
+        const { uploadUrl, s3Key, sourceType, contentType } =
+          await kbApi.getUploadUrl(
+            file.name,
+            requestedContentType,
+            file.size,
+          );
         // 2. Upload directly to S3
         const uploadRes = await fetch(uploadUrl, {
           method: "PUT",
-          headers: { "Content-Type": file.type || "application/octet-stream" },
+          headers: { "Content-Type": contentType },
           body: file,
         });
         if (!uploadRes.ok) throw new Error(`S3 upload failed: ${uploadRes.status}`);
@@ -172,7 +179,7 @@ export function UploadDialog({ defaultAgentId }: { defaultAgentId?: string }) {
                   <UploadCloud className="size-8 text-muted-foreground" />
                   <div>
                     <p className="text-sm font-medium">{file ? file.name : "Click to select a file"}</p>
-                    <p className="text-xs text-muted-foreground">PDF, DOCX, TXT, CSV, XLSX, XLS</p>
+                    <p className="text-xs text-muted-foreground">PDF, DOCX, TXT, CSV, XLSX, XLS up to 10 MB</p>
                   </div>
                   <input
                     ref={fileRef}

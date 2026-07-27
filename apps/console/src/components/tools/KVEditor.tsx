@@ -34,7 +34,13 @@ export function KVEditor({
 }: KVEditorProps) {
   const update = (index: number, field: keyof KVPair, text: string) => {
     const next = value.map((pair, i) =>
-      i === index ? { ...pair, [field]: text } : pair
+      i === index
+        ? {
+            ...pair,
+            [field]: text,
+            ...(field === "value" ? { redacted: false } : {}),
+          }
+        : pair,
     );
     onChange(next);
   };
@@ -49,7 +55,7 @@ export function KVEditor({
 
   const updateType = (index: number, type: "Value" | "Secret") => {
     const next = value.map((pair, i) =>
-      i === index ? { ...pair, type, value: "" } : pair
+      i === index ? { ...pair, type, value: "" } : pair,
     );
     onChange(next);
   };
@@ -75,7 +81,9 @@ export function KVEditor({
           {secretValues && (
             <Select
               value={pair.type ?? (pair.redacted ? "Secret" : "Value")}
-              onValueChange={(type) => updateType(index, type === "Secret" ? "Secret" : "Value")}
+              onValueChange={(type) =>
+                updateType(index, type === "Secret" ? "Secret" : "Value")
+              }
               disabled={disabled}
             >
               <SelectTrigger className="h-9 text-xs">
@@ -87,7 +95,8 @@ export function KVEditor({
               </SelectContent>
             </Select>
           )}
-          {(pair.type ?? (pair.redacted ? "Secret" : "Value")) === "Secret" && secretValues ? (
+          {(pair.type ?? (pair.redacted ? "Secret" : "Value")) === "Secret" &&
+          secretValues ? (
             <SecretSelect
               value={pair.value ?? ""}
               onValueChange={(selected) => update(index, "value", selected)}
@@ -95,7 +104,9 @@ export function KVEditor({
             />
           ) : (
             <Input
-              placeholder={pair.redacted ? "Saved secret value" : valuePlaceholder}
+              placeholder={
+                pair.redacted ? "Saved secret value" : valuePlaceholder
+              }
               value={pair.value ?? ""}
               onChange={(e) => update(index, "value", e.target.value)}
               disabled={disabled}

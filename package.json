@@ -2,7 +2,7 @@
   "name": "QuickVoice",
   "description": "Open-source, self-hostable Retell alternative for AI phone agents.",
   "private": true,
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "homepage": "https://quickvoice.co",
   "repository": {
     "type": "git",
@@ -19,7 +19,7 @@
     "test:dev-orchestration": "node --test tests/dev-orchestration.test.mjs",
     "check:tasks": "node scripts/verify-turbo-tasks.mjs",
     "check:configs": "pnpm --filter @repo/eslint-config lint && pnpm --filter @repo/typescript-config lint",
-    "ci:python": "cd apps/ai && if [ -x .venv/bin/python ]; then .venv/bin/python -m pytest tests; else python3 -m pytest tests; fi",
+    "ci:python": "scripts/ci-python.sh",
     "ci:docker": "scripts/ci-docker-build.sh",
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
     "audit:deps": "node scripts/security-audit.mjs",
@@ -28,39 +28,52 @@
   },
   "devDependencies": {
     "prettier": "^3.7.4",
-    "turbo": "^2.8.20",
+    "turbo": "^2.10.7",
     "typescript": "5.9.2"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": ">=20.9"
+    "node": "^20.19 || ^22.13 || >=24"
   },
   "dependencies": {
-    "better-auth": "^1.6.19"
+    "better-auth": "^1.6.22"
   },
   "pnpm": {
     "overrides": {
       "@grpc/grpc-js": "1.14.4",
+      "@babel/core@7": "7.29.6",
+      "@hono/node-server": "2.0.12",
       "@opentelemetry/auto-instrumentations-node": "0.78.0",
+      "@opentelemetry/core": "2.10.0",
+      "@opentelemetry/propagator-jaeger": "2.9.0",
       "axios": "1.18.0",
+      "body-parser": "2.3.0",
+      "brace-expansion@1": "1.1.16",
+      "brace-expansion@>=3": "5.0.8",
+      "esbuild": "0.28.1",
       "fast-uri": "3.1.4",
       "flatted": "3.4.2",
       "form-data": "4.0.6",
       "glob": "10.5.0",
-      "hono": "4.12.26",
+      "hono": "4.12.32",
       "immutable": "5.1.9",
-      "minimatch@3": "3.1.4",
-      "minimatch@9": "9.0.7",
+      "ip-address": "10.3.1",
+      "js-yaml@3": "3.15.0",
+      "js-yaml@4": "4.3.0",
+      "minimatch@3": "10.2.5",
+      "minimatch@9": "10.2.5",
+      "morgan": "1.11.0",
       "picomatch@2": "2.3.2",
       "picomatch@4": "4.0.4",
-      "postcss": "8.5.22",
-      "protobufjs": "7.6.1",
+      "postcss": "8.5.23",
+      "protobufjs": "7.6.5",
+      "qs": "6.15.3",
       "sharp": "0.35.3",
       "tar": "7.5.11",
-      "brace-expansion@1": "1.1.16",
-      "brace-expansion@5": "5.0.7",
-      "js-yaml@3": "3.15.0",
-      "js-yaml@4": "4.3.0"
+      "valibot": "1.4.2"
+    },
+    "patchedDependencies": {
+      "minimatch@10.2.5": "patches/minimatch@10.2.5.patch"
     }
   }
 }

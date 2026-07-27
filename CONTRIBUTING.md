@@ -54,7 +54,7 @@ If QuickVoice is useful but you are not ready to open an issue or PR, starring t
 
 ## Local Setup
 
-QuickVoice uses `pnpm@9.0.0`, Turborepo, Docker, Postgres, Node.js `>=20.9`, and Python for the AI worker. Python 3.12 matches CI and the runtime container.
+QuickVoice uses `pnpm@9.0.0`, Turborepo, Docker, Postgres, Node.js `^20.19 || ^22.13 || >=24`, and Python for the AI worker. Python 3.12 matches CI and the runtime container.
 
 The root development tasks are Bash-based and require Bash `>=4`. Linux is supported directly. macOS contributors need a modern Bash in `PATH` because the system Bash 3.2 is too old. Windows contributors should use WSL2 with Docker Desktop integration; native PowerShell is not a supported path for `task up:dev`.
 
@@ -75,7 +75,7 @@ pnpm check-types
 pnpm test
 pnpm build
 pnpm ci:local
-pnpm audit:deps -- --audit-level high
+pnpm audit:deps -- --audit-level low
 ```
 
 Run the narrowest check that proves your change, then run broader checks when touching shared code, API contracts, auth, billing, database models, or runtime agent behavior.
@@ -103,6 +103,6 @@ Draft pull requests are welcome for early design feedback, but they do not repla
 
 ## License
 
-By contributing, you agree that your contributions are licensed under the GNU Affero General Public License v3.0, as described in [LICENSE](./LICENSE).
+By contributing, you agree that your contributions are licensed under the MIT License, as described in [LICENSE](./LICENSE).
 
 Project decision-making and maintainer responsibilities are documented in [GOVERNANCE.md](./GOVERNANCE.md) and [MAINTAINERS.md](./MAINTAINERS.md).

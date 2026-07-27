@@ -96,7 +96,10 @@ class WorkerHandlerTests(unittest.TestCase):
 
         with patch.dict(
             os.environ,
-            {"LIVEKIT_API_KEY": "test-key", "LIVEKIT_API_SECRET": "test-secret"},
+            {
+                "LIVEKIT_API_KEY": "test-key",
+                "LIVEKIT_API_SECRET": "test-livekit-secret-at-least-32-bytes",
+            },
             clear=False,
         ):
             kwargs = build_session_provider_kwargs(

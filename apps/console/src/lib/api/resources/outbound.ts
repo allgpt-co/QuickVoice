@@ -54,6 +54,8 @@ export interface QuickOutboundCallResponse {
 export interface BatchUploadUrlResponse {
   uploadUrl: string;
   s3Key: string;
+  contentType: string;
+  maxUploadBytes: number;
 }
 
 export interface CreateBatchCampaignInput {
@@ -129,11 +131,12 @@ export const outboundApi = {
   },
   getBatchUploadUrl: async (
     fileName: string,
-    contentType: string
+    contentType: string,
+    fileSize: number
   ): Promise<BatchUploadUrlResponse> => {
     const res = await apiClient.get<ApiEnvelope<BatchUploadUrlResponse>>(
       "/outbound-calls/batch-upload-url",
-      { params: { fileName, contentType } }
+      { params: { fileName, contentType, fileSize } }
     );
     return res.data.data;
   },

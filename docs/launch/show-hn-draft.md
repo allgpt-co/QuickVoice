@@ -13,7 +13,7 @@ Show HN: QuickVoice - open-source infrastructure for AI phone agents
 Backup title:
 
 ```text
-Show HN: QuickVoice, an AGPL stack for self-hosted AI phone agents
+Show HN: QuickVoice, an MIT-licensed stack for self-hosted AI phone agents
 ```
 
 ## First Comment Draft
@@ -72,10 +72,10 @@ The main difference is control. Hosted APIs optimize for speed and convenience. 
 Do not treat the repo alone as a compliance claim. Regulated deployments depend on hosting, access controls, audit process, provider agreements, retention policy, and legal review.
 ```
 
-### "Why AGPL?"
+### "Why MIT?"
 
 ```text
-AGPL keeps network-hosted modifications open under the same license. Teams that need proprietary modifications or different terms should discuss a commercial license.
+MIT keeps adoption simple for self-hosted, commercial, and proprietary deployments. Teams can modify and distribute QuickVoice while retaining the copyright and permission notice.
 ```
 
 ## Follow-Up Comment If Setup Breaks

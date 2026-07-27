@@ -1,9 +1,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CallStatus, TelephonyProvider } from "../../prisma/generated/prisma/client.js";
-import { buildCallLogIdentityFields } from "../../src/modules/calllogs/calllog.repository.js";
-import { callLogSchema, type IngestCallLogArgs } from "../../src/modules/calllogs/calllog.schema.js";
+import {
+  CallStatus,
+  TelephonyProvider,
+} from "../../prisma/generated/prisma/client.js";
+import {
+  buildCallLogIdentityFields,
+  saveCallLogInTransaction,
+} from "../../src/modules/calllogs/calllog.repository.js";
+import {
+  callLogSchema,
+  type IngestCallLogArgs,
+} from "../../src/modules/calllogs/calllog.schema.js";
 
 const baseInput: IngestCallLogArgs = {
   organizationId: "org_123",
@@ -35,7 +44,10 @@ test("call log identity fields keep structured phone numbers raw while redacting
   assert.equal(callerId, "+15550001111");
   assert.equal(metadata.fromNumber, "+15551230000");
   assert.equal(metadata.toNumber, "+15550001111");
-  assert.equal(metadata.summary, "Caller asked to call [REDACTED_PHONE] again.");
+  assert.equal(
+    metadata.summary,
+    "Caller asked to call [REDACTED_PHONE] again.",
+  );
   assert.equal(metadata.intent, "Follow up with [REDACTED_PHONE]");
 });
 
@@ -63,13 +75,13 @@ test("call log identity fields preserve extra metadata while redacting free-form
         callerNote: "Email avery@example.com or call +15559990000",
       } as IngestCallLogArgs["metadata"],
     },
-    true
+    true,
   );
 
   assert.equal(metadata.leadSource, "website");
   assert.equal(
     metadata.callerNote,
-    "Email [REDACTED_EMAIL] or call [REDACTED_PHONE]"
+    "Email [REDACTED_EMAIL] or call [REDACTED_PHONE]",
   );
   assert.equal(metadata.fromNumber, "+15551230000");
   assert.equal(metadata.toNumber, "+15550001111");
@@ -81,7 +93,7 @@ test("inbound call callerId uses the external caller number", () => {
       ...baseInput,
       direction: "inbound",
     },
-    true
+    true,
   );
 
   assert.equal(callerId, "+15551230000");
@@ -109,4 +121,68 @@ test("web widget call identity does not invent a caller id", () => {
   assert.equal(metadata.toNumber, "");
   assert.equal(metadata.provider, "WEB_WIDGET");
   assert.equal(metadata.source, "web_widget");
+});
+
+test("duplicate call ingestion returns the existing same-org row without duplicating children", async () => {
+  const existing = {
+    callId: baseInput.callId,
+    organizationId: baseInput.organizationId,
+  };
+  let transcriptWrites = 0;
+  let outboundWrites = 0;
+  const tx = {
+    callLog: {
+      createMany: async () => ({ count: 0 }),
+      findUnique: async () => existing,
+    },
+    callTranscript: {
+      createMany: async () => {
+        transcriptWrites += 1;
+        return { count: 1 };
+      },
+    },
+    outboundCall: {
+      updateMany: async () => {
+        outboundWrites += 1;
+        return { count: 1 };
+      },
+    },
+  };
+
+  const result = await saveCallLogInTransaction(
+    tx as never,
+    {
+      ...baseInput,
+      metadata: { ...baseInput.metadata, outboundId: "outbound_123" },
+      transcripts: [
+        {
+          role: "assistant",
+          message: "Hello",
+          timestamp: "2026-07-03T12:00:01Z",
+        },
+      ],
+    },
+    true,
+  );
+
+  assert.equal(result, existing);
+  assert.equal(transcriptWrites, 0);
+  assert.equal(outboundWrites, 0);
+});
+
+test("duplicate call identifiers cannot cross organization boundaries", async () => {
+  const tx = {
+    callLog: {
+      createMany: async () => ({ count: 0 }),
+      findUnique: async () => ({
+        callId: baseInput.callId,
+        organizationId: "org_other",
+      }),
+    },
+  };
+
+  await assert.rejects(
+    saveCallLogInTransaction(tx as never, baseInput, true),
+    /Call identifier is already in use/,
+  );
 });

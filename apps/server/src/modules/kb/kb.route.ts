@@ -16,14 +16,14 @@ router.post(
   authMiddleware,
   requirePermission({ knowledgeSource: ["create"] }),
   validate(createKbApiSchema),
-  kbController.createKnowledgeSources
+  kbController.createKnowledgeSources,
 );
 
 router.get(
   "/",
   authMiddleware,
   requirePermission({ knowledgeSource: ["read"] }),
-  kbController.listKnowledgeSources
+  kbController.listKnowledgeSources,
 );
 
 // Returns a presigned S3 PUT URL for direct browser-to-S3 file upload.
@@ -32,7 +32,14 @@ router.get(
   "/upload-url",
   authMiddleware,
   requirePermission({ knowledgeSource: ["create"] }),
-  kbController.getUploadUrl
+  kbController.getUploadUrl,
+);
+
+router.post(
+  "/:kbId/retry",
+  authMiddleware,
+  requirePermission({ knowledgeSource: ["create"] }),
+  kbController.retryKnowledgeSource,
 );
 
 router.patch(
@@ -47,7 +54,7 @@ router.delete(
   "/:kbId",
   authMiddleware,
   requirePermission({ knowledgeSource: ["delete"] }),
-  kbController.deleteKnowledgeSource
+  kbController.deleteKnowledgeSource,
 );
 
 export default router;

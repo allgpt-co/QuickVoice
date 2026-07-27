@@ -3,6 +3,8 @@ import { after, before, test } from "node:test";
 import express from "express";
 import type { Server } from "node:http";
 
+import { requestJson } from "../helpers/http-client.js";
+
 let server: Server;
 let baseUrl: string;
 
@@ -13,12 +15,15 @@ before(async () => {
   process.env.GOOGLE_CLIENT_ID ||= "test-google-client-id";
   process.env.GOOGLE_CLIENT_SECRET ||= "test-google-client-secret";
 
-  const [{ default: agentRouter }, { default: notFound }, { default: errorHandler }] =
-    await Promise.all([
-      import("../../src/modules/agent/agent.route.js"),
-      import("../../src/middleware/notFound.middleware.js"),
-      import("../../src/middleware/error.middleware.js"),
-    ]);
+  const [
+    { default: agentRouter },
+    { default: notFound },
+    { default: errorHandler },
+  ] = await Promise.all([
+    import("../../src/modules/agent/agent.route.js"),
+    import("../../src/middleware/notFound.middleware.js"),
+    import("../../src/middleware/error.middleware.js"),
+  ]);
 
   const app = express();
   app.use(express.json());
@@ -41,7 +46,7 @@ after(async () => {
 });
 
 test("DELETE /:agentId is registered behind auth middleware", async () => {
-  const response = await fetch(
+  const response = await requestJson(
     `${baseUrl}/api/v1/agents/8d55565f-1111-4111-8111-f95fd03f0df2`,
     { method: "DELETE" },
   );

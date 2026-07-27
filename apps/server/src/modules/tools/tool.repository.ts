@@ -2,22 +2,34 @@ import prisma from "../../config/prisma.js";
 import { Prisma } from "../../../prisma/generated/prisma/client.js";
 import type { CreateToolArgs, UpdateToolInput } from "./tool.schema.js";
 
-const normalizeCreateToolData = (data: CreateToolArgs): Prisma.ToolUncheckedCreateInput => ({
+type CreateToolRepoArgs = CreateToolArgs & { toolId: string };
+
+const normalizeCreateToolData = (
+  data: CreateToolRepoArgs,
+): Prisma.ToolUncheckedCreateInput => ({
   ...data,
   api_headers: data.api_headers === null ? Prisma.JsonNull : data.api_headers,
   api_body: data.api_body === null ? Prisma.JsonNull : data.api_body,
-  api_query_params: data.api_query_params === null ? Prisma.JsonNull : data.api_query_params,
-  api_path_params: data.api_path_params === null ? Prisma.JsonNull : data.api_path_params,
-  dynamic_variables: data.dynamic_variables === null ? Prisma.JsonNull : data.dynamic_variables,
+  api_query_params:
+    data.api_query_params === null ? Prisma.JsonNull : data.api_query_params,
+  api_path_params:
+    data.api_path_params === null ? Prisma.JsonNull : data.api_path_params,
+  dynamic_variables:
+    data.dynamic_variables === null ? Prisma.JsonNull : data.dynamic_variables,
 });
 
-const normalizeUpdateToolData = (data: UpdateToolInput): Prisma.ToolUncheckedUpdateManyInput => ({
+const normalizeUpdateToolData = (
+  data: UpdateToolInput,
+): Prisma.ToolUncheckedUpdateManyInput => ({
   ...data,
   api_headers: data.api_headers === null ? Prisma.JsonNull : data.api_headers,
   api_body: data.api_body === null ? Prisma.JsonNull : data.api_body,
-  api_query_params: data.api_query_params === null ? Prisma.JsonNull : data.api_query_params,
-  api_path_params: data.api_path_params === null ? Prisma.JsonNull : data.api_path_params,
-  dynamic_variables: data.dynamic_variables === null ? Prisma.JsonNull : data.dynamic_variables,
+  api_query_params:
+    data.api_query_params === null ? Prisma.JsonNull : data.api_query_params,
+  api_path_params:
+    data.api_path_params === null ? Prisma.JsonNull : data.api_path_params,
+  dynamic_variables:
+    data.dynamic_variables === null ? Prisma.JsonNull : data.dynamic_variables,
 });
 
 export const listTools = (organizationId: string) =>
@@ -30,13 +42,13 @@ export const listTools = (organizationId: string) =>
 export const findTool = (organizationId: string, toolId: string) =>
   prisma.tool.findFirst({ where: { toolId, organizationId } });
 
-export const createTool = (data: CreateToolArgs) =>
+export const createTool = (data: CreateToolRepoArgs) =>
   prisma.tool.create({ data: normalizeCreateToolData(data) });
 
 export const updateTool = async (
   organizationId: string,
   toolId: string,
-  data: UpdateToolInput
+  data: UpdateToolInput,
 ) => {
   const result = await prisma.tool.updateMany({
     where: { toolId, organizationId },
@@ -49,7 +61,10 @@ export const updateTool = async (
 export const deleteTool = (organizationId: string, toolId: string) =>
   prisma.tool.deleteMany({ where: { toolId, organizationId } });
 
-export const getAgentTools = async (organizationId: string, agentId: string) => {
+export const getAgentTools = async (
+  organizationId: string,
+  agentId: string,
+) => {
   const agent = await prisma.agent.findFirst({
     where: { agentId, organizationId },
     include: { tools: true },
@@ -60,7 +75,7 @@ export const getAgentTools = async (organizationId: string, agentId: string) => 
 export const attachTool = async (
   organizationId: string,
   agentId: string,
-  toolId: string
+  toolId: string,
 ) => {
   return prisma.$transaction(async (tx) => {
     const [agent, tool] = await Promise.all([
@@ -71,7 +86,10 @@ export const attachTool = async (
           tools: { where: { toolId }, select: { toolId: true } },
         },
       }),
-      tx.tool.findFirst({ where: { toolId, organizationId }, select: { toolId: true } }),
+      tx.tool.findFirst({
+        where: { toolId, organizationId },
+        select: { toolId: true },
+      }),
     ]);
     if (!agent || !tool) return null;
 
@@ -89,7 +107,7 @@ export const attachTool = async (
 export const detachTool = async (
   organizationId: string,
   agentId: string,
-  toolId: string
+  toolId: string,
 ) => {
   return prisma.$transaction(async (tx) => {
     const agent = await tx.agent.findFirst({
@@ -114,7 +132,7 @@ export const detachTool = async (
 
 const syncAgentToolsCount = async (
   tx: Prisma.TransactionClient,
-  agentId: string
+  agentId: string,
 ) => {
   const counted = await tx.agent.findUnique({
     where: { agentId },

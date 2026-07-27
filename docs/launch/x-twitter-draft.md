@@ -9,7 +9,7 @@ Use this channel to create a clear technical trail that points people to the rep
 ```text
 We are launching QuickVoice today.
 
-It is an AGPL, self-hostable Retell alternative for AI phone agents:
+It is an MIT-licensed, self-hostable Retell alternative for AI phone agents:
 
 - Next.js web app and console
 - Express API
@@ -77,7 +77,7 @@ If you try it and hit setup friction, please open an issue with your OS, command
 ## Short Follow-Up Variants
 
 ```text
-QuickVoice is not a hosted voice-agent API wrapper. It is an open-source Retell alternative with the app, console, API, worker, database path, and telephony integration points in one AGPL repo.
+QuickVoice is not a hosted voice-agent API wrapper. It is an open-source Retell alternative with the app, console, API, worker, database path, and telephony integration points in one MIT-licensed repo.
 
 Local eval starts with `task up:dev`.
 

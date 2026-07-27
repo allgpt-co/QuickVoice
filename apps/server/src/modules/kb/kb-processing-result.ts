@@ -1,3 +1,5 @@
+import { sanitizeKbFailureReason } from "./kb-job-metadata.js";
+
 type KbProcessingItem = {
   kbId?: unknown;
   status?: unknown;
@@ -26,12 +28,17 @@ export type KbProcessingSummary = {
 };
 
 export class KbProcessingFailedError extends Error {
+  readonly retryable: boolean;
+
   constructor(
     message: string,
     readonly summary: KbProcessingSummary,
   ) {
     super(message);
-    this.name = "KbProcessingFailedError";
+    this.retryable = summary.failures.some((failure) => failure.retryable);
+    this.name = this.retryable
+      ? "KbProcessingFailedError"
+      : "UnrecoverableError";
   }
 }
 
@@ -90,7 +97,10 @@ export function assertKbProcessingSucceeded(
   const details = summary.failures
     .map((failure) => `${failure.kbId}: ${failure.userMessage}`)
     .join("; ");
-  throw new KbProcessingFailedError(`KB processing failed: ${details}`, summary);
+  throw new KbProcessingFailedError(
+    `KB processing failed: ${details}`,
+    summary,
+  );
 }
 
 function toFailure(item: KbProcessingItem): KbProcessingFailure {
@@ -100,12 +110,13 @@ function toFailure(item: KbProcessingItem): KbProcessingFailure {
       typeof item.code === "string" && item.code.length > 0
         ? item.code
         : "KB_PROCESSING_FAILED",
-    userMessage:
+    userMessage: sanitizeKbFailureReason(
       typeof item.userMessage === "string" && item.userMessage.length > 0
         ? item.userMessage
         : typeof item.error === "string" && item.error.length > 0
           ? item.error
           : "QuickVoice could not process this knowledge source. Try again later.",
-    retryable: item.retryable === true,
+    ),
+    retryable: item.retryable !== false,
   };
 }

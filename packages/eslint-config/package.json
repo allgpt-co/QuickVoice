@@ -2,7 +2,7 @@
   "name": "@repo/eslint-config",
   "version": "0.0.0",
   "type": "module",
-  "license": "AGPL-3.0-only",
+  "license": "MIT",
   "private": true,
   "exports": {
     "./base": "./base.js",
@@ -26,6 +26,6 @@
     "eslint-plugin-turbo": "^2.7.1",
     "globals": "^16.5.0",
     "typescript": "^5.9.2",
-    "typescript-eslint": "^8.50.0"
+    "typescript-eslint": "^8.65.0"
   }
 }

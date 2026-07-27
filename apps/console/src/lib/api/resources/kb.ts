@@ -29,6 +29,9 @@ export interface UpdateKbInput {
 export interface UploadUrlResponse {
   uploadUrl: string;
   s3Key: string;
+  sourceType: Exclude<KbSourceType, "URL">;
+  contentType: string;
+  maxUploadBytes: number;
 }
 
 export const kbApi = {
@@ -39,7 +42,10 @@ export const kbApi = {
     return res.data.data;
   },
   create: async (input: CreateKbInput): Promise<KnowledgeSource[]> => {
-    const res = await apiClient.post<ApiEnvelope<KnowledgeSource[]>>("/kb", input);
+    const res = await apiClient.post<ApiEnvelope<KnowledgeSource[]>>(
+      "/kb",
+      input,
+    );
     return res.data.data;
   },
   update: async (
@@ -55,10 +61,23 @@ export const kbApi = {
   remove: async (kbId: string): Promise<void> => {
     await apiClient.delete(`/kb/${kbId}`);
   },
-  getUploadUrl: async (fileName: string, contentType: string): Promise<UploadUrlResponse> => {
-    const res = await apiClient.get<ApiEnvelope<UploadUrlResponse>>("/kb/upload-url", {
-      params: { fileName, contentType },
-    });
+  retry: async (kbId: string): Promise<KnowledgeSource> => {
+    const res = await apiClient.post<ApiEnvelope<KnowledgeSource>>(
+      `/kb/${kbId}/retry`,
+    );
+    return res.data.data;
+  },
+  getUploadUrl: async (
+    fileName: string,
+    contentType: string,
+    fileSize: number,
+  ): Promise<UploadUrlResponse> => {
+    const res = await apiClient.get<ApiEnvelope<UploadUrlResponse>>(
+      "/kb/upload-url",
+      {
+        params: { fileName, contentType, fileSize },
+      },
+    );
     return res.data.data;
   },
 };

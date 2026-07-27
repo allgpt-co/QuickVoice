@@ -5,11 +5,20 @@ import CustomApiError from "../../common/errors/customApiError.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { generateSlug } from "../../common/utils/generateSlug.js";
 import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
-import { redactSecretFields } from "../../lib/secrets.js";
 import {
+  redactSecretFields,
+  restoreRedactedSecretReferences,
+} from "../../lib/secrets.js";
+import {
+  assertSecretReferencesOwnedByOrganization,
+  deleteSecretReferences,
+  pruneScopedSecretReferences,
   resolveSecretReferences,
   storeSecretReferences,
 } from "../secrets/secret-store.service.js";
+import { cleanupKnowledgeSourceAssets } from "../kb/kb-assets.service.js";
+import * as kbRepository from "../kb/kb.repository.js";
+import { linkAgentToNumber } from "../numbers/phone.service.js";
 import * as agentRepository from "./agent.repository.js";
 import { templateConfigFor } from "./agent.templates.js";
 import type {
@@ -110,14 +119,21 @@ export const createAgent = async (args: CreateAgentArgs) => {
   };
   const templateConfig = templateConfigFor(args.templateId);
 
-  if (templateConfig) {
-    return agentRepository.createAgentWithConfiguration(
-      createInput,
-      templateConfig
-    );
+  try {
+    return templateConfig
+      ? await agentRepository.createAgentWithConfiguration(
+          createInput,
+          templateConfig,
+        )
+      : await agentRepository.createAgent(createInput);
+  } catch (error) {
+    if (isUniqueConstraintViolation(error)) {
+      throw new BadRequestError(
+        "An agent with a similar name already exists in this organization",
+      );
+    }
+    throw error;
   }
-
-  return agentRepository.createAgent(createInput);
 };
 
 export const getAgents = async (organizationId: string) => {
@@ -126,7 +142,7 @@ export const getAgents = async (organizationId: string) => {
 
 export const getVoiceCatalog = async (): Promise<VoiceCatalog> => {
   const aiApiUrl = process.env.AI_API_URL ?? "http://localhost:5555";
-  const internalApiKey = process.env.INTERNAL_API_KEY ?? "";
+  const internalApiKey = requireInternalApiKey();
   const response = await fetch(`${aiApiUrl.replace(/\/$/, "")}/voice/catalog`, {
     headers: { "x-internal-key": internalApiKey },
   });
@@ -266,7 +282,7 @@ export const requestVoiceSession = async (
   unavailableMessage = "Voice session is unavailable",
 ): Promise<AgentPreviewSession> => {
   const aiApiUrl = process.env.AI_API_URL ?? "http://localhost:5555";
-  const internalApiKey = process.env.INTERNAL_API_KEY ?? "";
+  const internalApiKey = requireInternalApiKey();
   const response = await fetch(
     `${aiApiUrl.replace(/\/$/, "")}/voice/sessions`,
     {
@@ -345,11 +361,17 @@ export const updateAgent = async (
     data.agentSlug = newSlug;
   }
 
-  const updated = await agentRepository.updateAgent(
-    organizationId,
-    agentId,
-    data,
-  );
+  let updated;
+  try {
+    updated = await agentRepository.updateAgent(organizationId, agentId, data);
+  } catch (error) {
+    if (isUniqueConstraintViolation(error)) {
+      throw new BadRequestError(
+        "An agent with a similar name already exists in this organization",
+      );
+    }
+    throw error;
+  }
 
   if (!updated) {
     throw new NotFoundError("Agent not found");
@@ -361,8 +383,45 @@ export const updateAgent = async (
 export const deleteAgent = async (
   organizationId: string,
   agentId: string,
+  dependencies: {
+    cleanupKnowledgeSourceAssetsImpl?: typeof cleanupKnowledgeSourceAssets;
+    deleteKnowledgeSourceImpl?: typeof kbRepository.deleteKnowledgeSource;
+    getAgentDeletionContextImpl?: typeof agentRepository.getAgentDeletionContext;
+    deleteAgentImpl?: typeof agentRepository.deleteAgent;
+    unlinkNumberImpl?: typeof linkAgentToNumber;
+  } = {},
 ) => {
-  const result = await agentRepository.deleteAgent(organizationId, agentId);
+  const getDeletionContext =
+    dependencies.getAgentDeletionContextImpl ??
+    agentRepository.getAgentDeletionContext;
+  const context = await getDeletionContext(organizationId, agentId);
+  if (!context) {
+    throw new NotFoundError("Agent not found");
+  }
+
+  const unlinkNumber = dependencies.unlinkNumberImpl ?? linkAgentToNumber;
+  for (const phoneNumber of context.phoneNumbers) {
+    await unlinkNumber({
+      organizationId,
+      phId: phoneNumber.phId,
+      agentId: null,
+    });
+  }
+
+  const cleanupAssets =
+    dependencies.cleanupKnowledgeSourceAssetsImpl ??
+    cleanupKnowledgeSourceAssets;
+  const deleteKnowledgeSource =
+    dependencies.deleteKnowledgeSourceImpl ??
+    kbRepository.deleteKnowledgeSource;
+  for (const source of context.knowledgeSources) {
+    await cleanupAssets(source);
+    await deleteKnowledgeSource(source.kbId, organizationId);
+  }
+
+  const deleteAgentImpl =
+    dependencies.deleteAgentImpl ?? agentRepository.deleteAgent;
+  const result = await deleteAgentImpl(organizationId, agentId);
 
   if (result.count === 0) {
     throw new NotFoundError("Agent not found");
@@ -372,18 +431,55 @@ export const deleteAgent = async (
 export const configureAgent = async (args: ConfigureAgentArgs) => {
   const { organizationId, userId, agentId, ...data } = args;
   await assertSafeWebhookUrls(data);
-
-  const configuration = await agentRepository.configureAgent(
-    organizationId,
-    agentId,
-    await protectAgentConfigSecrets(organizationId, userId, agentId, data),
-  );
-
-  if (!configuration) {
+  const agent = await agentRepository.findByIdForOrg(organizationId, agentId);
+  if (!agent) {
     throw new NotFoundError("Agent not found");
   }
+  const existingConfiguration = await agentRepository.getAgentConfig(
+    organizationId,
+    agentId,
+  );
 
-  return redactAgentConfigSecrets(configuration);
+  const createdSecretIds: string[] = [];
+  let persisted = false;
+  try {
+    const protectedData = await protectAgentConfigSecrets(
+      organizationId,
+      userId,
+      agentId,
+      data,
+      existingConfiguration,
+      createdSecretIds,
+    );
+    await assertAgentSecretOwnership(protectedData, organizationId);
+    const configuration = await agentRepository.configureAgent(
+      organizationId,
+      agentId,
+      protectedData,
+    );
+
+    if (!configuration) {
+      throw new NotFoundError("Agent not found");
+    }
+    persisted = true;
+    await cleanupReplacedAgentSecrets(
+      organizationId,
+      agentId,
+      existingConfiguration,
+      configuration,
+    );
+
+    return redactAgentConfigSecrets(configuration);
+  } catch (error) {
+    if (!persisted) {
+      await cleanupUncommittedAgentSecrets(
+        organizationId,
+        agentId,
+        createdSecretIds,
+      );
+    }
+    throw error;
+  }
 };
 
 export const getAgentConfig = async (
@@ -451,20 +547,104 @@ async function protectAgentConfigSecrets<T extends Record<string, any>>(
   userId: string,
   agentId: string,
   data: T,
+  existingConfiguration: Record<string, any> | null,
+  createdSecretIds?: string[],
 ): Promise<T> {
+  let initiationWebhook: unknown;
+  let postCallWebhook: unknown;
+  try {
+    initiationWebhook = restoreRedactedSecretReferences(
+      data.initiation_webhook,
+      existingConfiguration?.initiation_webhook,
+    );
+    postCallWebhook = restoreRedactedSecretReferences(
+      data.post_call_webhook,
+      existingConfiguration?.post_call_webhook,
+    );
+  } catch {
+    throw new BadRequestError(
+      "A redacted webhook secret could not be preserved; enter it again",
+    );
+  }
+
   return {
     ...data,
-    initiation_webhook: await storeSecretReferences(data.initiation_webhook, {
+    initiation_webhook: await storeSecretReferences(initiationWebhook, {
       organizationId,
       userId,
       namePrefix: `agent:${agentId}:initiation_webhook`,
+      createdSecretIds,
     }),
-    post_call_webhook: await storeSecretReferences(data.post_call_webhook, {
+    post_call_webhook: await storeSecretReferences(postCallWebhook, {
       organizationId,
       userId,
       namePrefix: `agent:${agentId}:post_call_webhook`,
+      createdSecretIds,
     }),
   };
+}
+
+async function assertAgentSecretOwnership(
+  configuration: Record<string, any>,
+  organizationId: string,
+) {
+  try {
+    await assertSecretReferencesOwnedByOrganization(
+      [configuration.initiation_webhook, configuration.post_call_webhook],
+      organizationId,
+    );
+  } catch {
+    throw new BadRequestError("One or more webhook secrets are unavailable");
+  }
+}
+
+async function cleanupReplacedAgentSecrets(
+  organizationId: string,
+  agentId: string,
+  previousConfiguration: Record<string, any> | null,
+  currentConfiguration: Record<string, any>,
+) {
+  try {
+    await pruneScopedSecretReferences({
+      organizationId,
+      namePrefixes: [
+        `agent:${agentId}:initiation_webhook`,
+        `agent:${agentId}:post_call_webhook`,
+      ],
+      previousValues: previousConfiguration
+        ? [
+            previousConfiguration.initiation_webhook,
+            previousConfiguration.post_call_webhook,
+          ]
+        : [],
+      currentValues: [
+        currentConfiguration.initiation_webhook,
+        currentConfiguration.post_call_webhook,
+      ],
+    });
+  } catch (error) {
+    console.warn("[secrets] failed to prune replaced agent secrets", {
+      organizationId,
+      agentId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function cleanupUncommittedAgentSecrets(
+  organizationId: string,
+  agentId: string,
+  secretIds: string[],
+) {
+  try {
+    await deleteSecretReferences(organizationId, secretIds);
+  } catch (error) {
+    console.warn("[secrets] failed to remove uncommitted agent secrets", {
+      organizationId,
+      agentId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+  }
 }
 
 function redactAgentConfigSecrets<T extends Record<string, any>>(
@@ -515,4 +695,21 @@ function requireString(value: unknown, fieldName: string): string {
     );
   }
   return value;
+}
+
+function requireInternalApiKey() {
+  const value = process.env.INTERNAL_API_KEY?.trim();
+  if (!value) {
+    throw new CustomApiError("Internal AI integration is not configured", 503);
+  }
+  return value;
+}
+
+function isUniqueConstraintViolation(error: unknown) {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    error.code === "P2002"
+  );
 }

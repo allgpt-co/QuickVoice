@@ -13,7 +13,6 @@ from livekit.agents import (
 )
 from livekit.agents.beta.tools import send_dtmf_events
 from livekit.plugins import noise_cancellation, silero
-from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
@@ -510,9 +509,11 @@ async def entrypoint(ctx: JobContext):
     session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
-        turn_handling=TurnHandlingOptions(turn_detection=MultilingualModel()),
+        turn_handling=TurnHandlingOptions(
+            turn_detection=inference.TurnDetector(),
+            preemptive_generation=config.get("preemptive_generation", True),
+        ),
         ivr_detection=config["ivr_navigation_enabled"],
-        preemptive_generation=config.get("preemptive_generation", True),
     )
     call_start_time = datetime.now(timezone.utc)
     live_transcript_publisher = LiveTranscriptPublisher(

@@ -8,7 +8,7 @@
 
 **Subtitle:** Self-hostable, source-visible voice-agent infrastructure for teams that need control over call behavior, data paths, and provider economics.
 
-**Visual layout idea:** Full-width architecture strip across the bottom: Twilio/Telnyx -> LiveKit SIP -> Python LiveKit worker -> Express API -> Postgres/Redis/S3. Above it, a short headline and one proof point: "AGPL repo. Runtime, API, data model, queues, retention, and telephony binding are inspectable."
+**Visual layout idea:** Full-width architecture strip across the bottom: Twilio/Telnyx -> LiveKit SIP -> Python LiveKit worker -> Express API -> Postgres/Redis/S3. Above it, a short headline and one proof point: "MIT-licensed repo. Runtime, API, data model, queues, retention, and telephony binding are inspectable."
 
 **Sales rep talk track:**
 
@@ -36,7 +36,7 @@
 
 **Sales rep talk track:**
 
-"QuickVoice is an AGPL, self-hostable Retell alternative for AI phone agents. The server is TypeScript on Express. The app uses Prisma with Postgres, Redis with BullMQ, and S3-compatible storage for recordings. The real-time voice loop runs in Python on LiveKit Agents with Silero VAD, multilingual turn detection, telephony-aware noise cancellation, configurable STT, LLM, and TTS models, and optional preemptive generation. Telephony is implemented through Twilio and Telnyx provisioning, with LiveKit SIP for call routing."
+"QuickVoice is an MIT-licensed, self-hostable Retell alternative for AI phone agents. The server is TypeScript on Express. The app uses Prisma with Postgres, Redis with BullMQ, and S3-compatible storage for recordings. The real-time voice loop runs in Python on LiveKit Agents with Silero VAD, multilingual turn detection, telephony-aware noise cancellation, configurable STT, LLM, and TTS models, and optional preemptive generation. Telephony is implemented through Twilio and Telnyx provisioning, with LiveKit SIP for call routing."
 
 ### Slide 4: Technical Architecture And Data Paths
 
@@ -125,11 +125,11 @@ Include a simple formula:
 
 ### Executive Summary
 
-QuickVoice is AGPL, self-hostable AI phone-agent infrastructure for engineering-led teams that need source-level control over call behavior, data paths, and provider economics. It combines a Next.js console, Express/Node API, Python FastAPI service, LiveKit Agents worker, Twilio/Telnyx telephony, Postgres/Prisma, Redis/BullMQ, S3-compatible recordings, Pinecone knowledge retrieval, MCP tools, and Stripe usage hooks in one inspectable repository. Enterprises use QuickVoice when a closed voice API is too opaque for security review, too expensive at call volume, or too rigid for business-specific runtime behavior.
+QuickVoice is MIT-licensed, self-hostable AI phone-agent infrastructure for engineering-led teams that need source-level control over call behavior, data paths, and provider economics. It combines a Next.js console, Express/Node API, Python FastAPI service, LiveKit Agents worker, Twilio/Telnyx telephony, Postgres/Prisma, Redis/BullMQ, S3-compatible recordings, Pinecone knowledge retrieval, MCP tools, and Stripe usage hooks in one inspectable repository. Enterprises use QuickVoice when a closed voice API is too opaque for security review, too expensive at call volume, or too rigid for business-specific runtime behavior.
 
 ### Tech Stack At A Glance
 
-- **License and repo model:** AGPL-3.0-only monorepo managed with `pnpm` and Turbo.
+- **License and repo model:** MIT-licensed monorepo managed with `pnpm` and Turbo.
 - **Frontend:** Next.js web and console apps.
 - **API server:** TypeScript, Express 5, Better Auth, API keys, org-scoped permissions, Helmet, rate limiting, Swagger.
 - **Database:** Postgres with Prisma 7.

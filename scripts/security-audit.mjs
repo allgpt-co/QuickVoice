@@ -11,11 +11,21 @@ const severityRank = {
 const args = process.argv.slice(2);
 const options = parseArgs(args);
 const auditLevel = options.auditLevel;
-const threshold = severityRank[auditLevel] ?? severityRank.high;
+if (!Object.hasOwn(severityRank, auditLevel)) {
+  console.error(
+    `Invalid --audit-level "${auditLevel}". Expected low, moderate, high, or critical.`
+  );
+  process.exit(2);
+}
+const threshold = severityRank[auditLevel];
 
 const suppressionFile = options.suppressionFile;
 const suppressionConfig = JSON.parse(await readFile(suppressionFile, "utf8"));
 const suppressions = suppressionConfig.suppressions ?? [];
+if (!Array.isArray(suppressions)) {
+  console.error("Dependency audit suppressions must be an array.");
+  process.exit(2);
+}
 const today = parseDateOnly(
   process.env.SECURITY_AUDIT_TODAY ?? new Date().toISOString().slice(0, 10),
   "SECURITY_AUDIT_TODAY"
@@ -47,7 +57,7 @@ if (options.checkSuppressionsOnly) {
 
 function parseArgs(rawArgs) {
   const parsed = {
-    auditLevel: "high",
+    auditLevel: "low",
     checkSuppressionsOnly: false,
     suppressionFile: "security/audit-suppressions.json",
   };
@@ -62,6 +72,8 @@ function parseArgs(rawArgs) {
       index += 1;
     } else if (arg === "--check-suppressions-only") {
       parsed.checkSuppressionsOnly = true;
+    } else {
+      throw new Error(`Unknown security-audit argument: ${arg}`);
     }
   }
 
@@ -217,11 +229,24 @@ function runAudit(context, extraArgs) {
   }
 
   const output = parseAuditJson(result.stdout);
+  if (output.error || (result.status !== 0 && !Object.hasOwn(output, "advisories"))) {
+    const details =
+      output.error?.summary ??
+      output.error?.message ??
+      result.stderr.trim() ??
+      result.stdout.trim() ??
+      `pnpm audit exited with status ${result.status}`;
+    throw new Error(`${context}: dependency audit could not complete: ${details}`);
+  }
+
   const advisories = Object.values(output.advisories ?? {});
-  const unsuppressed = advisories.filter((advisory) => {
+  const thresholdAdvisories = advisories.filter((advisory) => {
     const rank = severityRank[advisory.severity] ?? 0;
-    return rank >= threshold && !isSuppressed(advisory, context);
+    return rank >= threshold;
   });
+  const unsuppressed = thresholdAdvisories.filter(
+    (advisory) => !isSuppressed(advisory, context)
+  );
   const uniqueUnsuppressed = [
     ...new Map(
       unsuppressed.map((advisory) => [
@@ -231,7 +256,7 @@ function runAudit(context, extraArgs) {
     ).values(),
   ];
 
-  if (uniqueUnsuppressed.length === 0 && result.status === 0) {
+  if (thresholdAdvisories.length === 0) {
     console.log(`${context}: no ${auditLevel}+ advisories found.`);
     return [];
   }

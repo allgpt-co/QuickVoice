@@ -37,11 +37,11 @@ tasks:
       - pnpm install --lockfile-only
 
   deps:python:
-    desc: Create the AI Python virtualenv and install requirements
+    desc: Create the AI Python virtualenv and install runtime and test requirements
     dir: apps/ai
     cmds:
       - python3 -m venv .venv
-      - . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+      - . .venv/bin/activate && python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt
 
   deps:
     desc: Install Node and Python dependencies

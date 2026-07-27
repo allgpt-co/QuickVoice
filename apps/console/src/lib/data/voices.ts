@@ -1,7 +1,5 @@
-// Seed voice catalog.
-// TODO(backend): replace with a `GET /v1/voices` endpoint that returns the
-// provider-curated list; for now these IDs mirror the ones the LiveKit agent
-// runner accepts.
+// Fallback catalog used while the runtime voice catalog is loading or
+// unavailable. These IDs mirror the values accepted by the LiveKit worker.
 
 import type { VoiceCatalog } from "@/src/lib/api/types";
 
@@ -274,7 +272,7 @@ export function normalizeLanguageCode(language: string): LanguageCode {
   const normalized = language.trim().toLowerCase();
   const baseLanguage = normalized.split("-", 1)[0];
   const matched = LANGUAGES.find(
-    (option) => option.code === normalized || option.code === baseLanguage
+    (option) => option.code === normalized || option.code === baseLanguage,
   );
 
   return matched?.code ?? "en";
@@ -282,7 +280,7 @@ export function normalizeLanguageCode(language: string): LanguageCode {
 
 function supportsLanguage(
   option: { languages: LanguageCode[] },
-  language: string
+  language: string,
 ) {
   return option.languages.includes(normalizeLanguageCode(language));
 }
@@ -290,19 +288,24 @@ function supportsLanguage(
 export function getVoicesForTtsModel(
   ttsModel: string,
   language = "en",
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.voices.filter(
-    (voice) => voice.ttsModels.includes(ttsModel) && supportsLanguage(voice, language)
+    (voice) =>
+      voice.ttsModels.includes(ttsModel) && supportsLanguage(voice, language),
   );
 }
 
 export function getDefaultVoiceForTtsModel(
   ttsModel: string,
   language = "en",
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getVoicesForTtsModel(ttsModel, language, options)[0]?.id ?? options.voices[0]?.id ?? "";
+  return (
+    getVoicesForTtsModel(ttsModel, language, options)[0]?.id ??
+    options.voices[0]?.id ??
+    ""
+  );
 }
 
 export const LLM_MODELS: ModelOption[] = [
@@ -321,13 +324,21 @@ export const LLM_MODELS: ModelOption[] = [
   { id: "claude-opus-4", label: "Claude Opus 4", provider: "Anthropic" },
 
   // Google Gemini
-  { id: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", provider: "Google" },
+  {
+    id: "gemini-2.5-flash-lite",
+    label: "Gemini 2.5 Flash Lite",
+    provider: "Google",
+  },
   { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "Google" },
   { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google" },
 
   { id: "gemini-3-flash", label: "Gemini 3 Flash", provider: "Google" },
 
-  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", provider: "Google" },
+  {
+    id: "gemini-3.1-flash-lite",
+    label: "Gemini 3.1 Flash Lite",
+    provider: "Google",
+  },
   { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro", provider: "Google" },
 
   { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash", provider: "Google" },
@@ -374,7 +385,6 @@ export const STT_MODELS: LanguageAwareModelOption[] = [
     provider: "AssemblyAI",
     languages: [...ALL_LANGUAGE_CODES],
   },
-
 
   // Speechmatics
   {
@@ -440,14 +450,12 @@ export const TTS_MODELS: LanguageAwareModelOption[] = [
     languages: [...ALL_LANGUAGE_CODES],
   },
 
-
   // Deepgram
   { id: "aura-2", label: "Aura-2", provider: "Deepgram", languages: ["en"] },
 
   // Rime
   { id: "rime-arcana", label: "Arcana", provider: "Rime", languages: ["en"] },
   { id: "rime-mist", label: "Mist", provider: "Rime", languages: ["en"] },
-
 ];
 
 export const STATIC_VOICE_OPTIONS: VoiceOptions = {
@@ -467,7 +475,9 @@ function catalogLanguages(languages: string[] | undefined) {
   return languages?.length ? languages : ["en"];
 }
 
-export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOptions {
+export function buildVoiceOptionsFromCatalog(
+  catalog: VoiceCatalog,
+): VoiceOptions {
   return {
     languages: catalog.languages.map((language) => ({
       code: language.id,
@@ -500,7 +510,7 @@ export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOption
       accent: "",
       languages: catalogLanguages(voice.languages),
       ttsModels: (voice.tts_models ?? []).map((model) =>
-        providerModelId(voice.provider, model)
+        providerModelId(voice.provider, model),
       ),
       styles: [],
       useCases: [],
@@ -510,28 +520,36 @@ export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOption
 
 export function getSttModelsForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.sttModels.filter((model) => supportsLanguage(model, language));
 }
 
 export function getTtsModelsForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.ttsModels.filter((model) => supportsLanguage(model, language));
 }
 
 export function getDefaultSttModelForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getSttModelsForLanguage(language, options)[0]?.id ?? options.sttModels[0]?.id ?? "";
+  return (
+    getSttModelsForLanguage(language, options)[0]?.id ??
+    options.sttModels[0]?.id ??
+    ""
+  );
 }
 
 export function getDefaultTtsModelForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getTtsModelsForLanguage(language, options)[0]?.id ?? options.ttsModels[0]?.id ?? "";
+  return (
+    getTtsModelsForLanguage(language, options)[0]?.id ??
+    options.ttsModels[0]?.id ??
+    ""
+  );
 }

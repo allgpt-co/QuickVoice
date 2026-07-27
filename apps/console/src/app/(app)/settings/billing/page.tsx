@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Check, ExternalLink, Loader2 } from "lucide-react";
+import { Check, ExternalLink, Loader2, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/src/components/ui/button";
@@ -10,6 +10,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Progress } from "@/src/components/ui/progress";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { authClient } from "@/src/lib/auth-client";
+import { useBillingUsage } from "@/src/hooks/queries/billing";
 import { cn } from "@/src/lib/utils";
 
 interface Plan {
@@ -71,10 +72,14 @@ export default function BillingPage() {
 
  const { data: session } = authClient.useSession();
  const orgId = session?.session?.activeOrganizationId ?? null;
+ const usage = useBillingUsage(Boolean(orgId));
 
  useEffect(() => {
  async function load() {
- if (!orgId) return;
+ if (!orgId) {
+ setLoading(false);
+ return;
+ }
  setLoading(true);
  try {
  const sub = authClient.subscription as {
@@ -166,7 +171,16 @@ export default function BillingPage() {
  }
  }
 
- const plan = PLANS.find((p) => p.id === currentPlan) ?? PLANS[0];
+ const effectivePlan = usage.data?.plan ?? currentPlan;
+ const plan = PLANS.find((p) => p.id === effectivePlan) ?? PLANS[0];
+ const includedMinutes = usage.data?.includedMinutes ?? plan.minutes;
+ const periodLabel = usage.data
+ ? new Date(usage.data.periodEnd).toLocaleDateString("en-US", {
+ month: "short",
+ day: "numeric",
+ year: "numeric",
+ })
+ : null;
 
  return (
  <div className="space-y-6">
@@ -179,7 +193,7 @@ export default function BillingPage() {
  plans.
  </p>
  </div>
- <Button variant="outline" onClick={openPortal} disabled={portalLoading}>
+ <Button variant="outline" onClick={openPortal} disabled={portalLoading || !orgId}>
  {portalLoading ? (
  <Loader2 className="animate-spin" />
  ) : (
@@ -196,7 +210,7 @@ export default function BillingPage() {
  <div className="flex items-center gap-2">
  <h3 className="text-lg font-semibold">{plan.name}</h3>
  <Badge variant="secondary" className="uppercase">
- {String(subscription?.status ?? "free")}
+ {String(subscription?.status ?? usage.data?.subscriptionStatus ?? "free")}
  </Badge>
  </div>
  <p className="text-sm text-muted-foreground">
@@ -213,15 +227,42 @@ export default function BillingPage() {
  </p>
  </div>
  <div className="sm:col-span-2">
- {/* TODO(backend): replace with GET /v1/billing/usage */}
  <div className="flex items-center justify-between text-xs text-muted-foreground">
  <span>Usage this period</span>
- <span className="font-mono">— / {plan.minutes}</span>
+ <span className="font-mono">
+ {usage.isLoading
+ ? "Loading..."
+ : `${usage.data?.usedMinutes ?? 0} / ${includedMinutes ?? "Unlimited"}`}
+ </span>
  </div>
- <Progress value={0} className="mt-2 h-1.5" />
+ <Progress
+ value={Math.min(usage.data?.percentUsed ?? 0, 100)}
+ className="mt-2 h-1.5"
+ />
+ {usage.isError ? (
+ <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-destructive">
+ <span>Could not load usage for this billing period.</span>
+ <Button
+ type="button"
+ variant="ghost"
+ size="sm"
+ onClick={() => usage.refetch()}
+ disabled={usage.isFetching}
+ >
+ <RefreshCw className={usage.isFetching ? "animate-spin" : undefined} />
+ Retry
+ </Button>
+ </div>
+ ) : usage.data ? (
  <p className="mt-1 text-[11px] text-muted-foreground">
- Usage telemetry is coming soon.
+ {usage.data.overageMinutes > 0
+ ? `${usage.data.overageMinutes} overage minutes`
+ : usage.data.remainingMinutes === null
+ ? `${usage.data.callCount} calls this period`
+ : `${usage.data.remainingMinutes} minutes remaining`}
+ {periodLabel ? ` · Period ends ${periodLabel}` : ""}
  </p>
+ ) : null}
  </div>
  </div>
  )}
@@ -236,7 +277,7 @@ export default function BillingPage() {
  </div>
  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
  {PLANS.map((p) => {
- const isCurrent = p.id === currentPlan;
+ const isCurrent = p.id === effectivePlan;
  return (
  <div
  key={p.id}
@@ -274,7 +315,7 @@ export default function BillingPage() {
  </ul>
  <Button
  variant={isCurrent ? "outline" : "default"}
- disabled={isCurrent || upgradingId === p.id}
+ disabled={!orgId || isCurrent || upgradingId === p.id}
  onClick={() => onUpgrade(p.id)}
  >
  {isCurrent ? (

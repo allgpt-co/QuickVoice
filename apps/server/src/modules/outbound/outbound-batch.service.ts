@@ -1,5 +1,6 @@
 import { CallStatus, CampaignStatus, OutboundCallMode, Prisma } from "../../../prisma/generated/prisma/client.js";
 import { randomUUID } from "node:crypto";
+import { extname } from "node:path";
 
 import { generateUploadUrl, readObjectBuffer } from "../../config/s3.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
@@ -44,7 +45,7 @@ type ImportBatchDeps = {
   repository?: Pick<
     BatchRepository,
     "getCampaignForImport" | "createBatchOutboundCalls" | "markBatchImported"
-  >;
+  > & { markCampaignFailed?: typeof outboundCallRepository.markCampaignFailed };
   queue?: BatchQueueLike;
   readFile?: (key: string) => Promise<Buffer>;
   now?: () => Date;
@@ -96,10 +97,33 @@ export async function createBatchUploadUrl(
 ) {
   const createUploadUrl = deps.generateUploadUrl ?? generateUploadUrl;
   const createId = deps.randomUUID ?? randomUUID;
-  const safeFileName = args.fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const s3Key = `outbound-batches/${args.organizationId}/${createId()}-${safeFileName}`;
-  const uploadUrl = await createUploadUrl(s3Key, args.contentType);
-  return { uploadUrl, s3Key };
+  const filePolicy = inspectBatchFile(args.fileName, args.contentType);
+  if (!filePolicy) {
+    throw new BadRequestError(
+      "Batch file type does not match a supported CSV or XLSX format"
+    );
+  }
+  const maxUploadBytes = readPositiveInteger(
+    "OUTBOUND_BATCH_MAX_UPLOAD_BYTES",
+    5 * 1024 * 1024,
+    50 * 1024 * 1024
+  );
+  if (args.fileSize > maxUploadBytes) {
+    throw new BadRequestError("Batch file exceeds the configured upload limit");
+  }
+
+  const s3Key = `outbound-batches/${args.organizationId}/${createId()}.${filePolicy.extension}`;
+  const uploadUrl = await createUploadUrl(
+    s3Key,
+    filePolicy.contentType,
+    args.fileSize
+  );
+  return {
+    uploadUrl,
+    s3Key,
+    contentType: filePolicy.contentType,
+    maxUploadBytes,
+  };
 }
 
 export async function createBatchCampaign(
@@ -108,6 +132,18 @@ export async function createBatchCampaign(
 ) {
   const repository = deps.repository ?? outboundCallRepository;
   const queue = deps.queue ?? getOutboundBatchQueue();
+
+  if (
+    !isValidBatchStorageKey(
+      args.sourceFileKey,
+      args.sourceFileName,
+      args.organizationId
+    )
+  ) {
+    throw new BadRequestError(
+      "Batch file reference is invalid for the active organization"
+    );
+  }
 
   await enforcePlanQuota(repository, args.organizationId);
 
@@ -193,7 +229,29 @@ export async function importBatchCampaignRecipients(
   }
 
   const file = await readFile(campaign.sourceFileKey);
-  const parsed = parseBatchRecipients(file, campaign.sourceFileName ?? "recipients.csv");
+  let parsed;
+  try {
+    parsed = parseBatchRecipients(
+      file,
+      campaign.sourceFileName ?? "recipients.csv"
+    );
+  } catch (error) {
+    await repository.markCampaignFailed?.(campaign.campaignId);
+    throw error;
+  }
+  const recipientCount =
+    parsed.validRows.length + parsed.invalidRows.length;
+  const maxRecipients = readPositiveInteger(
+    "OUTBOUND_BATCH_MAX_RECIPIENTS",
+    10_000,
+    100_000
+  );
+  if (recipientCount > maxRecipients) {
+    await repository.markCampaignFailed?.(campaign.campaignId);
+    throw new BadRequestError(
+      `Batch campaign exceeds the ${maxRecipients} recipient limit`
+    );
+  }
   const rows = [
     ...parsed.validRows.map((row) => ({
       organizationId: campaign.organizationId,
@@ -296,4 +354,50 @@ export async function dispatchBatchOutboundCall(args: { outboundId: string }) {
 function dispatchDelay(scheduledAt: Date | null, now: Date) {
   if (!scheduledAt) return 0;
   return Math.max(0, scheduledAt.getTime() - now.getTime());
+}
+
+function inspectBatchFile(fileName: string, contentType: string) {
+  const extension = extname(fileName).slice(1).toLowerCase();
+  const normalizedContentType =
+    contentType.split(";", 1)[0]?.trim().toLowerCase() ?? "";
+  const allowedContentTypes =
+    extension === "csv"
+      ? new Set(["text/csv", "application/csv", "application/octet-stream"])
+      : extension === "xlsx"
+        ? new Set([
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream",
+          ])
+        : null;
+
+  return allowedContentTypes?.has(normalizedContentType)
+    ? { extension, contentType: normalizedContentType }
+    : null;
+}
+
+function isValidBatchStorageKey(
+  key: string,
+  fileName: string,
+  organizationId: string
+) {
+  const extension = extname(fileName).slice(1).toLowerCase();
+  if (extension !== "csv" && extension !== "xlsx") return false;
+  const prefix = `outbound-batches/${organizationId}/`;
+  if (!key.startsWith(prefix)) return false;
+  const objectName = key.slice(prefix.length);
+  return new RegExp(
+    `^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\\.${extension}$`,
+    "i"
+  ).test(objectName);
+}
+
+function readPositiveInteger(
+  name: string,
+  fallback: number,
+  maximum: number
+) {
+  const value = Number(process.env[name]);
+  return Number.isInteger(value) && value > 0 && value <= maximum
+    ? value
+    : fallback;
 }

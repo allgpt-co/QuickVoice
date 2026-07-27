@@ -14,6 +14,7 @@
 // re-query.
 
 import { Request, Response, NextFunction } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth.js";
 import { UnauthenticatedError } from "../common/errors/unauthenticated.js";
@@ -32,7 +33,7 @@ const authMiddleware = async (
     // 1. Internal server-to-server bypass
     const bearerToken = getBearerToken(req.headers.authorization);
     if (bearerToken) {
-      if (bearerToken === process.env.INTERNAL_API_KEY) {
+      if (matchesInternalApiKey(bearerToken)) {
         // Internal callers must assert who they are acting on behalf of by
         // passing userId and organizationId as headers, query params, or in
         // the request body. We fail fast
@@ -223,7 +224,7 @@ export const requireInternalApiKey=async (
       throw new UnauthenticatedError("Unauthorized")
     }
 
-    if(bearerToken!=process.env.INTERNAL_API_KEY){
+    if (!matchesInternalApiKey(bearerToken)) {
       throw new UnauthenticatedError("Unauthorized")
     }
 
@@ -232,6 +233,17 @@ export const requireInternalApiKey=async (
   catch(error){
     next(error)
   }
+}
+
+export function matchesInternalApiKey(supplied: string) {
+  const expected = process.env.INTERNAL_API_KEY?.trim();
+  if (!expected) return false;
+  const suppliedBytes = Buffer.from(supplied);
+  const expectedBytes = Buffer.from(expected);
+  return (
+    suppliedBytes.length === expectedBytes.length &&
+    timingSafeEqual(suppliedBytes, expectedBytes)
+  );
 }
 
 export default authMiddleware;

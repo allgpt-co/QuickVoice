@@ -1,17 +1,27 @@
 import prisma from "../../config/prisma.js";
 import { redisConnection } from "../../config/redis.js";
-
-type CheckStatus = "ok" | "error" | "not_configured";
-
-type ReadinessCheck = {
-  status: CheckStatus;
-  message?: string;
-};
+import {
+  evaluateReadiness,
+  type ReadinessCheck,
+} from "./readiness-policy.js";
 
 export async function getReadiness() {
+  const [db, redis] = await Promise.all([checkDb(), checkRedis()]);
   const checks = {
-    db: await checkDb(),
-    redis: await checkRedis(),
+    db,
+    redis,
+    auth: checkEnv(
+      ["BETTER_AUTH_SECRET"],
+      "Better Auth secret is not configured"
+    ),
+    internalApi: checkEnv(
+      ["INTERNAL_API_KEY"],
+      "Internal API key is not configured"
+    ),
+    secrets: checkEnv(
+      ["SECRET_ENCRYPTION_KEY"],
+      "Secret encryption key is not configured"
+    ),
     s3: checkEnv(["S3_BUCKET_NAME", "BUCKET_NAME", "BUCKET"], "S3 bucket is not configured"),
     stripe: checkEnv(["STRIPE_SECRET_KEY"], "Stripe secret key is not configured"),
     twilio: checkEnv(
@@ -47,27 +57,20 @@ export async function getReadiness() {
     smithery: checkEnv(["SMITHERY_API_KEY"], "Smithery API key is not configured"),
   };
 
-  const requiredChecks = [
-    checks.db,
-    checks.redis,
-    checks.s3,
-    checks.stripe,
-    checks.twilio,
-    checks.livekit,
-    checks.livekitTwilio,
-  ];
-  const ready = requiredChecks.every((check) => check.status === "ok");
-  return { ready, checks };
+  return evaluateReadiness(
+    checks,
+    process.env.READINESS_REQUIRED_INTEGRATIONS
+  );
 }
 
 async function checkDb(): Promise<ReadinessCheck> {
   try {
     await withTimeout(prisma.$queryRawUnsafe("SELECT 1"), 2000);
     return { status: "ok" };
-  } catch (error) {
+  } catch {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : String(error),
+      message: "Database connectivity check failed",
     };
   }
 }
@@ -76,10 +79,10 @@ async function checkRedis(): Promise<ReadinessCheck> {
   try {
     await withTimeout(redisConnection.ping(), 2000);
     return { status: "ok" };
-  } catch (error) {
+  } catch {
     return {
       status: "error",
-      message: error instanceof Error ? error.message : String(error),
+      message: "Redis connectivity check failed",
     };
   }
 }
@@ -98,10 +101,20 @@ function checkEnv(
 }
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number) {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) => {
-      setTimeout(() => reject(new Error("readiness check timed out")), timeoutMs);
-    }),
-  ]);
+  return new Promise<T>((resolve, reject) => {
+    const timeout = setTimeout(
+      () => reject(new Error("readiness check timed out")),
+      timeoutMs
+    );
+    promise.then(
+      (value) => {
+        clearTimeout(timeout);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeout);
+        reject(error);
+      }
+    );
+  });
 }

@@ -208,18 +208,23 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: "apps/ai/requirements.txt"
+          cache-dependency-path: |
+            apps/ai/requirements.txt
+            apps/ai/requirements-dev.txt
 
       - name: Install Python dependencies
         working-directory: apps/ai
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install pytest
+          python -m pip install -r requirements-dev.txt
+
+      - name: Audit Python dependencies
+        working-directory: apps/ai
+        run: python -m pip_audit --local
 
       - name: Run AI tests
         working-directory: apps/ai
-        run: python -m pytest tests
+        run: python -m pytest tests -W error
 
   docker-server:
     name: Server Docker Validate

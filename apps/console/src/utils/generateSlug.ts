@@ -1,16 +1,17 @@
 function randomString(length = 4) {
-    return Math.random().toString(36).substring(2, 2 + length);
-  }
+  return globalThis.crypto.randomUUID().replaceAll("-", "").slice(0, length);
+}
 
-  export function generateSlug(text: string): string {
-    const baseSlug = text
-      .normalize("NFKD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s-]/g, "")
-      .replace(/\s+/g, "-")
-      .replace(/-+/g, "-");
+export function generateSlug(text: string): string {
+  const baseSlug = text
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-    return `${baseSlug}-${randomString(4)}`;
-  }
+  return `${baseSlug || "workspace"}-${randomString(8)}`;
+}

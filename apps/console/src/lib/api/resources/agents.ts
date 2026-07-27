@@ -21,8 +21,7 @@ export interface UpdateAgentInput {
   templateId?: string | null;
 }
 
-// Fields the server currently accepts. Other AgentConfiguration columns
-// have server-side defaults and are not writable via this endpoint yet.
+// Fields accepted by the full agent-configuration endpoint.
 export interface ConfigureAgentInput {
   agent_language: string;
   firstMessage: string;
@@ -53,6 +52,9 @@ export interface ConfigureAgentInput {
   preemptive_generation: boolean;
   ivr_navigation_enabled: boolean;
   timezone: string;
+  store_call_audio: boolean;
+  zero_pii_retention: boolean;
+  conversation_retention_days: number;
 }
 
 export interface CreatePreviewSessionInput {
@@ -63,16 +65,22 @@ export interface WebhookInit {
   webhook_url: string;
   method: "GET" | "POST";
   dynamic_variables?: Record<string, string>;
-  headers?: Record<string, { value: string; type: "Value" | "Secret" }>;
-  body?: Record<string, { value: string; type: "Value" | "Secret" }>;
+  headers?: Record<string, WebhookValue>;
+  body?: Record<string, WebhookValue>;
 }
 
 export interface WebhookPost {
   webhook_url: string;
   method: "POST";
-  headers?: Record<string, { value: string; type: "Value" | "Secret" }>;
+  headers?: Record<string, WebhookValue>;
   transcript: boolean;
   audio_url: boolean;
+}
+
+export interface WebhookValue {
+  value: string | null;
+  type: "Value" | "Secret";
+  redacted?: boolean;
 }
 
 export const agentsApi = {
