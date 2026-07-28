@@ -157,6 +157,20 @@ test("knowledge-base failures expose progress, reasons, and retry controls", () 
   assert.match(table, /Retry/);
 });
 
+test("knowledge-base status details stay inside the desktop table column", () => {
+  const table = read("src/components/kb/KbTable.tsx");
+  const utils = read("src/components/kb/kb-utils.tsx");
+
+  assert.match(
+    table,
+    /w-\[360px\] max-w-\[360px\] whitespace-normal align-top/,
+  );
+  assert.match(utils, /min-w-0 max-w-full space-y-2/);
+  assert.match(utils, /break-words text-xs font-medium/);
+  assert.match(utils, /break-words text-xs leading-5/);
+  assert.match(utils, /break-all font-mono/);
+});
+
 test("auth registration and password reset flows have complete UX handling", () => {
   const register = read("src/components/forms/auth/register-form.tsx");
 

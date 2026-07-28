@@ -359,7 +359,7 @@ export function KbTable({ sources, agents, isLoading }: Props) {
                     ) : null}
                   </TableCell>
 
-                  <TableCell className="align-top">
+                  <TableCell className="w-[360px] max-w-[360px] whitespace-normal align-top">
                     <KnowledgeSourceStatus source={s} />
                     {progress ? (
                       <p className="mt-1 max-w-28 truncate capitalize text-xs text-muted-foreground">
