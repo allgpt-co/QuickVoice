@@ -1,5 +1,10 @@
 from dotenv import load_dotenv
 
+from livekit.agents.telemetry import set_tracer_provider
+
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
 from livekit import agents, rtc
 from livekit.agents import (
     AgentSession,
@@ -14,6 +19,7 @@ from livekit.agents import (
 from livekit.agents.beta.tools import send_dtmf_events
 from livekit.plugins import noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+from langfuse_tracing import get_langfuse, setup_langfuse
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
@@ -479,6 +485,8 @@ async def entrypoint(ctx: JobContext):
         config = attach_resolved_voice_config(config)
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 
+    # raise RuntimeError("I AM HERE")
+
     try:
         await flush_call_log_queue()
     except Exception as error:
@@ -488,6 +496,17 @@ async def entrypoint(ctx: JobContext):
         call_context["agent_id"] = config["agent_id"]
     if not call_context.get("provider") and config.get("provider"):
         call_context["provider"] = config["provider"]
+
+    logger.info("=== Langfuse setup starting ===")
+    setup_langfuse(
+        session_id=ctx.room.name,
+        metadata={
+            "agent_id": config.get("agent_id"),
+            "provider": config.get("provider"),
+        },
+    )
+    logger.info("Langfuse initialized")
+    print("Langfuse initialized")
 
     try:
         provider_kwargs = build_session_provider_kwargs(config)
@@ -507,6 +526,7 @@ async def entrypoint(ctx: JobContext):
             }
         ),
     )
+    
     session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
@@ -626,6 +646,10 @@ async def entrypoint(ctx: JobContext):
         shutdown_reason = "participant_disconnected"
         asyncio.create_task(unified_shutdown_hook())
 
+    logger.info("=== Langfuse shutdown ===")
+    ctx.add_shutdown_callback(
+        lambda: get_langfuse().flush()
+    )
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "serve":
