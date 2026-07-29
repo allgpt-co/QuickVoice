@@ -48,9 +48,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/src/components/ui/form";
-import { PermissionMatrix } from "@/src/components/settings/PermissionMatrix";
 import { authClient } from "@/src/lib/auth-client";
-import { RESOURCES, type Permissions } from "@/src/lib/permissions";
 
 type ApiKey = {
   id: string;
@@ -61,18 +59,6 @@ type ApiKey = {
   enabled?: boolean | null;
   expiresAt?: string | Date | null;
 };
-
-const DEFAULT_API_KEY_PERMISSIONS = Object.fromEntries(
-  RESOURCES.map((resource) => [resource.id, [...resource.actions]]),
-) as Permissions;
-
-function normalizedPermissions(permissions: Permissions) {
-  return Object.fromEntries(
-    Object.entries(permissions).filter(
-      ([, actions]) => Array.isArray(actions) && actions.length > 0,
-    ),
-  ) as Record<string, string[]>;
-}
 
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
@@ -90,9 +76,6 @@ export default function ApiKeysPage() {
   );
   const [creating, setCreating] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [permissions, setPermissions] = useState<Permissions>(
-    DEFAULT_API_KEY_PERMISSIONS,
-  );
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -105,11 +88,11 @@ export default function ApiKeysPage() {
     try {
       const api = authClient.apiKey as {
         list?: (input: {
-          query?: { referenceId?: string };
+          query?: { organizationId?: string };
         }) => Promise<{ data?: ApiKey[] }>;
       };
       if (api.list) {
-        const res = await api.list({ query: { referenceId: orgId } });
+        const res = await api.list({ query: { organizationId: orgId } });
         setKeys(res.data ?? []);
       }
     } catch (err) {
@@ -128,20 +111,10 @@ export default function ApiKeysPage() {
 
   async function onCreate(values: z.infer<typeof schema>) {
     if (!orgId) return;
-    const userId = session?.user?.id;
-    if (!userId) {
-      toast.error("Could not create key without an active user session");
-      return;
-    }
     setCreating(true);
     try {
       const api = authClient.apiKey as {
-        create?: (input: {
-          name: string;
-          referenceId: string;
-          metadata?: Record<string, unknown>;
-          permissions?: Record<string, string[]>;
-        }) => Promise<{
+        create?: (input: { name: string; organizationId: string }) => Promise<{
           data?: { key: string };
           error?: { message?: string };
         }>;
@@ -149,16 +122,13 @@ export default function ApiKeysPage() {
       if (!api.create) throw new Error("API key creation is not available");
       const { data, error } = await api.create({
         name: values.name,
-        referenceId: orgId,
-        metadata: { organizationId: orgId, userId },
-        permissions: normalizedPermissions(permissions),
+        organizationId: orgId,
       });
       if (error || !data?.key)
         throw new Error(error?.message ?? "Create failed");
       setNewKey({ key: data.key, name: values.name });
       setCreateOpen(false);
       form.reset();
-      setPermissions(DEFAULT_API_KEY_PERMISSIONS);
       await refresh();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Could not create key");
@@ -217,8 +187,8 @@ export default function ApiKeysPage() {
                 <DialogTitle>Create API key</DialogTitle>
                 <DialogDescription>
                   Give the key a descriptive name. You&apos;ll be able to copy
-                  it once — make sure to store it somewhere safe. The default
-                  permissions are MCP-ready and can be narrowed below.
+                  it once — make sure to store it somewhere safe. New keys are
+                  organization-scoped and MCP-ready by default.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>
@@ -239,21 +209,6 @@ export default function ApiKeysPage() {
                       </FormItem>
                     )}
                   />
-                  <div className="space-y-2">
-                    <div>
-                      <p className="text-sm font-medium">Permissions</p>
-                      <p className="text-xs text-muted-foreground">
-                        MCP tools and API routes require explicit permissions.
-                        Leave the default full-access matrix for trusted
-                        automation, or remove actions for least-privilege keys.
-                      </p>
-                    </div>
-                    <PermissionMatrix
-                      value={permissions}
-                      onChange={setPermissions}
-                      disabled={creating}
-                    />
-                  </div>
                   <DialogFooter>
                     <Button
                       type="button"

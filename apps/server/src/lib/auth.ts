@@ -9,6 +9,7 @@ import prisma from "../config/prisma.js";
 import { stripeClient } from "../config/stripe.js";
 import { sendEmail } from "./mailer.js";
 import { ac, roles } from "./permissions.js";
+
 import { plans } from "../../data/plans.js";
 import {
   isSecureServerUrl,
@@ -16,6 +17,19 @@ import {
   trustedOrigins,
 } from "../config/origins.js";
 import { cleanupOrganizationBeforeDeletion } from "../modules/organization/organization-cleanup.service.js";
+
+const apiKeyDefaultPermissions = {
+  agent: ["create", "read", "update", "delete"],
+  agentConfiguration: ["create", "read", "update", "delete"],
+  agentWidget: ["create", "read", "update", "delete"],
+  phoneNumber: ["create", "read", "update", "delete"],
+  knowledgeSource: ["create", "read", "update", "delete"],
+  callLogs: ["read", "delete"],
+  outboundCalls: ["create", "read", "delete"],
+  campaigns: ["create", "read", "delete"],
+  tools: ["create", "read", "update", "delete"],
+  secrets: ["create", "read", "delete"],
+};
 
 // ─── Better Auth server instance ────────────────────────────────────────────
 export const auth = betterAuth({
@@ -64,6 +78,10 @@ export const auth = betterAuth({
     admin(),
     apiKey({
       enableSessionForAPIKeys: true,
+      references: "organization",
+      permissions: {
+        defaultPermissions: apiKeyDefaultPermissions,
+      },
     }),
     organization({
       ac,
@@ -82,16 +100,13 @@ export const auth = betterAuth({
                   : null,
             });
           } catch (error) {
-            console.error(
-              "[organization] external cleanup blocked deletion",
-              {
-                organizationId: org.id,
-                error:
-                  error instanceof Error
-                    ? error.message
-                    : "Unknown cleanup error",
-              },
-            );
+            console.error("[organization] external cleanup blocked deletion", {
+              organizationId: org.id,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown cleanup error",
+            });
             throw new APIError("BAD_REQUEST", {
               message:
                 "Organization cleanup failed. No database deletion was performed; retry after checking provider connectivity.",
