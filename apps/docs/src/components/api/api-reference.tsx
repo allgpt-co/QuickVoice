@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { McpCopyButton } from "@/components/mcp/mcp-copy-button";
+import { QuickVoiceLogo } from "@/components/quickvoice-logo";
 import {
   apiAuthNotes,
   apiBaseUrl,
@@ -32,17 +33,14 @@ const methodClass: Record<ApiMethod, string> = {
 
 export function ApiReference() {
   return (
-    <main className="api-reference-surface min-h-screen bg-[#070a12] text-slate-100">
-      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,rgba(0,47,167,0.28),transparent_32rem),radial-gradient(circle_at_85%_20%,rgba(14,165,233,0.12),transparent_28rem)]" />
+    <main className="api-reference-surface min-h-screen bg-[var(--qv-bg)] text-slate-100">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_20%_0%,color-mix(in_srgb,var(--qv-blue)_24%,transparent),transparent_32rem),radial-gradient(circle_at_85%_20%,color-mix(in_srgb,var(--qv-blue-ink)_12%,transparent),transparent_28rem)]" />
       <div className="relative mx-auto grid max-w-[1500px] grid-cols-1 lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="hidden min-h-dvh border-r border-white/10 bg-[#090d16]/80 px-5 py-6 backdrop-blur-xl lg:block">
+        <aside className="hidden min-h-dvh border-r border-[var(--qv-border)] bg-[var(--qv-card)]/80 px-5 py-6 backdrop-blur-xl lg:block">
           <div className="sticky top-6">
             <Link className="flex items-center gap-3" href="/">
-              <span className="grid size-9 place-items-center rounded-xl bg-[#002FA7] text-sm font-bold text-white">
-                QV
-              </span>
+              <QuickVoiceLogo />
               <span>
-                <span className="block text-sm font-semibold">QuickVoice</span>
                 <span className="text-xs text-slate-400">API Reference</span>
               </span>
             </Link>
@@ -182,7 +180,7 @@ export function ApiReference() {
                     <ArrowUpRight aria-hidden="true" className="size-4" />
                   </a>
                 </div>
-                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[#0c111d]">
+                <div className="overflow-hidden rounded-2xl border border-white/10 bg-[var(--qv-card)]">
                   {group.endpoints.map((endpointItem) => (
                     <EndpointRow
                       key={`${endpointItem.method}-${endpointItem.path}`}
@@ -325,7 +323,7 @@ function EndpointRow({ endpoint }: Readonly<{ endpoint: ApiEndpoint }>) {
           ) : null}
           <InfoBlock label="Response" values={[endpoint.response]} />
         </div>
-        <div className="rounded-2xl border border-white/10 bg-[#070a12] p-4">
+        <div className="rounded-2xl border border-white/10 bg-[var(--qv-bg)] p-4">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500">
             Source
           </p>

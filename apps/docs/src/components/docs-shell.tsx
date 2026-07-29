@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { QuickVoiceLogo } from "@/components/quickvoice-logo";
 import { docsNav } from "@/lib/docs-nav";
 
 export function DocsShell({ children }: Readonly<{ children: React.ReactNode }>) {
@@ -7,8 +8,7 @@ export function DocsShell({ children }: Readonly<{ children: React.ReactNode }>)
       <header className="sticky top-0 z-40 border-b border-[var(--qv-border)] bg-white/90 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-[1440px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link className="flex items-center gap-3 font-semibold tracking-tight" href="/">
-            <span className="grid size-8 place-items-center rounded-lg bg-[var(--qv-blue)] text-sm font-bold text-white">QV</span>
-            <span>QuickVoice Docs</span>
+            <QuickVoiceLogo label="QuickVoice Docs" compact />
           </Link>
           <nav className="hidden items-center gap-5 text-sm text-[var(--qv-muted)] md:flex">
             <Link className="transition hover:text-[var(--qv-ink)]" href="/api-reference">API Reference</Link>
