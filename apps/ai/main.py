@@ -40,6 +40,7 @@ from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_p
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
 from utils.logger import redact_sensitive
+from utils.langfuse_client import setup_langfuse
 import asyncio
 import json
 from datetime import datetime, timezone
@@ -432,9 +433,19 @@ class Assistant(Agent):
         )
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
-
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
+
+    trace_provider = setup_langfuse(
+        metadata={
+            "langfuse.session.id": ctx.room.name,
+        }
+    )
+
+    async def flush_trace():
+        trace_provider.force_flush()
+
+    ctx.add_shutdown_callback(flush_trace)
 
     await ctx.connect()
     raw_metadata = ctx.job.metadata or ""
