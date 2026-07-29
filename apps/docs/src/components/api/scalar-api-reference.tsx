@@ -51,7 +51,7 @@ export function ScalarApiReference() {
       theme: theme === "dark" ? "moon" : "default",
       metaData: {
         title: "QuickVoice REST API reference",
-        description: "Interactive QuickVoice OpenAPI reference with request schemas, responses, authentication, and a built-in API client.",
+        description: "QuickVoice endpoint reference. In Ask AI, explain the selected operation first, including its method, path, use case, auth, request fields, response, and side effects.",
       },
     });
 

@@ -1,4 +1,4 @@
-export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE" | "OPTIONS";
+export type ApiMethod = "GET" | "POST" | "PATCH" | "DELETE";
 
 export type ApiEndpoint = {
   method: ApiMethod;
@@ -25,7 +25,6 @@ export const apiBaseUrl = "https://api.quickvoice.co/api/v1";
 export const apiAuthNotes = [
   "Most console and product APIs accept either a Better Auth session cookie or an organization-scoped API key.",
   "Send API keys with the x-api-key header.",
-  "Internal runtime routes require the internal API token and are not intended for browser clients.",
   "Public website-widget routes are origin-gated by the widget allowedOrigins configuration.",
 ];
 
@@ -146,30 +145,6 @@ export const apiGroups: ApiGroup[] = [
         undefined,
         "200 { success, message, data: AgentConfiguration }",
       ),
-      endpoint(
-        "GET",
-        "/agents/internal-config/{agentId}",
-        "Runtime-only lookup of agent configuration by ID.",
-        "Internal API key",
-        "internal",
-        "apps/server/src/modules/agent/agent.route.ts",
-        undefined,
-        ["agentId: uuid"],
-        undefined,
-        "200 { success, message, data: RuntimeAgentConfiguration }",
-      ),
-      endpoint(
-        "GET",
-        "/agents/number-config/{phoneNumber}",
-        "Runtime-only lookup of agent configuration by assigned phone number.",
-        "Internal API key",
-        "internal",
-        "apps/server/src/modules/agent/agent.route.ts",
-        undefined,
-        ["phoneNumber: E.164 or stored phone number"],
-        undefined,
-        "200 { success, message, data: RuntimeAgentConfiguration }",
-      ),
     ],
   },
   {
@@ -251,24 +226,6 @@ export const apiGroups: ApiGroup[] = [
     description:
       "Ingest completed calls, inspect historical logs, read transcripts, and control live calls.",
     endpoints: [
-      endpoint(
-        "POST",
-        "/calls",
-        "Internal LiveKit runner call-log ingest endpoint.",
-        "Internal API key",
-        "internal",
-        "apps/server/src/modules/calllogs/calllog.route.ts",
-        undefined,
-        undefined,
-        [
-          "organizationId, agentId, callId",
-          "startTime, endTime, direction, durationSeconds, status",
-          "recordingSid, transcripts[]",
-          "toNumber?, fromNumber?, provider?",
-          "metadata?, extractedData?, evaluatedData?",
-        ],
-        "201 { success, message, data: CallLog }",
-      ),
       endpoint(
         "GET",
         "/calls",
@@ -486,18 +443,6 @@ export const apiGroups: ApiGroup[] = [
         ["campaignId: uuid"],
         undefined,
         "200 { success, message, data: BatchCampaign }",
-      ),
-      endpoint(
-        "GET",
-        "/outbound-calls/{outboundId}/status",
-        "Fetch compact outbound call status.",
-        "Session or API key",
-        "outboundCalls:read",
-        "apps/server/src/modules/outbound/outbound-call.route.ts",
-        undefined,
-        ["outboundId: uuid"],
-        undefined,
-        "200 { success, message, data: { outboundId, status, failureReason, updatedAt } }",
       ),
       endpoint(
         "GET",
@@ -942,18 +887,6 @@ export const apiGroups: ApiGroup[] = [
         ["widgetId: uuid"],
         undefined,
         "200 { success, message, data: null }",
-      ),
-      endpoint(
-        "OPTIONS",
-        "/public/widgets/{widgetId}/config",
-        "CORS preflight for public widget configuration.",
-        "Origin allowlist",
-        undefined,
-        "apps/server/src/modules/widgets/widget.route.ts",
-        undefined,
-        ["widgetId: uuid"],
-        undefined,
-        "204 when origin is allowed, 403 otherwise",
       ),
       endpoint(
         "GET",

@@ -28,7 +28,6 @@ const methodClass: Record<ApiMethod, string> = {
   POST: "border-sky-500/30 bg-sky-500/10 text-sky-300",
   PATCH: "border-amber-500/30 bg-amber-500/10 text-amber-300",
   DELETE: "border-rose-500/30 bg-rose-500/10 text-rose-300",
-  OPTIONS: "border-slate-500/30 bg-slate-500/10 text-slate-300",
 };
 
 export function ApiReference() {
