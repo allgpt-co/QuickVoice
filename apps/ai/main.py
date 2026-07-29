@@ -38,6 +38,7 @@ from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
+from observability.langfuse_tracing import setup_langfuse_tracing
 from utils.logger import logger
 from utils.logger import redact_sensitive
 import asyncio
@@ -641,6 +642,8 @@ if __name__ == "__main__":
             reload=os.getenv("AI_API_RELOAD", "false").lower() == "true",
         )
         raise SystemExit(0)
+
+    setup_langfuse_tracing()
 
     agents.cli.run_app(
         agents.WorkerOptions(
