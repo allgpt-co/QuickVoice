@@ -256,7 +256,7 @@ class WorkerHandlerTests(unittest.TestCase):
         result = speak_first_message(session, {"first_message": "Hello caller."})
 
         self.assertEqual(result, "speech-handle")
-        self.assertEqual(session.calls, [("Hello caller.", {"allow_interruptions": True})])
+        self.assertEqual(session.calls, [("Hello caller.", {"allow_interruptions": False})])
 
     def test_parse_preview_user_transcript_packet_accepts_preview_user_text(self):
         text = parse_preview_user_transcript_packet(
