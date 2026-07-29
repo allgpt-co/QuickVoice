@@ -511,7 +511,6 @@ async def entrypoint(ctx: JobContext):
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
-            preemptive_generation=config.get("preemptive_generation", True),
         ),
         ivr_detection=config["ivr_navigation_enabled"],
     )
