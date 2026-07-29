@@ -203,6 +203,9 @@ test("console API key creation uses organization keys without client-only fields
   const page = read("src/app/(app)/settings/api-keys/page.tsx");
 
   assert.match(page, /organizationId:\s*orgId/);
+  assert.match(page, /ApiKeyListResponse/);
+  assert.match(page, /setKeys\(res\.data\?\.apiKeys \?\? \[\]\)/);
+  assert.doesNotMatch(page, /setKeys\(res\.data \?\? \[\]\)/);
   assert.match(page, /MCP-ready/);
   assert.match(page, /x-api-key/);
   assert.doesNotMatch(page, /metadata:\s*\{ organizationId/);

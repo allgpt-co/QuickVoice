@@ -60,6 +60,11 @@ type ApiKey = {
   expiresAt?: string | Date | null;
 };
 
+type ApiKeyListResponse = {
+  apiKeys?: ApiKey[];
+  total?: number;
+};
+
 const schema = z.object({
   name: z.string().min(2, "Name is required"),
 });
@@ -83,17 +88,21 @@ export default function ApiKeysPage() {
   });
 
   async function refresh() {
-    if (!orgId) return;
+    if (!orgId) {
+      setKeys([]);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const api = authClient.apiKey as {
         list?: (input: {
           query?: { organizationId?: string };
-        }) => Promise<{ data?: ApiKey[] }>;
+        }) => Promise<{ data?: ApiKeyListResponse }>;
       };
       if (api.list) {
         const res = await api.list({ query: { organizationId: orgId } });
-        setKeys(res.data ?? []);
+        setKeys(res.data?.apiKeys ?? []);
       }
     } catch (err) {
       toast.error(
