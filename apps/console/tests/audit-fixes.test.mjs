@@ -199,6 +199,19 @@ test("google oauth redirects back to the canonical console origin", () => {
   assert.doesNotMatch(links, /callbackURL:\s*["'`]\/dashboard["'`]/);
 });
 
+test("console API key creation grants explicit MCP-ready route permissions", () => {
+  const page = read("src/app/(app)/settings/api-keys/page.tsx");
+  const permissions = read("src/lib/permissions.ts");
+
+  assert.match(permissions, /agentWidget/);
+  assert.match(page, /DEFAULT_API_KEY_PERMISSIONS/);
+  assert.match(page, /PermissionMatrix/);
+  assert.match(page, /permissions:\s*normalizedPermissions\(permissions\)/);
+  assert.match(page, /MCP-ready/);
+  assert.match(page, /x-api-key/);
+  assert.doesNotMatch(page, /Do not send them as bearer tokens/);
+});
+
 test("agent creation, limits, and deletion are wired", () => {
   const agentsTable = read("src/components/agents/AgentsTable.tsx");
   assert.match(
