@@ -436,7 +436,7 @@ def speak_first_message(session: Any, config: dict[str, Any]):
     first_message = (config.get("first_message") or "").strip()
     if not first_message:
         return None
-    return session.say(first_message, allow_interruptions=True)
+    return session.say(first_message, allow_interruptions=False)
 
 
 def parse_preview_user_transcript_packet(
