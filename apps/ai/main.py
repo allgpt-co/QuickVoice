@@ -19,6 +19,7 @@ from handlers.config_handler import get_config
 from handlers.finalization_handler import CallFinalizer
 from handlers.livekit_handler import recording_path as build_recording_path, start_recording
 from handlers.live_transcript_publisher import LiveTranscriptPublisher
+from handlers.langfuse_handler import LangfuseCallObserver
 from handlers.http_tool_handler import build_http_tool_instructions, call_http_tool, parse_http_tool_arguments
 from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, parse_arguments_json
 from handlers.privacy_handler import should_store_call_audio
@@ -266,6 +267,7 @@ class Assistant(Agent):
         config: dict,
         call_context: dict,
         transcript_collector: TranscriptCollector | None = None,
+        langfuse_observer: LangfuseCallObserver | None = None,
     ):
         super().__init__(
             instructions=system_prompt,
@@ -275,6 +277,7 @@ class Assistant(Agent):
         self._call_context = call_context
         self._metadata_collector = CallMetadataCollector(config)
         self._transcript_collector = transcript_collector
+        self._langfuse_observer = langfuse_observer
 
     def _rag_enabled(self) -> bool:
         return bool(self._config.get("use_rag"))
@@ -302,9 +305,19 @@ class Assistant(Agent):
         if not query:
             return
 
+        retrieval_started = time.perf_counter()
         try:
             context = await get_rag_context(agent_id=agent_id, query=query)
         except RagRetrievalError:
+            if self._langfuse_observer:
+                self._langfuse_observer.record_rag(
+                    agent_id=agent_id,
+                    query=query,
+                    top_k=5,
+                    context=None,
+                    success=False,
+                    duration_seconds=time.perf_counter() - retrieval_started,
+                )
             turn_ctx.add_message(
                 role="system",
                 content=(
@@ -315,6 +328,15 @@ class Assistant(Agent):
             logger.warning("[rag] injected unavailable signal for agent={}", redact_sensitive(agent_id))
             return
 
+        if self._langfuse_observer:
+            self._langfuse_observer.record_rag(
+                agent_id=agent_id,
+                query=query,
+                top_k=5,
+                context=context,
+                success=True,
+                duration_seconds=time.perf_counter() - retrieval_started,
+            )
         if not context:
             logger.info(f"[rag] no context returned for agent={agent_id}")
             return
@@ -388,10 +410,29 @@ class Assistant(Agent):
         if not normalized_query:
             return "A search query is required."
 
+        retrieval_started = time.perf_counter()
         try:
             context = await get_rag_context(str(agent_id), normalized_query, top_k=top_k)
         except RagRetrievalError:
+            if self._langfuse_observer:
+                self._langfuse_observer.record_rag(
+                    agent_id=str(agent_id),
+                    query=normalized_query,
+                    top_k=top_k,
+                    context=None,
+                    success=False,
+                    duration_seconds=time.perf_counter() - retrieval_started,
+                )
             return "Knowledge base search is temporarily unavailable. Please try again later."
+        if self._langfuse_observer:
+            self._langfuse_observer.record_rag(
+                agent_id=str(agent_id),
+                query=normalized_query,
+                top_k=top_k,
+                context=context,
+                success=True,
+                duration_seconds=time.perf_counter() - retrieval_started,
+            )
         return context or "No matching knowledge base context found."
 
     @function_tool
@@ -403,13 +444,36 @@ class Assistant(Agent):
             tool_name: The exact HTTP tool name from the attached HTTP tools list.
             arguments_json: A JSON object string containing the tool arguments.
         """
-        arguments = parse_http_tool_arguments(arguments_json)
-        result = await call_http_tool(
-            tool_name=tool_name,
-            arguments=arguments,
-            config=self._config,
-            call_context=self._call_context,
-        )
+        started = time.perf_counter()
+        arguments: dict = {}
+        try:
+            arguments = parse_http_tool_arguments(arguments_json)
+            result = await call_http_tool(
+                tool_name=tool_name,
+                arguments=arguments,
+                config=self._config,
+                call_context=self._call_context,
+            )
+        except Exception:
+            if self._langfuse_observer:
+                self._langfuse_observer.record_tool(
+                    tool_type="http",
+                    tool_name=tool_name,
+                    arguments=arguments,
+                    result=None,
+                    success=False,
+                    duration_seconds=time.perf_counter() - started,
+                )
+            raise
+        if self._langfuse_observer:
+            self._langfuse_observer.record_tool(
+                tool_type="http",
+                tool_name=tool_name,
+                arguments=arguments,
+                result=result,
+                success=True,
+                duration_seconds=time.perf_counter() - started,
+            )
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
     @function_tool
@@ -422,14 +486,37 @@ class Assistant(Agent):
             tool_name: The exact MCP tool name to execute.
             arguments_json: A JSON object string containing the tool arguments.
         """
-        arguments = parse_arguments_json(arguments_json)
-        result = await call_mcp_tool(
-            connection_id=connection_id,
-            tool_name=tool_name,
-            arguments=arguments,
-            config=self._config,
-            call_context=self._call_context,
-        )
+        started = time.perf_counter()
+        arguments: dict = {}
+        try:
+            arguments = parse_arguments_json(arguments_json)
+            result = await call_mcp_tool(
+                connection_id=connection_id,
+                tool_name=tool_name,
+                arguments=arguments,
+                config=self._config,
+                call_context=self._call_context,
+            )
+        except Exception:
+            if self._langfuse_observer:
+                self._langfuse_observer.record_tool(
+                    tool_type="mcp",
+                    tool_name=tool_name,
+                    arguments=arguments,
+                    result=None,
+                    success=False,
+                    duration_seconds=time.perf_counter() - started,
+                )
+            raise
+        if self._langfuse_observer:
+            self._langfuse_observer.record_tool(
+                tool_type="mcp",
+                tool_name=tool_name,
+                arguments=arguments,
+                result=result,
+                success=True,
+                duration_seconds=time.perf_counter() - started,
+            )
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
 
@@ -437,6 +524,8 @@ async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
     await ctx.connect()
+    langfuse_observer = LangfuseCallObserver()
+    trace_started = time.perf_counter()
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
         voice_metadata = parse_voice_session_metadata(raw_metadata)
@@ -445,15 +534,37 @@ async def entrypoint(ctx: JobContext):
         call_context = build_call_context(ctx.room.name, metadata)
         if not call_context.get("agent_id") and metadata.get("agent_id"):
             call_context["agent_id"] = metadata["agent_id"]
-        config = await get_config(
-            call_context.get("agent_id"),
-            agent_number=call_context.get("agent_number"),
-            allow_default_config=True,
+        langfuse_observer.start_call(
+            room_name=ctx.room.name,
+            call_context=call_context,
+            config={},
+            preview_mode=preview_mode,
         )
-        metadata = await apply_initiation_webhook_metadata(config, metadata, call_context)
-        config = apply_metadata_overrides(config, metadata)
-        config["voice_config"] = voice_metadata.config
-        config["agent_language"] = voice_metadata.config["language"]
+        config_started = time.perf_counter()
+        try:
+            config = await get_config(
+                call_context.get("agent_id"),
+                agent_number=call_context.get("agent_number"),
+                allow_default_config=True,
+            )
+            metadata = await apply_initiation_webhook_metadata(
+                config, metadata, call_context
+            )
+            config = apply_metadata_overrides(config, metadata)
+            config["voice_config"] = voice_metadata.config
+            config["agent_language"] = voice_metadata.config["language"]
+        except Exception:
+            langfuse_observer.record_configuration(
+                success=False,
+                duration_seconds=time.perf_counter() - config_started,
+            )
+            langfuse_observer.finish(
+                call_completed=False,
+                ended_normally=False,
+                call_duration_seconds=time.perf_counter() - trace_started,
+            )
+            langfuse_observer.flush()
+            raise
     else:
         metadata = parse_metadata(raw_metadata)
         preview_mode = False
@@ -469,13 +580,40 @@ async def entrypoint(ctx: JobContext):
         call_context = build_call_context(ctx.room.name, metadata)
         logger.info("Call context: {}", redact_sensitive(call_context))
 
-        config = await get_config(
-            call_context.get("agent_id"),
-            agent_number=call_context.get("agent_number"),
+        langfuse_observer.start_call(
+            room_name=ctx.room.name,
+            call_context=call_context,
+            config={},
+            preview_mode=preview_mode,
         )
-        metadata = await apply_initiation_webhook_metadata(config, metadata, call_context)
-        config = apply_metadata_overrides(config, metadata)
-        config = attach_resolved_voice_config(config)
+        config_started = time.perf_counter()
+        try:
+            config = await get_config(
+                call_context.get("agent_id"),
+                agent_number=call_context.get("agent_number"),
+            )
+            metadata = await apply_initiation_webhook_metadata(
+                config, metadata, call_context
+            )
+            config = apply_metadata_overrides(config, metadata)
+            config = attach_resolved_voice_config(config)
+        except Exception:
+            langfuse_observer.record_configuration(
+                success=False,
+                duration_seconds=time.perf_counter() - config_started,
+            )
+            langfuse_observer.finish(
+                call_completed=False,
+                ended_normally=False,
+                call_duration_seconds=time.perf_counter() - trace_started,
+            )
+            langfuse_observer.flush()
+            raise
+    langfuse_observer.record_configuration(
+        success=True,
+        duration_seconds=time.perf_counter() - config_started,
+        config=config,
+    )
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 
     try:
@@ -492,6 +630,12 @@ async def entrypoint(ctx: JobContext):
         provider_kwargs = build_session_provider_kwargs(config)
     except ProviderAdapterError as error:
         logger.error("Voice provider adapter error: {}", redact_sensitive(str(error)))
+        langfuse_observer.finish(
+            call_completed=False,
+            ended_normally=False,
+            call_duration_seconds=time.perf_counter() - trace_started,
+        )
+        langfuse_observer.flush()
         ctx.shutdown(reason=f"provider adapter error: {error}")
         return
 
@@ -522,15 +666,18 @@ async def entrypoint(ctx: JobContext):
     )
     if not preview_mode:
         await live_transcript_publisher.start(call_start_time)
-    transcript_collector = TranscriptCollector(
-        on_item=live_transcript_publisher.publish_transcript
-    ).attach(session)
+    def on_transcript_item(item):
+        live_transcript_publisher.publish_transcript(item)
+        langfuse_observer.record_transcript(item)
+
+    transcript_collector = TranscriptCollector(on_item=on_transcript_item).attach(session)
     system_prompt = build_agent_instructions(config)
     agent = Assistant(
         system_prompt=system_prompt,
         config=config,
         call_context=call_context,
         transcript_collector=transcript_collector,
+        langfuse_observer=langfuse_observer,
     )
 
     @ctx.room.on("data_received")
@@ -570,6 +717,7 @@ async def entrypoint(ctx: JobContext):
             on_preview_text_stream,
         )
 
+    session_started = time.perf_counter()
     try:
         await session.start(
             room=ctx.room,
@@ -577,8 +725,22 @@ async def entrypoint(ctx: JobContext):
             room_options=build_room_options(),
         )
     except Exception:
+        langfuse_observer.record_session_startup(
+            success=False,
+            duration_seconds=time.perf_counter() - session_started,
+        )
+        langfuse_observer.finish(
+            call_completed=False,
+            ended_normally=False,
+            call_duration_seconds=time.perf_counter() - trace_started,
+        )
+        langfuse_observer.flush()
         await live_transcript_publisher.close(reason="session_start_failed")
         raise
+    langfuse_observer.record_session_startup(
+        success=True,
+        duration_seconds=time.perf_counter() - session_started,
+    )
     speak_first_message(session, config)
 
     recording_id = None
@@ -606,12 +768,22 @@ async def entrypoint(ctx: JobContext):
                 "[LIVE_TRANSCRIPT] Failed to close publisher: {}",
                 redact_sensitive(str(error)),
             )
-        if preview_mode:
-            return
-        try:
-            await call_finalizer.finalize()
-        except Exception as error:
-            logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        finalization_succeeded = preview_mode
+        if not preview_mode:
+            try:
+                await call_finalizer.finalize()
+                finalization_succeeded = True
+            except Exception as error:
+                logger.error(
+                    "[CALL_LOG] Failed to finalize completed call: {}",
+                    redact_sensitive(str(error)),
+                )
+        langfuse_observer.finish(
+            call_completed=finalization_succeeded,
+            ended_normally=finalization_succeeded,
+            call_duration_seconds=time.perf_counter() - trace_started,
+        )
+        langfuse_observer.flush()
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)

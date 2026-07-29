@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import asyncio
+from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -68,6 +69,33 @@ class WorkerHandlerTests(unittest.TestCase):
         )
 
         self.assertNotIn("send_dtmf_events", [tool.id for tool in agent.tools])
+
+    def test_assistant_records_http_and_mcp_tool_execution(self):
+        observations = []
+
+        class Observer:
+            def record_tool(self, **kwargs):
+                observations.append(kwargs)
+
+        agent = Assistant(
+            system_prompt="Use tools.",
+            config={},
+            call_context={"call_id": "call-1"},
+            langfuse_observer=Observer(),
+        )
+
+        async def run():
+            with patch("main.call_http_tool", AsyncMock(return_value={"data": {"ok": True}})):
+                await Assistant.call_http_tool._func(agent, "lookup", '{"id":"123"}')
+            with patch("main.call_mcp_tool", AsyncMock(side_effect=RuntimeError("failed"))):
+                with self.assertRaises(RuntimeError):
+                    await Assistant.call_mcp_tool._func(agent, "connection-1", "search", "{}")
+
+        asyncio.run(run())
+
+        self.assertEqual([item["tool_type"] for item in observations], ["http", "mcp"])
+        self.assertTrue(observations[0]["success"])
+        self.assertFalse(observations[1]["success"])
 
     def test_provider_section_parses_supported_provider_model_values(self):
         self.assertEqual(provider_section("deepgram/nova-3"), {"provider": "deepgram", "model": "nova-3"})

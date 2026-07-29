@@ -21,6 +21,7 @@ Website: [quickvoice.co](https://quickvoice.co)
 - **What you can run locally:** the web app, console, API, AI service, Postgres, Redis, Prisma migrations, and generated dev env files.
 - **What needs real credentials:** real phone calls require LiveKit plus Twilio or Telnyx credentials; billing, OAuth, email, and storage need their provider keys.
 - **How it is positioned:** see the [core positioning framework](./docs/positioning/core-positioning-framework.md) for code-backed marketing and sales claims.
+- **How calls are observed:** see the [Langfuse integration guide](./docs/integrations/langfuse.md) for traces, privacy, and deterministic evaluation.
 
 ```mermaid
 flowchart LR
