@@ -17,8 +17,8 @@ export default function ApiKeysPage() {
             Go to <strong>Settings → API keys</strong>.
           </li>
           <li>
-            Create a new key and choose the permissions your MCP client needs.
-            The default matrix is MCP-ready for trusted automation.
+            Create a new key. New keys are organization-scoped and MCP-ready by
+            default for trusted automation.
           </li>
           <li>Copy the key once and store it in your secret manager.</li>
         </ol>

@@ -80,7 +80,7 @@ export function McpConfigGenerator() {
                   </button>
                 </div>
                 <span className="mt-2 block text-xs leading-5 text-[var(--qv-muted)]">
-                  The token is only used to render the config below.
+                  The API key is only used to render the config below.
                 </span>
               </label>
 
