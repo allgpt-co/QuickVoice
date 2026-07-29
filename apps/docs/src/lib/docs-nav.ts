@@ -18,9 +18,6 @@ export const docsNav: DocsNavGroup[] = [
       { title: "API reference", href: "/api-reference", description: "REST routes, auth, schemas, and responses." },
       { title: "Guides", href: "/guides", description: "Implementation and operations guides." },
       { title: "Changelog", href: "/changelog", description: "Documentation, API, and MCP updates." },
-      { title: "Quickstart", href: "/mcp/quickstart", description: "Connect an MCP client in minutes." },
-      { title: "Architecture", href: "/mcp/architecture", description: "Recommended app boundaries for docs, MCP, and APIs." },
-      { title: "API keys", href: "/mcp/api-keys", description: "Create least-privilege keys for MCP clients." },
     ],
   },
   {
@@ -36,7 +33,7 @@ export const docsNav: DocsNavGroup[] = [
     items: [
       { title: "Troubleshooting", href: "/mcp/troubleshooting", description: "Fix common connection and session errors." },
       { title: "Self-hosting", href: "/mcp/self-hosting", description: "Deploy the dedicated MCP service on ECS." },
-      { title: "Changelog", href: "/mcp/changelog", description: "Tool and resource schema changes." },
+      { title: "MCP changelog", href: "/mcp/changelog", description: "Tool and resource schema changes." },
     ],
   },
 ];
