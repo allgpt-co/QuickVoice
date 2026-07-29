@@ -179,6 +179,7 @@ class WorkerHandlerTests(unittest.TestCase):
                 "from_number": "+15551230000",
                 "to_number": "+15550001111",
                 "outbound_id": "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
+                "sip.callID": "carrier-call-id-123",
             },
         )
 
@@ -187,7 +188,22 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(context["user_number"], "+15550001111")
         self.assertEqual(context["from_number"], "+15551230000")
         self.assertEqual(context["to_number"], "+15550001111")
+        self.assertEqual(context["call_id"], "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113")
         self.assertEqual(context["outbound_id"], "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113")
+
+    def test_build_call_context_uses_outbound_room_id_before_carrier_call_id(self):
+        context = build_call_context(
+            room_name="outbound_9b1c1f91-c050-444b-a1f1-d9b719e542c1",
+            metadata={
+                "direction": "outbound",
+                "from_number": "+15551230000",
+                "to_number": "+15550001111",
+                "sip.callID": "carrier-call-id-123",
+            },
+        )
+
+        self.assertEqual(context["call_id"], "9b1c1f91-c050-444b-a1f1-d9b719e542c1")
+        self.assertEqual(context["outbound_id"], "9b1c1f91-c050-444b-a1f1-d9b719e542c1")
 
     def test_build_call_context_keeps_web_widget_room_out_of_phone_fields(self):
         context = build_call_context(

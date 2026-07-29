@@ -49,7 +49,9 @@ const LiveCallsContext = createContext<LiveCallsContextValue | null>(null);
 
 function upsertCall(current: LiveCallRoom[] | undefined, call: LiveCallRoom) {
   const existing = current ?? [];
-  const index = existing.findIndex((item) => item.callId === call.callId);
+  const index = existing.findIndex(
+    (item) => item.callId === call.callId || item.roomName === call.roomName
+  );
   if (index === -1) return [call, ...existing];
   const next = [...existing];
   next[index] = { ...next[index], ...call };
@@ -125,7 +127,11 @@ export function LiveCallsProvider({
       if (!isLifecycleEventForOrganization(event, organizationId)) return;
       queryClient.setQueryData<LiveCallRoom[]>(
         queryKeys.calls.live(),
-        (current) => current?.filter((call) => call.callId !== event.callId) ?? []
+        (current) =>
+          current?.filter(
+            (call) =>
+              call.callId !== event.callId && call.roomName !== event.roomName
+          ) ?? []
       );
       setEndedCallIds((current) => new Set(current).add(event.callId));
     }

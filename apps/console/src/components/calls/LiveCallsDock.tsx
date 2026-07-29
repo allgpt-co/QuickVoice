@@ -455,7 +455,11 @@ export function LiveCallsDock({ organizationId }: { organizationId: string }) {
 
   useEffect(() => {
     if (!selectedCall) return;
-    const updated = sortedCalls.find((call) => call.callId === selectedCall.callId);
+    const updated = sortedCalls.find(
+      (call) =>
+        call.callId === selectedCall.callId ||
+        call.roomName === selectedCall.roomName
+    );
     if (updated && updated !== selectedCall) setSelectedCall(updated);
     // Updating metadata should follow query-cache changes without closing an ended call.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -621,14 +625,18 @@ export function LiveCallsDock({ organizationId }: { organizationId: string }) {
 }
 
 function dedupeLiveCalls(calls: LiveCallRoom[]) {
-  const byCallId = new Map<string, LiveCallRoom>();
+  const merged: LiveCallRoom[] = [];
   for (const call of calls) {
-    const existing = byCallId.get(call.callId);
-    if (!existing) {
-      byCallId.set(call.callId, call);
+    const existingIndex = merged.findIndex(
+      (existing) =>
+        existing.callId === call.callId || existing.roomName === call.roomName
+    );
+    if (existingIndex === -1) {
+      merged.push(call);
       continue;
     }
-    byCallId.set(call.callId, {
+    const existing = merged[existingIndex]!;
+    merged[existingIndex] = {
       ...existing,
       participantCount: Math.max(existing.participantCount, call.participantCount),
       direction: existing.direction === "unknown" ? call.direction : existing.direction,
@@ -639,7 +647,7 @@ function dedupeLiveCalls(calls: LiveCallRoom[]) {
       calleeId: existing.calleeId ?? call.calleeId,
       fromNumber: existing.fromNumber ?? call.fromNumber,
       toNumber: existing.toNumber ?? call.toNumber,
-    });
+    };
   }
-  return [...byCallId.values()];
+  return merged;
 }

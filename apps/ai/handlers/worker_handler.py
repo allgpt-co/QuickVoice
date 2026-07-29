@@ -68,11 +68,26 @@ def build_call_context(room_name: str, metadata: dict[str, Any]) -> dict[str, An
     )
     direction = _pick(metadata, "direction", "callDirection") or "inbound"
 
+    room_outbound_id = _outbound_id_from_room(room_name)
+    outbound_id = _pick(metadata, "outbound_id", "outboundId") or room_outbound_id
+
     if direction == "outbound":
-        agent_number = _pick(metadata, "agent_number", "agentNumber", "from_number", "fromNumber") or room_agent_number
-        user_number = _pick(metadata, "user_number", "userNumber", "to_number", "toNumber") or room_user_number
+        agent_number = (
+            _pick(metadata, "agent_number", "agentNumber", "from_number", "fromNumber")
+            or room_agent_number
+        )
+        user_number = (
+            _pick(metadata, "user_number", "userNumber", "to_number", "toNumber")
+            or room_user_number
+        )
         from_number = agent_number
         to_number = user_number
+        call_id = (
+            _pick(metadata, "call_id", "callId")
+            or outbound_id
+            or _pick(metadata, "sip.callID", "sip_call_id")
+            or room_name
+        )
     else:
         agent_number = _pick(
             metadata,
@@ -96,16 +111,24 @@ def build_call_context(room_name: str, metadata: dict[str, Any]) -> dict[str, An
         ) or room_user_number
         from_number = user_number
         to_number = agent_number
+        call_id = (
+            _pick(metadata, "call_id", "callId", "sip.callID", "sip_call_id")
+            or room_name
+        )
 
     return {
-        "call_id": _pick(metadata, "call_id", "callId", "sip.callID", "sip_call_id") or room_name,
+        "call_id": call_id,
         "agent_id": _pick(metadata, "agent_id", "agentId"),
         "agent_number": agent_number,
         "user_number": user_number,
         "direction": direction,
         "from_number": from_number,
         "to_number": to_number,
-        "outbound_id": _pick(metadata, "outbound_id", "outboundId"),
+        "outbound_id": (
+            outbound_id
+            if direction == "outbound"
+            else _pick(metadata, "outbound_id", "outboundId")
+        ),
         "provider": _pick(metadata, "provider"),
         "metadata": _metadata_extras(metadata),
     }
@@ -485,6 +508,13 @@ def _numbers_from_room(room_name: str):
     if len(parts) == 2:
         return parts[0], parts[1]
     return None, None
+
+
+def _outbound_id_from_room(room_name: str):
+    if room_name.startswith("outbound_"):
+        outbound_id = room_name[len("outbound_") :].strip()
+        return outbound_id or None
+    return None
 
 
 def _pick(source: dict[str, Any], *keys: str):
