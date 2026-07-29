@@ -50,8 +50,16 @@ import subprocess
 import sys
 import time
 
+from pathlib import Path
+from dotenv import load_dotenv
+
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
+
+from langfuse import Langfuse
+from langfuse.decorators import observe, langfuse_context
+
+langfuse = Langfuse()
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -266,6 +274,7 @@ class Assistant(Agent):
         config: dict,
         call_context: dict,
         transcript_collector: TranscriptCollector | None = None,
+        trace: any = None,
     ):
         super().__init__(
             instructions=system_prompt,
@@ -275,6 +284,7 @@ class Assistant(Agent):
         self._call_context = call_context
         self._metadata_collector = CallMetadataCollector(config)
         self._transcript_collector = transcript_collector
+        self._trace = trace
 
     def _rag_enabled(self) -> bool:
         return bool(self._config.get("use_rag"))
@@ -355,7 +365,21 @@ class Assistant(Agent):
             field: The configured data field id or name.
             value: The value the caller provided for that field.
         """
-        return self._metadata_collector.record_extracted_data(field, value)
+        span = None
+        if self._trace:
+            span = self._trace.span(
+                name="record_call_extracted_data",
+                input={"field": field, "value": value}
+            )
+        try:
+            result = self._metadata_collector.record_extracted_data(field, value)
+            if span:
+                span.end(output=result)
+            return result
+        except Exception as e:
+            if span:
+                span.end(level="ERROR", status_message=str(e))
+            raise
 
     @function_tool
     async def record_call_evaluation(self, identifier: str, value: str) -> str:
@@ -366,7 +390,21 @@ class Assistant(Agent):
             identifier: The configured evaluation id or name.
             value: The evaluation result, such as true, false, yes, no, or a short label.
         """
-        return self._metadata_collector.record_evaluation(identifier, value)
+        span = None
+        if self._trace:
+            span = self._trace.span(
+                name="record_call_evaluation",
+                input={"identifier": identifier, "value": value}
+            )
+        try:
+            result = self._metadata_collector.record_evaluation(identifier, value)
+            if span:
+                span.end(output=result)
+            return result
+        except Exception as e:
+            if span:
+                span.end(level="ERROR", status_message=str(e))
+            raise
 
     @function_tool
     async def search_knowledge_base(self, query: str, top_k: int = 5) -> str:
@@ -388,11 +426,23 @@ class Assistant(Agent):
         if not normalized_query:
             return "A search query is required."
 
+        span = None
+        if self._trace:
+            span = self._trace.span(
+                name="search_knowledge_base",
+                input={"query": normalized_query, "top_k": top_k}
+            )
+
         try:
             context = await get_rag_context(str(agent_id), normalized_query, top_k=top_k)
-        except RagRetrievalError:
+            result = context or "No matching knowledge base context found."
+            if span:
+                span.end(output=result)
+            return result
+        except Exception as e:
+            if span:
+                span.end(level="ERROR", status_message=str(e))
             return "Knowledge base search is temporarily unavailable. Please try again later."
-        return context or "No matching knowledge base context found."
 
     @function_tool
     async def call_http_tool(self, tool_name: str, arguments_json: str = "{}") -> str:
@@ -403,14 +453,28 @@ class Assistant(Agent):
             tool_name: The exact HTTP tool name from the attached HTTP tools list.
             arguments_json: A JSON object string containing the tool arguments.
         """
-        arguments = parse_http_tool_arguments(arguments_json)
-        result = await call_http_tool(
-            tool_name=tool_name,
-            arguments=arguments,
-            config=self._config,
-            call_context=self._call_context,
-        )
-        return json.dumps(result.get("data", result), ensure_ascii=False)
+        span = None
+        if self._trace:
+            span = self._trace.span(
+                name="call_http_tool",
+                input={"tool_name": tool_name, "arguments_json": arguments_json}
+            )
+        try:
+            arguments = parse_http_tool_arguments(arguments_json)
+            result = await call_http_tool(
+                tool_name=tool_name,
+                arguments=arguments,
+                config=self._config,
+                call_context=self._call_context,
+            )
+            res_str = json.dumps(result.get("data", result), ensure_ascii=False)
+            if span:
+                span.end(output=res_str)
+            return res_str
+        except Exception as e:
+            if span:
+                span.end(level="ERROR", status_message=str(e))
+            raise
 
     @function_tool
     async def call_mcp_tool(self, connection_id: str, tool_name: str, arguments_json: str = "{}") -> str:
@@ -422,15 +486,29 @@ class Assistant(Agent):
             tool_name: The exact MCP tool name to execute.
             arguments_json: A JSON object string containing the tool arguments.
         """
-        arguments = parse_arguments_json(arguments_json)
-        result = await call_mcp_tool(
-            connection_id=connection_id,
-            tool_name=tool_name,
-            arguments=arguments,
-            config=self._config,
-            call_context=self._call_context,
-        )
-        return json.dumps(result.get("data", result), ensure_ascii=False)
+        span = None
+        if self._trace:
+            span = self._trace.span(
+                name="call_mcp_tool",
+                input={"connection_id": connection_id, "tool_name": tool_name, "arguments_json": arguments_json}
+            )
+        try:
+            arguments = parse_arguments_json(arguments_json)
+            result = await call_mcp_tool(
+                connection_id=connection_id,
+                tool_name=tool_name,
+                arguments=arguments,
+                config=self._config,
+                call_context=self._call_context,
+            )
+            res_str = json.dumps(result.get("data", result), ensure_ascii=False)
+            if span:
+                span.end(output=res_str)
+            return res_str
+        except Exception as e:
+            if span:
+                span.end(level="ERROR", status_message=str(e))
+            raise
 
 
 async def entrypoint(ctx: JobContext):
@@ -488,6 +566,21 @@ async def entrypoint(ctx: JobContext):
     if not call_context.get("provider") and config.get("provider"):
         call_context["provider"] = config["provider"]
 
+    session_id = ctx.room.name
+    agent_id = call_context.get("agent_id") or config.get("agent_id", "unknown")
+    
+    trace = langfuse.trace(
+        name="voice-agent-session",
+        session_id=session_id,
+        user_id=call_context.get("caller_number", "unknown"),
+        metadata={
+            "agent_id": agent_id,
+            "provider": call_context.get("provider"),
+            "direction": call_context.get("direction")
+        },
+        tags=["livekit", "voice"]
+    )
+
     try:
         provider_kwargs = build_session_provider_kwargs(config)
     except ProviderAdapterError as error:
@@ -531,6 +624,7 @@ async def entrypoint(ctx: JobContext):
         config=config,
         call_context=call_context,
         transcript_collector=transcript_collector,
+        trace=trace,
     )
 
     @ctx.room.on("data_received")
@@ -599,6 +693,7 @@ async def entrypoint(ctx: JobContext):
     shutdown_reason = "session_shutdown"
 
     async def unified_shutdown_hook():
+        langfuse.flush()
         try:
             await live_transcript_publisher.close(reason=shutdown_reason)
         except Exception as error:

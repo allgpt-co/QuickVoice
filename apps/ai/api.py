@@ -1,6 +1,11 @@
 import os
 from contextlib import asynccontextmanager
 from typing import Any, List, Optional
+from pathlib import Path
+from dotenv import load_dotenv
+
+APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse

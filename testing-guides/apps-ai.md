@@ -1,4 +1,4 @@
-# Python AI service, LiveKit worker, and RAG runtime Testing Guide
+a Python AI service, LiveKit worker, and RAG runtime Testing Guide
 
 ## Intern Testing Orientation
 
@@ -143,6 +143,20 @@ Core dependencies and providers:
    - Zero-PII calls include transcript text or recording path.
    - Queue files contain unsanitized filenames.
 
+7. **Langfuse observability and tracing**
+
+   Data flow: agent worker -> Langfuse API.
+
+   Pass:
+   - Worker initializes Langfuse client and registers trace with session/room name as `session_id`.
+   - Tool calls and LLM generation spans are automatically wrapped with `@observe` decorator, linking them to the parent trace.
+   - Trace metadata captures `agent_id`, `provider`, and `direction`.
+   - Client successfully flushes traces on worker shutdown or session finalization.
+
+   Fail:
+   - Langfuse keys missing or empty (when tracing is expected) fails to initialize telemetry without crashing the agent.
+   - Generation / tool traces do not map to the correct user call session.
+
 ## Setup And Required Services
 
 Minimum local setup from repo root:
@@ -214,6 +228,9 @@ Required AI environment variables proven from code/templates:
 - `KB_ALLOWED_HOSTS`
 - `KB_AGENT_BUDGETS_JSON`
 - `AI_CALL_LOG_QUEUE_DIR`
+- `LANGFUSE_SECRET_KEY`
+- `LANGFUSE_PUBLIC_KEY`
+- `LANGFUSE_HOST`
 
 Related server environment variables to verify during integration:
 
@@ -454,6 +471,30 @@ Blocked:
 
    Blocked:
    - Real LiveKit egress/S3 upload without LiveKit and S3 credentials.
+
+13. **Langfuse tracing validation**
+
+    Setup:
+    - Configure `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, and `LANGFUSE_HOST` in `apps/ai/.env`.
+    - Set `PYTHONUNBUFFERED=1`.
+
+    Steps:
+    1. Start FastAPI API Server and LiveKit worker in separate terminals.
+    2. Trigger a simulated call using the smoke test script:
+       ```sh
+       python scripts/phase2d_voice_smoke.py --probe-wav mock_probe.wav
+       ```
+    3. Access the Langfuse dashboard.
+
+    Pass:
+    - A trace named `voice-agent-session` appears in the Langfuse dashboard.
+    - The trace is associated with the correct `session_id` (matching the LiveKit room name).
+    - Metadata maps to the correct `agent_id`, `provider`, and call `direction`.
+    - Spans are generated for tool execution (like Pinecone search) and LLM generations with nested parameters.
+
+    Fail:
+    - The agent worker hangs or crashes due to Langfuse API errors or missing credentials.
+    - No traces are sent, or nested spans are missing from the session trace.
 
 ## SaaS Business And Operations Test Cases
 
@@ -967,6 +1008,16 @@ Mark these checks **Blocked** when credentials/services are unavailable.
 
    Fail: server worker throws “KB processing returned an invalid response body” because AI returned an async job response.
 
+9. **Langfuse Tracing**
+
+   Requires `LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, and `LANGFUSE_HOST`.
+
+   Pass: traces appear in the Langfuse dashboard after call completes or smoke test finishes.
+
+   Blocked: no Langfuse account/keys.
+
+   Fail: worker crashes or hangs when Langfuse credentials are not provided or if the Langfuse host is unreachable.
+
 ## Regression Risks
 
 - `POST /kb/process` async response currently does not match the server worker’s expected synchronous `processed` response.
@@ -979,6 +1030,7 @@ Mark these checks **Blocked** when credentials/services are unavailable.
 - MCP tool filtering must continue hiding side-effect tools as providers add new tool metadata shapes.
 - Dependency ranges in `requirements.txt` are broad; provider SDK changes can break runtime behavior.
 - Docker image skips model download only when `SKIP_MODEL_DOWNLOAD=true`; production builds may fail or slow down if model download changes.
+- Langfuse SDK initialization and tracing could block session shutdown or finalization if flush fails or networks are slow. Trace calls must fail gracefully and not interrupt the live agent conversation.
 
 ## Release Acceptance Checklist
 
@@ -999,3 +1051,4 @@ Mark these checks **Blocked** when credentials/services are unavailable.
 - [ ] Console KB, agent Advanced/Knowledge, and Calls pages show correct loading, empty, error, success, and destructive-action states.
 - [ ] Owner/admin/member RBAC behavior is verified for AI-related server/console features.
 - [ ] Logs and metrics contain no raw phone numbers, prompts, transcripts, webhooks, or secrets.
+- [ ] Langfuse tracing compiles/imports correctly and records the `voice-agent-session` trace and nested generation/tool spans without disrupting the call workflow.
