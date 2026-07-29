@@ -40,6 +40,7 @@ from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_p
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
 from utils.logger import redact_sensitive
+from utils.langfuse import setup_langfuse
 import asyncio
 import json
 from datetime import datetime, timezone
@@ -436,6 +437,16 @@ class Assistant(Agent):
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
+    tracer_provider = setup_langfuse()
+
+    if tracer_provider:
+        logger.info("[LANGFUSE] Job tracing enabled")
+
+        async def flush_langfuse_trace():
+            tracer_provider.force_flush()
+
+        ctx.add_shutdown_callback(flush_langfuse_trace)
+
     await ctx.connect()
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
@@ -641,6 +652,13 @@ if __name__ == "__main__":
             reload=os.getenv("AI_API_RELOAD", "false").lower() == "true",
         )
         raise SystemExit(0)
+
+    tracer_provider = setup_langfuse()
+
+    if tracer_provider:
+        logger.info("[LANGFUSE] Observability enabled")
+    else:
+        logger.info("[LANGFUSE] Observability disabled - credentials not configured")
 
     agents.cli.run_app(
         agents.WorkerOptions(
