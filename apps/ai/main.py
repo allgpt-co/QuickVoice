@@ -497,7 +497,7 @@ async def entrypoint(ctx: JobContext):
     if not call_context.get("provider") and config.get("provider"):
         call_context["provider"] = config["provider"]
 
-    logger.info("=== Langfuse setup starting ===")
+    logger.info("Langfuse setup initializing...")
     setup_langfuse(
         session_id=ctx.room.name,
         metadata={
@@ -505,9 +505,7 @@ async def entrypoint(ctx: JobContext):
             "provider": config.get("provider"),
         },
     )
-    logger.info("Langfuse initialized")
-    print("Langfuse initialized")
-
+    logger.info("=== Langfuse initializing completed ===")
     try:
         provider_kwargs = build_session_provider_kwargs(config)
     except ProviderAdapterError as error:
@@ -646,10 +644,12 @@ async def entrypoint(ctx: JobContext):
         shutdown_reason = "participant_disconnected"
         asyncio.create_task(unified_shutdown_hook())
 
-    logger.info("=== Langfuse shutdown ===")
-    ctx.add_shutdown_callback(
-        lambda: get_langfuse().flush()
-    )
+    logger.info("Langfuse shutdown initialised...")
+    async def flush_langfuse():
+        get_langfuse().flush()
+
+    ctx.add_shutdown_callback(flush_langfuse)
+    logger.info("=== Langfuse shutdown completed ===")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "serve":
