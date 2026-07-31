@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from langfuse import Langfuse
 
 from livekit import agents, rtc
 from livekit.agents import (
@@ -13,6 +14,7 @@ from livekit.agents import (
 )
 from livekit.agents.beta.tools import send_dtmf_events
 from livekit.plugins import noise_cancellation, silero
+from livekit.plugins.turn_detector.multilingual import MultilingualModel
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
@@ -52,6 +54,12 @@ import time
 
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
+
+if os.getenv("LANGFUSE_SECRET_KEY") and os.getenv("LANGFUSE_PUBLIC_KEY"):
+    logger.info("Initializing Langfuse tracing...")
+    langfuse = Langfuse()
+else:
+    logger.info("Langfuse credentials not found. Tracing disabled.")
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -509,10 +517,9 @@ async def entrypoint(ctx: JobContext):
     session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
-        turn_handling=TurnHandlingOptions(
-            turn_detection=inference.TurnDetector(),
-        ),
+        turn_handling=TurnHandlingOptions(turn_detection=MultilingualModel()),
         ivr_detection=config["ivr_navigation_enabled"],
+        preemptive_generation=config.get("preemptive_generation", True),
     )
     call_start_time = datetime.now(timezone.utc)
     live_transcript_publisher = LiveTranscriptPublisher(
