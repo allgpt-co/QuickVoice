@@ -202,32 +202,40 @@ model Apikey {
 // ─── Organization & Team ─────────────────────────────────────────────────────
 
 model Organization {
-  id                String             @id
-  name              String
-  slug              String
-  logo              String?
-  createdAt         DateTime
-  metadata          String?
-  stripeCustomerId  String?
-  members           Member[]
-  invitations       Invitation[]
-  accessKey         String?
-  plan              PlanId             @default(free)
-  agents            Agent[]
-  agentWidgets      AgentWidget[]
-  knowledgeSources  KnowledgeSource[]
-  phoneNumbers      PhoneNumber[]
-  tools             Tool[]
-  mcpConnections    McpConnection[]
-  mcpCatalogItems   McpServerCatalogItem[]
-  agentMcpConnections AgentMcpConnection[]
-  mcpToolExecutionLogs McpToolExecutionLog[]
-  secrets           Secret[]
-  callLogs          CallLog[]
-  outboundCalls     OutboundCall[]
-  campaigns         Campaign[]
-  organizationroles OrganizationRole[]
-  auditLogs         AuditLog[]
+  id                             String                          @id
+  name                           String
+  slug                           String
+  logo                           String?
+  createdAt                      DateTime
+  metadata                       String?
+  stripeCustomerId               String?
+  members                        Member[]
+  invitations                    Invitation[]
+  accessKey                      String?
+  plan                           PlanId                          @default(free)
+  agents                         Agent[]
+  agentWidgets                   AgentWidget[]
+  knowledgeSources               KnowledgeSource[]
+  phoneNumbers                   PhoneNumber[]
+  tools                          Tool[]
+  mcpConnections                 McpConnection[]
+  mcpCatalogItems                McpServerCatalogItem[]
+  agentMcpConnections            AgentMcpConnection[]
+  mcpToolExecutionLogs           McpToolExecutionLog[]
+  secrets                        Secret[]
+  callLogs                       CallLog[]
+  outboundCalls                  OutboundCall[]
+  campaigns                      Campaign[]
+  campaignPersonalizationSchemas CampaignPersonalizationSchema[]
+  campaignRecipientSnapshots     CampaignRecipientSnapshot[]
+  campaignExperiments            CampaignExperiment[]
+  campaignExperimentAssignments  CampaignExperimentAssignment[]
+  campaignGoals                  CampaignGoal[]
+  campaignConversionEvents       CampaignConversionEvent[]
+  campaignAttributionResults     CampaignAttributionResult[]
+  campaignReportSnapshots        CampaignReportSnapshot[]
+  organizationroles              OrganizationRole[]
+  auditLogs                      AuditLog[]
 
   @@unique([slug])
   @@index([stripeCustomerId])
@@ -354,8 +362,8 @@ model Agent {
   phoneNumbersCount     Int                 @default(0)
   toolsCount            Int                 @default(0)
 
-  tools Tool[] @relation("AgentTools")
-  mcpConnections AgentMcpConnection[]
+  tools                Tool[]                @relation("AgentTools")
+  mcpConnections       AgentMcpConnection[]
   mcpToolExecutionLogs McpToolExecutionLog[]
 
   @@unique([organizationId, agentSlug])
@@ -406,21 +414,21 @@ model AgentConfiguration {
 }
 
 model AgentWidget {
-  widgetId        String       @id
+  widgetId        String               @id
   organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agentId         String
-  agent           Agent        @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
+  agent           Agent                @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
   name            String
-  enabled         Boolean      @default(false)
-  allowedOrigins  Json         @default("[]")
-  theme           Json         @default("{}")
-  consentRequired Boolean      @default(true)
+  enabled         Boolean              @default(false)
+  allowedOrigins  Json                 @default("[]")
+  theme           Json                 @default("{}")
+  consentRequired Boolean              @default(true)
   consentText     String?
   createdByUserId String?
   updatedByUserId String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
   sessions        AgentWidgetSession[]
 
   @@index([organizationId])
@@ -510,7 +518,7 @@ model CallLog {
   transcripts        CallTranscript[]
   // Soft-deleted rows retain only the minimum operational tombstone.
   deleted            Boolean          @default(false)
-  outbound           OutboundCall?    
+  outbound           OutboundCall?
 
   @@index([organizationId])
   @@index([organizationId, startTime])
@@ -534,28 +542,31 @@ model CallTranscript {
 }
 
 model OutboundCall {
-  outboundId     String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  agentId        String?
-  agent          Agent?       @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  userId         String?
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  campaignId     String?
-  campaign       Campaign?    @relation(fields: [campaignId], references: [campaignId], onDelete: SetNull)
-  scheduledAt    DateTime?
-  callLogId      String?        @unique
-  callLog        CallLog?       @relation(fields: [callLogId], references: [callId], onDelete: SetNull)
+  outboundId            String                         @id @default(uuid())
+  organizationId        String
+  organization          Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agentId               String?
+  agent                 Agent?                         @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  userId                String?
+  user                  User?                          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  campaignId            String?
+  campaign              Campaign?                      @relation(fields: [campaignId], references: [campaignId], onDelete: SetNull)
+  scheduledAt           DateTime?
+  callLogId             String?                        @unique
+  callLog               CallLog?                       @relation(fields: [callLogId], references: [callId], onDelete: SetNull)
   // Call Data
-  phoneNumber  String
-  fromNumber   String
-  firstMessage String?
-  systemPrompt String?
-  optionalData Json?            @default("{}")
-  mode         OutboundCallMode
-  status       CallStatus
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  phoneNumber           String
+  fromNumber            String
+  firstMessage          String?
+  systemPrompt          String?
+  optionalData          Json?                          @default("{}")
+  recipientSnapshots    CampaignRecipientSnapshot[]
+  experimentAssignments CampaignExperimentAssignment[]
+  attributionResults    CampaignAttributionResult[]
+  mode                  OutboundCallMode
+  status                CallStatus
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
 
   @@index([organizationId])
   @@index([agentId])
@@ -565,34 +576,243 @@ model OutboundCall {
 }
 
 model Campaign {
-  campaignId     String         @id @default(uuid())
-  organizationId String
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  agentId        String?
-  agent          Agent?         @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  fromNumber     String
-  scheduledAt    DateTime?
-  sourceFileKey  String?
-  sourceFileName String?
-  totalRecipients Int          @default(0)
-  validRecipients Int          @default(0)
-  invalidRecipients Int        @default(0)
-  ringingTimeoutSeconds Int    @default(60)
-  timezone       String        @default("UTC")
-  status         CampaignStatus
-  startedAt      DateTime?
-  completedAt    DateTime?
-  userId         String?
-  user           User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  outboundCalls  OutboundCall[]
+  campaignId             String                          @id @default(uuid())
+  organizationId         String
+  organization           Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                   String
+  createdAt              DateTime                        @default(now())
+  updatedAt              DateTime                        @updatedAt
+  agentId                String?
+  agent                  Agent?                          @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  fromNumber             String
+  scheduledAt            DateTime?
+  sourceFileKey          String?
+  sourceFileName         String?
+  totalRecipients        Int                             @default(0)
+  validRecipients        Int                             @default(0)
+  invalidRecipients      Int                             @default(0)
+  ringingTimeoutSeconds  Int                             @default(60)
+  timezone               String                          @default("UTC")
+  status                 CampaignStatus
+  startedAt              DateTime?
+  completedAt            DateTime?
+  userId                 String?
+  user                   User?                           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  outboundCalls          OutboundCall[]
+  personalizationSchemas CampaignPersonalizationSchema[]
+  recipientSnapshots     CampaignRecipientSnapshot[]
+  experiments            CampaignExperiment[]
+  experimentAssignments  CampaignExperimentAssignment[]
+  goals                  CampaignGoal[]
+  conversionEvents       CampaignConversionEvent[]
+  attributionResults     CampaignAttributionResult[]
+  reportSnapshots        CampaignReportSnapshot[]
 
   @@index([organizationId])
   @@index([agentId])
   @@index([userId])
   @@index([status, scheduledAt])
+}
+
+model CampaignPersonalizationSchema {
+  schemaId       String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId     String
+  campaign       Campaign     @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  version        Int
+  fields         Json
+  templates      Json         @default("{}")
+  attribution    Json         @default("{}")
+  createdAt      DateTime     @default(now())
+
+  @@unique([campaignId, version])
+  @@index([organizationId])
+  @@index([campaignId])
+}
+
+model CampaignRecipientSnapshot {
+  snapshotId           String        @id @default(uuid())
+  organizationId       String
+  organization         Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId           String
+  campaign             Campaign      @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  outboundId           String?
+  outboundCall         OutboundCall? @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  schemaVersion        Int
+  rowNumber            Int?
+  recipientKey         String
+  values               Json
+  findings             Json          @default("[]")
+  renderedConfigDigest String
+  renderedPreview      Json          @default("{}")
+  skipped              Boolean       @default(false)
+  skipReason           String?
+  createdAt            DateTime      @default(now())
+
+  @@unique([campaignId, recipientKey, schemaVersion])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([outboundId])
+}
+
+model CampaignExperiment {
+  experimentId       String                         @id @default(uuid())
+  organizationId     String
+  organization       Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                       @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  version            Int
+  definition         Json
+  status             String                         @default("DRAFT")
+  startedAt          DateTime?
+  stoppedAt          DateTime?
+  createdAt          DateTime                       @default(now())
+  variants           CampaignExperimentVariant[]
+  assignments        CampaignExperimentAssignment[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([campaignId, version])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([status])
+}
+
+model CampaignExperimentVariant {
+  variantId          String                         @id @default(uuid())
+  experimentId       String
+  experiment         CampaignExperiment             @relation(fields: [experimentId], references: [experimentId], onDelete: Cascade)
+  key                String
+  name               String
+  allocationBps      Int
+  configVersion      Json
+  isControl          Boolean                        @default(false)
+  createdAt          DateTime                       @default(now())
+  assignments        CampaignExperimentAssignment[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([experimentId, key])
+  @@index([experimentId])
+}
+
+model CampaignExperimentAssignment {
+  assignmentId    String                    @id @default(uuid())
+  organizationId  String
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId      String
+  campaign        Campaign                  @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  experimentId    String
+  experiment      CampaignExperiment        @relation(fields: [experimentId], references: [experimentId], onDelete: Cascade)
+  variantId       String
+  variant         CampaignExperimentVariant @relation(fields: [variantId], references: [variantId], onDelete: Cascade)
+  outboundId      String?
+  outboundCall    OutboundCall?             @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  unitKey         String
+  assignmentHash  String
+  excluded        Boolean                   @default(false)
+  exclusionReason String?
+  assignedAt      DateTime                  @default(now())
+
+  @@unique([experimentId, unitKey])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([variantId])
+  @@index([outboundId])
+}
+
+model CampaignGoal {
+  goalId             String                      @id @default(uuid())
+  organizationId     String
+  organization       Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                    @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  key                String
+  version            Int
+  definition         Json
+  attributionPolicy  Json
+  createdAt          DateTime                    @default(now())
+  conversions        CampaignConversionEvent[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([campaignId, key, version])
+  @@index([organizationId])
+  @@index([campaignId])
+}
+
+model CampaignConversionEvent {
+  conversionId       String                      @id @default(uuid())
+  organizationId     String
+  organization       Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                    @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  goalId             String?
+  goal               CampaignGoal?               @relation(fields: [goalId], references: [goalId], onDelete: SetNull)
+  goalKey            String
+  dedupeKey          String
+  externalCustomerId String
+  occurredAt         DateTime
+  ingestedAt         DateTime                    @default(now())
+  valueCents         Int?
+  currency           String?
+  source             String
+  evidence           Json
+  revision           Int                         @default(1)
+  rejected           Boolean                     @default(false)
+  rejectionReason    String?
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([organizationId, dedupeKey])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([goalKey])
+  @@index([externalCustomerId])
+}
+
+model CampaignAttributionResult {
+  attributionId        String                     @id @default(uuid())
+  organizationId       String
+  organization         Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId           String
+  campaign             Campaign                   @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  conversionId         String
+  conversion           CampaignConversionEvent    @relation(fields: [conversionId], references: [conversionId], onDelete: Cascade)
+  goalId               String?
+  goal                 CampaignGoal?              @relation(fields: [goalId], references: [goalId], onDelete: SetNull)
+  experimentId         String?
+  experiment           CampaignExperiment?        @relation(fields: [experimentId], references: [experimentId], onDelete: SetNull)
+  variantId            String?
+  variant              CampaignExperimentVariant? @relation(fields: [variantId], references: [variantId], onDelete: SetNull)
+  outboundId           String?
+  outboundCall         OutboundCall?              @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  policyVersion        Int
+  model                String
+  attributedValueCents Int?
+  evidence             Json
+  computedAt           DateTime                   @default(now())
+  revision             Int                        @default(1)
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([conversionId])
+  @@index([experimentId])
+  @@index([variantId])
+}
+
+model CampaignReportSnapshot {
+  reportId           String       @id @default(uuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign     @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  scope              String
+  definitionsVersion Int
+  dataFreshnessAt    DateTime
+  report             Json
+  createdAt          DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([scope])
 }
 
 // ─── Config & Secrets ────────────────────────────────────────────────────────
@@ -624,24 +844,24 @@ model Tool {
 }
 
 model McpServerCatalogItem {
-  mcpServerId     String           @id @default(uuid())
-  organizationId  String?
-  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  slug            String
-  name            String
-  description     String
-  source          McpCatalogSource @default(SMITHERY)
-  provider        String           @default("smithery")
-  mcpUrl          String
+  mcpServerId       String           @id @default(uuid())
+  organizationId    String?
+  organization      Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  slug              String
+  name              String
+  description       String
+  source            McpCatalogSource @default(SMITHERY)
+  provider          String           @default("smithery")
+  mcpUrl            String
   smitheryServerKey String?
-  authType        String           @default("oauth")
-  categories      Json?            @default("[]")
-  verified        Boolean          @default(false)
-  toolCount       Int              @default(0)
-  metadata        Json?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  connections     McpConnection[]
+  authType          String           @default("oauth")
+  categories        Json?            @default("[]")
+  verified          Boolean          @default(false)
+  toolCount         Int              @default(0)
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  connections       McpConnection[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -650,27 +870,27 @@ model McpServerCatalogItem {
 }
 
 model McpConnection {
-  mcpConnectionId       String              @id @default(uuid())
-  organizationId        String
-  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId                String?
-  user                  User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  catalogItemId         String?
-  catalogItem           McpServerCatalogItem? @relation(fields: [catalogItemId], references: [mcpServerId], onDelete: SetNull)
-  displayName           String
-  provider              String              @default("smithery")
-  mcpUrl                String
-  smitheryNamespace     String
-  smitheryConnectionId  String
-  status                McpConnectionStatus @default(PENDING)
-  setupUrl              String?
-  tools                 Json?               @default("[]")
-  metadata              Json?
-  lastSyncedAt          DateTime?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  agents                AgentMcpConnection[]
-  executionLogs         McpToolExecutionLog[]
+  mcpConnectionId      String                @id @default(uuid())
+  organizationId       String
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId               String?
+  user                 User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  catalogItemId        String?
+  catalogItem          McpServerCatalogItem? @relation(fields: [catalogItemId], references: [mcpServerId], onDelete: SetNull)
+  displayName          String
+  provider             String                @default("smithery")
+  mcpUrl               String
+  smitheryNamespace    String
+  smitheryConnectionId String
+  status               McpConnectionStatus   @default(PENDING)
+  setupUrl             String?
+  tools                Json?                 @default("[]")
+  metadata             Json?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  agents               AgentMcpConnection[]
+  executionLogs        McpToolExecutionLog[]
 
   @@unique([organizationId, smitheryConnectionId])
   @@index([organizationId])

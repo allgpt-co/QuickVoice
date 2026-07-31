@@ -142,6 +142,51 @@ export type OutboundCall = Prisma.OutboundCallModel
  */
 export type Campaign = Prisma.CampaignModel
 /**
+ * Model CampaignPersonalizationSchema
+ *
+ */
+export type CampaignPersonalizationSchema = Prisma.CampaignPersonalizationSchemaModel
+/**
+ * Model CampaignRecipientSnapshot
+ *
+ */
+export type CampaignRecipientSnapshot = Prisma.CampaignRecipientSnapshotModel
+/**
+ * Model CampaignExperiment
+ *
+ */
+export type CampaignExperiment = Prisma.CampaignExperimentModel
+/**
+ * Model CampaignExperimentVariant
+ *
+ */
+export type CampaignExperimentVariant = Prisma.CampaignExperimentVariantModel
+/**
+ * Model CampaignExperimentAssignment
+ *
+ */
+export type CampaignExperimentAssignment = Prisma.CampaignExperimentAssignmentModel
+/**
+ * Model CampaignGoal
+ *
+ */
+export type CampaignGoal = Prisma.CampaignGoalModel
+/**
+ * Model CampaignConversionEvent
+ *
+ */
+export type CampaignConversionEvent = Prisma.CampaignConversionEventModel
+/**
+ * Model CampaignAttributionResult
+ *
+ */
+export type CampaignAttributionResult = Prisma.CampaignAttributionResultModel
+/**
+ * Model CampaignReportSnapshot
+ *
+ */
+export type CampaignReportSnapshot = Prisma.CampaignReportSnapshotModel
+/**
  * Model Tool
  *
  */

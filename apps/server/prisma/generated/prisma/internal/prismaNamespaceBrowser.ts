@@ -71,6 +71,15 @@ export const ModelName = {
   CallTranscript: 'CallTranscript',
   OutboundCall: 'OutboundCall',
   Campaign: 'Campaign',
+  CampaignPersonalizationSchema: 'CampaignPersonalizationSchema',
+  CampaignRecipientSnapshot: 'CampaignRecipientSnapshot',
+  CampaignExperiment: 'CampaignExperiment',
+  CampaignExperimentVariant: 'CampaignExperimentVariant',
+  CampaignExperimentAssignment: 'CampaignExperimentAssignment',
+  CampaignGoal: 'CampaignGoal',
+  CampaignConversionEvent: 'CampaignConversionEvent',
+  CampaignAttributionResult: 'CampaignAttributionResult',
+  CampaignReportSnapshot: 'CampaignReportSnapshot',
   Tool: 'Tool',
   McpServerCatalogItem: 'McpServerCatalogItem',
   McpConnection: 'McpConnection',
@@ -395,6 +404,9 @@ export const KnowledgeSourceScalarFieldEnum = {
   storagePath: 'storagePath',
   sourceType: 'sourceType',
   status: 'status',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  errorRetryable: 'errorRetryable',
   metadata: 'metadata',
   lastIndexedAt: 'lastIndexedAt',
   uploadedAt: 'uploadedAt'
@@ -485,6 +497,156 @@ export const CampaignScalarFieldEnum = {
 } as const
 
 export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
+
+
+export const CampaignPersonalizationSchemaScalarFieldEnum = {
+  schemaId: 'schemaId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  version: 'version',
+  fields: 'fields',
+  templates: 'templates',
+  attribution: 'attribution',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignPersonalizationSchemaScalarFieldEnum = (typeof CampaignPersonalizationSchemaScalarFieldEnum)[keyof typeof CampaignPersonalizationSchemaScalarFieldEnum]
+
+
+export const CampaignRecipientSnapshotScalarFieldEnum = {
+  snapshotId: 'snapshotId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  outboundId: 'outboundId',
+  schemaVersion: 'schemaVersion',
+  rowNumber: 'rowNumber',
+  recipientKey: 'recipientKey',
+  values: 'values',
+  findings: 'findings',
+  renderedConfigDigest: 'renderedConfigDigest',
+  renderedPreview: 'renderedPreview',
+  skipped: 'skipped',
+  skipReason: 'skipReason',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignRecipientSnapshotScalarFieldEnum = (typeof CampaignRecipientSnapshotScalarFieldEnum)[keyof typeof CampaignRecipientSnapshotScalarFieldEnum]
+
+
+export const CampaignExperimentScalarFieldEnum = {
+  experimentId: 'experimentId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  version: 'version',
+  definition: 'definition',
+  status: 'status',
+  startedAt: 'startedAt',
+  stoppedAt: 'stoppedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignExperimentScalarFieldEnum = (typeof CampaignExperimentScalarFieldEnum)[keyof typeof CampaignExperimentScalarFieldEnum]
+
+
+export const CampaignExperimentVariantScalarFieldEnum = {
+  variantId: 'variantId',
+  experimentId: 'experimentId',
+  key: 'key',
+  name: 'name',
+  allocationBps: 'allocationBps',
+  configVersion: 'configVersion',
+  isControl: 'isControl',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignExperimentVariantScalarFieldEnum = (typeof CampaignExperimentVariantScalarFieldEnum)[keyof typeof CampaignExperimentVariantScalarFieldEnum]
+
+
+export const CampaignExperimentAssignmentScalarFieldEnum = {
+  assignmentId: 'assignmentId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  experimentId: 'experimentId',
+  variantId: 'variantId',
+  outboundId: 'outboundId',
+  unitKey: 'unitKey',
+  assignmentHash: 'assignmentHash',
+  excluded: 'excluded',
+  exclusionReason: 'exclusionReason',
+  assignedAt: 'assignedAt'
+} as const
+
+export type CampaignExperimentAssignmentScalarFieldEnum = (typeof CampaignExperimentAssignmentScalarFieldEnum)[keyof typeof CampaignExperimentAssignmentScalarFieldEnum]
+
+
+export const CampaignGoalScalarFieldEnum = {
+  goalId: 'goalId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  key: 'key',
+  version: 'version',
+  definition: 'definition',
+  attributionPolicy: 'attributionPolicy',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignGoalScalarFieldEnum = (typeof CampaignGoalScalarFieldEnum)[keyof typeof CampaignGoalScalarFieldEnum]
+
+
+export const CampaignConversionEventScalarFieldEnum = {
+  conversionId: 'conversionId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  goalId: 'goalId',
+  goalKey: 'goalKey',
+  dedupeKey: 'dedupeKey',
+  externalCustomerId: 'externalCustomerId',
+  occurredAt: 'occurredAt',
+  ingestedAt: 'ingestedAt',
+  valueCents: 'valueCents',
+  currency: 'currency',
+  source: 'source',
+  evidence: 'evidence',
+  revision: 'revision',
+  rejected: 'rejected',
+  rejectionReason: 'rejectionReason'
+} as const
+
+export type CampaignConversionEventScalarFieldEnum = (typeof CampaignConversionEventScalarFieldEnum)[keyof typeof CampaignConversionEventScalarFieldEnum]
+
+
+export const CampaignAttributionResultScalarFieldEnum = {
+  attributionId: 'attributionId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  conversionId: 'conversionId',
+  goalId: 'goalId',
+  experimentId: 'experimentId',
+  variantId: 'variantId',
+  outboundId: 'outboundId',
+  policyVersion: 'policyVersion',
+  model: 'model',
+  attributedValueCents: 'attributedValueCents',
+  evidence: 'evidence',
+  computedAt: 'computedAt',
+  revision: 'revision'
+} as const
+
+export type CampaignAttributionResultScalarFieldEnum = (typeof CampaignAttributionResultScalarFieldEnum)[keyof typeof CampaignAttributionResultScalarFieldEnum]
+
+
+export const CampaignReportSnapshotScalarFieldEnum = {
+  reportId: 'reportId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  scope: 'scope',
+  definitionsVersion: 'definitionsVersion',
+  dataFreshnessAt: 'dataFreshnessAt',
+  report: 'report',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignReportSnapshotScalarFieldEnum = (typeof CampaignReportSnapshotScalarFieldEnum)[keyof typeof CampaignReportSnapshotScalarFieldEnum]
 
 
 export const ToolScalarFieldEnum = {

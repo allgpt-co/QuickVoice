@@ -11,6 +11,10 @@ test("OpenAPI documents billing, batch campaigns, and destructive agent cleanup"
     "/outbound-calls/batch-upload-url",
     "/outbound-calls/batches",
     "/outbound-calls/batches/{campaignId}",
+    "/outbound-calls/batches/{campaignId}/personalization/preflight",
+    "/outbound-calls/batches/{campaignId}/experiments/assignments",
+    "/outbound-calls/batches/{campaignId}/conversions/validate",
+    "/outbound-calls/batches/{campaignId}/reports/preview",
     "/kb/{kbId}/retry",
   ]) {
     assert.ok(spec.paths[path], `missing OpenAPI path: ${path}`);

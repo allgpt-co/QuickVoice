@@ -14,6 +14,18 @@ import {
   quickOutboundCallSchema,
 } from "./outbound-call.schema.js";
 import {
+  assignExperimentVariants,
+  buildCampaignReport,
+  preflightCampaignPersonalization,
+  validateConversionEvent,
+} from "./outbound-campaign-intelligence.service.js";
+import {
+  campaignAssignmentRequestSchema,
+  campaignConversionEventSchema,
+  campaignPreflightRequestSchema,
+  campaignReportRequestSchema,
+} from "./outbound-campaign-intelligence.schema.js";
+import {
   cancelBatchCampaign,
   createBatchCampaign,
   createBatchUploadUrl,
@@ -28,7 +40,11 @@ import {
   retryOutboundCall,
 } from "./outbound-call.service.js";
 
-type Middleware = (req: Request, res: Response, next: NextFunction) => void | Promise<void>;
+type Middleware = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => void | Promise<void>;
 type CreateQuickOutboundCall = typeof createQuickOutboundCall;
 type ListOutboundCalls = typeof listOutboundCalls;
 type GetOutboundCall = typeof getOutboundCall;
@@ -61,12 +77,16 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
   const router = Router();
   const authenticate = deps.authMiddleware ?? authMiddleware;
   const authorizeCreate =
-    deps.requireCreatePermission ?? requirePermission({ outboundCalls: ["create"] });
+    deps.requireCreatePermission ??
+    requirePermission({ outboundCalls: ["create"] });
   const authorizeRead =
-    deps.requireReadPermission ?? requirePermission({ outboundCalls: ["read"] });
+    deps.requireReadPermission ??
+    requirePermission({ outboundCalls: ["read"] });
   const authorizeDelete =
-    deps.requireDeletePermission ?? requirePermission({ outboundCalls: ["delete"] });
-  const dispatchQuickCall = deps.createQuickOutboundCall ?? createQuickOutboundCall;
+    deps.requireDeletePermission ??
+    requirePermission({ outboundCalls: ["delete"] });
+  const dispatchQuickCall =
+    deps.createQuickOutboundCall ?? createQuickOutboundCall;
   const fetchOutboundCalls = deps.listOutboundCalls ?? listOutboundCalls;
   const fetchOutboundCall = deps.getOutboundCall ?? getOutboundCall;
   const cancelOutbound = deps.cancelOutboundCall ?? cancelOutboundCall;
@@ -98,7 +118,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.post(
@@ -124,7 +144,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.get(
@@ -148,7 +168,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.post(
@@ -173,7 +193,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.get(
@@ -197,7 +217,99 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
+  );
+
+  router.post(
+    "/batches/:campaignId/personalization/preflight",
+    authenticate,
+    authorizeRead,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const input = campaignPreflightRequestSchema.parse(req.body);
+        const data = preflightCampaignPersonalization(input);
+
+        res.status(StatusCodes.OK).json({
+          success: true,
+          message: "Campaign personalization preflight completed",
+          data: { campaignId, ...data },
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.post(
+    "/batches/:campaignId/experiments/assignments",
+    authenticate,
+    authorizeCreate,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const input = campaignAssignmentRequestSchema.parse(req.body);
+        const data = assignExperimentVariants(input);
+
+        res.status(StatusCodes.OK).json({
+          success: true,
+          message: "Campaign experiment assignments computed",
+          data: { campaignId, ...data },
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.post(
+    "/batches/:campaignId/conversions/validate",
+    authenticate,
+    authorizeCreate,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const input = campaignConversionEventSchema.parse(req.body);
+        const data = validateConversionEvent(input);
+
+        res
+          .status(data.accepted ? StatusCodes.OK : StatusCodes.BAD_REQUEST)
+          .json({
+            success: data.accepted,
+            message: data.accepted
+              ? "Campaign conversion validated"
+              : "Campaign conversion rejected",
+            data: { campaignId, ...data },
+          });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.post(
+    "/batches/:campaignId/reports/preview",
+    authenticate,
+    authorizeRead,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const input = campaignReportRequestSchema.parse(req.body);
+        const data = buildCampaignReport(input);
+
+        res.status(StatusCodes.OK).json({
+          success: true,
+          message: "Campaign report preview generated",
+          data: { campaignId, ...data },
+        });
+      } catch (error) {
+        next(error);
+      }
+    },
   );
 
   router.get(
@@ -221,7 +333,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.post(
@@ -242,7 +354,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.get(
@@ -253,7 +365,10 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       try {
         const { organizationId } = getRequiredAuth(req);
         const outboundId = getOutboundId(req);
-        const outbound = await fetchOutboundCall({ organizationId, outboundId });
+        const outbound = await fetchOutboundCall({
+          organizationId,
+          outboundId,
+        });
 
         res.status(StatusCodes.OK).json({
           success: true,
@@ -268,7 +383,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.get(
@@ -289,7 +404,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.post(
@@ -316,7 +431,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   router.post(
@@ -341,7 +456,7 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
       } catch (error) {
         next(error);
       }
-    }
+    },
   );
 
   return router;

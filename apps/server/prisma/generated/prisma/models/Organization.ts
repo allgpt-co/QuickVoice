@@ -229,6 +229,14 @@ export type OrganizationWhereInput = {
   callLogs?: Prisma.CallLogListRelationFilter
   outboundCalls?: Prisma.OutboundCallListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaListRelationFilter
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotListRelationFilter
+  campaignExperiments?: Prisma.CampaignExperimentListRelationFilter
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentListRelationFilter
+  campaignGoals?: Prisma.CampaignGoalListRelationFilter
+  campaignConversionEvents?: Prisma.CampaignConversionEventListRelationFilter
+  campaignAttributionResults?: Prisma.CampaignAttributionResultListRelationFilter
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotListRelationFilter
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
 }
@@ -258,6 +266,14 @@ export type OrganizationOrderByWithRelationInput = {
   callLogs?: Prisma.CallLogOrderByRelationAggregateInput
   outboundCalls?: Prisma.OutboundCallOrderByRelationAggregateInput
   campaigns?: Prisma.CampaignOrderByRelationAggregateInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaOrderByRelationAggregateInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotOrderByRelationAggregateInput
+  campaignExperiments?: Prisma.CampaignExperimentOrderByRelationAggregateInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentOrderByRelationAggregateInput
+  campaignGoals?: Prisma.CampaignGoalOrderByRelationAggregateInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventOrderByRelationAggregateInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultOrderByRelationAggregateInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotOrderByRelationAggregateInput
   organizationroles?: Prisma.OrganizationRoleOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
 }
@@ -290,6 +306,14 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   callLogs?: Prisma.CallLogListRelationFilter
   outboundCalls?: Prisma.OutboundCallListRelationFilter
   campaigns?: Prisma.CampaignListRelationFilter
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaListRelationFilter
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotListRelationFilter
+  campaignExperiments?: Prisma.CampaignExperimentListRelationFilter
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentListRelationFilter
+  campaignGoals?: Prisma.CampaignGoalListRelationFilter
+  campaignConversionEvents?: Prisma.CampaignConversionEventListRelationFilter
+  campaignAttributionResults?: Prisma.CampaignAttributionResultListRelationFilter
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotListRelationFilter
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
 }, "id" | "slug">
@@ -349,6 +373,14 @@ export type OrganizationCreateInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -378,6 +410,14 @@ export type OrganizationUncheckedCreateInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -407,6 +447,14 @@ export type OrganizationUpdateInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -436,6 +484,14 @@ export type OrganizationUncheckedUpdateInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -666,6 +722,118 @@ export type OrganizationUpdateOneRequiredWithoutCampaignsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignsInput, Prisma.OrganizationUpdateWithoutCampaignsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutCampaignPersonalizationSchemasInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignPersonalizationSchemasInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignPersonalizationSchemasNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignPersonalizationSchemasInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignPersonalizationSchemasInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUpdateWithoutCampaignPersonalizationSchemasInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignRecipientSnapshotsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignRecipientSnapshotsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignRecipientSnapshotsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignRecipientSnapshotsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignRecipientSnapshotsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUpdateWithoutCampaignRecipientSnapshotsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignExperimentsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignExperimentsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignExperimentsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignExperimentsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignExperimentsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignExperimentsInput, Prisma.OrganizationUpdateWithoutCampaignExperimentsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignExperimentAssignmentsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignExperimentAssignmentsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignExperimentAssignmentsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignExperimentAssignmentsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignExperimentAssignmentsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUpdateWithoutCampaignExperimentAssignmentsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignGoalsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignGoalsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignGoalsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignGoalsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignGoalsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignGoalsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignGoalsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignGoalsInput, Prisma.OrganizationUpdateWithoutCampaignGoalsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignGoalsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignConversionEventsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignConversionEventsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignConversionEventsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignConversionEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignConversionEventsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignConversionEventsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignConversionEventsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignConversionEventsInput, Prisma.OrganizationUpdateWithoutCampaignConversionEventsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignAttributionResultsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignAttributionResultsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignAttributionResultsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignAttributionResultsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignAttributionResultsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignAttributionResultsInput, Prisma.OrganizationUpdateWithoutCampaignAttributionResultsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCampaignReportSnapshotsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignReportSnapshotsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCampaignReportSnapshotsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCampaignReportSnapshotsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCampaignReportSnapshotsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUpdateWithoutCampaignReportSnapshotsInput>, Prisma.OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutToolsInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutToolsInput, Prisma.OrganizationUncheckedCreateWithoutToolsInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutToolsInput
@@ -791,6 +959,14 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
 
@@ -819,6 +995,14 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -863,6 +1047,14 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -891,6 +1083,14 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -918,6 +1118,14 @@ export type OrganizationCreateWithoutMembersInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -946,6 +1154,14 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -990,6 +1206,14 @@ export type OrganizationUpdateWithoutMembersInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1018,6 +1242,14 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1046,6 +1278,14 @@ export type OrganizationCreateWithoutInvitationsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1074,6 +1314,14 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1118,6 +1366,14 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1146,6 +1402,14 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1174,6 +1438,14 @@ export type OrganizationCreateWithoutPhoneNumbersInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1202,6 +1474,14 @@ export type OrganizationUncheckedCreateWithoutPhoneNumbersInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1246,6 +1526,14 @@ export type OrganizationUpdateWithoutPhoneNumbersInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1274,6 +1562,14 @@ export type OrganizationUncheckedUpdateWithoutPhoneNumbersInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1302,6 +1598,14 @@ export type OrganizationCreateWithoutAgentsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1330,6 +1634,14 @@ export type OrganizationUncheckedCreateWithoutAgentsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1374,6 +1686,14 @@ export type OrganizationUpdateWithoutAgentsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1402,6 +1722,14 @@ export type OrganizationUncheckedUpdateWithoutAgentsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1430,6 +1758,14 @@ export type OrganizationCreateWithoutAgentWidgetsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1458,6 +1794,14 @@ export type OrganizationUncheckedCreateWithoutAgentWidgetsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1502,6 +1846,14 @@ export type OrganizationUpdateWithoutAgentWidgetsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1530,6 +1882,14 @@ export type OrganizationUncheckedUpdateWithoutAgentWidgetsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1558,6 +1918,14 @@ export type OrganizationCreateWithoutKnowledgeSourcesInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1586,6 +1954,14 @@ export type OrganizationUncheckedCreateWithoutKnowledgeSourcesInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1630,6 +2006,14 @@ export type OrganizationUpdateWithoutKnowledgeSourcesInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1658,6 +2042,14 @@ export type OrganizationUncheckedUpdateWithoutKnowledgeSourcesInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1686,6 +2078,14 @@ export type OrganizationCreateWithoutCallLogsInput = {
   secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1714,6 +2114,14 @@ export type OrganizationUncheckedCreateWithoutCallLogsInput = {
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1758,6 +2166,14 @@ export type OrganizationUpdateWithoutCallLogsInput = {
   secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1786,6 +2202,14 @@ export type OrganizationUncheckedUpdateWithoutCallLogsInput = {
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1814,6 +2238,14 @@ export type OrganizationCreateWithoutOutboundCallsInput = {
   secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1842,6 +2274,14 @@ export type OrganizationUncheckedCreateWithoutOutboundCallsInput = {
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -1886,6 +2326,14 @@ export type OrganizationUpdateWithoutOutboundCallsInput = {
   secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -1914,6 +2362,14 @@ export type OrganizationUncheckedUpdateWithoutOutboundCallsInput = {
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -1942,6 +2398,14 @@ export type OrganizationCreateWithoutCampaignsInput = {
   secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -1970,6 +2434,14 @@ export type OrganizationUncheckedCreateWithoutCampaignsInput = {
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2014,6 +2486,14 @@ export type OrganizationUpdateWithoutCampaignsInput = {
   secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2042,6 +2522,1294 @@ export type OrganizationUncheckedUpdateWithoutCampaignsInput = {
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignPersonalizationSchemasInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignPersonalizationSchemasInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput>
+}
+
+export type OrganizationUpsertWithoutCampaignPersonalizationSchemasInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignPersonalizationSchemasInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignPersonalizationSchemasInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInput>
+}
+
+export type OrganizationUpdateWithoutCampaignPersonalizationSchemasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignRecipientSnapshotsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignRecipientSnapshotsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignRecipientSnapshotsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignRecipientSnapshotsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignRecipientSnapshotsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignRecipientSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignExperimentsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignExperimentsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignExperimentsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignExperimentsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignExperimentsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignExperimentsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignExperimentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignExperimentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignExperimentAssignmentsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignExperimentAssignmentsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignExperimentAssignmentsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignExperimentAssignmentsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignExperimentAssignmentsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignExperimentAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignGoalsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignGoalsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignGoalsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignGoalsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignGoalsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignGoalsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignGoalsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignGoalsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignGoalsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignGoalsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignGoalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignGoalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignConversionEventsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignConversionEventsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignConversionEventsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignConversionEventsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignConversionEventsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignConversionEventsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignConversionEventsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignConversionEventsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignConversionEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignAttributionResultsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignAttributionResultsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignAttributionResultsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignAttributionResultsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignAttributionResultsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignAttributionResultsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCampaignReportSnapshotsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCampaignReportSnapshotsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput>
+}
+
+export type OrganizationUpsertWithoutCampaignReportSnapshotsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCampaignReportSnapshotsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCampaignReportSnapshotsInput, Prisma.OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput>
+}
+
+export type OrganizationUpdateWithoutCampaignReportSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2070,6 +3838,14 @@ export type OrganizationCreateWithoutToolsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2098,6 +3874,14 @@ export type OrganizationUncheckedCreateWithoutToolsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2142,6 +3926,14 @@ export type OrganizationUpdateWithoutToolsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2170,6 +3962,14 @@ export type OrganizationUncheckedUpdateWithoutToolsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2198,6 +3998,14 @@ export type OrganizationCreateWithoutMcpCatalogItemsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2226,6 +4034,14 @@ export type OrganizationUncheckedCreateWithoutMcpCatalogItemsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2270,6 +4086,14 @@ export type OrganizationUpdateWithoutMcpCatalogItemsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2298,6 +4122,14 @@ export type OrganizationUncheckedUpdateWithoutMcpCatalogItemsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2326,6 +4158,14 @@ export type OrganizationCreateWithoutMcpConnectionsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2354,6 +4194,14 @@ export type OrganizationUncheckedCreateWithoutMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2398,6 +4246,14 @@ export type OrganizationUpdateWithoutMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2426,6 +4282,14 @@ export type OrganizationUncheckedUpdateWithoutMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2454,6 +4318,14 @@ export type OrganizationCreateWithoutAgentMcpConnectionsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2482,6 +4354,14 @@ export type OrganizationUncheckedCreateWithoutAgentMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2526,6 +4406,14 @@ export type OrganizationUpdateWithoutAgentMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2554,6 +4442,14 @@ export type OrganizationUncheckedUpdateWithoutAgentMcpConnectionsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2582,6 +4478,14 @@ export type OrganizationCreateWithoutMcpToolExecutionLogsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2610,6 +4514,14 @@ export type OrganizationUncheckedCreateWithoutMcpToolExecutionLogsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2654,6 +4566,14 @@ export type OrganizationUpdateWithoutMcpToolExecutionLogsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2682,6 +4602,14 @@ export type OrganizationUncheckedUpdateWithoutMcpToolExecutionLogsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2710,6 +4638,14 @@ export type OrganizationCreateWithoutSecretsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
 }
@@ -2738,6 +4674,14 @@ export type OrganizationUncheckedCreateWithoutSecretsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
 }
@@ -2782,6 +4726,14 @@ export type OrganizationUpdateWithoutSecretsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
 }
@@ -2810,6 +4762,14 @@ export type OrganizationUncheckedUpdateWithoutSecretsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
 }
@@ -2839,6 +4799,14 @@ export type OrganizationCreateWithoutAuditLogsInput = {
   callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2867,6 +4835,14 @@ export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
   callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
   outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
   campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
@@ -2911,6 +4887,14 @@ export type OrganizationUpdateWithoutAuditLogsInput = {
   callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2939,6 +4923,14 @@ export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
   callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
   outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
   campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
@@ -2963,6 +4955,14 @@ export type OrganizationCountOutputType = {
   callLogs: number
   outboundCalls: number
   campaigns: number
+  campaignPersonalizationSchemas: number
+  campaignRecipientSnapshots: number
+  campaignExperiments: number
+  campaignExperimentAssignments: number
+  campaignGoals: number
+  campaignConversionEvents: number
+  campaignAttributionResults: number
+  campaignReportSnapshots: number
   organizationroles: number
   auditLogs: number
 }
@@ -2983,6 +4983,14 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   callLogs?: boolean | OrganizationCountOutputTypeCountCallLogsArgs
   outboundCalls?: boolean | OrganizationCountOutputTypeCountOutboundCallsArgs
   campaigns?: boolean | OrganizationCountOutputTypeCountCampaignsArgs
+  campaignPersonalizationSchemas?: boolean | OrganizationCountOutputTypeCountCampaignPersonalizationSchemasArgs
+  campaignRecipientSnapshots?: boolean | OrganizationCountOutputTypeCountCampaignRecipientSnapshotsArgs
+  campaignExperiments?: boolean | OrganizationCountOutputTypeCountCampaignExperimentsArgs
+  campaignExperimentAssignments?: boolean | OrganizationCountOutputTypeCountCampaignExperimentAssignmentsArgs
+  campaignGoals?: boolean | OrganizationCountOutputTypeCountCampaignGoalsArgs
+  campaignConversionEvents?: boolean | OrganizationCountOutputTypeCountCampaignConversionEventsArgs
+  campaignAttributionResults?: boolean | OrganizationCountOutputTypeCountCampaignAttributionResultsArgs
+  campaignReportSnapshots?: boolean | OrganizationCountOutputTypeCountCampaignReportSnapshotsArgs
   organizationroles?: boolean | OrganizationCountOutputTypeCountOrganizationrolesArgs
   auditLogs?: boolean | OrganizationCountOutputTypeCountAuditLogsArgs
 }
@@ -3105,6 +5113,62 @@ export type OrganizationCountOutputTypeCountCampaignsArgs<ExtArgs extends runtim
 /**
  * OrganizationCountOutputType without action
  */
+export type OrganizationCountOutputTypeCountCampaignPersonalizationSchemasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignPersonalizationSchemaWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignRecipientSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignRecipientSnapshotWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignExperimentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignExperimentWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignExperimentAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignExperimentAssignmentWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignGoalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignGoalWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignConversionEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignConversionEventWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignAttributionResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignAttributionResultWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCampaignReportSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CampaignReportSnapshotWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
 export type OrganizationCountOutputTypeCountOrganizationrolesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.OrganizationRoleWhereInput
 }
@@ -3142,6 +5206,14 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   callLogs?: boolean | Prisma.Organization$callLogsArgs<ExtArgs>
   outboundCalls?: boolean | Prisma.Organization$outboundCallsArgs<ExtArgs>
   campaigns?: boolean | Prisma.Organization$campaignsArgs<ExtArgs>
+  campaignPersonalizationSchemas?: boolean | Prisma.Organization$campaignPersonalizationSchemasArgs<ExtArgs>
+  campaignRecipientSnapshots?: boolean | Prisma.Organization$campaignRecipientSnapshotsArgs<ExtArgs>
+  campaignExperiments?: boolean | Prisma.Organization$campaignExperimentsArgs<ExtArgs>
+  campaignExperimentAssignments?: boolean | Prisma.Organization$campaignExperimentAssignmentsArgs<ExtArgs>
+  campaignGoals?: boolean | Prisma.Organization$campaignGoalsArgs<ExtArgs>
+  campaignConversionEvents?: boolean | Prisma.Organization$campaignConversionEventsArgs<ExtArgs>
+  campaignAttributionResults?: boolean | Prisma.Organization$campaignAttributionResultsArgs<ExtArgs>
+  campaignReportSnapshots?: boolean | Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Organization$auditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -3200,6 +5272,14 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   callLogs?: boolean | Prisma.Organization$callLogsArgs<ExtArgs>
   outboundCalls?: boolean | Prisma.Organization$outboundCallsArgs<ExtArgs>
   campaigns?: boolean | Prisma.Organization$campaignsArgs<ExtArgs>
+  campaignPersonalizationSchemas?: boolean | Prisma.Organization$campaignPersonalizationSchemasArgs<ExtArgs>
+  campaignRecipientSnapshots?: boolean | Prisma.Organization$campaignRecipientSnapshotsArgs<ExtArgs>
+  campaignExperiments?: boolean | Prisma.Organization$campaignExperimentsArgs<ExtArgs>
+  campaignExperimentAssignments?: boolean | Prisma.Organization$campaignExperimentAssignmentsArgs<ExtArgs>
+  campaignGoals?: boolean | Prisma.Organization$campaignGoalsArgs<ExtArgs>
+  campaignConversionEvents?: boolean | Prisma.Organization$campaignConversionEventsArgs<ExtArgs>
+  campaignAttributionResults?: boolean | Prisma.Organization$campaignAttributionResultsArgs<ExtArgs>
+  campaignReportSnapshots?: boolean | Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Organization$auditLogsArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
@@ -3225,6 +5305,14 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     callLogs: Prisma.$CallLogPayload<ExtArgs>[]
     outboundCalls: Prisma.$OutboundCallPayload<ExtArgs>[]
     campaigns: Prisma.$CampaignPayload<ExtArgs>[]
+    campaignPersonalizationSchemas: Prisma.$CampaignPersonalizationSchemaPayload<ExtArgs>[]
+    campaignRecipientSnapshots: Prisma.$CampaignRecipientSnapshotPayload<ExtArgs>[]
+    campaignExperiments: Prisma.$CampaignExperimentPayload<ExtArgs>[]
+    campaignExperimentAssignments: Prisma.$CampaignExperimentAssignmentPayload<ExtArgs>[]
+    campaignGoals: Prisma.$CampaignGoalPayload<ExtArgs>[]
+    campaignConversionEvents: Prisma.$CampaignConversionEventPayload<ExtArgs>[]
+    campaignAttributionResults: Prisma.$CampaignAttributionResultPayload<ExtArgs>[]
+    campaignReportSnapshots: Prisma.$CampaignReportSnapshotPayload<ExtArgs>[]
     organizationroles: Prisma.$OrganizationRolePayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
   }
@@ -3647,6 +5735,14 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   callLogs<T extends Prisma.Organization$callLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$callLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CallLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   outboundCalls<T extends Prisma.Organization$outboundCallsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$outboundCallsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OutboundCallPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   campaigns<T extends Prisma.Organization$campaignsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignPersonalizationSchemas<T extends Prisma.Organization$campaignPersonalizationSchemasArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignPersonalizationSchemasArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignPersonalizationSchemaPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignRecipientSnapshots<T extends Prisma.Organization$campaignRecipientSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignRecipientSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignRecipientSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignExperiments<T extends Prisma.Organization$campaignExperimentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignExperimentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignExperimentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignExperimentAssignments<T extends Prisma.Organization$campaignExperimentAssignmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignExperimentAssignmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignExperimentAssignmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignGoals<T extends Prisma.Organization$campaignGoalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignGoalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignGoalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignConversionEvents<T extends Prisma.Organization$campaignConversionEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignConversionEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignConversionEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignAttributionResults<T extends Prisma.Organization$campaignAttributionResultsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignAttributionResultsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignAttributionResultPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  campaignReportSnapshots<T extends Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignReportSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organizationroles<T extends Prisma.Organization$organizationrolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$organizationrolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Organization$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -4437,6 +6533,198 @@ export type Organization$campaignsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.CampaignScalarFieldEnum | Prisma.CampaignScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignPersonalizationSchemas
+ */
+export type Organization$campaignPersonalizationSchemasArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignPersonalizationSchema
+   */
+  select?: Prisma.CampaignPersonalizationSchemaSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignPersonalizationSchema
+   */
+  omit?: Prisma.CampaignPersonalizationSchemaOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignPersonalizationSchemaInclude<ExtArgs> | null
+  where?: Prisma.CampaignPersonalizationSchemaWhereInput
+  orderBy?: Prisma.CampaignPersonalizationSchemaOrderByWithRelationInput | Prisma.CampaignPersonalizationSchemaOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignPersonalizationSchemaWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignPersonalizationSchemaScalarFieldEnum | Prisma.CampaignPersonalizationSchemaScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignRecipientSnapshots
+ */
+export type Organization$campaignRecipientSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignRecipientSnapshot
+   */
+  select?: Prisma.CampaignRecipientSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignRecipientSnapshot
+   */
+  omit?: Prisma.CampaignRecipientSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignRecipientSnapshotInclude<ExtArgs> | null
+  where?: Prisma.CampaignRecipientSnapshotWhereInput
+  orderBy?: Prisma.CampaignRecipientSnapshotOrderByWithRelationInput | Prisma.CampaignRecipientSnapshotOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignRecipientSnapshotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignRecipientSnapshotScalarFieldEnum | Prisma.CampaignRecipientSnapshotScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignExperiments
+ */
+export type Organization$campaignExperimentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignExperiment
+   */
+  select?: Prisma.CampaignExperimentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignExperiment
+   */
+  omit?: Prisma.CampaignExperimentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignExperimentInclude<ExtArgs> | null
+  where?: Prisma.CampaignExperimentWhereInput
+  orderBy?: Prisma.CampaignExperimentOrderByWithRelationInput | Prisma.CampaignExperimentOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignExperimentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignExperimentScalarFieldEnum | Prisma.CampaignExperimentScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignExperimentAssignments
+ */
+export type Organization$campaignExperimentAssignmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignExperimentAssignment
+   */
+  select?: Prisma.CampaignExperimentAssignmentSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignExperimentAssignment
+   */
+  omit?: Prisma.CampaignExperimentAssignmentOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignExperimentAssignmentInclude<ExtArgs> | null
+  where?: Prisma.CampaignExperimentAssignmentWhereInput
+  orderBy?: Prisma.CampaignExperimentAssignmentOrderByWithRelationInput | Prisma.CampaignExperimentAssignmentOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignExperimentAssignmentWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignExperimentAssignmentScalarFieldEnum | Prisma.CampaignExperimentAssignmentScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignGoals
+ */
+export type Organization$campaignGoalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignGoal
+   */
+  select?: Prisma.CampaignGoalSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignGoal
+   */
+  omit?: Prisma.CampaignGoalOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignGoalInclude<ExtArgs> | null
+  where?: Prisma.CampaignGoalWhereInput
+  orderBy?: Prisma.CampaignGoalOrderByWithRelationInput | Prisma.CampaignGoalOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignGoalWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignGoalScalarFieldEnum | Prisma.CampaignGoalScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignConversionEvents
+ */
+export type Organization$campaignConversionEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignConversionEvent
+   */
+  select?: Prisma.CampaignConversionEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignConversionEvent
+   */
+  omit?: Prisma.CampaignConversionEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignConversionEventInclude<ExtArgs> | null
+  where?: Prisma.CampaignConversionEventWhereInput
+  orderBy?: Prisma.CampaignConversionEventOrderByWithRelationInput | Prisma.CampaignConversionEventOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignConversionEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignConversionEventScalarFieldEnum | Prisma.CampaignConversionEventScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignAttributionResults
+ */
+export type Organization$campaignAttributionResultsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignAttributionResult
+   */
+  select?: Prisma.CampaignAttributionResultSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignAttributionResult
+   */
+  omit?: Prisma.CampaignAttributionResultOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignAttributionResultInclude<ExtArgs> | null
+  where?: Prisma.CampaignAttributionResultWhereInput
+  orderBy?: Prisma.CampaignAttributionResultOrderByWithRelationInput | Prisma.CampaignAttributionResultOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignAttributionResultWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignAttributionResultScalarFieldEnum | Prisma.CampaignAttributionResultScalarFieldEnum[]
+}
+
+/**
+ * Organization.campaignReportSnapshots
+ */
+export type Organization$campaignReportSnapshotsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CampaignReportSnapshot
+   */
+  select?: Prisma.CampaignReportSnapshotSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CampaignReportSnapshot
+   */
+  omit?: Prisma.CampaignReportSnapshotOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CampaignReportSnapshotInclude<ExtArgs> | null
+  where?: Prisma.CampaignReportSnapshotWhereInput
+  orderBy?: Prisma.CampaignReportSnapshotOrderByWithRelationInput | Prisma.CampaignReportSnapshotOrderByWithRelationInput[]
+  cursor?: Prisma.CampaignReportSnapshotWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CampaignReportSnapshotScalarFieldEnum | Prisma.CampaignReportSnapshotScalarFieldEnum[]
 }
 
 /**

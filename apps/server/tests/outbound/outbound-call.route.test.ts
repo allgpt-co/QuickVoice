@@ -380,3 +380,120 @@ test("POST /:outboundId/retry dispatches a replacement call", async () => {
     outboundId: "out_failed",
   });
 });
+
+test("campaign intelligence routes run before generic batch detail routing", async () => {
+  const preflight = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/personalization/preflight`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schema: {
+          version: 1,
+          fields: [
+            {
+              name: "firstName",
+              type: "string",
+              source: "audience_snapshot",
+              required: true,
+              missingBehavior: "skip",
+              invalidBehavior: "skip",
+            },
+          ],
+          templates: { firstMessage: "Hi {{firstName}}" },
+        },
+        recipients: [{ recipientKey: "cust_1", values: { firstName: "Ada" } }],
+      }),
+    },
+  );
+  assert.equal(preflight.status, 200);
+  const preflightBody = await preflight.json();
+  assert.equal(preflightBody.data.campaignId, "campaign_123");
+  assert.equal(preflightBody.data.validRecipients, 1);
+  assert.equal(
+    preflightBody.data.rows[0].renderedPreview.firstMessage,
+    "Hi Ada",
+  );
+
+  const assignments = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/experiments/assignments`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        experiment: {
+          experimentId: "exp_1",
+          version: 1,
+          hypothesis: "Variant improves connects",
+          primaryMetric: "connected",
+          stoppingPolicy: "Stop after minimum sample",
+          variants: [
+            {
+              key: "control",
+              name: "Control",
+              allocationBps: 5000,
+              isControl: true,
+            },
+            { key: "variant", name: "Variant", allocationBps: 5000 },
+          ],
+        },
+        unitKeys: ["cust_1", "cust_2"],
+      }),
+    },
+  );
+  assert.equal(assignments.status, 200);
+  const assignmentsBody = await assignments.json();
+  assert.equal(assignmentsBody.data.assignments.length, 2);
+  assert.equal(assignmentsBody.data.assignments[0].assignmentHash.length, 64);
+
+  const conversion = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/conversions/validate`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        goalKey: "booking_created",
+        dedupeKey: "booking_123",
+        externalCustomerId: "cust_1",
+        occurredAt: "2026-07-30T12:00:00.000Z",
+        valueCents: 2500,
+        currency: "USD",
+        source: "crm-webhook",
+      }),
+    },
+  );
+  assert.equal(conversion.status, 200);
+  const conversionBody = await conversion.json();
+  assert.equal(conversionBody.data.accepted, true);
+
+  const report = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/reports/preview`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        randomized: true,
+        attempts: [
+          {
+            unitKey: "cust_1",
+            variantKey: "control",
+            connected: true,
+            costCents: 100,
+          },
+        ],
+        conversions: [
+          {
+            unitKey: "cust_1",
+            variantKey: "control",
+            goalKey: "booking_created",
+            valueCents: 2500,
+          },
+        ],
+      }),
+    },
+  );
+  assert.equal(report.status, 200);
+  const reportBody = await report.json();
+  assert.equal(reportBody.data.causalClaimAllowed, false);
+  assert.equal(reportBody.data.totals.conversions, 1);
+});
