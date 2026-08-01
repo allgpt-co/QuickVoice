@@ -1,8 +1,9 @@
 import os
+import warnings
 from dataclasses import dataclass
 from typing import Any
 
-from livekit.plugins import aws, deepgram, elevenlabs, sarvam
+from livekit.plugins import deepgram, elevenlabs, sarvam
 
 
 class ProviderAdapterError(RuntimeError):
@@ -58,6 +59,7 @@ def _build_stt(config: dict[str, Any], language: str):
 def _build_llm(config: dict[str, Any]):
     provider = config["provider"]
     if provider == "bedrock":
+        aws = _aws_plugin()
         kwargs = {
             "model": config["model"],
             "region": os.getenv("AWS_REGION", "us-east-1"),
@@ -99,6 +101,18 @@ def _build_tts(config: dict[str, Any], language: str):
             api_key=_required_env("SARVAM_API_KEY"),
         )
     raise ProviderAdapterError(f"unsupported TTS provider: {provider}")
+
+
+def _aws_plugin():
+    with warnings.catch_warnings():
+        warnings.filterwarnings(
+            "ignore",
+            message="TranscribeStreamingClient is deprecated.*",
+            category=DeprecationWarning,
+        )
+        from livekit.plugins import aws
+
+    return aws
 
 
 def _required_env(name: str) -> str:
