@@ -16,6 +16,7 @@ export interface NumberSearchParams {
 export interface BuyNumberInput {
   provider: TelephonyProvider;
   phoneNumber: string;
+  quoteId: string;
   friendlyName?: string;
 }
 
@@ -32,19 +33,28 @@ export const numbersApi = {
   search: async (params: NumberSearchParams): Promise<AvailableNumber[]> => {
     const res = await apiClient.get<ApiEnvelope<AvailableNumber[]>>(
       "/numbers/search",
-      { params }
+      { params },
     );
     return res.data.data;
   },
   buy: async (input: BuyNumberInput): Promise<PhoneNumber> => {
-    const res = await apiClient.post<ApiEnvelope<PhoneNumber>>("/numbers", input);
-    return res.data.data;
-  },
-  update: async (phId: string, input: UpdateNumberInput): Promise<PhoneNumber> => {
-    const res = await apiClient.patch<ApiEnvelope<PhoneNumber>>(
-      `/numbers/${phId}`,
-      input
+    const res = await apiClient.post<ApiEnvelope<PhoneNumber>>(
+      "/numbers",
+      input,
     );
     return res.data.data;
+  },
+  update: async (
+    phId: string,
+    input: UpdateNumberInput,
+  ): Promise<PhoneNumber> => {
+    const res = await apiClient.patch<ApiEnvelope<PhoneNumber>>(
+      `/numbers/${phId}`,
+      input,
+    );
+    return res.data.data;
+  },
+  release: async (phId: string): Promise<void> => {
+    await apiClient.delete(`/numbers/${phId}`);
   },
 };

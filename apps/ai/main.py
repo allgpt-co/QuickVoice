@@ -13,6 +13,12 @@ from livekit.agents import (
 )
 from livekit.agents.beta.tools import send_dtmf_events
 from livekit.plugins import noise_cancellation, silero
+from handlers.billing_usage_reporter import (
+    BillingUsageIdentifiers,
+    BillingUsageReporter,
+    flush_billing_usage_queue,
+    run_billing_usage_queue_consumer,
+)
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import flush_call_log_queue
 from handlers.config_handler import get_config
@@ -40,6 +46,7 @@ from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_p
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
 from utils.logger import redact_sensitive
+from utils.runtime_readiness import validate_runtime_startup
 import asyncio
 import json
 from datetime import datetime, timezone
@@ -48,6 +55,7 @@ from pathlib import Path
 import signal
 import subprocess
 import sys
+import threading
 import time
 
 APP_DIR = Path(__file__).resolve().parent
@@ -89,6 +97,33 @@ def _config_bool(value) -> bool:
     if isinstance(value, str):
         return value.strip().lower() in {"1", "true", "yes", "on"}
     return bool(value)
+
+
+def _participant_wait_timeout_seconds() -> float:
+    raw = os.getenv("AI_PARTICIPANT_WAIT_TIMEOUT_SECONDS", "70")
+    try:
+        return min(300.0, max(1.0, float(raw)))
+    except ValueError:
+        return 70.0
+
+
+async def wait_for_billed_participant(
+    ctx: JobContext,
+    *,
+    identity: str | None = None,
+):
+    # UNVERIFIED (LiveKit MCP unavailable): the current official Python
+    # reference documents JobContext.wait_for_participant(identity=...).
+    wait = (
+        ctx.wait_for_participant(identity=identity)
+        if identity
+        else ctx.wait_for_participant()
+    )
+    participant = await asyncio.wait_for(
+        wait,
+        timeout=_participant_wait_timeout_seconds(),
+    )
+    return participant, time.monotonic(), datetime.now(timezone.utc)
 
 
 def ivr_navigation_enabled(config: dict, call_context: dict | None = None) -> bool:
@@ -158,6 +193,36 @@ def provider_section(value: str | None):
     return None
 
 
+def selected_billing_model_ids(config: dict) -> dict[str, str]:
+    voice_config = config.get("voice_config")
+    if isinstance(voice_config, dict):
+        selected: dict[str, str] = {}
+        for kind in ("stt", "llm", "tts"):
+            section = voice_config.get(kind)
+            if not isinstance(section, dict):
+                continue
+            billing_model = str(section.get("billing_model") or "").strip()
+            if not billing_model:
+                provider = str(section.get("provider") or "").strip().lower()
+                model = str(section.get("model") or "").strip()
+                if provider and model:
+                    billing_model = model if "/" in model else f"{provider}/{model}"
+            if billing_model:
+                selected[kind] = billing_model
+        return selected
+
+    selected = {}
+    for kind, field in (
+        ("stt", "stt_model"),
+        ("llm", "llm_model"),
+        ("tts", "tts_model"),
+    ):
+        value = str(config.get(field) or "").strip()
+        if value:
+            selected[kind] = value
+    return selected
+
+
 def attach_resolved_voice_config(config: dict) -> dict:
     if isinstance(config.get("voice_config"), dict):
         return config
@@ -168,7 +233,7 @@ def attach_resolved_voice_config(config: dict) -> dict:
     try:
         voice_config = resolve_voice_config(
             {
-                "language": str(config.get("agent_language", "en-US")).split("-", 1)[0],
+                "language": str(config.get("agent_language", "en-US")),
                 "timezone": config.get("timezone"),
                 "stt": provider_section(config.get("stt_model")),
                 "llm": provider_section(config.get("llm_model")),
@@ -197,8 +262,11 @@ def build_session_provider_kwargs(config: dict) -> dict:
             language=LanguageCode(config.get("agent_language", "en-US")),
         ),
         "llm": inference.LLM(
-            model=config.get("llm_model", "google/gemini-2.5-flash"),
-            provider=config.get("llm_provider", "google"),
+            model=config.get(
+                "llm_model",
+                "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            ),
+            provider=config.get("llm_provider", "bedrock"),
         ),
         "tts": inference.TTS(
             model=config.get("tts_model", "deepgram/aura-2"),
@@ -257,6 +325,33 @@ def run_combined_server() -> int:
             time.sleep(1)
     finally:
         stop_children()
+
+
+def start_billing_usage_queue_consumer_thread() -> threading.Thread:
+    """Start the final-usage outbox consumer when the worker process boots."""
+
+    def consume() -> None:
+        try:
+            asyncio.run(run_billing_usage_queue_consumer())
+        except Exception as error:
+            logger.critical(
+                "[BILLING_USAGE] durable queue thread stopped: {}",
+                redact_sensitive(str(error)),
+            )
+
+    thread = threading.Thread(
+        target=consume,
+        name="billing-usage-outbox",
+        daemon=True,
+    )
+    thread.start()
+    return thread
+
+
+def worker_runtime_validation_required(argv: list[str] | None = None) -> bool:
+    """Validate only commands that register a worker and can accept jobs."""
+    arguments = sys.argv if argv is None else argv
+    return len(arguments) < 2 or arguments[1] in {"start", "dev"}
 
 
 class Assistant(Agent):
@@ -442,6 +537,28 @@ async def entrypoint(ctx: JobContext):
         voice_metadata = parse_voice_session_metadata(raw_metadata)
         metadata = {**voice_metadata.client_metadata, "mode": voice_metadata.mode}
         preview_mode = voice_metadata.mode == "preview"
+        try:
+            (
+                participant,
+                participant_connected_monotonic,
+                call_start_time,
+            ) = await wait_for_billed_participant(
+                ctx,
+                identity=voice_metadata.participant_identity,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Timed out waiting for the billed room participant to connect")
+            ctx.shutdown(reason="participant_connection_timeout")
+            return
+        except RuntimeError as error:
+            logger.warning(
+                "Could not wait for billed room participant: {}",
+                redact_sensitive(str(error)),
+            )
+            ctx.shutdown(reason="participant_connection_failed")
+            return
+        participant_attributes = getattr(participant, "attributes", {}) or {}
+        metadata.update(participant_attributes)
         call_context = build_call_context(ctx.room.name, metadata)
         if not call_context.get("agent_id") and metadata.get("agent_id"):
             call_context["agent_id"] = metadata["agent_id"]
@@ -458,14 +575,26 @@ async def entrypoint(ctx: JobContext):
         metadata = parse_metadata(raw_metadata)
         preview_mode = False
         try:
-            participant = await asyncio.wait_for(ctx.wait_for_participant(), timeout=10)
+            (
+                participant,
+                participant_connected_monotonic,
+                call_start_time,
+            ) = await wait_for_billed_participant(
+                ctx,
+            )
             participant_attributes = getattr(participant, "attributes", {}) or {}
             metadata.update(participant_attributes)
         except asyncio.TimeoutError:
-            logger.warning("Timed out waiting for room participant before loading config")
+            logger.warning("Timed out waiting for the billed room participant to connect")
+            ctx.shutdown(reason="participant_connection_timeout")
+            return
         except RuntimeError as error:
-            logger.warning(f"Could not read room participant before loading config: {error}")
-
+            logger.warning(
+                "Could not wait for billed room participant: {}",
+                redact_sensitive(str(error)),
+            )
+            ctx.shutdown(reason="participant_connection_failed")
+            return
         call_context = build_call_context(ctx.room.name, metadata)
         logger.info("Call context: {}", redact_sensitive(call_context))
 
@@ -476,6 +605,14 @@ async def entrypoint(ctx: JobContext):
         metadata = await apply_initiation_webhook_metadata(config, metadata, call_context)
         config = apply_metadata_overrides(config, metadata)
         config = attach_resolved_voice_config(config)
+
+    try:
+        await flush_billing_usage_queue()
+    except Exception as error:
+        logger.warning(
+            "[BILLING_USAGE] queued final-usage retry failed: {}",
+            redact_sensitive(str(error)),
+        )
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 
     try:
@@ -514,7 +651,97 @@ async def entrypoint(ctx: JobContext):
         ),
         ivr_detection=config["ivr_navigation_enabled"],
     )
-    call_start_time = datetime.now(timezone.utc)
+    shutdown_reason = "session_shutdown"
+    billing_termination_started = False
+    session_started = False
+
+    async def stop_session_for_insufficient_funds(reason: str) -> None:
+        nonlocal billing_termination_started, shutdown_reason
+        first_attempt = not billing_termination_started
+        billing_termination_started = True
+        shutdown_reason = f"billing_{reason or 'insufficient_funds'}"
+        if first_attempt:
+            logger.warning(
+                "[BILLING_USAGE] ending depleted session {}",
+                redact_sensitive(
+                    {
+                        "call_id": call_context.get("call_id"),
+                        "room": ctx.room.name,
+                        "reason": reason,
+                    }
+                ),
+            )
+        failures: list[str] = []
+        if session_started:
+            # UNVERIFIED (LiveKit MCP unavailable): cross-checked against the current
+            # AgentSession lifecycle docs and the installed livekit-agents 1.6.7 API.
+            try:
+                session.shutdown(drain=False)
+            except Exception as error:
+                failures.append(f"session shutdown: {error}")
+        try:
+            await ctx.delete_room(room_name=ctx.room.name)
+        except Exception as error:
+            failures.append(f"room deletion: {error}")
+        try:
+            ctx.shutdown(reason=shutdown_reason)
+        except Exception as error:
+            failures.append(f"job shutdown: {error}")
+        if failures:
+            raise RuntimeError("; ".join(failures))
+
+    job_id = getattr(getattr(ctx, "job", None), "id", None)
+    call_metadata = call_context.get("metadata")
+    call_source = call_metadata.get("source") if isinstance(call_metadata, dict) else None
+    raw_telephony_provider = str(
+        call_context.get("provider") or config.get("provider") or ""
+    ).upper()
+    telephony_provider = (
+        raw_telephony_provider
+        if not preview_mode
+        and call_source != "web_widget"
+        and raw_telephony_provider in {"TWILIO", "TELNYX"}
+        else None
+    )
+    billing_reporter = BillingUsageReporter(
+        identifiers=BillingUsageIdentifiers(
+            call_id=str(call_context.get("call_id") or ctx.room.name),
+            session_id=str(job_id or ctx.room.name),
+            room_name=str(ctx.room.name),
+            organization_id=str(config.get("organization_id") or ""),
+            user_id=str(config["user_id"]) if config.get("user_id") else None,
+            agent_id=str(config.get("agent_id") or call_context.get("agent_id") or "") or None,
+            telephony_provider=telephony_provider,
+            provider_call_id=str(call_context.get("provider_call_id") or "") or None,
+        ),
+        usage_supplier=lambda: session.usage,
+        stop_session=stop_session_for_insufficient_funds,
+        connected_at_monotonic=participant_connected_monotonic,
+        canonical_model_ids=selected_billing_model_ids(config),
+    )
+
+    # UNVERIFIED (LiveKit MCP unavailable): cross-checked against the current
+    # session usage docs and the installed livekit-agents 1.6.7 event surface.
+    @session.on("session_usage_updated")
+    def on_session_usage_updated(event):
+        billing_reporter.update_usage(getattr(event, "usage", None))
+
+    async def billing_shutdown_hook():
+        try:
+            await billing_reporter.close(final_usage=session.usage)
+        except Exception as error:
+            logger.warning(
+                "[BILLING_USAGE] final snapshot failed: {}",
+                redact_sensitive(str(error)),
+            )
+
+    if hasattr(ctx, "add_shutdown_callback"):
+        ctx.add_shutdown_callback(billing_shutdown_hook)
+
+    if not await billing_reporter.authorize():
+        await billing_reporter.close(final_usage=session.usage)
+        return
+
     live_transcript_publisher = LiveTranscriptPublisher(
         config=config,
         call_context=call_context,
@@ -577,8 +804,11 @@ async def entrypoint(ctx: JobContext):
             room_options=build_room_options(),
         )
     except Exception:
+        await billing_reporter.close(final_usage=session.usage)
         await live_transcript_publisher.close(reason="session_start_failed")
         raise
+    session_started = True
+    await billing_reporter.start()
     speak_first_message(session, config)
 
     recording_id = None
@@ -596,9 +826,8 @@ async def entrypoint(ctx: JobContext):
         recording_path=recording_path,
         transcript_reader=transcript_collector.read,
     )
-    shutdown_reason = "session_shutdown"
-
     async def unified_shutdown_hook():
+        await billing_shutdown_hook()
         try:
             await live_transcript_publisher.close(reason=shutdown_reason)
         except Exception as error:
@@ -642,6 +871,14 @@ if __name__ == "__main__":
         )
         raise SystemExit(0)
 
+    if worker_runtime_validation_required():
+        readiness = validate_runtime_startup()
+        logger.info(
+            "AI/server runtime mode validated: {}",
+            readiness.get("billingMode"),
+        )
+
+    start_billing_usage_queue_consumer_thread()
     agents.cli.run_app(
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,

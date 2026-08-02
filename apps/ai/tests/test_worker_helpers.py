@@ -2,6 +2,7 @@ import os
 import sys
 import unittest
 import asyncio
+from unittest.mock import patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -28,10 +29,36 @@ from main import (
     build_room_options,
     build_session_provider_kwargs,
     provider_section,
+    selected_billing_model_ids,
+    wait_for_billed_participant,
 )
 
 
 class WorkerHandlerTests(unittest.TestCase):
+    def test_wait_for_billed_participant_targets_preview_identity_before_timing(self):
+        class FakeContext:
+            def __init__(self):
+                self.identities = []
+
+            async def wait_for_participant(self, *, identity=None):
+                self.identities.append(identity)
+                return {"identity": identity}
+
+        context = FakeContext()
+        with patch.dict(
+            os.environ,
+            {"AI_PARTICIPANT_WAIT_TIMEOUT_SECONDS": "1"},
+            clear=False,
+        ):
+            participant, connected_monotonic, connected_at = asyncio.run(
+                wait_for_billed_participant(context, identity="preview-user-123")
+            )
+
+        self.assertEqual(context.identities, ["preview-user-123"])
+        self.assertEqual(participant["identity"], "preview-user-123")
+        self.assertGreater(connected_monotonic, 0)
+        self.assertIsNotNone(connected_at.tzinfo)
+
     def test_build_agent_instructions_mentions_livekit_dtmf_tool_when_ivr_navigation_enabled(self):
         instructions = build_agent_instructions({"ivr_navigation_enabled": True})
 
@@ -89,7 +116,33 @@ class WorkerHandlerTests(unittest.TestCase):
             "provider": "deepgram",
             "model": "aura-2",
             "voice": "aura-2-asteria-en",
+            "billing_model": "deepgram/aura-2",
         })
+
+    def test_selected_billing_model_ids_preserve_catalog_ids(self):
+        self.assertEqual(
+            selected_billing_model_ids(
+                {
+                    "voice_config": {
+                        "stt": {
+                            "provider": "deepgram",
+                            "model": "nova-3",
+                            "billing_model": "deepgram/nova-3-multilingual",
+                        },
+                        "llm": {
+                            "provider": "bedrock",
+                            "model": "us.amazon.nova-micro-v1:0",
+                        },
+                        "tts": {"provider": "deepgram", "model": "aura-2"},
+                    }
+                }
+            ),
+            {
+                "stt": "deepgram/nova-3-multilingual",
+                "llm": "bedrock/us.amazon.nova-micro-v1:0",
+                "tts": "deepgram/aura-2",
+            },
+        )
 
     def test_build_session_provider_kwargs_uses_existing_inference_without_voice_config(self):
         from unittest.mock import patch
@@ -152,6 +205,39 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(context["to_number"], "+15551230000")
         self.assertEqual(context["call_id"], "+15551230000_+15550001111")
 
+    def test_build_call_context_prefers_provider_billable_call_identifiers(self):
+        context = build_call_context(
+            room_name="outbound-room",
+            metadata={
+                "direction": "outbound",
+                "providerCallId": "generic-id",
+                "sip.callID": "short-sip-id",
+                "sip.callIDFull": "full-sip-id",
+                "sip.twilio.callSid": "CA123456789",
+            },
+        )
+
+        self.assertEqual(context["provider_call_id"], "CA123456789")
+
+        telnyx_context = build_call_context(
+            room_name="outbound-room",
+            metadata={
+                "providerCallId": "generic-id",
+                "sip.callID": "short-sip-id",
+                "sip.callIDFull": "full-sip-id",
+            },
+        )
+        self.assertEqual(telnyx_context["provider_call_id"], "full-sip-id")
+
+        sip_fallback_context = build_call_context(
+            room_name="outbound-room",
+            metadata={
+                "providerCallId": "generic-id",
+                "sip.callID": "short-sip-id",
+            },
+        )
+        self.assertEqual(sip_fallback_context["provider_call_id"], "short-sip-id")
+
     def test_build_call_context_uses_livekit_sip_attributes_for_inbound_numbers(self):
         context = build_call_context(
             room_name="call-_+918877645613_ASBJ52Wjd7uk",
@@ -169,6 +255,21 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(context["from_number"], "+918877645613")
         self.assertEqual(context["to_number"], "+18005550100")
         self.assertEqual(context["call_id"], "sip-call-123")
+
+    def test_build_call_context_preserves_provider_call_id_for_cost_reconciliation(self):
+        context = build_call_context(
+            room_name="call-room",
+            metadata={
+                "agentId": "agent-123",
+                "provider": "TWILIO",
+                "sip.callID": "livekit-sip-call",
+                "sip.callIDFull": "CA-provider-call-123",
+            },
+        )
+
+        self.assertEqual(context["call_id"], "livekit-sip-call")
+        self.assertEqual(context["provider_call_id"], "CA-provider-call-123")
+        self.assertEqual(context["provider"], "TWILIO")
 
     def test_build_call_context_uses_outbound_metadata_numbers_when_present(self):
         context = build_call_context(
@@ -190,6 +291,10 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(context["to_number"], "+15550001111")
         self.assertEqual(context["call_id"], "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113")
         self.assertEqual(context["outbound_id"], "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113")
+        self.assertEqual(
+            context["call_id"],
+            "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
+        )
 
     def test_build_call_context_uses_outbound_room_id_before_carrier_call_id(self):
         context = build_call_context(

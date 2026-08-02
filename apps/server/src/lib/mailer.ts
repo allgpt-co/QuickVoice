@@ -153,10 +153,59 @@ export async function sendEmail(
   fullName: string,
 ) {
   const content = contentFor(type);
+  return sendComposedEmail({
+    email,
+    fullName,
+    subject: content.subject,
+    text: buildText(content, url, fullName),
+    html: buildHtml(content, url, fullName),
+    failureLabel: type,
+  });
+}
+
+export async function sendNumberBillingNotice(args: {
+  email: string;
+  fullName: string;
+  phoneNumber: string;
+  chargeDate: Date;
+  priceUsd: string;
+}) {
+  const billingUrl = `${(
+    process.env.CONSOLE_URL?.split(",")[0]?.trim() ||
+    "http://localhost:3000"
+  ).replace(/\/+$/, "")}/settings/billing`;
+  const date = args.chargeDate.toISOString().slice(0, 10);
+  const subject = "Your QuickVoice number moves to prepaid billing in 7 days";
+  const text = [
+    `Hi ${args.fullName || "there"},`,
+    "",
+    `Your QuickVoice number ${args.phoneNumber} will renew for ${args.priceUsd} every 30 days, starting ${date}.`,
+    "Promotional credit cannot be used for phone number rentals.",
+    "Add paid credit or enable automatic reload to keep the number.",
+    "",
+    `Manage billing: ${billingUrl}`,
+  ].join("\n");
+  const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;color:#111827"><h1>Phone number billing starts in 7 days</h1><p>Hi ${escapeHtml(args.fullName || "there")},</p><p>Your QuickVoice number <strong>${escapeHtml(args.phoneNumber)}</strong> will renew for <strong>${escapeHtml(args.priceUsd)}</strong> every 30 days, starting ${escapeHtml(date)}.</p><p>Promotional credit cannot be used for phone number rentals. Add paid credit or enable automatic reload to keep the number.</p><p><a href="${escapeHtml(billingUrl)}">Manage billing</a></p></body></html>`;
+  return sendComposedEmail({
+    email: args.email,
+    fullName: args.fullName,
+    subject,
+    text,
+    html,
+    failureLabel: "phone number billing notice",
+  });
+}
+
+async function sendComposedEmail(args: {
+  email: string;
+  fullName: string;
+  subject: string;
+  text: string;
+  html: string;
+  failureLabel: string;
+}) {
   const fromEmail = requireEnv("FROM_EMAIL");
   const fromName = "Console|Quickvoice";
-  const text = buildText(content, url, fullName);
-  const html = buildHtml(content, url, fullName);
 
   const payload = {
     from: {
@@ -166,14 +215,14 @@ export async function sendEmail(
     to: [
       {
         email_address: {
-          address: email,
-          name: fullName,
+          address: args.email,
+          name: args.fullName,
         },
       },
     ],
-    subject: content.subject,
-    textbody: text,
-    htmlbody: html,
+    subject: args.subject,
+    textbody: args.text,
+    htmlbody: args.html,
   };
 
   if (process.env.ZEPTOMAIL_TOKEN) {
@@ -195,7 +244,9 @@ export async function sendEmail(
       }
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      throw new Error(`Failed to send ${type} email via ZeptoMail: ${message}`);
+      throw new Error(
+        `Failed to send ${args.failureLabel} email via ZeptoMail: ${message}`,
+      );
     }
     return;
   }
@@ -208,16 +259,18 @@ export async function sendEmail(
       },
       to: [
         {
-          address: email,
-          name: fullName,
+          address: args.email,
+          name: args.fullName,
         },
       ],
-      subject: content.subject,
-      text,
-      html,
+      subject: args.subject,
+      text: args.text,
+      html: args.html,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    throw new Error(`Failed to send ${type} email via SMTP: ${message}`);
+    throw new Error(
+      `Failed to send ${args.failureLabel} email via SMTP: ${message}`,
+    );
   }
 }

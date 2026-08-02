@@ -182,7 +182,9 @@ export default function ApiKeysPage() {
               <code className="bg-muted px-1 py-0.5 font-mono text-xs">
                 x-api-key
               </code>{" "}
-              header.
+              header. Bearer authentication is not supported for these keys.
+              Organization API keys are read-only and cannot manage billing or
+              phone-number ownership.
             </p>
           </div>
           <Dialog open={createOpen} onOpenChange={setCreateOpen}>
@@ -196,8 +198,9 @@ export default function ApiKeysPage() {
                 <DialogTitle>Create API key</DialogTitle>
                 <DialogDescription>
                   Give the key a descriptive name. You&apos;ll be able to copy
-                  it once — make sure to store it somewhere safe. New keys are
-                  organization-scoped and MCP-ready by default.
+                  it once — make sure to store it somewhere safe. New keys use
+                  the active organization, are MCP-ready, and receive read-only
+                  access.
                 </DialogDescription>
               </DialogHeader>
               <Form {...form}>

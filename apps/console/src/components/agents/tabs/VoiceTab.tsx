@@ -65,6 +65,17 @@ function humanizeModelId(value: string) {
         .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
+function formatEstimatedMicros(value: number | string) {
+    const micros = Number(value);
+    if (!Number.isFinite(micros)) return null;
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 4,
+    }).format(micros / 1_000_000);
+}
+
 function findModelOption<T extends ModelOption>(options: T[], value?: string) {
     if (!value) return undefined;
     return options.find(
@@ -151,9 +162,9 @@ export function VoiceTab({ agentId }: { agentId: string }) {
         defaultValues: {
             voiceId: "aura-2-asteria-en",
             agent_language: "en",
-            llmModel: "gpt-4o-mini",
-            sttModel: "nova-3",
-            ttsModel: "aura-2",
+            llmModel: "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            sttModel: "deepgram/nova-3",
+            ttsModel: "deepgram/aura-2",
             timezone: "UTC",
         },
     });
@@ -164,8 +175,8 @@ export function VoiceTab({ agentId }: { agentId: string }) {
             voiceId: config.voiceId,
             agent_language: normalizeLanguageCode(config.agent_language),
             llmModel: config.llmModel,
-            sttModel: config.sttModel ?? "nova-3",
-            ttsModel: config.ttsModel ?? "aura-2",
+            sttModel: config.sttModel ?? "deepgram/nova-3",
+            ttsModel: config.ttsModel ?? "deepgram/aura-2",
             timezone: config.timezone,
         });
     }, [config, form]);
@@ -227,6 +238,17 @@ export function VoiceTab({ agentId }: { agentId: string }) {
         languages.find((language) => language.code === selectedLanguage)?.label ?? selectedLanguage;
     const selectedTtsModelLabel =
         ttsModelsWithConfiguredValue.find((model) => model.id === selectedTtsModel)?.label ?? selectedTtsModel;
+    const estimatedModelPrice =
+        config?.estimatedPricePerMinuteMicros === null ||
+        config?.estimatedPricePerMinuteMicros === undefined
+            ? null
+            : formatEstimatedMicros(config.estimatedPricePerMinuteMicros);
+    const estimateMatchesSelection = Boolean(
+        config &&
+        config.sttModel === selectedSttModel &&
+        config.llmModel === selectedLlmModel &&
+        config.ttsModel === selectedTtsModel
+    );
 
     async function onSubmit(values: FormValues) {
         await save.mutateAsync(mergeConfig(config, values));
@@ -351,6 +373,22 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                             )}
                         />
                     </div>
+                    {estimatedModelPrice ? (
+                        <div className="mt-5 border bg-muted/20 p-4">
+                            {estimateMatchesSelection ? (
+                                <p className="text-sm font-medium">
+                                    Estimated AI + platform spend: {estimatedModelPrice} / connected minute
+                                </p>
+                            ) : (
+                                <p className="text-sm font-medium">
+                                    Save these model choices to refresh the cost estimate.
+                                </p>
+                            )}
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                This estimate includes configured STT, TTS, and LLM usage plus the $0.01-per-connected-minute QuickVoice platform fee. Telephony is charged separately at the provider rate plus markup; actual spend varies with measured usage.
+                            </p>
+                        </div>
+                    ) : null}
                 </section>
 
                 <section className="border bg-card p-6">

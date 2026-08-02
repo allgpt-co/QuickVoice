@@ -18,6 +18,8 @@ const statement = {
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
 } as const;
 
 const ac = createAccessControl(statement);
@@ -34,6 +36,8 @@ const owner = ac.newRole({
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
   ...ownerAc.statements,
 });
 
@@ -49,6 +53,8 @@ const admin = ac.newRole({
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
   ...adminAc.statements,
 });
 
@@ -64,6 +70,7 @@ const member = ac.newRole({
   campaigns: ["read"],
   tools: ["read"],
   secrets: ["read"],
+  billing: ["read"],
   ...memberAc.statements,
 });
 

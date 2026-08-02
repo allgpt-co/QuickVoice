@@ -16,16 +16,34 @@ const UNASSIGNED = "__unassigned__";
 export function AssignAgentSelect({
   phId,
   agentId,
+  readOnly = false,
 }: {
   phId: string;
   agentId: string | null;
+  readOnly?: boolean;
 }) {
   const { data: agents, isLoading: agentsLoading } = useAgents();
   const update = useUpdateNumber();
+  const assignedAgent = agents?.find((agent) => agent.agentId === agentId);
 
   function onChange(value: string) {
     const next = value === UNASSIGNED ? null : value;
     update.mutate({ phId, input: { agentId: next } });
+  }
+
+  if (readOnly) {
+    return (
+      <p
+        className="text-sm text-foreground"
+        aria-label="Current number routing"
+      >
+        {agentsLoading
+          ? "Loading routing…"
+          : agentId
+            ? (assignedAgent?.name ?? "Assigned agent")
+            : "Unassigned"}
+      </p>
+    );
   }
 
   return (
@@ -36,8 +54,12 @@ export function AssignAgentSelect({
     >
       <SelectTrigger className="h-9 w-full min-w-0 text-sm sm:w-[200px]">
         <div className="flex min-w-0 items-center gap-2">
-          {update.isPending ? <Loader2 className="size-3 animate-spin" /> : null}
-          <SelectValue placeholder={agentsLoading ? "Loading agents..." : "Unassigned"} />
+          {update.isPending ? (
+            <Loader2 className="size-3 animate-spin" />
+          ) : null}
+          <SelectValue
+            placeholder={agentsLoading ? "Loading agents..." : "Unassigned"}
+          />
         </div>
       </SelectTrigger>
       <SelectContent>

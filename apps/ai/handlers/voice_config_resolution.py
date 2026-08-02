@@ -17,6 +17,7 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
         raise VoiceConfigValidationError(f"timezone is not supported: {timezone}")
 
     stt_input = _section(client_config, "stt", defaults["stt"])
+    stt_input = _language_sensitive_stt(stt_input, language)
     llm_input = _section(client_config, "llm", defaults["llm"])
     tts_input = _section(client_config, "tts", defaults["tts"])
 
@@ -54,16 +55,29 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
         "stt": {
             "provider": stt_model["provider"],
             "model": stt_model["runtime_model"],
+            "language": stt_model.get("runtime_language", language),
+            "billing_model": stt_model.get(
+                "billing_model",
+                f"{stt_model['provider']}/{stt_model['id']}",
+            ),
         },
         "llm": {
             "provider": llm_model["provider"],
             "model": llm_model["runtime_model"],
             "streaming": bool(llm_model.get("streaming", False)),
+            "billing_model": llm_model.get(
+                "billing_model",
+                f"{llm_model['provider']}/{llm_model['id']}",
+            ),
         },
         "tts": {
             "provider": tts_model["provider"],
             "model": tts_model["runtime_model"],
             "voice": voice["runtime_voice"],
+            "billing_model": tts_model.get(
+                "billing_model",
+                f"{tts_model['provider']}/{tts_model['id']}",
+            ),
         },
     }
 
@@ -77,7 +91,34 @@ def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str])
         legacy_model = client_config.get(f"{name}Model")
         if legacy_model:
             merged["model"] = legacy_model
+    model = str(merged.get("model") or "").strip()
+    if "/" in model:
+        prefixed_provider, model = model.split("/", 1)
+        configured_provider = (
+            str(raw.get("provider") or "").strip()
+            if isinstance(raw, dict)
+            else ""
+        )
+        if configured_provider and configured_provider.lower() != prefixed_provider.lower():
+            raise VoiceConfigValidationError(
+                f"{name}.provider conflicts with model prefix {prefixed_provider}"
+            )
+        merged["provider"] = prefixed_provider.lower()
+        merged["model"] = model
     return merged
+
+
+def _language_sensitive_stt(
+    stt_config: dict[str, str],
+    language: str,
+) -> dict[str, str]:
+    if (
+        language == "hi"
+        and stt_config.get("provider") == "deepgram"
+        and stt_config.get("model") in {"nova-3", "nova-3-general"}
+    ):
+        return {**stt_config, "model": "nova-3-multilingual"}
+    return stt_config
 
 
 def _pick(source: dict[str, Any], *keys: str):

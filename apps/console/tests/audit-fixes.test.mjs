@@ -15,11 +15,11 @@ test("organization creation stops on create failures and requires a returned id"
   assert.doesNotMatch(source, /finally\s*\{[^}]*setError\(null\)/s);
 });
 
-test("phone number buying uses lower-case API provider values", () => {
+test("phone number buying uses the server provider enum contract", () => {
   const source = read("src/components/numbers/BuyNumberDrawer.tsx");
 
-  assert.match(source, /provider:\s*z\.enum\(\["twilio",\s*"telnyx"\]\)/);
-  assert.doesNotMatch(source, /"TWILIO"|"TELNYX"/);
+  assert.match(source, /provider:\s*z\.enum\(\["TWILIO",\s*"TELNYX"\]\)/);
+  assert.doesNotMatch(source, /"twilio"|"telnyx"/);
   assert.doesNotMatch(source, /as TelephonyProvider/);
 });
 
@@ -78,16 +78,18 @@ test("call filters convert dashboard ranges and calendar dates to API datetimes"
   assert.match(dates, /23, 59, 59, 999/);
 });
 
-test("billing displays real period usage with loading, overage, and retry states", () => {
+test("billing displays wallet balances, debt, transactions, and retry states", () => {
   const page = read("src/app/(app)/settings/billing/page.tsx");
   const api = read("src/lib/api/resources/billing.ts");
 
-  assert.match(page, /useBillingUsage/);
-  assert.match(page, /usedMinutes/);
-  assert.match(page, /overageMinutes/);
-  assert.match(page, /usage\.refetch/);
+  assert.match(page, /useBillingSummary/);
+  assert.match(page, /paidBalanceMicros/);
+  assert.match(page, /promotionalBalanceMicros/);
+  assert.match(page, /outstandingDebtMicros/);
+  assert.match(page, /summary\.refetch/);
   assert.doesNotMatch(page, /Usage telemetry is coming soon|TODO\(backend\)/);
-  assert.match(api, /apiClient\.get\("\/billing\/usage"\)/);
+  assert.match(api, /apiClient\.get\("\/billing\/summary"\)/);
+  assert.match(api, /\/billing\/transactions/);
 });
 
 test("form validation and external setup flows block unsafe or blank input", () => {
@@ -217,10 +219,15 @@ test("server API key plugin grants organization-scoped default permissions", () 
   const source = read("../server/src/lib/auth.ts");
 
   assert.match(source, /references:\s*"organization"/);
-  assert.match(source, /defaultPermissions:\s*apiKeyDefaultPermissions/);
   assert.match(
     source,
-    /agentWidget:\s*\["create", "read", "update", "delete"\]/,
+    /defaultPermissions:\s*ORGANIZATION_API_KEY_PERMISSIONS/,
+  );
+  assert.match(source, /enableSessionForAPIKeys:\s*false/);
+  assert.match(source, /enableMetadata:\s*false/);
+  assert.match(
+    read("../server/src/middleware/api-key-auth.ts"),
+    /agentWidget:\s*\["read"\]/,
   );
 });
 

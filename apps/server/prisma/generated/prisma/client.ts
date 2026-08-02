@@ -92,10 +92,55 @@ export type Invitation = Prisma.InvitationModel
  */
 export type Subscription = Prisma.SubscriptionModel
 /**
+ * Model BillingAccount
+ *
+ */
+export type BillingAccount = Prisma.BillingAccountModel
+/**
+ * Model BillingTransaction
+ *
+ */
+export type BillingTransaction = Prisma.BillingTransactionModel
+/**
+ * Model BillingReservation
+ *
+ */
+export type BillingReservation = Prisma.BillingReservationModel
+/**
+ * Model PromotionalGrant
+ *
+ */
+export type PromotionalGrant = Prisma.PromotionalGrantModel
+/**
+ * Model TopUp
+ *
+ */
+export type TopUp = Prisma.TopUpModel
+/**
+ * Model CallBillingSession
+ *
+ */
+export type CallBillingSession = Prisma.CallBillingSessionModel
+/**
+ * Model TelephonyCostReport
+ *
+ */
+export type TelephonyCostReport = Prisma.TelephonyCostReportModel
+/**
+ * Model StripeWebhookEvent
+ *
+ */
+export type StripeWebhookEvent = Prisma.StripeWebhookEventModel
+/**
  * Model PhoneNumber
  *
  */
 export type PhoneNumber = Prisma.PhoneNumberModel
+/**
+ * Model PhoneNumberPurchase
+ *
+ */
+export type PhoneNumberPurchase = Prisma.PhoneNumberPurchaseModel
 /**
  * Model Agent
  *

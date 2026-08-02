@@ -18,7 +18,10 @@ class VoiceProviderAdapters:
 
 
 def build_voice_provider_adapters(config: dict[str, Any]) -> VoiceProviderAdapters:
-    stt = _build_stt(config["stt"], config["language"])
+    stt = _build_stt(
+        config["stt"],
+        config["stt"].get("language", config["language"]),
+    )
     llm = _build_llm(config["llm"])
     tts = _build_tts(config["tts"], config["language"])
     return VoiceProviderAdapters(

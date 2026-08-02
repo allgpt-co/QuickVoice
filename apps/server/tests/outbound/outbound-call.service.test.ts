@@ -89,6 +89,7 @@ test("createQuickOutboundCall persists the quick call and dispatches a LiveKit S
 
   assert.equal(dispatch[1], "outbound_2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   const dispatchMetadata = JSON.parse(dispatch[3].metadata);
+  assert.equal(dispatchMetadata.call_id, "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   assert.equal(dispatchMetadata.outbound_id, "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   assert.equal(dispatchMetadata.direction, "outbound");
   assert.deepEqual(dispatchMetadata.dynamic_variables, {
@@ -109,6 +110,8 @@ test("createQuickOutboundCall persists the quick call and dispatches a LiveKit S
   assert.deepEqual(metadata, {
     agent_id: "8d55565f-1111-4111-8111-f95fd03f0df2",
     organization_id: "org_123",
+    user_id: "user_123",
+    call_id: "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
     outbound_id: "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
     direction: "outbound",
     from_number: "+15551230000",
@@ -310,6 +313,7 @@ test("createQuickOutboundCall rejects when the organization has exhausted plan m
       },
       {
         repository: repo,
+        hasActiveLegacySubscription: async () => true,
         sipClient: { createSipParticipant: async () => ({}) },
         dispatchClient: { createDispatch: async () => ({}) },
         outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },
@@ -399,6 +403,7 @@ test("dispatchScheduledOutboundCall dispatches an existing campaign row with bat
 
   const dispatch = calls.find((call) => (call as unknown[])[0] === "dispatch") as any[];
   const dispatchMetadata = JSON.parse(dispatch[3].metadata);
+  assert.equal(dispatchMetadata.call_id, "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   assert.equal(dispatchMetadata.campaign_id, "campaign_123");
   assert.equal(dispatchMetadata.language, "hi-IN");
   assert.equal(dispatchMetadata.voice_id, "aura-2-athena-en");
@@ -467,6 +472,7 @@ test("dispatchScheduledOutboundCall marks an existing campaign row failed when q
   await assert.rejects(
     dispatchScheduledOutboundCall("2b1f6d53-42f5-4cc7-9689-7b6f51a0c113", {
       repository: repo,
+      hasActiveLegacySubscription: async () => true,
       sipClient: { createSipParticipant: async () => ({}) },
       dispatchClient: { createDispatch: async () => ({}) },
       outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },

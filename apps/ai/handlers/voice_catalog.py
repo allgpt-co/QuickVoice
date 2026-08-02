@@ -5,7 +5,7 @@ from pathlib import Path
 
 
 STATIC_VOICE_CATALOG = {
-    "version": "2026-06-30",
+    "version": "2026-08-01",
     "defaults": {
         "language": "en",
         "timezone": "UTC",
@@ -16,9 +16,9 @@ STATIC_VOICE_CATALOG = {
             "fallback_model": "us.amazon.nova-micro-v1:0",
         },
         "tts": {
-            "provider": "elevenlabs",
-            "model": "eleven_flash_v2_5",
-            "voice": "EXAVITQu4vr4xnSDxMaL",
+            "provider": "deepgram",
+            "model": "aura-2",
+            "voice": "aura-2-asteria-en",
         },
     },
     "languages": [
@@ -32,8 +32,18 @@ STATIC_VOICE_CATALOG = {
             "provider": "deepgram",
             "id": "nova-3",
             "label": "Deepgram Nova-3",
+            "languages": ["en", "en-IN"],
+            "runtime_model": "nova-3",
+            "billing_model": "deepgram/nova-3",
+        },
+        {
+            "provider": "deepgram",
+            "id": "nova-3-multilingual",
+            "label": "Deepgram Nova-3 Multilingual",
             "languages": ["en", "en-IN", "hi"],
             "runtime_model": "nova-3",
+            "runtime_language": "multi",
+            "billing_model": "deepgram/nova-3-multilingual",
         },
         {
             "provider": "deepgram",
@@ -41,6 +51,7 @@ STATIC_VOICE_CATALOG = {
             "label": "Deepgram Nova-2",
             "languages": ["en", "en-IN"],
             "runtime_model": "nova-2",
+            "billing_model": "deepgram/nova-2",
         },
         {
             "provider": "sarvam",
@@ -48,6 +59,7 @@ STATIC_VOICE_CATALOG = {
             "label": "Sarvam Saaras v3",
             "languages": ["hi", "en-IN"],
             "runtime_model": "saaras:v3",
+            "billing_model": "sarvam/saaras:v3",
         },
     ],
     "llm_models": [
@@ -56,6 +68,7 @@ STATIC_VOICE_CATALOG = {
             "id": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
             "label": "Claude Haiku 4.5",
             "runtime_model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
+            "billing_model": "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
             "streaming": True,
         },
         {
@@ -63,6 +76,7 @@ STATIC_VOICE_CATALOG = {
             "id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
             "label": "Claude Sonnet 4.5",
             "runtime_model": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+            "billing_model": "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
             "streaming": True,
         },
         {
@@ -70,6 +84,7 @@ STATIC_VOICE_CATALOG = {
             "id": "us.amazon.nova-micro-v1:0",
             "label": "Amazon Nova Micro",
             "runtime_model": "us.amazon.nova-micro-v1:0",
+            "billing_model": "bedrock/us.amazon.nova-micro-v1:0",
             "streaming": True,
         },
         {
@@ -77,6 +92,7 @@ STATIC_VOICE_CATALOG = {
             "id": "us.amazon.nova-lite-v1:0",
             "label": "Amazon Nova Lite",
             "runtime_model": "us.amazon.nova-lite-v1:0",
+            "billing_model": "bedrock/us.amazon.nova-lite-v1:0",
             "streaming": True,
         },
     ],
@@ -87,6 +103,7 @@ STATIC_VOICE_CATALOG = {
             "label": "Deepgram Aura-2",
             "languages": ["en"],
             "runtime_model": "aura-2",
+            "billing_model": "deepgram/aura-2",
         },
         {
             "provider": "elevenlabs",
@@ -94,6 +111,7 @@ STATIC_VOICE_CATALOG = {
             "label": "ElevenLabs Flash v2.5",
             "languages": ["en", "en-IN", "hi"],
             "runtime_model": "eleven_flash_v2_5",
+            "billing_model": "elevenlabs/eleven_flash_v2_5",
         },
         {
             "provider": "elevenlabs",
@@ -101,6 +119,7 @@ STATIC_VOICE_CATALOG = {
             "label": "ElevenLabs Turbo v2.5",
             "languages": ["en", "en-IN", "hi"],
             "runtime_model": "eleven_turbo_v2_5",
+            "billing_model": "elevenlabs/eleven_turbo_v2_5",
         },
         {
             "provider": "sarvam",
@@ -108,6 +127,7 @@ STATIC_VOICE_CATALOG = {
             "label": "Sarvam Bulbul v3",
             "languages": ["hi", "en-IN"],
             "runtime_model": "bulbul:v3",
+            "billing_model": "sarvam/bulbul:v3",
         },
     ],
     "voices": [

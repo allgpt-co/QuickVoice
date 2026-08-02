@@ -239,6 +239,14 @@ export type OrganizationWhereInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotListRelationFilter
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  billingAccount?: Prisma.XOR<Prisma.BillingAccountNullableScalarRelationFilter, Prisma.BillingAccountWhereInput> | null
+  billingTransactions?: Prisma.BillingTransactionListRelationFilter
+  billingReservations?: Prisma.BillingReservationListRelationFilter
+  promotionalGrant?: Prisma.XOR<Prisma.PromotionalGrantNullableScalarRelationFilter, Prisma.PromotionalGrantWhereInput> | null
+  topUps?: Prisma.TopUpListRelationFilter
+  callBillingSessions?: Prisma.CallBillingSessionListRelationFilter
+  stripeWebhookEvents?: Prisma.StripeWebhookEventListRelationFilter
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseListRelationFilter
 }
 
 export type OrganizationOrderByWithRelationInput = {
@@ -276,6 +284,14 @@ export type OrganizationOrderByWithRelationInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotOrderByRelationAggregateInput
   organizationroles?: Prisma.OrganizationRoleOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
+  billingAccount?: Prisma.BillingAccountOrderByWithRelationInput
+  billingTransactions?: Prisma.BillingTransactionOrderByRelationAggregateInput
+  billingReservations?: Prisma.BillingReservationOrderByRelationAggregateInput
+  promotionalGrant?: Prisma.PromotionalGrantOrderByWithRelationInput
+  topUps?: Prisma.TopUpOrderByRelationAggregateInput
+  callBillingSessions?: Prisma.CallBillingSessionOrderByRelationAggregateInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventOrderByRelationAggregateInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseOrderByRelationAggregateInput
 }
 
 export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
@@ -316,6 +332,14 @@ export type OrganizationWhereUniqueInput = Prisma.AtLeast<{
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotListRelationFilter
   organizationroles?: Prisma.OrganizationRoleListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  billingAccount?: Prisma.XOR<Prisma.BillingAccountNullableScalarRelationFilter, Prisma.BillingAccountWhereInput> | null
+  billingTransactions?: Prisma.BillingTransactionListRelationFilter
+  billingReservations?: Prisma.BillingReservationListRelationFilter
+  promotionalGrant?: Prisma.XOR<Prisma.PromotionalGrantNullableScalarRelationFilter, Prisma.PromotionalGrantWhereInput> | null
+  topUps?: Prisma.TopUpListRelationFilter
+  callBillingSessions?: Prisma.CallBillingSessionListRelationFilter
+  stripeWebhookEvents?: Prisma.StripeWebhookEventListRelationFilter
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseListRelationFilter
 }, "id" | "slug">
 
 export type OrganizationOrderByWithAggregationInput = {
@@ -383,6 +407,14 @@ export type OrganizationCreateInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateInput = {
@@ -420,6 +452,14 @@ export type OrganizationUncheckedCreateInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUpdateInput = {
@@ -457,6 +497,14 @@ export type OrganizationUpdateInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateInput = {
@@ -494,6 +542,14 @@ export type OrganizationUncheckedUpdateInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateManyInput = {
@@ -624,6 +680,108 @@ export type OrganizationUpdateOneRequiredWithoutInvitationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutInvitationsInput, Prisma.OrganizationUpdateWithoutInvitationsInput>, Prisma.OrganizationUncheckedUpdateWithoutInvitationsInput>
 }
 
+export type OrganizationCreateNestedOneWithoutBillingAccountInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingAccountInput, Prisma.OrganizationUncheckedCreateWithoutBillingAccountInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingAccountInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutBillingAccountNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingAccountInput, Prisma.OrganizationUncheckedCreateWithoutBillingAccountInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingAccountInput
+  upsert?: Prisma.OrganizationUpsertWithoutBillingAccountInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutBillingAccountInput, Prisma.OrganizationUpdateWithoutBillingAccountInput>, Prisma.OrganizationUncheckedUpdateWithoutBillingAccountInput>
+}
+
+export type OrganizationCreateNestedOneWithoutBillingTransactionsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedCreateWithoutBillingTransactionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingTransactionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutBillingTransactionsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedCreateWithoutBillingTransactionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingTransactionsInput
+  upsert?: Prisma.OrganizationUpsertWithoutBillingTransactionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutBillingTransactionsInput, Prisma.OrganizationUpdateWithoutBillingTransactionsInput>, Prisma.OrganizationUncheckedUpdateWithoutBillingTransactionsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutBillingReservationsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedCreateWithoutBillingReservationsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingReservationsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutBillingReservationsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedCreateWithoutBillingReservationsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutBillingReservationsInput
+  upsert?: Prisma.OrganizationUpsertWithoutBillingReservationsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutBillingReservationsInput, Prisma.OrganizationUpdateWithoutBillingReservationsInput>, Prisma.OrganizationUncheckedUpdateWithoutBillingReservationsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutPromotionalGrantInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedCreateWithoutPromotionalGrantInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPromotionalGrantInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneWithoutPromotionalGrantNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedCreateWithoutPromotionalGrantInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPromotionalGrantInput
+  upsert?: Prisma.OrganizationUpsertWithoutPromotionalGrantInput
+  disconnect?: Prisma.OrganizationWhereInput | boolean
+  delete?: Prisma.OrganizationWhereInput | boolean
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutPromotionalGrantInput, Prisma.OrganizationUpdateWithoutPromotionalGrantInput>, Prisma.OrganizationUncheckedUpdateWithoutPromotionalGrantInput>
+}
+
+export type OrganizationCreateNestedOneWithoutTopUpsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutTopUpsInput, Prisma.OrganizationUncheckedCreateWithoutTopUpsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutTopUpsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutTopUpsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutTopUpsInput, Prisma.OrganizationUncheckedCreateWithoutTopUpsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutTopUpsInput
+  upsert?: Prisma.OrganizationUpsertWithoutTopUpsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutTopUpsInput, Prisma.OrganizationUpdateWithoutTopUpsInput>, Prisma.OrganizationUncheckedUpdateWithoutTopUpsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutCallBillingSessionsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallBillingSessionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCallBillingSessionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutCallBillingSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallBillingSessionsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutCallBillingSessionsInput
+  upsert?: Prisma.OrganizationUpsertWithoutCallBillingSessionsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutCallBillingSessionsInput, Prisma.OrganizationUpdateWithoutCallBillingSessionsInput>, Prisma.OrganizationUncheckedUpdateWithoutCallBillingSessionsInput>
+}
+
+export type OrganizationCreateNestedOneWithoutStripeWebhookEventsInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedCreateWithoutStripeWebhookEventsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutStripeWebhookEventsInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneWithoutStripeWebhookEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedCreateWithoutStripeWebhookEventsInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutStripeWebhookEventsInput
+  upsert?: Prisma.OrganizationUpsertWithoutStripeWebhookEventsInput
+  disconnect?: Prisma.OrganizationWhereInput | boolean
+  delete?: Prisma.OrganizationWhereInput | boolean
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutStripeWebhookEventsInput, Prisma.OrganizationUpdateWithoutStripeWebhookEventsInput>, Prisma.OrganizationUncheckedUpdateWithoutStripeWebhookEventsInput>
+}
+
 export type OrganizationCreateNestedOneWithoutPhoneNumbersInput = {
   create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPhoneNumbersInput, Prisma.OrganizationUncheckedCreateWithoutPhoneNumbersInput>
   connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPhoneNumbersInput
@@ -636,6 +794,20 @@ export type OrganizationUpdateOneRequiredWithoutPhoneNumbersNestedInput = {
   upsert?: Prisma.OrganizationUpsertWithoutPhoneNumbersInput
   connect?: Prisma.OrganizationWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutPhoneNumbersInput, Prisma.OrganizationUpdateWithoutPhoneNumbersInput>, Prisma.OrganizationUncheckedUpdateWithoutPhoneNumbersInput>
+}
+
+export type OrganizationCreateNestedOneWithoutPhoneNumberPurchasesInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedCreateWithoutPhoneNumberPurchasesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPhoneNumberPurchasesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+}
+
+export type OrganizationUpdateOneRequiredWithoutPhoneNumberPurchasesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrganizationCreateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedCreateWithoutPhoneNumberPurchasesInput>
+  connectOrCreate?: Prisma.OrganizationCreateOrConnectWithoutPhoneNumberPurchasesInput
+  upsert?: Prisma.OrganizationUpsertWithoutPhoneNumberPurchasesInput
+  connect?: Prisma.OrganizationWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrganizationUpdateToOneWithWhereWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUpdateWithoutPhoneNumberPurchasesInput>, Prisma.OrganizationUncheckedUpdateWithoutPhoneNumberPurchasesInput>
 }
 
 export type OrganizationCreateNestedOneWithoutAgentsInput = {
@@ -968,6 +1140,14 @@ export type OrganizationCreateWithoutOrganizationrolesInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
@@ -1004,6 +1184,14 @@ export type OrganizationUncheckedCreateWithoutOrganizationrolesInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutOrganizationrolesInput = {
@@ -1056,6 +1244,14 @@ export type OrganizationUpdateWithoutOrganizationrolesInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
@@ -1092,6 +1288,14 @@ export type OrganizationUncheckedUpdateWithoutOrganizationrolesInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMembersInput = {
@@ -1128,6 +1332,14 @@ export type OrganizationCreateWithoutMembersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMembersInput = {
@@ -1164,6 +1376,14 @@ export type OrganizationUncheckedCreateWithoutMembersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMembersInput = {
@@ -1216,6 +1436,14 @@ export type OrganizationUpdateWithoutMembersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMembersInput = {
@@ -1252,6 +1480,14 @@ export type OrganizationUncheckedUpdateWithoutMembersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutInvitationsInput = {
@@ -1288,6 +1524,14 @@ export type OrganizationCreateWithoutInvitationsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutInvitationsInput = {
@@ -1324,6 +1568,14 @@ export type OrganizationUncheckedCreateWithoutInvitationsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutInvitationsInput = {
@@ -1376,6 +1628,14 @@ export type OrganizationUpdateWithoutInvitationsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
@@ -1412,6 +1672,1358 @@ export type OrganizationUncheckedUpdateWithoutInvitationsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutBillingAccountInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutBillingAccountInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutBillingAccountInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingAccountInput, Prisma.OrganizationUncheckedCreateWithoutBillingAccountInput>
+}
+
+export type OrganizationUpsertWithoutBillingAccountInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingAccountInput, Prisma.OrganizationUncheckedUpdateWithoutBillingAccountInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingAccountInput, Prisma.OrganizationUncheckedCreateWithoutBillingAccountInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutBillingAccountInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingAccountInput, Prisma.OrganizationUncheckedUpdateWithoutBillingAccountInput>
+}
+
+export type OrganizationUpdateWithoutBillingAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutBillingAccountInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutBillingTransactionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutBillingTransactionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutBillingTransactionsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedCreateWithoutBillingTransactionsInput>
+}
+
+export type OrganizationUpsertWithoutBillingTransactionsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedUpdateWithoutBillingTransactionsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedCreateWithoutBillingTransactionsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutBillingTransactionsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingTransactionsInput, Prisma.OrganizationUncheckedUpdateWithoutBillingTransactionsInput>
+}
+
+export type OrganizationUpdateWithoutBillingTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutBillingTransactionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutBillingReservationsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutBillingReservationsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutBillingReservationsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedCreateWithoutBillingReservationsInput>
+}
+
+export type OrganizationUpsertWithoutBillingReservationsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedUpdateWithoutBillingReservationsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedCreateWithoutBillingReservationsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutBillingReservationsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutBillingReservationsInput, Prisma.OrganizationUncheckedUpdateWithoutBillingReservationsInput>
+}
+
+export type OrganizationUpdateWithoutBillingReservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutBillingReservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutPromotionalGrantInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutPromotionalGrantInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutPromotionalGrantInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedCreateWithoutPromotionalGrantInput>
+}
+
+export type OrganizationUpsertWithoutPromotionalGrantInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedUpdateWithoutPromotionalGrantInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedCreateWithoutPromotionalGrantInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutPromotionalGrantInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutPromotionalGrantInput, Prisma.OrganizationUncheckedUpdateWithoutPromotionalGrantInput>
+}
+
+export type OrganizationUpdateWithoutPromotionalGrantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutPromotionalGrantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutTopUpsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutTopUpsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutTopUpsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutTopUpsInput, Prisma.OrganizationUncheckedCreateWithoutTopUpsInput>
+}
+
+export type OrganizationUpsertWithoutTopUpsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutTopUpsInput, Prisma.OrganizationUncheckedUpdateWithoutTopUpsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutTopUpsInput, Prisma.OrganizationUncheckedCreateWithoutTopUpsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutTopUpsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutTopUpsInput, Prisma.OrganizationUncheckedUpdateWithoutTopUpsInput>
+}
+
+export type OrganizationUpdateWithoutTopUpsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutTopUpsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutCallBillingSessionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutCallBillingSessionsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutCallBillingSessionsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallBillingSessionsInput>
+}
+
+export type OrganizationUpsertWithoutCallBillingSessionsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedUpdateWithoutCallBillingSessionsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedCreateWithoutCallBillingSessionsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutCallBillingSessionsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutCallBillingSessionsInput, Prisma.OrganizationUncheckedUpdateWithoutCallBillingSessionsInput>
+}
+
+export type OrganizationUpdateWithoutCallBillingSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutCallBillingSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutStripeWebhookEventsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutStripeWebhookEventsInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutStripeWebhookEventsInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedCreateWithoutStripeWebhookEventsInput>
+}
+
+export type OrganizationUpsertWithoutStripeWebhookEventsInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedUpdateWithoutStripeWebhookEventsInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedCreateWithoutStripeWebhookEventsInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutStripeWebhookEventsInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutStripeWebhookEventsInput, Prisma.OrganizationUncheckedUpdateWithoutStripeWebhookEventsInput>
+}
+
+export type OrganizationUpdateWithoutStripeWebhookEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutStripeWebhookEventsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutPhoneNumbersInput = {
@@ -1448,6 +3060,14 @@ export type OrganizationCreateWithoutPhoneNumbersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutPhoneNumbersInput = {
@@ -1484,6 +3104,14 @@ export type OrganizationUncheckedCreateWithoutPhoneNumbersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutPhoneNumbersInput = {
@@ -1536,6 +3164,14 @@ export type OrganizationUpdateWithoutPhoneNumbersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutPhoneNumbersInput = {
@@ -1572,6 +3208,206 @@ export type OrganizationUncheckedUpdateWithoutPhoneNumbersInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationCreateWithoutPhoneNumberPurchasesInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationUncheckedCreateWithoutPhoneNumberPurchasesInput = {
+  id: string
+  name: string
+  slug: string
+  logo?: string | null
+  createdAt: Date | string
+  metadata?: string | null
+  stripeCustomerId?: string | null
+  accessKey?: string | null
+  plan?: $Enums.PlanId
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutOrganizationInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutOrganizationInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutOrganizationInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedCreateNestedManyWithoutOrganizationInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutOrganizationInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedCreateNestedManyWithoutOrganizationInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutOrganizationInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutOrganizationInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutOrganizationInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutOrganizationInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutOrganizationInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+}
+
+export type OrganizationCreateOrConnectWithoutPhoneNumberPurchasesInput = {
+  where: Prisma.OrganizationWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedCreateWithoutPhoneNumberPurchasesInput>
+}
+
+export type OrganizationUpsertWithoutPhoneNumberPurchasesInput = {
+  update: Prisma.XOR<Prisma.OrganizationUpdateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedUpdateWithoutPhoneNumberPurchasesInput>
+  create: Prisma.XOR<Prisma.OrganizationCreateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedCreateWithoutPhoneNumberPurchasesInput>
+  where?: Prisma.OrganizationWhereInput
+}
+
+export type OrganizationUpdateToOneWithWhereWithoutPhoneNumberPurchasesInput = {
+  where?: Prisma.OrganizationWhereInput
+  data: Prisma.XOR<Prisma.OrganizationUpdateWithoutPhoneNumberPurchasesInput, Prisma.OrganizationUncheckedUpdateWithoutPhoneNumberPurchasesInput>
+}
+
+export type OrganizationUpdateWithoutPhoneNumberPurchasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+}
+
+export type OrganizationUncheckedUpdateWithoutPhoneNumberPurchasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  logo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  metadata?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  accessKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  plan?: Prisma.EnumPlanIdFieldUpdateOperationsInput | $Enums.PlanId
+  members?: Prisma.MemberUncheckedUpdateManyWithoutOrganizationNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutOrganizationNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentWidgets?: Prisma.AgentWidgetUncheckedUpdateManyWithoutOrganizationNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutOrganizationNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpCatalogItems?: Prisma.McpServerCatalogItemUncheckedUpdateManyWithoutOrganizationNestedInput
+  agentMcpConnections?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutOrganizationNestedInput
+  mcpToolExecutionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutOrganizationNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignPersonalizationSchemas?: Prisma.CampaignPersonalizationSchemaUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignRecipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperiments?: Prisma.CampaignExperimentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignExperimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignGoals?: Prisma.CampaignGoalUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignConversionEvents?: Prisma.CampaignConversionEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
+  campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
+  organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAgentsInput = {
@@ -1608,6 +3444,14 @@ export type OrganizationCreateWithoutAgentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAgentsInput = {
@@ -1644,6 +3488,14 @@ export type OrganizationUncheckedCreateWithoutAgentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAgentsInput = {
@@ -1696,6 +3548,14 @@ export type OrganizationUpdateWithoutAgentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAgentsInput = {
@@ -1732,6 +3592,14 @@ export type OrganizationUncheckedUpdateWithoutAgentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAgentWidgetsInput = {
@@ -1768,6 +3636,14 @@ export type OrganizationCreateWithoutAgentWidgetsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAgentWidgetsInput = {
@@ -1804,6 +3680,14 @@ export type OrganizationUncheckedCreateWithoutAgentWidgetsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAgentWidgetsInput = {
@@ -1856,6 +3740,14 @@ export type OrganizationUpdateWithoutAgentWidgetsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAgentWidgetsInput = {
@@ -1892,6 +3784,14 @@ export type OrganizationUncheckedUpdateWithoutAgentWidgetsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutKnowledgeSourcesInput = {
@@ -1928,6 +3828,14 @@ export type OrganizationCreateWithoutKnowledgeSourcesInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutKnowledgeSourcesInput = {
@@ -1964,6 +3872,14 @@ export type OrganizationUncheckedCreateWithoutKnowledgeSourcesInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutKnowledgeSourcesInput = {
@@ -2016,6 +3932,14 @@ export type OrganizationUpdateWithoutKnowledgeSourcesInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutKnowledgeSourcesInput = {
@@ -2052,6 +3976,14 @@ export type OrganizationUncheckedUpdateWithoutKnowledgeSourcesInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCallLogsInput = {
@@ -2088,6 +4020,14 @@ export type OrganizationCreateWithoutCallLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCallLogsInput = {
@@ -2124,6 +4064,14 @@ export type OrganizationUncheckedCreateWithoutCallLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCallLogsInput = {
@@ -2176,6 +4124,14 @@ export type OrganizationUpdateWithoutCallLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCallLogsInput = {
@@ -2212,6 +4168,14 @@ export type OrganizationUncheckedUpdateWithoutCallLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutOutboundCallsInput = {
@@ -2248,6 +4212,14 @@ export type OrganizationCreateWithoutOutboundCallsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutOutboundCallsInput = {
@@ -2284,6 +4256,14 @@ export type OrganizationUncheckedCreateWithoutOutboundCallsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutOutboundCallsInput = {
@@ -2336,6 +4316,14 @@ export type OrganizationUpdateWithoutOutboundCallsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutOutboundCallsInput = {
@@ -2372,6 +4360,14 @@ export type OrganizationUncheckedUpdateWithoutOutboundCallsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignsInput = {
@@ -2408,6 +4404,14 @@ export type OrganizationCreateWithoutCampaignsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignsInput = {
@@ -2444,6 +4448,14 @@ export type OrganizationUncheckedCreateWithoutCampaignsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignsInput = {
@@ -2496,6 +4508,14 @@ export type OrganizationUpdateWithoutCampaignsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignsInput = {
@@ -2532,6 +4552,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignPersonalizationSchemasInput = {
@@ -2568,6 +4596,14 @@ export type OrganizationCreateWithoutCampaignPersonalizationSchemasInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInput = {
@@ -2604,6 +4640,14 @@ export type OrganizationUncheckedCreateWithoutCampaignPersonalizationSchemasInpu
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignPersonalizationSchemasInput = {
@@ -2656,6 +4700,14 @@ export type OrganizationUpdateWithoutCampaignPersonalizationSchemasInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInput = {
@@ -2692,6 +4744,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignPersonalizationSchemasInpu
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignRecipientSnapshotsInput = {
@@ -2728,6 +4788,14 @@ export type OrganizationCreateWithoutCampaignRecipientSnapshotsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput = {
@@ -2764,6 +4832,14 @@ export type OrganizationUncheckedCreateWithoutCampaignRecipientSnapshotsInput = 
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignRecipientSnapshotsInput = {
@@ -2816,6 +4892,14 @@ export type OrganizationUpdateWithoutCampaignRecipientSnapshotsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput = {
@@ -2852,6 +4936,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignRecipientSnapshotsInput = 
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignExperimentsInput = {
@@ -2888,6 +4980,14 @@ export type OrganizationCreateWithoutCampaignExperimentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignExperimentsInput = {
@@ -2924,6 +5024,14 @@ export type OrganizationUncheckedCreateWithoutCampaignExperimentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignExperimentsInput = {
@@ -2976,6 +5084,14 @@ export type OrganizationUpdateWithoutCampaignExperimentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignExperimentsInput = {
@@ -3012,6 +5128,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignExperimentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignExperimentAssignmentsInput = {
@@ -3048,6 +5172,14 @@ export type OrganizationCreateWithoutCampaignExperimentAssignmentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput = {
@@ -3084,6 +5216,14 @@ export type OrganizationUncheckedCreateWithoutCampaignExperimentAssignmentsInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignExperimentAssignmentsInput = {
@@ -3136,6 +5276,14 @@ export type OrganizationUpdateWithoutCampaignExperimentAssignmentsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput = {
@@ -3172,6 +5320,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignExperimentAssignmentsInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignGoalsInput = {
@@ -3208,6 +5364,14 @@ export type OrganizationCreateWithoutCampaignGoalsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignGoalsInput = {
@@ -3244,6 +5408,14 @@ export type OrganizationUncheckedCreateWithoutCampaignGoalsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignGoalsInput = {
@@ -3296,6 +5468,14 @@ export type OrganizationUpdateWithoutCampaignGoalsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignGoalsInput = {
@@ -3332,6 +5512,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignGoalsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignConversionEventsInput = {
@@ -3368,6 +5556,14 @@ export type OrganizationCreateWithoutCampaignConversionEventsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignConversionEventsInput = {
@@ -3404,6 +5600,14 @@ export type OrganizationUncheckedCreateWithoutCampaignConversionEventsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignConversionEventsInput = {
@@ -3456,6 +5660,14 @@ export type OrganizationUpdateWithoutCampaignConversionEventsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput = {
@@ -3492,6 +5704,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignConversionEventsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignAttributionResultsInput = {
@@ -3528,6 +5748,14 @@ export type OrganizationCreateWithoutCampaignAttributionResultsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput = {
@@ -3564,6 +5792,14 @@ export type OrganizationUncheckedCreateWithoutCampaignAttributionResultsInput = 
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignAttributionResultsInput = {
@@ -3616,6 +5852,14 @@ export type OrganizationUpdateWithoutCampaignAttributionResultsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput = {
@@ -3652,6 +5896,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignAttributionResultsInput = 
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutCampaignReportSnapshotsInput = {
@@ -3688,6 +5940,14 @@ export type OrganizationCreateWithoutCampaignReportSnapshotsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput = {
@@ -3724,6 +5984,14 @@ export type OrganizationUncheckedCreateWithoutCampaignReportSnapshotsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutCampaignReportSnapshotsInput = {
@@ -3776,6 +6044,14 @@ export type OrganizationUpdateWithoutCampaignReportSnapshotsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput = {
@@ -3812,6 +6088,14 @@ export type OrganizationUncheckedUpdateWithoutCampaignReportSnapshotsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutToolsInput = {
@@ -3848,6 +6132,14 @@ export type OrganizationCreateWithoutToolsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutToolsInput = {
@@ -3884,6 +6176,14 @@ export type OrganizationUncheckedCreateWithoutToolsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutToolsInput = {
@@ -3936,6 +6236,14 @@ export type OrganizationUpdateWithoutToolsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutToolsInput = {
@@ -3972,6 +6280,14 @@ export type OrganizationUncheckedUpdateWithoutToolsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMcpCatalogItemsInput = {
@@ -4008,6 +6324,14 @@ export type OrganizationCreateWithoutMcpCatalogItemsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMcpCatalogItemsInput = {
@@ -4044,6 +6368,14 @@ export type OrganizationUncheckedCreateWithoutMcpCatalogItemsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMcpCatalogItemsInput = {
@@ -4096,6 +6428,14 @@ export type OrganizationUpdateWithoutMcpCatalogItemsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMcpCatalogItemsInput = {
@@ -4132,6 +6472,14 @@ export type OrganizationUncheckedUpdateWithoutMcpCatalogItemsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMcpConnectionsInput = {
@@ -4168,6 +6516,14 @@ export type OrganizationCreateWithoutMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMcpConnectionsInput = {
@@ -4204,6 +6560,14 @@ export type OrganizationUncheckedCreateWithoutMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMcpConnectionsInput = {
@@ -4256,6 +6620,14 @@ export type OrganizationUpdateWithoutMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMcpConnectionsInput = {
@@ -4292,6 +6664,14 @@ export type OrganizationUncheckedUpdateWithoutMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAgentMcpConnectionsInput = {
@@ -4328,6 +6708,14 @@ export type OrganizationCreateWithoutAgentMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAgentMcpConnectionsInput = {
@@ -4364,6 +6752,14 @@ export type OrganizationUncheckedCreateWithoutAgentMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAgentMcpConnectionsInput = {
@@ -4416,6 +6812,14 @@ export type OrganizationUpdateWithoutAgentMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAgentMcpConnectionsInput = {
@@ -4452,6 +6856,14 @@ export type OrganizationUncheckedUpdateWithoutAgentMcpConnectionsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutMcpToolExecutionLogsInput = {
@@ -4488,6 +6900,14 @@ export type OrganizationCreateWithoutMcpToolExecutionLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutMcpToolExecutionLogsInput = {
@@ -4524,6 +6944,14 @@ export type OrganizationUncheckedCreateWithoutMcpToolExecutionLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutMcpToolExecutionLogsInput = {
@@ -4576,6 +7004,14 @@ export type OrganizationUpdateWithoutMcpToolExecutionLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutMcpToolExecutionLogsInput = {
@@ -4612,6 +7048,14 @@ export type OrganizationUncheckedUpdateWithoutMcpToolExecutionLogsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutSecretsInput = {
@@ -4648,6 +7092,14 @@ export type OrganizationCreateWithoutSecretsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutSecretsInput = {
@@ -4684,6 +7136,14 @@ export type OrganizationUncheckedCreateWithoutSecretsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutSecretsInput = {
@@ -4736,6 +7196,14 @@ export type OrganizationUpdateWithoutSecretsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutSecretsInput = {
@@ -4772,6 +7240,14 @@ export type OrganizationUncheckedUpdateWithoutSecretsInput = {
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationCreateWithoutAuditLogsInput = {
@@ -4808,6 +7284,14 @@ export type OrganizationCreateWithoutAuditLogsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultCreateNestedManyWithoutOrganizationInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
@@ -4844,6 +7328,14 @@ export type OrganizationUncheckedCreateWithoutAuditLogsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedCreateNestedManyWithoutOrganizationInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedCreateNestedManyWithoutOrganizationInput
   organizationroles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutOrganizationInput
+  billingAccount?: Prisma.BillingAccountUncheckedCreateNestedOneWithoutOrganizationInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedCreateNestedManyWithoutOrganizationInput
+  billingReservations?: Prisma.BillingReservationUncheckedCreateNestedManyWithoutOrganizationInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutOrganizationInput
+  topUps?: Prisma.TopUpUncheckedCreateNestedManyWithoutOrganizationInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedCreateNestedManyWithoutOrganizationInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedCreateNestedManyWithoutOrganizationInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedCreateNestedManyWithoutOrganizationInput
 }
 
 export type OrganizationCreateOrConnectWithoutAuditLogsInput = {
@@ -4896,6 +7388,14 @@ export type OrganizationUpdateWithoutAuditLogsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUpdateManyWithoutOrganizationNestedInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUpdateManyWithoutOrganizationNestedInput
 }
 
 export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
@@ -4932,6 +7432,14 @@ export type OrganizationUncheckedUpdateWithoutAuditLogsInput = {
   campaignAttributionResults?: Prisma.CampaignAttributionResultUncheckedUpdateManyWithoutOrganizationNestedInput
   campaignReportSnapshots?: Prisma.CampaignReportSnapshotUncheckedUpdateManyWithoutOrganizationNestedInput
   organizationroles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingAccount?: Prisma.BillingAccountUncheckedUpdateOneWithoutOrganizationNestedInput
+  billingTransactions?: Prisma.BillingTransactionUncheckedUpdateManyWithoutOrganizationNestedInput
+  billingReservations?: Prisma.BillingReservationUncheckedUpdateManyWithoutOrganizationNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutOrganizationNestedInput
+  topUps?: Prisma.TopUpUncheckedUpdateManyWithoutOrganizationNestedInput
+  callBillingSessions?: Prisma.CallBillingSessionUncheckedUpdateManyWithoutOrganizationNestedInput
+  stripeWebhookEvents?: Prisma.StripeWebhookEventUncheckedUpdateManyWithoutOrganizationNestedInput
+  phoneNumberPurchases?: Prisma.PhoneNumberPurchaseUncheckedUpdateManyWithoutOrganizationNestedInput
 }
 
 
@@ -4965,6 +7473,12 @@ export type OrganizationCountOutputType = {
   campaignReportSnapshots: number
   organizationroles: number
   auditLogs: number
+  billingTransactions: number
+  billingReservations: number
+  topUps: number
+  callBillingSessions: number
+  stripeWebhookEvents: number
+  phoneNumberPurchases: number
 }
 
 export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -4993,6 +7507,12 @@ export type OrganizationCountOutputTypeSelect<ExtArgs extends runtime.Types.Exte
   campaignReportSnapshots?: boolean | OrganizationCountOutputTypeCountCampaignReportSnapshotsArgs
   organizationroles?: boolean | OrganizationCountOutputTypeCountOrganizationrolesArgs
   auditLogs?: boolean | OrganizationCountOutputTypeCountAuditLogsArgs
+  billingTransactions?: boolean | OrganizationCountOutputTypeCountBillingTransactionsArgs
+  billingReservations?: boolean | OrganizationCountOutputTypeCountBillingReservationsArgs
+  topUps?: boolean | OrganizationCountOutputTypeCountTopUpsArgs
+  callBillingSessions?: boolean | OrganizationCountOutputTypeCountCallBillingSessionsArgs
+  stripeWebhookEvents?: boolean | OrganizationCountOutputTypeCountStripeWebhookEventsArgs
+  phoneNumberPurchases?: boolean | OrganizationCountOutputTypeCountPhoneNumberPurchasesArgs
 }
 
 /**
@@ -5180,6 +7700,48 @@ export type OrganizationCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtim
   where?: Prisma.AuditLogWhereInput
 }
 
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountBillingTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BillingTransactionWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountBillingReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BillingReservationWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountTopUpsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TopUpWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountCallBillingSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.CallBillingSessionWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountStripeWebhookEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.StripeWebhookEventWhereInput
+}
+
+/**
+ * OrganizationCountOutputType without action
+ */
+export type OrganizationCountOutputTypeCountPhoneNumberPurchasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.PhoneNumberPurchaseWhereInput
+}
+
 
 export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5216,6 +7778,14 @@ export type OrganizationSelect<ExtArgs extends runtime.Types.Extensions.Internal
   campaignReportSnapshots?: boolean | Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Organization$auditLogsArgs<ExtArgs>
+  billingAccount?: boolean | Prisma.Organization$billingAccountArgs<ExtArgs>
+  billingTransactions?: boolean | Prisma.Organization$billingTransactionsArgs<ExtArgs>
+  billingReservations?: boolean | Prisma.Organization$billingReservationsArgs<ExtArgs>
+  promotionalGrant?: boolean | Prisma.Organization$promotionalGrantArgs<ExtArgs>
+  topUps?: boolean | Prisma.Organization$topUpsArgs<ExtArgs>
+  callBillingSessions?: boolean | Prisma.Organization$callBillingSessionsArgs<ExtArgs>
+  stripeWebhookEvents?: boolean | Prisma.Organization$stripeWebhookEventsArgs<ExtArgs>
+  phoneNumberPurchases?: boolean | Prisma.Organization$phoneNumberPurchasesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["organization"]>
 
@@ -5282,6 +7852,14 @@ export type OrganizationInclude<ExtArgs extends runtime.Types.Extensions.Interna
   campaignReportSnapshots?: boolean | Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>
   organizationroles?: boolean | Prisma.Organization$organizationrolesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.Organization$auditLogsArgs<ExtArgs>
+  billingAccount?: boolean | Prisma.Organization$billingAccountArgs<ExtArgs>
+  billingTransactions?: boolean | Prisma.Organization$billingTransactionsArgs<ExtArgs>
+  billingReservations?: boolean | Prisma.Organization$billingReservationsArgs<ExtArgs>
+  promotionalGrant?: boolean | Prisma.Organization$promotionalGrantArgs<ExtArgs>
+  topUps?: boolean | Prisma.Organization$topUpsArgs<ExtArgs>
+  callBillingSessions?: boolean | Prisma.Organization$callBillingSessionsArgs<ExtArgs>
+  stripeWebhookEvents?: boolean | Prisma.Organization$stripeWebhookEventsArgs<ExtArgs>
+  phoneNumberPurchases?: boolean | Prisma.Organization$phoneNumberPurchasesArgs<ExtArgs>
   _count?: boolean | Prisma.OrganizationCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrganizationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -5315,6 +7893,14 @@ export type $OrganizationPayload<ExtArgs extends runtime.Types.Extensions.Intern
     campaignReportSnapshots: Prisma.$CampaignReportSnapshotPayload<ExtArgs>[]
     organizationroles: Prisma.$OrganizationRolePayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+    billingAccount: Prisma.$BillingAccountPayload<ExtArgs> | null
+    billingTransactions: Prisma.$BillingTransactionPayload<ExtArgs>[]
+    billingReservations: Prisma.$BillingReservationPayload<ExtArgs>[]
+    promotionalGrant: Prisma.$PromotionalGrantPayload<ExtArgs> | null
+    topUps: Prisma.$TopUpPayload<ExtArgs>[]
+    callBillingSessions: Prisma.$CallBillingSessionPayload<ExtArgs>[]
+    stripeWebhookEvents: Prisma.$StripeWebhookEventPayload<ExtArgs>[]
+    phoneNumberPurchases: Prisma.$PhoneNumberPurchasePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -5745,6 +8331,14 @@ export interface Prisma__OrganizationClient<T, Null = never, ExtArgs extends run
   campaignReportSnapshots<T extends Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$campaignReportSnapshotsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CampaignReportSnapshotPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   organizationroles<T extends Prisma.Organization$organizationrolesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$organizationrolesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationRolePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.Organization$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  billingAccount<T extends Prisma.Organization$billingAccountArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$billingAccountArgs<ExtArgs>>): Prisma.Prisma__BillingAccountClient<runtime.Types.Result.GetResult<Prisma.$BillingAccountPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  billingTransactions<T extends Prisma.Organization$billingTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$billingTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BillingTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  billingReservations<T extends Prisma.Organization$billingReservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$billingReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BillingReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  promotionalGrant<T extends Prisma.Organization$promotionalGrantArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$promotionalGrantArgs<ExtArgs>>): Prisma.Prisma__PromotionalGrantClient<runtime.Types.Result.GetResult<Prisma.$PromotionalGrantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  topUps<T extends Prisma.Organization$topUpsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$topUpsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TopUpPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  callBillingSessions<T extends Prisma.Organization$callBillingSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$callBillingSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$CallBillingSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  stripeWebhookEvents<T extends Prisma.Organization$stripeWebhookEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$stripeWebhookEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StripeWebhookEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  phoneNumberPurchases<T extends Prisma.Organization$phoneNumberPurchasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Organization$phoneNumberPurchasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PhoneNumberPurchasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6773,6 +9367,188 @@ export type Organization$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+}
+
+/**
+ * Organization.billingAccount
+ */
+export type Organization$billingAccountArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BillingAccount
+   */
+  select?: Prisma.BillingAccountSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BillingAccount
+   */
+  omit?: Prisma.BillingAccountOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BillingAccountInclude<ExtArgs> | null
+  where?: Prisma.BillingAccountWhereInput
+}
+
+/**
+ * Organization.billingTransactions
+ */
+export type Organization$billingTransactionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BillingTransaction
+   */
+  select?: Prisma.BillingTransactionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BillingTransaction
+   */
+  omit?: Prisma.BillingTransactionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BillingTransactionInclude<ExtArgs> | null
+  where?: Prisma.BillingTransactionWhereInput
+  orderBy?: Prisma.BillingTransactionOrderByWithRelationInput | Prisma.BillingTransactionOrderByWithRelationInput[]
+  cursor?: Prisma.BillingTransactionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BillingTransactionScalarFieldEnum | Prisma.BillingTransactionScalarFieldEnum[]
+}
+
+/**
+ * Organization.billingReservations
+ */
+export type Organization$billingReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BillingReservation
+   */
+  select?: Prisma.BillingReservationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BillingReservation
+   */
+  omit?: Prisma.BillingReservationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BillingReservationInclude<ExtArgs> | null
+  where?: Prisma.BillingReservationWhereInput
+  orderBy?: Prisma.BillingReservationOrderByWithRelationInput | Prisma.BillingReservationOrderByWithRelationInput[]
+  cursor?: Prisma.BillingReservationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BillingReservationScalarFieldEnum | Prisma.BillingReservationScalarFieldEnum[]
+}
+
+/**
+ * Organization.promotionalGrant
+ */
+export type Organization$promotionalGrantArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PromotionalGrant
+   */
+  select?: Prisma.PromotionalGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PromotionalGrant
+   */
+  omit?: Prisma.PromotionalGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PromotionalGrantInclude<ExtArgs> | null
+  where?: Prisma.PromotionalGrantWhereInput
+}
+
+/**
+ * Organization.topUps
+ */
+export type Organization$topUpsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TopUp
+   */
+  select?: Prisma.TopUpSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TopUp
+   */
+  omit?: Prisma.TopUpOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TopUpInclude<ExtArgs> | null
+  where?: Prisma.TopUpWhereInput
+  orderBy?: Prisma.TopUpOrderByWithRelationInput | Prisma.TopUpOrderByWithRelationInput[]
+  cursor?: Prisma.TopUpWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TopUpScalarFieldEnum | Prisma.TopUpScalarFieldEnum[]
+}
+
+/**
+ * Organization.callBillingSessions
+ */
+export type Organization$callBillingSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the CallBillingSession
+   */
+  select?: Prisma.CallBillingSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the CallBillingSession
+   */
+  omit?: Prisma.CallBillingSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.CallBillingSessionInclude<ExtArgs> | null
+  where?: Prisma.CallBillingSessionWhereInput
+  orderBy?: Prisma.CallBillingSessionOrderByWithRelationInput | Prisma.CallBillingSessionOrderByWithRelationInput[]
+  cursor?: Prisma.CallBillingSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.CallBillingSessionScalarFieldEnum | Prisma.CallBillingSessionScalarFieldEnum[]
+}
+
+/**
+ * Organization.stripeWebhookEvents
+ */
+export type Organization$stripeWebhookEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the StripeWebhookEvent
+   */
+  select?: Prisma.StripeWebhookEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the StripeWebhookEvent
+   */
+  omit?: Prisma.StripeWebhookEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.StripeWebhookEventInclude<ExtArgs> | null
+  where?: Prisma.StripeWebhookEventWhereInput
+  orderBy?: Prisma.StripeWebhookEventOrderByWithRelationInput | Prisma.StripeWebhookEventOrderByWithRelationInput[]
+  cursor?: Prisma.StripeWebhookEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.StripeWebhookEventScalarFieldEnum | Prisma.StripeWebhookEventScalarFieldEnum[]
+}
+
+/**
+ * Organization.phoneNumberPurchases
+ */
+export type Organization$phoneNumberPurchasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PhoneNumberPurchase
+   */
+  select?: Prisma.PhoneNumberPurchaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PhoneNumberPurchase
+   */
+  omit?: Prisma.PhoneNumberPurchaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PhoneNumberPurchaseInclude<ExtArgs> | null
+  where?: Prisma.PhoneNumberPurchaseWhereInput
+  orderBy?: Prisma.PhoneNumberPurchaseOrderByWithRelationInput | Prisma.PhoneNumberPurchaseOrderByWithRelationInput[]
+  cursor?: Prisma.PhoneNumberPurchaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.PhoneNumberPurchaseScalarFieldEnum | Prisma.PhoneNumberPurchaseScalarFieldEnum[]
 }
 
 /**
