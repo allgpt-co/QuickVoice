@@ -35,8 +35,7 @@ COPY apps/mcp-server/package.json apps/mcp-server/package.json
 COPY packages/typescript-config packages/typescript-config
 COPY patches patches
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --frozen-lockfile --prod --filter quickvoice-mcp-server... \
-    && rm -rf /pnpm /root/.cache/node
+    pnpm install --frozen-lockfile --prod --filter quickvoice-mcp-server...
 
 WORKDIR /app/apps/mcp-server
 COPY --from=build --chown=mcp:nodejs /app/apps/mcp-server/dist ./dist
