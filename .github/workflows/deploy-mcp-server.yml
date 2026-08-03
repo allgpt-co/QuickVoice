@@ -140,10 +140,11 @@ jobs:
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
-            if docker build \
+            if docker buildx build \
               --file apps/mcp-server/Dockerfile \
               --tag "${IMAGE_TAG}" \
               --tag "${LATEST_TAG}" \
+              --load \
               . && docker push "${IMAGE_TAG}" && docker push "${LATEST_TAG}"; then
               digest="$(aws ecr describe-images \
                 --repository-name "${MCP_ECR_REPOSITORY}" \
