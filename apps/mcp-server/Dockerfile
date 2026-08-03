@@ -27,7 +27,10 @@ FROM base AS runtime
 ENV NODE_ENV=production
 ENV PORT=8787
 
-RUN groupadd --system --gid 1001 nodejs \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system --gid 1001 nodejs \
     && useradd --system --uid 1001 --gid nodejs --home-dir /app mcp
 
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
