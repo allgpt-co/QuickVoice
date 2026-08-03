@@ -26,6 +26,13 @@ import type {
   CreateAgentArgs,
   UpdateAgentInput,
 } from "./agent.schema.js";
+import { estimateConfiguredMinuteMicros } from "../billing/call-pricing.service.js";
+import {
+  authorizeCallBilling,
+  cancelCallBillingAdmission,
+} from "../billing/call-metering.service.js";
+import { assertSupportedBillingModels } from "../billing/call-pricing.service.js";
+import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
 
 export type VoiceCatalog = {
   version: string;
@@ -61,9 +68,9 @@ export type AgentPreviewSessionPayload = {
   config: {
     language: string;
     timezone: string;
-    stt: { model: string };
-    llm: { model: string };
-    tts: { model: string; voice: string };
+    stt: { model: string; provider?: string };
+    llm: { model: string; provider?: string };
+    tts: { model: string; provider?: string; voice: string };
   };
   metadata: VoiceSessionMetadata;
   ttl_seconds: number;
@@ -160,8 +167,7 @@ export const createAgentPreviewSession = async (
   dynamicVariables?: unknown,
 ): Promise<AgentPreviewSession> => {
   const configuration = await getAgentConfig(organizationId, agentId);
-  return requestAgentPreviewSession(
-    buildAgentPreviewSessionPayload({
+  const payload = buildAgentPreviewSessionPayload({
       agentId,
       organizationId,
       agent_language: configuration.agent_language,
@@ -174,8 +180,29 @@ export const createAgentPreviewSession = async (
       systemPrompt: configuration.systemPrompt,
       variables: configuration.variables,
       dynamicVariables,
-    }),
-  );
+    });
+  const admission = await authorizeCallBilling({
+    organizationId,
+    callId: payload.room.name,
+    roomName: payload.room.name,
+    agentId,
+  });
+  if (admission.action === "stop") {
+    throw new PaymentRequiredError("Add credit before starting a preview call", {
+      reason: admission.reason,
+      requiredMicros: admission.reserveMicros?.toString() ?? null,
+    });
+  }
+  try {
+    return await requestAgentPreviewSession(payload);
+  } catch (error) {
+    await cancelCallBillingAdmission({
+      organizationId,
+      callId: payload.room.name,
+      reason: "preview_session_creation_failed",
+    }).catch(() => undefined);
+    throw error;
+  }
 };
 
 export const buildAgentPreviewSessionPayload = (
@@ -204,10 +231,10 @@ export const buildAgentPreviewSessionPayload = (
     config: {
       language: configuration.agent_language,
       timezone: configuration.timezone,
-      stt: { model: configuration.sttModel },
-      llm: { model: configuration.llmModel },
+      stt: providerModel(configuration.sttModel),
+      llm: providerModel(configuration.llmModel),
       tts: {
-        model: configuration.ttsModel,
+        ...providerModel(configuration.ttsModel),
         voice: configuration.voiceId,
       },
     },
@@ -225,6 +252,17 @@ export const buildAgentPreviewSessionPayload = (
     ttl_seconds: PREVIEW_SESSION_TTL_SECONDS,
   };
 };
+
+export function providerModel(value: string) {
+  const separator = value.indexOf("/");
+  if (separator <= 0 || separator === value.length - 1) {
+    return { model: value };
+  }
+  return {
+    provider: value.slice(0, separator),
+    model: value.slice(separator + 1),
+  };
+}
 
 function renderPreviewDynamicVariables(
   template: string,
@@ -430,6 +468,19 @@ export const deleteAgent = async (
 
 export const configureAgent = async (args: ConfigureAgentArgs) => {
   const { organizationId, userId, agentId, ...data } = args;
+  try {
+    assertSupportedBillingModels({
+      sttModel: data.sttModel,
+      llmModel: data.llmModel,
+      ttsModel: data.ttsModel,
+    });
+  } catch (error) {
+    throw new BadRequestError(
+      error instanceof Error
+        ? error.message
+        : "The selected model does not have a billable rate",
+    );
+  }
   await assertSafeWebhookUrls(data);
   const agent = await agentRepository.findByIdForOrg(organizationId, agentId);
   if (!agent) {
@@ -469,7 +520,7 @@ export const configureAgent = async (args: ConfigureAgentArgs) => {
       configuration,
     );
 
-    return redactAgentConfigSecrets(configuration);
+    return withEstimatedPrice(redactAgentConfigSecrets(configuration));
   } catch (error) {
     if (!persisted) {
       await cleanupUncommittedAgentSecrets(
@@ -495,8 +546,23 @@ export const getAgentConfig = async (
     throw new NotFoundError("Agent configuration not found");
   }
 
-  return redactAgentConfigSecrets(configuration);
+  return withEstimatedPrice(redactAgentConfigSecrets(configuration));
 };
+
+function withEstimatedPrice<T extends {
+  sttModel?: string | null;
+  llmModel?: string | null;
+  ttsModel?: string | null;
+}>(configuration: T) {
+  return {
+    ...configuration,
+    estimatedPricePerMinuteMicros: estimateConfiguredMinuteMicros({
+      sttModel: configuration.sttModel,
+      llmModel: configuration.llmModel,
+      ttsModel: configuration.ttsModel,
+    }).toString(),
+  };
+}
 
 export const getAgentConfigByNumber = async (phoneNumber: string) => {
   const normalizedPhoneNumber = phoneNumber.trim();

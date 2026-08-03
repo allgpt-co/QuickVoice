@@ -19,12 +19,21 @@ import { inngest } from "./config/inngest.js";
 import { inngestFunctions } from "./inngest/index.js";
 import apiRouter from "./router.js";
 import { getReadiness } from "./modules/system/readiness.service.js";
+import systemRuntimeRouter from "./modules/system/runtime.route.js";
 import { publicWidgetOriginAllowed } from "./modules/widgets/widget.service.js";
 import "./workers/kb.worker.js";
 import "./workers/outbound-batch.worker.js";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./config/swagger.js";
 import { LiveTranscriptGateway } from "./realtime/live-transcript.gateway.js";
+import {
+  stripeWalletWebhookHandler,
+  stripeWalletWebhookRawBody,
+} from "./modules/billing/stripe-wallet-webhook.route.js";
+import {
+  BLOCKED_LEGACY_SUBSCRIPTION_MUTATIONS,
+  rejectLegacySubscriptionMutation,
+} from "./modules/billing/legacy-subscription.guard.js";
 
 const app = express();
 
@@ -46,19 +55,19 @@ app.use(
       persistAuthorization: false,
       withCredentials: true,
     },
-  })
+  }),
 );
 
 const publicWidgetPreflight: RequestHandler<{ widgetId: string }> = async (
   req,
   res,
-  next
+  next,
 ) => {
   try {
     const origin = req.headers.origin;
     const allowed = await publicWidgetOriginAllowed(
       req.params.widgetId,
-      origin
+      origin,
     );
     if (allowed && origin) {
       res.setHeader("Access-Control-Allow-Origin", origin);
@@ -66,7 +75,7 @@ const publicWidgetPreflight: RequestHandler<{ widgetId: string }> = async (
       res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
       res.setHeader(
         "Access-Control-Allow-Headers",
-        "Content-Type, X-Requested-With"
+        "Content-Type, X-Requested-With",
       );
       res.setHeader("Access-Control-Max-Age", "600");
     }
@@ -81,15 +90,15 @@ const publicWidgetPreflight: RequestHandler<{ widgetId: string }> = async (
 // the widget-specific origin allowlist headers.
 app.options(
   `/api/${apiVersion}/public/widgets/:widgetId/config`,
-  publicWidgetPreflight
+  publicWidgetPreflight,
 );
 app.options(
   `/api/${apiVersion}/public/widgets/:widgetId/sessions`,
-  publicWidgetPreflight
+  publicWidgetPreflight,
 );
 app.options(
   `/api/${apiVersion}/public/widgets/:widgetId/sessions/:sessionId/end`,
-  publicWidgetPreflight
+  publicWidgetPreflight,
 );
 
 /**
@@ -107,14 +116,22 @@ app.use(
     origin: trustedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
-  })
+  }),
 );
 
 // Request logger
 app.use(
   morgan("dev", {
     skip: (req: Request) => req.method === "OPTIONS",
-  })
+  }),
+);
+
+// Stripe signs the exact request bytes, so this endpoint must be mounted with
+// a raw parser before Better Auth and the global JSON parser.
+app.post(
+  `/api/${apiVersion}/billing/stripe/webhook`,
+  stripeWalletWebhookRawBody,
+  stripeWalletWebhookHandler,
 );
 
 /**
@@ -127,7 +144,20 @@ app.use(
  * See: https://better-auth.com/docs/integrations/express
  */
 
+// Wallet billing replaces subscription mutations. Legacy list and cancel
+// remain available while existing subscriptions are sunset.
+app.post(
+  BLOCKED_LEGACY_SUBSCRIPTION_MUTATIONS.map(
+    (path) => `/api/${apiVersion}/auth${path}`,
+  ),
+  rejectLegacySubscriptionMutation,
+);
 app.all(`/api/${apiVersion}/auth/*splat`, toNodeHandler(auth));
+
+// AI workers must verify billing-mode compatibility before registering with
+// LiveKit. Mount this authenticated, read-only handshake before the public
+// rate limiter so a shared worker egress IP cannot make deployments fail.
+app.use(`/api/${apiVersion}/system`, systemRuntimeRouter);
 
 // Rate limit before JSON parsing so oversized or abusive request bodies are
 // throttled before the server spends work parsing them.
@@ -139,7 +169,7 @@ app.use(express.json());
 // Must be after express.json() so Inngest can read request bodies.
 app.use(
   `/api/inngest`,
-  serveInngest({ client: inngest, functions: inngestFunctions })
+  serveInngest({ client: inngest, functions: inngestFunctions }),
 );
 /**
  * =========================
@@ -189,16 +219,12 @@ app.use(
  * =========================
  */
 
-app.get(
-  `/api/${apiVersion}/me`,
-  authMiddleware,
-  (req, res) => {
-    res.json({
-      success: true,
-      message: "Protected route access granted",
-    });
-  }
-);
+app.get(`/api/${apiVersion}/me`, authMiddleware, (req, res) => {
+  res.json({
+    success: true,
+    message: "Protected route access granted",
+  });
+});
 
 /**
  * =========================
@@ -207,8 +233,6 @@ app.get(
  */
 
 app.use(`/api/${apiVersion}`, apiRouter);
-
-
 
 /**
  * =========================
@@ -235,9 +259,7 @@ void liveTranscriptGateway.start().catch((error) => {
 });
 
 httpServer.listen(port, () => {
-  console.log(
-    `Server listening on http://localhost:${port}`
-  );
+  console.log(`Server listening on http://localhost:${port}`);
 });
 
 let shuttingDown = false;

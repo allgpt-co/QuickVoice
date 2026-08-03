@@ -91,6 +91,8 @@ The Docker Compose database credentials are dev-only placeholders (`quickvoice` 
 
 The placeholder values are enough to inspect local startup paths; they do not make provider-backed actions work. A successful `task up:dev` does not prove that live calls, OAuth, billing, email delivery, object storage, Pinecone retrieval, or production deployment are configured. Real phone calls require LiveKit plus a configured telephony provider and model-provider credentials. Keep production data and credentials out of local issue reproductions.
 
+To exercise prepaid billing safely, follow the [Stripe wallet test-mode verification guide](./docs/development/stripe-wallet-test-mode.md). It keeps wallet and legacy subscription webhook secrets separate and verifies webhook-authoritative crediting, duplicate delivery, and refunds against a Stripe sandbox.
+
 Optional local email testing is available through a Docker Compose profile:
 
 ```sh

@@ -9,6 +9,7 @@ import { serverBaseUrl } from "../../config/origins.js";
 import { redisConnection } from "../../config/redis.js";
 import {
   requestVoiceSession,
+  providerModel,
   type AgentPreviewSession,
   type VoiceSessionPayload,
 } from "../agent/agent.service.js";
@@ -19,6 +20,11 @@ import type {
   UpdateAgentWidgetInput,
   WidgetTheme,
 } from "./widget.schema.js";
+import {
+  authorizeCallBilling,
+  cancelCallBillingAdmission,
+} from "../billing/call-metering.service.js";
+import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
 
 const WIDGET_ID_PREFIX = "wgt";
 const WIDGET_SESSION_ID_PREFIX = "wgs";
@@ -263,10 +269,10 @@ export const createPublicWidgetSession = async (
     config: {
       language: configuration.agent_language,
       timezone: configuration.timezone,
-      stt: { model: configuration.sttModel },
-      llm: { model: configuration.llmModel },
+      stt: providerModel(configuration.sttModel),
+      llm: providerModel(configuration.llmModel),
       tts: {
-        model: configuration.ttsModel,
+        ...providerModel(configuration.ttsModel),
         voice: configuration.voiceId,
       },
     },
@@ -294,10 +300,34 @@ export const createPublicWidgetSession = async (
     ttl_seconds: ttlSeconds,
   };
 
-  const voiceSession = await requestVoiceSession(
-    payload,
-    "Website widget session is unavailable",
-  );
+  const admission = await authorizeCallBilling({
+    organizationId: widget.organizationId,
+    callId: roomName,
+    roomName,
+    sessionId,
+    agentId: widget.agentId,
+  });
+  if (admission.action === "stop") {
+    throw new PaymentRequiredError(
+      "This voice agent is temporarily unavailable because its account needs credit",
+      { reason: admission.reason },
+    );
+  }
+
+  let voiceSession;
+  try {
+    voiceSession = await requestVoiceSession(
+      payload,
+      "Website widget session is unavailable",
+    );
+  } catch (error) {
+    await cancelCallBillingAdmission({
+      organizationId: widget.organizationId,
+      callId: roomName,
+      reason: "widget_session_creation_failed",
+    }).catch(() => undefined);
+    throw error;
+  }
   const endToken = randomBytes(32).toString("base64url");
 
   await widgetRepository.createWidgetSession({

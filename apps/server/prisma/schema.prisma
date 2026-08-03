@@ -85,6 +85,100 @@ enum AgentWidgetSessionStatus {
   FAILED
 }
 
+enum BillingTransactionType {
+  PROMOTIONAL_GRANT
+  TOP_UP
+  CALL_RESERVATION
+  CALL_SETTLEMENT
+  RESERVATION_RELEASE
+  NUMBER_PURCHASE
+  NUMBER_RENEWAL
+  REFUND
+  DISPUTE
+  ADJUSTMENT
+  DEBT_INCURRED
+  DEBT_REPAYMENT
+}
+
+enum BillingReservationPurpose {
+  CALL_USAGE
+  PHONE_NUMBER_PURCHASE
+  PHONE_NUMBER_RENEWAL
+}
+
+enum BillingReservationStatus {
+  ACTIVE
+  SETTLED
+  RELEASED
+}
+
+enum TopUpStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
+}
+
+enum TopUpKind {
+  MANUAL
+  AUTOMATIC
+}
+
+enum TopUpTaxMode {
+  DISABLED
+  STRIPE_TAX
+}
+
+enum CallBillingSessionStatus {
+  AUTHORIZED
+  ACTIVE
+  ENDED
+  RECONCILING
+  SETTLED
+  DEBT
+}
+
+enum CallBillingMode {
+  WALLET
+  LEGACY_SUBSCRIPTION
+}
+
+enum StripeWebhookEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum TelephonyCostReportStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+  EXPIRED
+}
+
+enum PhoneNumberBillingStatus {
+  ACTIVE
+  SUSPENDED
+  RELEASE_PENDING
+  RELEASING
+  RELEASED
+}
+
+enum PhoneNumberPurchaseStatus {
+  PENDING
+  RESERVED
+  PROVIDER_PENDING
+  PROVIDER_PURCHASED
+  NUMBER_PERSISTED
+  SUCCEEDED
+  FAILED
+  REQUIRES_ATTENTION
+}
+
 // ─── Better Auth Core Tables ─────────────────────────────────────────────────
 
 model User {
@@ -116,6 +210,7 @@ model User {
   mcpConnections   McpConnection[]
   secrets          Secret[]
   auditLogs        AuditLog[]
+  promotionalGrant PromotionalGrant?
 
   @@unique([email])
 }
@@ -236,6 +331,14 @@ model Organization {
   campaignReportSnapshots        CampaignReportSnapshot[]
   organizationroles              OrganizationRole[]
   auditLogs                      AuditLog[]
+  billingAccount                 BillingAccount?
+  billingTransactions            BillingTransaction[]
+  billingReservations            BillingReservation[]
+  promotionalGrant               PromotionalGrant?
+  topUps                         TopUp[]
+  callBillingSessions            CallBillingSession[]
+  stripeWebhookEvents            StripeWebhookEvent[]
+  phoneNumberPurchases           PhoneNumberPurchase[]
 
   @@unique([slug])
   @@index([stripeCustomerId])
@@ -312,27 +415,345 @@ model Subscription {
   @@index([status])
 }
 
+// ─── Prepaid Wallet Billing ─────────────────────────────────────────────────
+
+model BillingAccount {
+  billingAccountId            String               @id @default(uuid())
+  organizationId              String               @unique
+  organization                Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  currency                    String               @default("USD")
+  paidBalanceMicros           BigInt               @default(0)
+  promotionalBalanceMicros    BigInt               @default(0)
+  reservedPaidMicros          BigInt               @default(0)
+  reservedPromotionalMicros   BigInt               @default(0)
+  debtMicros                  BigInt               @default(0)
+  autoRechargeEnabled         Boolean              @default(false)
+  autoRechargeThresholdMicros BigInt               @default(5000000)
+  autoRechargeAmountMicros    BigInt               @default(20000000)
+  stripePaymentMethodId       String?
+  paymentMethodRequestVersion Int                  @default(0)
+  paymentMethodAppliedVersion Int                  @default(0)
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  transactions                BillingTransaction[]
+  reservations                BillingReservation[]
+  promotionalGrant            PromotionalGrant?
+  topUps                      TopUp[]
+  callBillingSessions         CallBillingSession[]
+
+  @@index([autoRechargeEnabled])
+}
+
+// This is an append-only ledger. Application code never updates or deletes
+// rows; mutable reservation/account projections are derived alongside inserts
+// in the same serializable database transaction.
+model BillingTransaction {
+  billingTransactionId           String                 @id @default(uuid())
+  billingAccountId               String
+  billingAccount                 BillingAccount         @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId                 String
+  organization                   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type                           BillingTransactionType
+  idempotencyKey                 String
+  grossAmountMicros              BigInt                 @default(0)
+  paidBalanceDeltaMicros         BigInt                 @default(0)
+  promotionalBalanceDeltaMicros  BigInt                 @default(0)
+  reservedPaidDeltaMicros        BigInt                 @default(0)
+  reservedPromotionalDeltaMicros BigInt                 @default(0)
+  debtDeltaMicros                BigInt                 @default(0)
+  paidBalanceAfterMicros         BigInt
+  promotionalBalanceAfterMicros  BigInt
+  reservedPaidAfterMicros        BigInt
+  reservedPromotionalAfterMicros BigInt
+  debtAfterMicros                BigInt
+  referenceType                  String?
+  referenceId                    String?
+  description                    String?
+  metadata                       Json?
+  createdAt                      DateTime               @default(now())
+  promotionalGrant               PromotionalGrant?
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@index([organizationId, createdAt])
+  @@index([referenceType, referenceId])
+  @@index([type, createdAt])
+}
+
+model BillingReservation {
+  billingReservationId    String                    @id @default(uuid())
+  billingAccountId        String
+  billingAccount          BillingAccount            @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId          String
+  organization            Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purpose                 BillingReservationPurpose
+  status                  BillingReservationStatus  @default(ACTIVE)
+  idempotencyKey          String
+  amountMicros            BigInt
+  paidAmountMicros        BigInt                    @default(0)
+  promotionalAmountMicros BigInt                    @default(0)
+  settledAmountMicros     BigInt                    @default(0)
+  debtIncurredMicros      BigInt                    @default(0)
+  referenceType           String?
+  referenceId             String?
+  expiresAt               DateTime?
+  settledAt               DateTime?
+  releasedAt              DateTime?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@index([organizationId, status])
+  @@index([referenceType, referenceId])
+  @@index([expiresAt])
+}
+
+model PromotionalGrant {
+  promotionalGrantId   String              @id @default(uuid())
+  userId               String?             @unique
+  user                 User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // HMAC of normalized verified email. It survives user deletion so deleting
+  // and recreating an account cannot claim the signup promotion repeatedly.
+  identityHash         String              @unique
+  organizationId       String?             @unique
+  organization         Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  billingAccountId     String?             @unique
+  billingAccount       BillingAccount?     @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: SetNull)
+  amountMicros         BigInt
+  billingTransactionId String?             @unique
+  billingTransaction   BillingTransaction? @relation(fields: [billingTransactionId], references: [billingTransactionId], onDelete: SetNull)
+  reason               String              @default("signup")
+  grantedAt            DateTime            @default(now())
+
+  @@index([organizationId])
+  @@index([billingAccountId])
+}
+
+model TopUp {
+  topUpId                        String         @id @default(uuid())
+  billingAccountId               String
+  billingAccount                 BillingAccount @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId                 String
+  organization                   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUserId              String?
+  idempotencyKey                 String
+  kind                           TopUpKind      @default(MANUAL)
+  automaticContextKey            String?
+  processingToken                String?
+  processingExpiresAt            DateTime?
+  reconciliationNextAt           DateTime?
+  reconciliationAttempts         Int            @default(0)
+  stripeCheckoutSessionId        String?        @unique
+  stripePaymentIntentId          String?        @unique
+  stripeTaxCalculationId         String?        @unique
+  taxMode                        TopUpTaxMode   @default(DISABLED)
+  stripeTaxCode                  String?
+  amountMicros                   BigInt
+  taxMicros                      BigInt         @default(0)
+  creditedMicros                 BigInt         @default(0)
+  refundedMicros                 BigInt         @default(0)
+  disputedMicros                 BigInt         @default(0)
+  refundTargetProviderCents      BigInt         @default(0)
+  disputeTargetProviderCents     BigInt         @default(0)
+  stripeDisputeId                String?
+  disputeState                   String         @default("NONE")
+  financialProcessingToken       String?
+  financialProcessingExpiresAt   DateTime?
+  financialReconciliationPending Boolean        @default(false)
+  status                         TopUpStatus    @default(PENDING)
+  failureCode                    String?
+  failureMessage                 String?
+  createdAt                      DateTime       @default(now())
+  updatedAt                      DateTime       @updatedAt
+  completedAt                    DateTime?
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@unique([billingAccountId, automaticContextKey])
+  @@index([organizationId, createdAt])
+  @@index([status, createdAt])
+  @@index([kind, status, reconciliationNextAt])
+  @@index([financialReconciliationPending, financialProcessingExpiresAt])
+}
+
+model CallBillingSession {
+  callBillingSessionId     String                   @id @default(uuid())
+  callId                   String                   @unique
+  billingAccountId         String
+  billingAccount           BillingAccount           @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId           String
+  organization             Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status                   CallBillingSessionStatus @default(AUTHORIZED)
+  billingMode              CallBillingMode          @default(WALLET)
+  admissionGeneration      Int                      @default(1)
+  rateCatalogVersion       String
+  rateSnapshot             Json
+  lastModelUsage           Json?
+  activeReservationId      String?
+  sessionId                String?                  @unique
+  roomName                 String?
+  agentId                  String?
+  userId                   String?
+  lastUsageSequence        Int                      @default(0)
+  processingUsageSequence  Int?
+  processingUsageStartedAt DateTime?
+  connectedSeconds         Int                      @default(0)
+  connectedMilliseconds    BigInt                   @default(0)
+  aiCostMicros             BigInt                   @default(0)
+  platformCostMicros       BigInt                   @default(0)
+  telephonyEstimatedMicros BigInt                   @default(0)
+  telephonyFinalMicros     BigInt?
+  unreportedTailMicros     BigInt                   @default(0)
+  totalSettledMicros       BigInt                   @default(0)
+  debtIncurredMicros       BigInt                   @default(0)
+  telephonyProvider        TelephonyProvider?
+  providerCallId           String?
+  providerBillableSeconds  Int?
+  reconciliationAttempts   Int                      @default(0)
+  reconciliationClaimedAt  DateTime?
+  reconciliationNextAt     DateTime?
+  reconciliationLastError  String?
+  startedAt                DateTime?
+  endedAt                  DateTime?
+  reconciledAt             DateTime?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+
+  @@unique([telephonyProvider, providerCallId])
+  @@index([organizationId, status])
+  @@index([roomName])
+  @@index([agentId])
+  @@index([userId])
+  @@index([status, endedAt])
+  @@index([status, reconciliationNextAt])
+}
+
+// Telnyx SIP trunk charges are published asynchronously as CDR CSV reports.
+// Persisting report requests makes provider-final reconciliation restart-safe
+// and prevents duplicate paid report generation after a worker crash.
+model TelephonyCostReport {
+  telephonyCostReportId String                    @id @default(uuid())
+  provider              TelephonyProvider
+  periodStart           DateTime
+  periodEnd             DateTime
+  externalReportId      String?                   @unique
+  status                TelephonyCostReportStatus @default(PENDING)
+  reportUrl             String?
+  attempts              Int                       @default(0)
+  nextAttemptAt         DateTime?
+  processingToken       String?
+  processingExpiresAt   DateTime?
+  lastError             String?
+  processedAt           DateTime?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  @@unique([provider, periodStart, periodEnd])
+  @@index([provider, status, nextAttemptAt])
+  @@index([processingExpiresAt])
+}
+
+model StripeWebhookEvent {
+  stripeEventId  String                   @id
+  organizationId String?
+  organization   Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  type           String
+  status         StripeWebhookEventStatus @default(RECEIVED)
+  livemode       Boolean
+  payload        Json
+  attempts       Int                      @default(0)
+  lastError      String?
+  receivedAt     DateTime                 @default(now())
+  processedAt    DateTime?
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([organizationId, receivedAt])
+  @@index([status, receivedAt])
+  @@index([type, receivedAt])
+}
+
 // ─── App Resource Models ─────────────────────────────────────────────────────
 
 model PhoneNumber {
-  phId           String            @id @default(uuid())
-  number         String            @unique
-  organizationId String
-  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?
-  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  agentId        String?
-  agent          Agent?            @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  sid            String
-  friendlyName   String
-  provider       TelephonyProvider @default(TWILIO)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  phId                      String                   @id @default(uuid())
+  number                    String                   @unique
+  organizationId            String
+  organization              Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId                    String?
+  user                      User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  agentId                   String?
+  agent                     Agent?                   @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  sid                       String
+  friendlyName              String
+  provider                  TelephonyProvider        @default(TWILIO)
+  billingStatus             PhoneNumberBillingStatus @default(ACTIVE)
+  providerMonthlyCostMicros BigInt?
+  rentalPriceMicros         BigInt?
+  nextBillingAt             DateTime?
+  lastBilledAt              DateTime?
+  billingSuspendedAt        DateTime?
+  scheduledReleaseAt        DateTime?
+  billingOperationToken     String?
+  billingOperationExpiresAt DateTime?
+  billingReleaseClaimedAt   DateTime?
+  billingFailureCount       Int                      @default(0)
+  lastBillingAttemptAt      DateTime?
+  billingNoticeSentAt       DateTime?
+  billingSuspendedAgentId   String?
+  billingCountryIso         String?
+  billingNumberType         String?
+  billingRateCatalogVersion String?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
 
   @@index([organizationId])
   @@index([agentId])
   @@index([userId])
   @@index([sid])
+  @@index([billingStatus, nextBillingAt])
+  @@index([billingStatus, scheduledReleaseAt])
+  @@index([billingStatus, billingOperationExpiresAt])
+}
+
+// Durable quote consumption and provider-purchase state. A completed row is
+// intentionally retained after the PhoneNumber is released so the signed quote
+// nonce can never purchase or debit a second time.
+model PhoneNumberPurchase {
+  phoneNumberPurchaseId     String                    @id @default(uuid())
+  quoteNonce                String                    @unique
+  organizationId            String
+  organization              Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUserId         String?
+  phoneNumber               String
+  provider                  TelephonyProvider
+  providerMonthlyCostMicros BigInt
+  rentalPriceMicros         BigInt
+  billingCountryIso         String
+  billingNumberType         String
+  rateCatalogVersion        String
+  quoteExpiresAt            DateTime
+  status                    PhoneNumberPurchaseStatus @default(PENDING)
+  billingReservationId      String?                   @unique
+  providerResourceId        String?
+  providerOrderId           String?
+  providerFriendlyName      String?
+  persistedPhoneNumberId    String                    @unique
+  providerAttemptedAt       DateTime?
+  providerPurchasedAt       DateTime?
+  phonePersistedAt          DateTime?
+  completedAt               DateTime?
+  failedAt                  DateTime?
+  processingToken           String?
+  processingExpiresAt       DateTime?
+  attemptCount              Int                       @default(0)
+  lastErrorCode             String?
+  lastErrorMessage          String?
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@index([phoneNumber, status])
+  @@index([status, processingExpiresAt])
+  @@index([providerResourceId])
+  @@index([providerOrderId])
 }
 
 model Agent {
@@ -401,9 +822,9 @@ model AgentConfiguration {
   voice_speed                       Float
   voice_stability                   Float
   zero_pii_retention                Boolean  @default(false)
-  llmModel                          String   @default("gpt-4o-mini")
-  sttModel                          String   @default("nova-3")
-  ttsModel                          String   @default("aura-2")
+  llmModel                          String   @default("bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0")
+  sttModel                          String   @default("deepgram/nova-3")
+  ttsModel                          String   @default("deepgram/aura-2")
   agent_language                    String   @default("en")
   initiation_webhook                Json?
   post_call_webhook                 Json?

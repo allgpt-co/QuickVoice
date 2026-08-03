@@ -11,9 +11,12 @@ test("configured agent templates produce valid agent configuration", () => {
     assert.ok(config, `${templateId} should have a starter configuration`);
     assert.doesNotThrow(() => configureAgentSchema.parse(config));
     assert.equal(config.agent_language, "en");
-    assert.equal(config.llmModel, "gpt-4o-mini");
-    assert.equal(config.sttModel, "nova-3");
-    assert.equal(config.ttsModel, "aura-2");
+    assert.equal(
+      config.llmModel,
+      "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    );
+    assert.equal(config.sttModel, "deepgram/nova-3");
+    assert.equal(config.ttsModel, "deepgram/aura-2");
     assert.equal(config.voiceId, "aura-2-asteria-en");
     assert.ok(config.firstMessage.length >= 5);
     assert.ok(config.systemPrompt.length >= 10);

@@ -3,7 +3,13 @@
 // The server's Prisma `generated` dir is excluded from the console tsconfig,
 // so we don't import from it.
 
-export type TelephonyProvider = "twilio" | "telnyx";
+export type TelephonyProvider = "TWILIO" | "TELNYX";
+export type PhoneNumberBillingStatus =
+  | "ACTIVE"
+  | "SUSPENDED"
+  | "RELEASE_PENDING"
+  | "RELEASING"
+  | "RELEASED";
 
 export type CallStatus =
   | "NOT_ANSWERED"
@@ -38,6 +44,7 @@ export interface Agent {
   phoneNumbersCount: number;
   knowledgeSourcesCount: number;
   toolsCount: number;
+  estimatedPricePerMinuteMicros?: number | string | null;
 }
 
 export interface AgentConfiguration {
@@ -77,6 +84,7 @@ export interface AgentConfiguration {
   preemptive_generation: boolean;
   ivr_navigation_enabled: boolean;
   timezone: string;
+  estimatedPricePerMinuteMicros?: number | string | null;
 }
 
 export interface VoiceCatalog {
@@ -212,6 +220,11 @@ export interface PhoneNumber {
   provider: TelephonyProvider;
   createdAt: string;
   updatedAt: string;
+  billingStatus: PhoneNumberBillingStatus;
+  rentalPriceMicros: number | string | null;
+  nextBillingAt: string | null;
+  scheduledReleaseAt: string | null;
+  monthlyPriceMicros?: number | string | null;
 }
 
 export interface AvailableNumber {
@@ -220,6 +233,11 @@ export interface AvailableNumber {
   locality?: string;
   region?: string;
   isoCountry: string;
+  providerMonthlyCostMicros: number | string;
+  monthlyPriceMicros: number | string;
+  quoteId: string;
+  quoteExpiresAt: string;
+  rateCatalogVersion: string;
 }
 
 export interface CallLog {

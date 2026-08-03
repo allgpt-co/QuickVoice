@@ -363,7 +363,11 @@ test("createBatchCampaign rejects immediately when plan minutes are exhausted", 
         timezone: "UTC",
         ringingTimeoutSeconds: 45,
       },
-      { repository: repo, queue }
+      {
+        repository: repo,
+        queue,
+        hasActiveLegacySubscription: async () => true,
+      }
     ),
     /Plan minutes exhausted/
   );

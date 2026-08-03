@@ -15,8 +15,9 @@ const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunc
 
   if (err instanceof CustomApiError) {
     statusCode = err.statusCode;
-    code = codeFromStatus(statusCode);
+    code = err.code ?? codeFromStatus(statusCode);
     message = err.message;
+    details = err.details ?? null;
   }
 
   if (err instanceof ZodError) {
@@ -70,6 +71,8 @@ function codeFromStatus(statusCode: number) {
       return "NOT_FOUND";
     case StatusCodes.TOO_MANY_REQUESTS:
       return "RATE_LIMITED";
+    case StatusCodes.PAYMENT_REQUIRED:
+      return "PAYMENT_REQUIRED";
     default:
       return "INTERNAL_SERVER_ERROR";
   }

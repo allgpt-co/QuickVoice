@@ -1,4 +1,3 @@
-import os
 from contextlib import asynccontextmanager
 from typing import Any, List, Optional
 
@@ -11,7 +10,11 @@ from handlers import kb_handler
 from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import VoiceConfigValidationError, resolve_voice_config
 from handlers.voice_session_broker import VoiceSessionBroker, VoiceSessionBrokerError
-from utils.auth import is_explicit_dev_mode, verify_internal_headers
+from utils.auth import verify_internal_headers
+from utils.runtime_readiness import (
+    evaluate_local_runtime_config,
+    get_runtime_readiness,
+)
 
 
 def _verify_internal(request: Request) -> None:
@@ -26,8 +29,10 @@ def _verify_internal(request: Request) -> None:
 
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
-    if not os.environ.get("INTERNAL_API_KEY") and not is_explicit_dev_mode():
-        raise RuntimeError("INTERNAL_API_KEY is required for QuickVoice AI API startup")
+    # Keep the HTTP process alive when deployment configuration is incomplete
+    # so orchestration receives a diagnostic 503 from /health. All non-health
+    # routes continue to fail closed in the authentication middleware.
+    _app.state.startup_runtime_config = evaluate_local_runtime_config()
     yield
 
 
@@ -49,7 +54,11 @@ async def _internal_auth_middleware(request: Request, call_next):
 
 @app.get("/health")
 async def health_check():
-    return {"ok": True, "service": "ai"}
+    readiness = await get_runtime_readiness()
+    return JSONResponse(
+        status_code=200 if readiness["ok"] else 503,
+        content=readiness,
+    )
 
 
 # ── agent config ──────────────────────────────────────────────────────────────

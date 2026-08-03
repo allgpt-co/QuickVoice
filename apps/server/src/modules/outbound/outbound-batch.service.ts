@@ -11,6 +11,7 @@ import {
   dispatchScheduledOutboundCall,
   enforcePlanQuota,
 } from "./outbound-call.service.js";
+import { hasActiveLegacySubscription } from "../billing/call-metering.service.js";
 import type {
   BatchUploadUrlQuery,
   CreateBatchCampaignArgs,
@@ -69,6 +70,7 @@ type CreateBatchCampaignDeps = {
   >;
   queue?: BatchQueueLike;
   now?: () => Date;
+  hasActiveLegacySubscription?: typeof hasActiveLegacySubscription;
 };
 
 type BatchUploadUrlDeps = {
@@ -145,7 +147,11 @@ export async function createBatchCampaign(
     );
   }
 
-  await enforcePlanQuota(repository, args.organizationId);
+  await enforcePlanQuota(
+    repository,
+    args.organizationId,
+    deps.hasActiveLegacySubscription,
+  );
 
   const dialableNumber = await repository.getDialableNumber({
     organizationId: args.organizationId,

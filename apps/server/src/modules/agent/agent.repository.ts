@@ -235,6 +235,7 @@ export const getAgentConfigByNumber= async (
       organizationId: true,
       userId: true,
       provider: true,
+      billingStatus: true,
       agent: {
         select: {
           userId: true,
@@ -251,7 +252,9 @@ export const getAgentConfigByNumber= async (
     },
   });
   
-  if (!phone?.agent?.configuration) return null;
+  if (phone?.billingStatus !== "ACTIVE" || !phone.agent?.configuration) {
+    return null;
+  }
 
   return {
     ...phone.agent.configuration,

@@ -44,6 +44,7 @@ export async function getDialableNumber(args: {
       organizationId: args.organizationId,
       agentId: args.agentId,
       number: args.fromNumber,
+      billingStatus: "ACTIVE",
       agent: {
         isActive: true,
         isConfigured: true,

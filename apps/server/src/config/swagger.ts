@@ -99,7 +99,7 @@ export const swaggerSpec = {
         in: "header",
         name: "x-api-key",
         description:
-          "Organization-scoped QuickVoice API key. Send the raw key in the x-api-key header; do not use Authorization: Bearer for external API keys.",
+          "Read-only organization-scoped QuickVoice API key. Send the raw key in the x-api-key header; do not use Authorization: Bearer. API keys cannot manage billing or phone-number ownership.",
       },
     },
     schemas: {

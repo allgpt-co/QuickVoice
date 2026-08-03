@@ -15,6 +15,12 @@ import { BadRequestError } from "../../common/errors/badRequest.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import type { ListOutboundCallsArgs, QuickOutboundCallArgs } from "./outbound-call.schema.js";
 import * as outboundCallRepository from "./outbound-call.repository.js";
+import {
+  authorizeCallBilling,
+  cancelCallBillingAdmission,
+  hasActiveLegacySubscription,
+} from "../billing/call-metering.service.js";
+import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
 
 type QuickOutboundCallRepository = {
   getDialableNumber: typeof outboundCallRepository.getDialableNumber;
@@ -57,6 +63,7 @@ type CreateQuickOutboundCallDeps = {
   dispatchClient?: AgentDispatchClientLike;
   outboundTrunks?: OutboundTrunks;
   agentName?: string;
+  hasActiveLegacySubscription?: typeof hasActiveLegacySubscription;
 };
 
 type OutboundCallRecord = NonNullable<
@@ -86,7 +93,11 @@ export async function createQuickOutboundCall(
   const outboundTrunks = deps.outboundTrunks ?? defaultOutboundTrunks;
   const agentName = deps.agentName ?? LIVEKIT_AGENT_NAME;
 
-  await enforcePlanQuota(repository, args.organizationId);
+  await enforcePlanQuota(
+    repository,
+    args.organizationId,
+    deps.hasActiveLegacySubscription,
+  );
 
   const dialableNumber = await repository.getDialableNumber({
     organizationId: args.organizationId,
@@ -127,6 +138,24 @@ export async function createQuickOutboundCall(
 
   try {
     const roomName = `outbound_${outbound.outboundId}`;
+    const admission = await authorizeCallBilling({
+      organizationId: args.organizationId,
+      callId: outbound.outboundId,
+      roomName,
+      agentId: args.agentId,
+      userId: args.userId,
+      telephonyProvider: provider,
+      direction: "outbound",
+    });
+    if (admission.action === "stop") {
+      throw new PaymentRequiredError(
+        "Add prepaid credit before making this call",
+        {
+          reason: admission.reason,
+          requiredMicros: admission.reserveMicros?.toString() ?? null,
+        },
+      );
+    }
     const metadata = buildOutboundMetadata(
       { ...args, provider, sid },
       outbound.outboundId
@@ -168,6 +197,11 @@ export async function createQuickOutboundCall(
       throw error;
     }
   } catch (error) {
+    await cancelCallBillingAdmission({
+      organizationId: args.organizationId,
+      callId: outbound.outboundId,
+      reason: "outbound_dispatch_failed",
+    }).catch(() => undefined);
     await repository.markFailed(
       outbound.outboundId,
       error instanceof Error ? error.message : String(error)
@@ -200,7 +234,11 @@ export async function dispatchScheduledOutboundCall(
       throw new BadRequestError("Outbound call is not linked to an agent");
     }
 
-    await enforcePlanQuota(repository, outbound.organizationId);
+    await enforcePlanQuota(
+      repository,
+      outbound.organizationId,
+      deps.hasActiveLegacySubscription,
+    );
 
     const dialableNumber = await repository.getDialableNumber({
       organizationId: outbound.organizationId,
@@ -228,8 +266,26 @@ export async function dispatchScheduledOutboundCall(
     const ringingTimeoutSeconds = numberValue(optionalData.ringingTimeoutSeconds);
 
     const roomName = `outbound_${outbound.outboundId}`;
+    const admission = await authorizeCallBilling({
+      organizationId: outbound.organizationId,
+      callId: outbound.outboundId,
+      roomName,
+      agentId: outbound.agentId,
+      userId: outbound.userId,
+      telephonyProvider: provider,
+      direction: "outbound",
+    });
+    if (admission.action === "stop") {
+      throw new PaymentRequiredError(
+        "Insufficient prepaid credit for scheduled call",
+        { reason: admission.reason },
+      );
+    }
     const metadata = {
       agent_id: outbound.agentId,
+      organization_id: outbound.organizationId,
+      user_id: outbound.userId,
+      call_id: outbound.outboundId,
       outbound_id: outbound.outboundId,
       campaign_id: outbound.campaignId ?? null,
       direction: "outbound",
@@ -275,6 +331,11 @@ export async function dispatchScheduledOutboundCall(
       throw error;
     }
   } catch (error) {
+    await cancelCallBillingAdmission({
+      organizationId: outbound.organizationId,
+      callId: outbound.outboundId,
+      reason: "scheduled_outbound_dispatch_failed",
+    }).catch(() => undefined);
     await repository.markFailed(
       outbound.outboundId,
       error instanceof Error ? error.message : String(error)
@@ -285,8 +346,10 @@ export async function dispatchScheduledOutboundCall(
 
 export async function enforcePlanQuota(
   repository: Pick<QuickOutboundCallRepository, "getMonthlyUsage">,
-  organizationId: string
+  organizationId: string,
+  legacySubscriptionCheck = hasActiveLegacySubscription,
 ) {
+  if (!(await legacySubscriptionCheck(organizationId))) return;
   const usage = await repository.getMonthlyUsage?.(organizationId);
   if (!usage?.includedMinutes) return;
 
@@ -334,6 +397,8 @@ function buildOutboundMetadata(args: QuickOutboundCallArgs, outboundId: string) 
   return {
     agent_id: args.agentId,
     organization_id: args.organizationId,
+    user_id: args.userId,
+    call_id: outboundId,
     outbound_id: outboundId,
     direction: "outbound",
     from_number: args.fromNumber,

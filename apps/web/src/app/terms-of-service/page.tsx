@@ -44,7 +44,7 @@ export default function TermsOfServicePage() {
             Terms of Service
           </h1>
           <p className="mt-4 text-muted-foreground">
-            Last updated: February 2026
+            Last updated: August 2026
           </p>
         </header>
 
@@ -168,59 +168,108 @@ export default function TermsOfServicePage() {
             </div>
           </section>
 
-          {/* 4. Subscription Plans and Payments */}
+          {/* 4. Prepaid Wallet, Usage Charges, and Phone Numbers */}
           <section>
             <h2 className="text-2xl font-semibold tracking-tight">
-              4. Subscription Plans and Payments
+              4. Prepaid Wallet, Usage Charges, and Phone Numbers
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
               <p>
-                QuickVoice offers various subscription plans, including free
-                tiers and paid plans. By subscribing to a paid plan, you agree
-                to the following:
+                QuickVoice generally provides the hosted Services through a
+                prepaid, US-dollar wallet maintained at the organization level.
+                Unless you have a separate written agreement or are completing
+                a transition from a legacy plan, adding wallet credit does not
+                create a monthly or annual subscription.
               </p>
               <ul className="list-disc space-y-2 pl-6">
                 <li>
-                  <strong className="text-foreground">Billing Cycle:</strong>{" "}
-                  Paid subscriptions are billed on a recurring basis (monthly or
-                  annually) depending on the plan you select. Billing begins on
-                  the date you subscribe and recurs on the same date each
-                  billing period.
-                </li>
-                <li>
-                  <strong className="text-foreground">Payment Method:</strong>{" "}
-                  You must provide a valid payment method. By providing a
-                  payment method, you authorize QuickVoice to charge all fees
-                  incurred to that payment method.
-                </li>
-                <li>
-                  <strong className="text-foreground">Price Changes:</strong>{" "}
-                  QuickVoice may change subscription pricing with at least 30
-                  days&apos; prior notice. Price changes take effect at the
-                  start of your next billing period following the notice.
+                  <strong className="text-foreground">Paid Credit:</strong>{" "}
+                  You may add paid wallet credit in $5 increments, from $5 to
+                  $500 per top-up. The full purchased amount is credited after
+                  Stripe confirms payment; QuickVoice absorbs ordinary payment
+                  processor fees. Taxes, if applicable, may be charged
+                  separately. Wallet credit is not a bank account, deposit, or
+                  stored-value product and does not earn interest.
                 </li>
                 <li>
                   <strong className="text-foreground">
-                    Usage-Based Charges:
+                    Promotional Credit:
                   </strong>{" "}
-                  Certain Services may include usage-based components (e.g.,
-                  per-minute call charges, additional voice agent deployments).
-                  These charges are billed in arrears and detailed on your
-                  invoice.
+                  An eligible newly verified user may receive a one-time $5
+                  promotional call credit in the user&apos;s first organization.
+                  Promotional credit may be used for browser, widget, inbound,
+                  and outbound call usage, but cannot be used to buy or renew a
+                  phone number. It is non-transferable, has no cash value, is
+                  not refundable, and does not expire while the account remains
+                  active. Eligible call usage consumes promotional credit before
+                  paid credit.
                 </li>
                 <li>
-                  <strong className="text-foreground">Refunds:</strong>{" "}
-                  Subscription fees are generally non-refundable except as
-                  required by applicable law or as expressly stated in your plan
-                  terms. If you cancel a subscription, you retain access to paid
-                  features until the end of your current billing period.
+                  <strong className="text-foreground">Usage Charges:</strong>{" "}
+                  Calls consume credit based on actual measured speech-to-text,
+                  text-to-speech, and language-model usage at the applicable
+                  provider market cost plus 20%; telephony at the applicable
+                  carrier or provider cost plus 20%; and a QuickVoice platform
+                  fee of $0.01 per connected minute, prorated per second.
+                  Provider minimums, increments, and rounding may affect the
+                  final amount. Current estimates are informational, and rates
+                  may change prospectively as provider pricing or our published
+                  pricing changes.
                 </li>
                 <li>
-                  <strong className="text-foreground">Taxes:</strong> All fees
-                  are exclusive of applicable taxes unless stated otherwise. You
-                  are responsible for any taxes associated with your use of the
-                  Services, excluding taxes based on QuickVoice&apos;s net
-                  income.
+                  <strong className="text-foreground">
+                    Holds and Settlement:
+                  </strong>{" "}
+                  QuickVoice may place a temporary wallet hold before a call or
+                  phone-number transaction. A hold reserves credit and is not a
+                  final charge. After processing, QuickVoice settles the actual
+                  charge and releases unused reserved credit. Calls may be
+                  stopped when available credit is exhausted. Delayed provider
+                  records or reconciliation may result in an outstanding debt;
+                  future credits are first applied to that debt, and calling may
+                  remain suspended until it is paid.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Payment Methods and Auto-Reload:
+                  </strong>{" "}
+                  You may save a valid payment method and optionally enable
+                  auto-reload. If enabled, you authorize QuickVoice and Stripe
+                  to charge that payment method off-session for the amount you
+                  choose when available wallet credit reaches your selected
+                  threshold. You may disable auto-reload at any time, but doing
+                  so does not reverse a charge already initiated. Failed or
+                  declined reloads may interrupt calls and number renewals.
+                </li>
+                <li>
+                  <strong className="text-foreground">Phone Numbers:</strong>{" "}
+                  Phone-number rentals are payable only with paid credit. Each
+                  number costs the greater of $2 or the provider rental cost
+                  plus 20% for each 30-day rental period. If paid credit is
+                  insufficient at renewal, QuickVoice may suspend and unlink the
+                  number, attempt auto-reload if you enabled it, and retry
+                  renewal daily. If renewal remains unpaid, the number is
+                  scheduled for release 72 hours after suspension and may be
+                  permanently lost or reassigned by the provider.
+                </li>
+                <li>
+                  <strong className="text-foreground">
+                    Refunds, Reversals, and Debt:
+                  </strong>{" "}
+                  Except where required by law, top-ups and consumed usage
+                  charges are generally non-refundable. Promotional credit is
+                  never refundable or redeemable for cash. An approved refund,
+                  chargeback, or payment reversal removes the corresponding paid
+                  credit. If that credit has already been consumed, your wallet
+                  may show an outstanding debt that remains due, including after
+                  account closure. Contact support promptly about a suspected
+                  billing error; verified errors will be corrected.
+                </li>
+                <li>
+                  <strong className="text-foreground">Taxes:</strong> Fees are
+                  exclusive of applicable taxes unless stated otherwise. You are
+                  responsible for taxes associated with your use of the
+                  Services, excluding taxes based on QuickVoice&apos;s net income.
                 </li>
               </ul>
             </div>
@@ -409,10 +458,10 @@ export default function TermsOfServicePage() {
                 </li>
                 <li>
                   <strong className="text-foreground">SLA Credits:</strong>{" "}
-                  Customers on eligible paid plans may be entitled to service
-                  credits for downtime that exceeds the uptime commitment
-                  specified in their service agreement. Details of SLA credits
-                  are outlined in the applicable plan documentation.
+                  Customers with a separate written service agreement may be
+                  entitled to service credits for downtime that exceeds an
+                  uptime commitment stated in that agreement. Wallet top-ups
+                  alone do not create an SLA or entitlement to service credits.
                 </li>
                 <li>
                   <strong className="text-foreground">Exclusions:</strong>{" "}
@@ -532,8 +581,10 @@ export default function TermsOfServicePage() {
                   >
                     support@quickvoice.co
                   </a>{" "}
-                  or through the account settings in the platform. Cancellation
-                  takes effect at the end of your current billing period.
+                  or through the account settings in the platform. Disabling
+                  auto-reload alone does not close your account. Before closure,
+                  pending usage may need to settle and any outstanding debt
+                  remains immediately due.
                 </li>
                 <li>
                   <strong className="text-foreground">By QuickVoice:</strong>{" "}
@@ -548,9 +599,15 @@ export default function TermsOfServicePage() {
               <p>Upon termination:</p>
               <ul className="list-disc space-y-2 pl-6">
                 <li>
-                  Your right to access and use the Services will cease
-                  immediately (or at the end of your billing period, as
-                  applicable)
+                  Your right to access and use the Services will cease, and any
+                  rented phone numbers will be released and may be permanently
+                  lost
+                </li>
+                <li>
+                  Promotional credit will be forfeited. Any remaining paid
+                  credit will be handled under the refund and reversal terms in
+                  Section 4, subject to applicable law, pending settlement, and
+                  outstanding debt
                 </li>
                 <li>
                   QuickVoice will make Your Content available for export for a

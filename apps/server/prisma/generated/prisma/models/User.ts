@@ -252,6 +252,7 @@ export type UserWhereInput = {
   mcpConnections?: Prisma.McpConnectionListRelationFilter
   secrets?: Prisma.SecretListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  promotionalGrant?: Prisma.XOR<Prisma.PromotionalGrantNullableScalarRelationFilter, Prisma.PromotionalGrantWhereInput> | null
 }
 
 export type UserOrderByWithRelationInput = {
@@ -281,6 +282,7 @@ export type UserOrderByWithRelationInput = {
   mcpConnections?: Prisma.McpConnectionOrderByRelationAggregateInput
   secrets?: Prisma.SecretOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
+  promotionalGrant?: Prisma.PromotionalGrantOrderByWithRelationInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -313,6 +315,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   mcpConnections?: Prisma.McpConnectionListRelationFilter
   secrets?: Prisma.SecretListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  promotionalGrant?: Prisma.XOR<Prisma.PromotionalGrantNullableScalarRelationFilter, Prisma.PromotionalGrantWhereInput> | null
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -378,6 +381,7 @@ export type UserCreateInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -407,6 +411,7 @@ export type UserUncheckedCreateInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -436,6 +441,7 @@ export type UserUpdateInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -465,6 +471,7 @@ export type UserUncheckedUpdateInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -645,6 +652,22 @@ export type UserUpdateOneRequiredWithoutInvitationsNestedInput = {
   upsert?: Prisma.UserUpsertWithoutInvitationsInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutInvitationsInput, Prisma.UserUpdateWithoutInvitationsInput>, Prisma.UserUncheckedUpdateWithoutInvitationsInput>
+}
+
+export type UserCreateNestedOneWithoutPromotionalGrantInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPromotionalGrantInput, Prisma.UserUncheckedCreateWithoutPromotionalGrantInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPromotionalGrantInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutPromotionalGrantNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPromotionalGrantInput, Prisma.UserUncheckedCreateWithoutPromotionalGrantInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPromotionalGrantInput
+  upsert?: Prisma.UserUpsertWithoutPromotionalGrantInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPromotionalGrantInput, Prisma.UserUpdateWithoutPromotionalGrantInput>, Prisma.UserUncheckedUpdateWithoutPromotionalGrantInput>
 }
 
 export type UserCreateNestedOneWithoutPhoneNumbersInput = {
@@ -833,6 +856,7 @@ export type UserCreateWithoutSessionsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -861,6 +885,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -905,6 +930,7 @@ export type UserUpdateWithoutSessionsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -933,6 +959,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAccountsInput = {
@@ -961,6 +988,7 @@ export type UserCreateWithoutAccountsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAccountsInput = {
@@ -989,6 +1017,7 @@ export type UserUncheckedCreateWithoutAccountsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAccountsInput = {
@@ -1033,6 +1062,7 @@ export type UserUpdateWithoutAccountsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAccountsInput = {
@@ -1061,6 +1091,7 @@ export type UserUncheckedUpdateWithoutAccountsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMembersInput = {
@@ -1089,6 +1120,7 @@ export type UserCreateWithoutMembersInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMembersInput = {
@@ -1117,6 +1149,7 @@ export type UserUncheckedCreateWithoutMembersInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMembersInput = {
@@ -1161,6 +1194,7 @@ export type UserUpdateWithoutMembersInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMembersInput = {
@@ -1189,6 +1223,7 @@ export type UserUncheckedUpdateWithoutMembersInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutInvitationsInput = {
@@ -1217,6 +1252,7 @@ export type UserCreateWithoutInvitationsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutInvitationsInput = {
@@ -1245,6 +1281,7 @@ export type UserUncheckedCreateWithoutInvitationsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutInvitationsInput = {
@@ -1289,6 +1326,7 @@ export type UserUpdateWithoutInvitationsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutInvitationsInput = {
@@ -1307,6 +1345,139 @@ export type UserUncheckedUpdateWithoutInvitationsInput = {
   sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
   accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
   members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutUserNestedInput
+  agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutUserNestedInput
+  callLogs?: Prisma.CallLogUncheckedUpdateManyWithoutUserNestedInput
+  outboundCalls?: Prisma.OutboundCallUncheckedUpdateManyWithoutUserNestedInput
+  campaigns?: Prisma.CampaignUncheckedUpdateManyWithoutUserNestedInput
+  tools?: Prisma.ToolUncheckedUpdateManyWithoutUserNestedInput
+  mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
+  secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
+}
+
+export type UserCreateWithoutPromotionalGrantInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  stripeCustomerId?: string | null
+  sessions?: Prisma.SessionCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationCreateNestedManyWithoutUserInput
+  phoneNumbers?: Prisma.PhoneNumberCreateNestedManyWithoutUserInput
+  agents?: Prisma.AgentCreateNestedManyWithoutUserInput
+  knowledgeSources?: Prisma.KnowledgeSourceCreateNestedManyWithoutUserInput
+  callLogs?: Prisma.CallLogCreateNestedManyWithoutUserInput
+  outboundCalls?: Prisma.OutboundCallCreateNestedManyWithoutUserInput
+  campaigns?: Prisma.CampaignCreateNestedManyWithoutUserInput
+  tools?: Prisma.ToolCreateNestedManyWithoutUserInput
+  mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
+  secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutPromotionalGrantInput = {
+  id: string
+  name: string
+  email: string
+  emailVerified?: boolean
+  image?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  role?: string | null
+  banned?: boolean | null
+  banReason?: string | null
+  banExpires?: Date | string | null
+  stripeCustomerId?: string | null
+  sessions?: Prisma.SessionUncheckedCreateNestedManyWithoutUserInput
+  accounts?: Prisma.AccountUncheckedCreateNestedManyWithoutUserInput
+  members?: Prisma.MemberUncheckedCreateNestedManyWithoutUserInput
+  invitations?: Prisma.InvitationUncheckedCreateNestedManyWithoutUserInput
+  phoneNumbers?: Prisma.PhoneNumberUncheckedCreateNestedManyWithoutUserInput
+  agents?: Prisma.AgentUncheckedCreateNestedManyWithoutUserInput
+  knowledgeSources?: Prisma.KnowledgeSourceUncheckedCreateNestedManyWithoutUserInput
+  callLogs?: Prisma.CallLogUncheckedCreateNestedManyWithoutUserInput
+  outboundCalls?: Prisma.OutboundCallUncheckedCreateNestedManyWithoutUserInput
+  campaigns?: Prisma.CampaignUncheckedCreateNestedManyWithoutUserInput
+  tools?: Prisma.ToolUncheckedCreateNestedManyWithoutUserInput
+  mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
+  secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutPromotionalGrantInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPromotionalGrantInput, Prisma.UserUncheckedCreateWithoutPromotionalGrantInput>
+}
+
+export type UserUpsertWithoutPromotionalGrantInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPromotionalGrantInput, Prisma.UserUncheckedUpdateWithoutPromotionalGrantInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPromotionalGrantInput, Prisma.UserUncheckedCreateWithoutPromotionalGrantInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPromotionalGrantInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPromotionalGrantInput, Prisma.UserUncheckedUpdateWithoutPromotionalGrantInput>
+}
+
+export type UserUpdateWithoutPromotionalGrantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sessions?: Prisma.SessionUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUpdateManyWithoutUserNestedInput
+  phoneNumbers?: Prisma.PhoneNumberUpdateManyWithoutUserNestedInput
+  agents?: Prisma.AgentUpdateManyWithoutUserNestedInput
+  knowledgeSources?: Prisma.KnowledgeSourceUpdateManyWithoutUserNestedInput
+  callLogs?: Prisma.CallLogUpdateManyWithoutUserNestedInput
+  outboundCalls?: Prisma.OutboundCallUpdateManyWithoutUserNestedInput
+  campaigns?: Prisma.CampaignUpdateManyWithoutUserNestedInput
+  tools?: Prisma.ToolUpdateManyWithoutUserNestedInput
+  mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
+  secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPromotionalGrantInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  image?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  role?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banned?: Prisma.NullableBoolFieldUpdateOperationsInput | boolean | null
+  banReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  banExpires?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  stripeCustomerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sessions?: Prisma.SessionUncheckedUpdateManyWithoutUserNestedInput
+  accounts?: Prisma.AccountUncheckedUpdateManyWithoutUserNestedInput
+  members?: Prisma.MemberUncheckedUpdateManyWithoutUserNestedInput
+  invitations?: Prisma.InvitationUncheckedUpdateManyWithoutUserNestedInput
   phoneNumbers?: Prisma.PhoneNumberUncheckedUpdateManyWithoutUserNestedInput
   agents?: Prisma.AgentUncheckedUpdateManyWithoutUserNestedInput
   knowledgeSources?: Prisma.KnowledgeSourceUncheckedUpdateManyWithoutUserNestedInput
@@ -1345,6 +1516,7 @@ export type UserCreateWithoutPhoneNumbersInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutPhoneNumbersInput = {
@@ -1373,6 +1545,7 @@ export type UserUncheckedCreateWithoutPhoneNumbersInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutPhoneNumbersInput = {
@@ -1417,6 +1590,7 @@ export type UserUpdateWithoutPhoneNumbersInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPhoneNumbersInput = {
@@ -1445,6 +1619,7 @@ export type UserUncheckedUpdateWithoutPhoneNumbersInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAgentsInput = {
@@ -1473,6 +1648,7 @@ export type UserCreateWithoutAgentsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAgentsInput = {
@@ -1501,6 +1677,7 @@ export type UserUncheckedCreateWithoutAgentsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAgentsInput = {
@@ -1545,6 +1722,7 @@ export type UserUpdateWithoutAgentsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAgentsInput = {
@@ -1573,6 +1751,7 @@ export type UserUncheckedUpdateWithoutAgentsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutKnowledgeSourcesInput = {
@@ -1601,6 +1780,7 @@ export type UserCreateWithoutKnowledgeSourcesInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutKnowledgeSourcesInput = {
@@ -1629,6 +1809,7 @@ export type UserUncheckedCreateWithoutKnowledgeSourcesInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutKnowledgeSourcesInput = {
@@ -1673,6 +1854,7 @@ export type UserUpdateWithoutKnowledgeSourcesInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutKnowledgeSourcesInput = {
@@ -1701,6 +1883,7 @@ export type UserUncheckedUpdateWithoutKnowledgeSourcesInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCallLogsInput = {
@@ -1729,6 +1912,7 @@ export type UserCreateWithoutCallLogsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCallLogsInput = {
@@ -1757,6 +1941,7 @@ export type UserUncheckedCreateWithoutCallLogsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCallLogsInput = {
@@ -1801,6 +1986,7 @@ export type UserUpdateWithoutCallLogsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCallLogsInput = {
@@ -1829,6 +2015,7 @@ export type UserUncheckedUpdateWithoutCallLogsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutOutboundCallsInput = {
@@ -1857,6 +2044,7 @@ export type UserCreateWithoutOutboundCallsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutOutboundCallsInput = {
@@ -1885,6 +2073,7 @@ export type UserUncheckedCreateWithoutOutboundCallsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutOutboundCallsInput = {
@@ -1929,6 +2118,7 @@ export type UserUpdateWithoutOutboundCallsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOutboundCallsInput = {
@@ -1957,6 +2147,7 @@ export type UserUncheckedUpdateWithoutOutboundCallsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutCampaignsInput = {
@@ -1985,6 +2176,7 @@ export type UserCreateWithoutCampaignsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCampaignsInput = {
@@ -2013,6 +2205,7 @@ export type UserUncheckedCreateWithoutCampaignsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCampaignsInput = {
@@ -2057,6 +2250,7 @@ export type UserUpdateWithoutCampaignsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCampaignsInput = {
@@ -2085,6 +2279,7 @@ export type UserUncheckedUpdateWithoutCampaignsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutToolsInput = {
@@ -2113,6 +2308,7 @@ export type UserCreateWithoutToolsInput = {
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutToolsInput = {
@@ -2141,6 +2337,7 @@ export type UserUncheckedCreateWithoutToolsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutToolsInput = {
@@ -2185,6 +2382,7 @@ export type UserUpdateWithoutToolsInput = {
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutToolsInput = {
@@ -2213,6 +2411,7 @@ export type UserUncheckedUpdateWithoutToolsInput = {
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutMcpConnectionsInput = {
@@ -2241,6 +2440,7 @@ export type UserCreateWithoutMcpConnectionsInput = {
   tools?: Prisma.ToolCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutMcpConnectionsInput = {
@@ -2269,6 +2469,7 @@ export type UserUncheckedCreateWithoutMcpConnectionsInput = {
   tools?: Prisma.ToolUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutMcpConnectionsInput = {
@@ -2313,6 +2514,7 @@ export type UserUpdateWithoutMcpConnectionsInput = {
   tools?: Prisma.ToolUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutMcpConnectionsInput = {
@@ -2341,6 +2543,7 @@ export type UserUncheckedUpdateWithoutMcpConnectionsInput = {
   tools?: Prisma.ToolUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutSecretsInput = {
@@ -2369,6 +2572,7 @@ export type UserCreateWithoutSecretsInput = {
   tools?: Prisma.ToolCreateNestedManyWithoutUserInput
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSecretsInput = {
@@ -2397,6 +2601,7 @@ export type UserUncheckedCreateWithoutSecretsInput = {
   tools?: Prisma.ToolUncheckedCreateNestedManyWithoutUserInput
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSecretsInput = {
@@ -2441,6 +2646,7 @@ export type UserUpdateWithoutSecretsInput = {
   tools?: Prisma.ToolUpdateManyWithoutUserNestedInput
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSecretsInput = {
@@ -2469,6 +2675,7 @@ export type UserUncheckedUpdateWithoutSecretsInput = {
   tools?: Prisma.ToolUncheckedUpdateManyWithoutUserNestedInput
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -2497,6 +2704,7 @@ export type UserCreateWithoutAuditLogsInput = {
   tools?: Prisma.ToolCreateNestedManyWithoutUserInput
   mcpConnections?: Prisma.McpConnectionCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantCreateNestedOneWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -2525,6 +2733,7 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   tools?: Prisma.ToolUncheckedCreateNestedManyWithoutUserInput
   mcpConnections?: Prisma.McpConnectionUncheckedCreateNestedManyWithoutUserInput
   secrets?: Prisma.SecretUncheckedCreateNestedManyWithoutUserInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedCreateNestedOneWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -2569,6 +2778,7 @@ export type UserUpdateWithoutAuditLogsInput = {
   tools?: Prisma.ToolUpdateManyWithoutUserNestedInput
   mcpConnections?: Prisma.McpConnectionUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUpdateOneWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -2597,6 +2807,7 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   tools?: Prisma.ToolUncheckedUpdateManyWithoutUserNestedInput
   mcpConnections?: Prisma.McpConnectionUncheckedUpdateManyWithoutUserNestedInput
   secrets?: Prisma.SecretUncheckedUpdateManyWithoutUserNestedInput
+  promotionalGrant?: Prisma.PromotionalGrantUncheckedUpdateOneWithoutUserNestedInput
 }
 
 
@@ -2774,6 +2985,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   mcpConnections?: boolean | Prisma.User$mcpConnectionsArgs<ExtArgs>
   secrets?: boolean | Prisma.User$secretsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  promotionalGrant?: boolean | Prisma.User$promotionalGrantArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -2838,6 +3050,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   mcpConnections?: boolean | Prisma.User$mcpConnectionsArgs<ExtArgs>
   secrets?: boolean | Prisma.User$secretsArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  promotionalGrant?: boolean | Prisma.User$promotionalGrantArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -2860,6 +3073,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     mcpConnections: Prisma.$McpConnectionPayload<ExtArgs>[]
     secrets: Prisma.$SecretPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+    promotionalGrant: Prisma.$PromotionalGrantPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3282,6 +3496,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   mcpConnections<T extends Prisma.User$mcpConnectionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$mcpConnectionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$McpConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   secrets<T extends Prisma.User$secretsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$secretsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SecretPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  promotionalGrant<T extends Prisma.User$promotionalGrantArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$promotionalGrantArgs<ExtArgs>>): Prisma.Prisma__PromotionalGrantClient<runtime.Types.Result.GetResult<Prisma.$PromotionalGrantPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4049,6 +4264,25 @@ export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+}
+
+/**
+ * User.promotionalGrant
+ */
+export type User$promotionalGrantArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the PromotionalGrant
+   */
+  select?: Prisma.PromotionalGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the PromotionalGrant
+   */
+  omit?: Prisma.PromotionalGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.PromotionalGrantInclude<ExtArgs> | null
+  where?: Prisma.PromotionalGrantWhereInput
 }
 
 /**

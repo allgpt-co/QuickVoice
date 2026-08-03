@@ -16,20 +16,11 @@ import {
   serverBaseUrl,
   trustedOrigins,
 } from "../config/origins.js";
-import { cleanupOrganizationBeforeDeletion } from "../modules/organization/organization-cleanup.service.js";
-
-const apiKeyDefaultPermissions = {
-  agent: ["create", "read", "update", "delete"],
-  agentConfiguration: ["create", "read", "update", "delete"],
-  agentWidget: ["create", "read", "update", "delete"],
-  phoneNumber: ["create", "read", "update", "delete"],
-  knowledgeSource: ["create", "read", "update", "delete"],
-  callLogs: ["read", "delete"],
-  outboundCalls: ["create", "read", "delete"],
-  campaigns: ["create", "read", "delete"],
-  tools: ["create", "read", "update", "delete"],
-  secrets: ["create", "read", "delete"],
-};
+import { cleanupOrganizationDeletionHook } from "../modules/organization/organization-cleanup.service.js";
+import { ensureBillingAccount } from "../modules/billing/wallet-ledger.service.js";
+import { maybeGrantSignupCredit } from "../modules/billing/signup-credit.service.js";
+import { ORGANIZATION_API_KEY_PERMISSIONS } from "../middleware/api-key-auth.js";
+import { isHostedBilling } from "../config/billing-mode.js";
 
 // ─── Better Auth server instance ────────────────────────────────────────────
 export const auth = betterAuth({
@@ -46,6 +37,17 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  databaseHooks: {
+    user: {
+      update: {
+        after: async (user) => {
+          if (user.emailVerified) {
+            await maybeGrantSignupCredit({ userId: user.id });
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -77,10 +79,11 @@ export const auth = betterAuth({
   plugins: [
     admin(),
     apiKey({
-      enableSessionForAPIKeys: true,
       references: "organization",
+      enableSessionForAPIKeys: false,
+      enableMetadata: false,
       permissions: {
-        defaultPermissions: apiKeyDefaultPermissions,
+        defaultPermissions: ORGANIZATION_API_KEY_PERMISSIONS,
       },
     }),
     organization({
@@ -90,15 +93,16 @@ export const auth = betterAuth({
         enabled: true,
       },
       organizationHooks: {
+        afterCreateOrganization: async ({ organization: org, user }) => {
+          await ensureBillingAccount(org.id);
+          await maybeGrantSignupCredit({
+            userId: user.id,
+            organizationId: org.id,
+          });
+        },
         beforeDeleteOrganization: async ({ organization: org }) => {
           try {
-            await cleanupOrganizationBeforeDeletion({
-              organizationId: org.id,
-              stripeCustomerId:
-                typeof org.stripeCustomerId === "string"
-                  ? org.stripeCustomerId
-                  : null,
-            });
+            await cleanupOrganizationDeletionHook(org);
           } catch (error) {
             console.error("[organization] external cleanup blocked deletion", {
               organizationId: org.id,
@@ -109,7 +113,7 @@ export const auth = betterAuth({
             });
             throw new APIError("BAD_REQUEST", {
               message:
-                "Organization cleanup failed. No database deletion was performed; retry after checking provider connectivity.",
+                "Organization deletion did not complete. Cleanup is retry-safe and may already have released provider resources; retry after checking provider connectivity.",
             });
           }
         },
@@ -118,12 +122,21 @@ export const auth = betterAuth({
     stripe({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
-      createCustomerOnSignUp: true,
+      createCustomerOnSignUp: false,
       subscription: {
         enabled: true,
         defaultPlan: "free",
         plans: plans,
-        authorizeReference: async ({ user, referenceId }) => {
+        authorizeReference: async ({ user, referenceId, action }) => {
+          // Prepaid wallets replace new plan purchases. Keep the plugin active
+          // only so existing subscriptions can be viewed and sunset cleanly.
+          if (
+            action === "upgrade-subscription" ||
+            action === "restore-subscription" ||
+            action === "billing-portal"
+          ) {
+            return false;
+          }
           const member = await prisma.member.findUnique({
             where: {
               organizationId_userId: {
@@ -131,15 +144,13 @@ export const auth = betterAuth({
                 userId: user.id,
               },
             },
-            select: { id: true },
+            select: { role: true },
           });
-
-          return member !== null;
+          if (action === "list-subscription") return member !== null;
+          return member?.role === "owner" || member?.role === "admin";
         },
       },
-      organization: {
-        enabled: true,
-      },
+      organization: isHostedBilling ? { enabled: true } : undefined,
     }),
   ],
 });

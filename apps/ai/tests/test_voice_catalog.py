@@ -16,7 +16,7 @@ class VoiceCatalogTests(unittest.TestCase):
     def test_load_voice_catalog_returns_static_provider_options(self):
         catalog = load_voice_catalog()
 
-        self.assertEqual(catalog["version"], "2026-06-30")
+        self.assertEqual(catalog["version"], "2026-08-01")
         self.assertTrue(any(item["provider"] == "deepgram" for item in catalog["stt_models"]))
         self.assertTrue(any(item["provider"] == "bedrock" for item in catalog["llm_models"]))
         self.assertTrue(
@@ -45,6 +45,14 @@ class VoiceCatalogTests(unittest.TestCase):
             )
         )
         self.assertTrue(any(item["provider"] == "sarvam" for item in catalog["voices"]))
+        self.assertTrue(
+            any(
+                item["id"] == "nova-3-multilingual"
+                and item["runtime_model"] == "nova-3"
+                and item["runtime_language"] == "multi"
+                for item in catalog["stt_models"]
+            )
+        )
 
     def test_load_voice_catalog_prefers_configured_json_path(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -7,6 +7,7 @@ export interface RequestAuth {
   activeOrganizationId: string | null;
   authMethod: "session" | "apiKey" | "internal";
   session: BetterAuthSession;
+  apiKeyId?: string;
   apiKeyPermissions?: Record<string, string[]>;
 }
 

@@ -134,42 +134,6 @@ export const mcpTools = [
     "risk": "destructive"
   },
   {
-    "name": "buy_phone_number",
-    "method": "POST",
-    "path": "/numbers",
-    "auth": "x-api-key/session; phoneNumber:create",
-    "description": "Purchase a phone number from the selected provider. Use only after the user chooses a number.",
-    "requestSchema": "body { provider, phoneNumber: E.164 }",
-    "responseSchema": "PhoneNumber",
-    "file": "apps/server/src/modules/numbers/phone.route.ts",
-    "mappingReason": "Purchases external resource.",
-    "risk": "external-cost"
-  },
-  {
-    "name": "assign_phone_number",
-    "method": "PATCH",
-    "path": "/numbers/:phId",
-    "auth": "x-api-key/session; phoneNumber:update",
-    "description": "Assign or unassign a phone number to/from an agent.",
-    "requestSchema": "params phId; body { agentId: uuid|null }",
-    "responseSchema": "PhoneNumber",
-    "file": "apps/server/src/modules/numbers/phone.route.ts",
-    "mappingReason": "Mutates phone routing.",
-    "risk": "read"
-  },
-  {
-    "name": "delete_phone_number",
-    "method": "DELETE",
-    "path": "/numbers/:phId",
-    "auth": "x-api-key/session; phoneNumber:delete",
-    "description": "Delete/release an organization phone number.",
-    "requestSchema": "params phId",
-    "responseSchema": "null",
-    "file": "apps/server/src/modules/numbers/phone.route.ts",
-    "mappingReason": "Deletes external/resource record.",
-    "risk": "destructive"
-  },
-  {
     "name": "create_quick_outbound_call",
     "method": "POST",
     "path": "/outbound-calls/quick",
@@ -573,9 +537,9 @@ export const mcpResources = [
     "method": "GET",
     "path": "/numbers/search",
     "auth": "x-api-key/session; phoneNumber:create",
-    "description": "Search provider inventory for available phone numbers before purchase.",
-    "requestSchema": "query { provider, country, areaCode?, limit? }",
-    "responseSchema": "AvailableNumber[]",
+    "description": "Search provider inventory and return signed hosted-billing quotes. Pass the selected result's exact phoneNumber, provider, and quoteId to the purchase API before quoteExpiresAt.",
+    "requestSchema": "query { provider: TWILIO|TELNYX, country, areaCode?, limit? }",
+    "responseSchema": "Array<{ phoneNumber, friendlyName, locality?, region?, isoCountry?, providerMonthlyCostMicros, monthlyPriceMicros, quoteId, quoteExpiresAt, rateCatalogVersion }>",
     "file": "apps/server/src/modules/numbers/phone.route.ts",
     "mappingReason": "Read-only provider lookup.",
     "uri": "quickvoice://search_phone_numbers"
@@ -752,6 +716,33 @@ export const mcpResources = [
 
 export const mcpExcludedApis = [
   {
+    "name": "buy_phone_number",
+    "method": "POST",
+    "path": "/numbers",
+    "auth": "owner/admin session only; phoneNumber:create + billing:manage",
+    "description": "Purchase a phone number using the exact signed quoteId returned by search before quoteExpiresAt.",
+    "file": "apps/server/src/modules/numbers/phone.route.ts",
+    "excludedReason": "Session-only money-moving operation. Organization API keys and MCP callers cannot purchase phone numbers."
+  },
+  {
+    "name": "assign_phone_number",
+    "method": "PATCH",
+    "path": "/numbers/:phId",
+    "auth": "owner/admin session only; phoneNumber:update + billing:manage",
+    "description": "Assign or unassign a phone number to/from an agent.",
+    "file": "apps/server/src/modules/numbers/phone.route.ts",
+    "excludedReason": "Owner/admin session-only number management is not exposed to API-key MCP callers."
+  },
+  {
+    "name": "delete_phone_number",
+    "method": "DELETE",
+    "path": "/numbers/:phId",
+    "auth": "owner/admin session only; phoneNumber:delete + billing:manage",
+    "description": "Immediately and permanently release an organization phone number at the provider.",
+    "file": "apps/server/src/modules/numbers/phone.route.ts",
+    "excludedReason": "Session-only destructive billing operation. API-key MCP callers cannot release phone numbers."
+  },
+  {
     "name": "ingest_call_log",
     "method": "POST",
     "path": "/calls",
@@ -835,7 +826,7 @@ export const mcpExcludedApis = [
 ] as const;
 
 export const mcpReferenceStats = {
-  toolCount: 36,
+  toolCount: 33,
   resourceCount: 26,
-  excludedCount: 9,
+  excludedCount: 12,
 } as const;
