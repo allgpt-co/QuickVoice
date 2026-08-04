@@ -29,6 +29,7 @@ import {
   cancelBatchCampaign,
   createBatchCampaign,
   createBatchUploadUrl,
+  exportBatchCampaignResultsCsv,
   getBatchCampaignDetail,
   listBatchCampaigns,
 } from "./outbound-batch.service.js";
@@ -55,6 +56,7 @@ type CreateBatchCampaign = typeof createBatchCampaign;
 type CreateBatchUploadUrl = typeof createBatchUploadUrl;
 type ListBatchCampaigns = typeof listBatchCampaigns;
 type GetBatchCampaignDetail = typeof getBatchCampaignDetail;
+type ExportBatchCampaignResultsCsv = typeof exportBatchCampaignResultsCsv;
 
 type OutboundCallRouterDeps = {
   authMiddleware?: Middleware;
@@ -71,6 +73,7 @@ type OutboundCallRouterDeps = {
   createBatchUploadUrl?: CreateBatchUploadUrl;
   listBatchCampaigns?: ListBatchCampaigns;
   getBatchCampaignDetail?: GetBatchCampaignDetail;
+  exportBatchCampaignResultsCsv?: ExportBatchCampaignResultsCsv;
 };
 
 export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
@@ -96,6 +99,8 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
   const createUploadUrl = deps.createBatchUploadUrl ?? createBatchUploadUrl;
   const listBatches = deps.listBatchCampaigns ?? listBatchCampaigns;
   const getBatchDetail = deps.getBatchCampaignDetail ?? getBatchCampaignDetail;
+  const exportBatchResults =
+    deps.exportBatchCampaignResultsCsv ?? exportBatchCampaignResultsCsv;
 
   router.get(
     "/",
@@ -306,6 +311,32 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
           message: "Campaign report preview generated",
           data: { campaignId, ...data },
         });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.get(
+    "/batches/:campaignId/results.csv",
+    authenticate,
+    authorizeRead,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { organizationId } = getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const data = await exportBatchResults({
+          organizationId,
+          campaignId,
+        });
+
+        res
+          .status(StatusCodes.OK)
+          .set({
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${data.filename}"`,
+          })
+          .send(data.content);
       } catch (error) {
         next(error);
       }

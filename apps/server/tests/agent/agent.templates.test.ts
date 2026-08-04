@@ -5,7 +5,12 @@ import { configureAgentSchema } from "../../src/modules/agent/agent.schema.js";
 import { templateConfigFor } from "../../src/modules/agent/agent.templates.js";
 
 test("configured agent templates produce valid agent configuration", () => {
-  for (const templateId of ["business", "medical", "support"] as const) {
+  for (const templateId of [
+    "business",
+    "medical",
+    "questionnaire",
+    "support",
+  ] as const) {
     const config = templateConfigFor(templateId);
 
     assert.ok(config, `${templateId} should have a starter configuration`);
@@ -21,6 +26,27 @@ test("configured agent templates produce valid agent configuration", () => {
     assert.ok(config.firstMessage.length >= 5);
     assert.ok(config.systemPrompt.length >= 10);
   }
+});
+
+test("questionnaire template captures batch question answers", () => {
+  const config = templateConfigFor("questionnaire");
+
+  assert.ok(config);
+  assert.match(config.systemPrompt, /question_1 through question_20/);
+  assert.ok(config.data_needed.some((item) => item.id === "question_1_answer"));
+  assert.ok(
+    config.data_needed.some((item) => item.id === "question_20_answer"),
+  );
+  assert.ok(
+    config.data_evaluation.some(
+      (item) => item.id === "questionnaire_completed",
+    ),
+  );
+  assert.deepEqual(config.variables?.systemPrompt.slice(0, 3), [
+    "patient_name",
+    "question_1",
+    "question_2",
+  ]);
 });
 
 test("blank template does not create starter configuration", () => {
@@ -43,6 +69,6 @@ test("template configs are cloned before returning", () => {
   assert.ok(second);
   assert.equal(
     second.data_needed.some((item) => item.id === "extra"),
-    false
+    false,
   );
 });

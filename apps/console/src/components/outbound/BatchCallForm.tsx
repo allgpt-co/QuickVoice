@@ -366,7 +366,9 @@ export function BatchCallForm() {
               {templateHeader}
             </span>
             <span className="text-xs text-muted-foreground">
-              language and voice_id can be blank to use the agent defaults
+              language and voice_id can be blank to use the agent defaults. Add
+              patient_name and question_1, question_2 columns for
+              questionnaires.
             </span>
           </button>
           {dynamicVariableNames.length > 0 ? (

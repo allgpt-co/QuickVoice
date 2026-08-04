@@ -17,6 +17,7 @@ let batchArgs: unknown[] = [];
 let uploadUrlArgs: unknown[] = [];
 let listBatchArgs: unknown[] = [];
 let batchDetailArgs: unknown[] = [];
+let batchResultsArgs: unknown[] = [];
 
 before(async () => {
   process.env.STRIPE_SECRET_KEY ||= "sk_test_placeholder";
@@ -141,6 +142,14 @@ before(async () => {
           campaignId: "campaign_123",
           name: "June renewals",
           outboundCalls: [],
+        };
+      },
+      exportBatchCampaignResultsCsv: async (args: unknown) => {
+        batchResultsArgs.push(args);
+        return {
+          filename: "june-renewals-results.csv",
+          content:
+            "row_number,phone_number,question_1,question_1_answer\n2,+15550001111,Do you have fever?,No",
         };
       },
     } as any),
@@ -294,6 +303,28 @@ test("GET /batches/:campaignId returns batch detail before outbound id routing",
   assert.equal(body.success, true);
   assert.equal(body.data.campaignId, "campaign_123");
   assert.deepEqual(batchDetailArgs[0], {
+    organizationId: "org_123",
+    campaignId: "campaign_123",
+  });
+});
+
+test("GET /batches/:campaignId/results.csv downloads batch response results", async () => {
+  batchResultsArgs = [];
+  const response = await fetch(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/results.csv`,
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("content-type"), "text/csv; charset=utf-8");
+  assert.equal(
+    response.headers.get("content-disposition"),
+    'attachment; filename="june-renewals-results.csv"',
+  );
+  assert.equal(
+    await response.text(),
+    "row_number,phone_number,question_1,question_1_answer\n2,+15550001111,Do you have fever?,No",
+  );
+  assert.deepEqual(batchResultsArgs[0], {
     organizationId: "org_123",
     campaignId: "campaign_123",
   });

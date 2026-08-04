@@ -82,7 +82,13 @@ export interface BatchCampaign {
   invalidRecipients: number;
   ringingTimeoutSeconds: number;
   timezone: string;
-  status: "SCHEDULED" | "ACTIVE" | "COMPLETED" | "CANCELLED" | "PROCESSED" | "FAILED";
+  status:
+    | "SCHEDULED"
+    | "ACTIVE"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "PROCESSED"
+    | "FAILED";
   createdAt: string;
   updatedAt: string;
   startedAt: string | null;
@@ -90,83 +96,118 @@ export interface BatchCampaign {
   outboundCalls?: OutboundCall[];
 }
 
+export interface CampaignResultsCsv {
+  blob: Blob;
+  filename: string;
+}
+
 export const outboundApi = {
   listOutboundCalls: async (
-    params: OutboundCallListParams = {}
+    params: OutboundCallListParams = {},
   ): Promise<OutboundCallPage> => {
     const res = await apiClient.get<ApiEnvelope<OutboundCallPage>>(
       "/outbound-calls",
-      { params }
+      { params },
     );
     return res.data.data;
   },
   getOutboundCall: async (outboundId: string): Promise<OutboundCall> => {
     const res = await apiClient.get<ApiEnvelope<OutboundCall>>(
-      `/outbound-calls/${outboundId}`
+      `/outbound-calls/${outboundId}`,
     );
     return res.data.data;
   },
   cancelOutboundCall: async (outboundId: string): Promise<OutboundCall> => {
     const res = await apiClient.post<ApiEnvelope<OutboundCall>>(
       `/outbound-calls/${outboundId}/cancel`,
-      {}
+      {},
     );
     return res.data.data;
   },
   retryOutboundCall: async (outboundId: string): Promise<unknown> => {
     const res = await apiClient.post<ApiEnvelope<unknown>>(
       `/outbound-calls/${outboundId}/retry`,
-      {}
+      {},
     );
     return res.data.data;
   },
   quickCall: async (
-    input: QuickCallInput
+    input: QuickCallInput,
   ): Promise<QuickOutboundCallResponse> => {
     const res = await apiClient.post<ApiEnvelope<QuickOutboundCallResponse>>(
       "/outbound-calls/quick",
-      input
+      input,
     );
     return res.data.data;
   },
   getBatchUploadUrl: async (
     fileName: string,
     contentType: string,
-    fileSize: number
+    fileSize: number,
   ): Promise<BatchUploadUrlResponse> => {
     const res = await apiClient.get<ApiEnvelope<BatchUploadUrlResponse>>(
       "/outbound-calls/batch-upload-url",
-      { params: { fileName, contentType, fileSize } }
+      { params: { fileName, contentType, fileSize } },
     );
     return res.data.data;
   },
   createBatchCampaign: async (
-    input: CreateBatchCampaignInput
+    input: CreateBatchCampaignInput,
   ): Promise<BatchCampaign> => {
     const res = await apiClient.post<ApiEnvelope<BatchCampaign>>(
       "/outbound-calls/batches",
-      input
+      input,
     );
     return res.data.data;
   },
   listBatchCampaigns: async (agentId?: string): Promise<BatchCampaign[]> => {
     const res = await apiClient.get<ApiEnvelope<BatchCampaign[]>>(
       "/outbound-calls/batches",
-      { params: agentId ? { agentId } : undefined }
+      { params: agentId ? { agentId } : undefined },
     );
     return res.data.data;
   },
   getBatchCampaign: async (campaignId: string): Promise<BatchCampaign> => {
     const res = await apiClient.get<ApiEnvelope<BatchCampaign>>(
-      `/outbound-calls/batches/${campaignId}`
+      `/outbound-calls/batches/${campaignId}`,
     );
     return res.data.data;
+  },
+  downloadBatchCampaignResultsCsv: async (
+    campaignId: string,
+  ): Promise<CampaignResultsCsv> => {
+    const res = await apiClient.get<Blob>(
+      `/outbound-calls/batches/${campaignId}/results.csv`,
+      { responseType: "blob" },
+    );
+    return {
+      blob: res.data,
+      filename:
+        filenameFromContentDisposition(res.headers["content-disposition"]) ??
+        `quickvoice-campaign-${campaignId}-results.csv`,
+    };
   },
   cancelBatchCampaign: async (campaignId: string): Promise<BatchCampaign> => {
     const res = await apiClient.post<ApiEnvelope<BatchCampaign>>(
       `/outbound-calls/batches/${campaignId}/cancel`,
-      {}
+      {},
     );
     return res.data.data;
   },
 };
+
+function filenameFromContentDisposition(value: unknown) {
+  const header = Array.isArray(value) ? value[0] : value;
+  if (typeof header !== "string") return null;
+
+  const encoded = /filename\*=UTF-8''([^;]+)/i.exec(header)?.[1];
+  if (encoded) {
+    try {
+      return decodeURIComponent(encoded);
+    } catch {
+      return encoded;
+    }
+  }
+
+  return /filename="?([^";]+)"?/i.exec(header)?.[1] ?? null;
+}

@@ -294,6 +294,43 @@ export async function getBatchCampaignDetail(args: {
   });
 }
 
+export async function getBatchCampaignResults(args: {
+  organizationId: string;
+  campaignId: string;
+}) {
+  return prisma.campaign.findFirst({
+    where: {
+      organizationId: args.organizationId,
+      campaignId: args.campaignId,
+    },
+    select: {
+      campaignId: true,
+      name: true,
+      outboundCalls: {
+        select: {
+          outboundId: true,
+          phoneNumber: true,
+          optionalData: true,
+          status: true,
+          createdAt: true,
+          callLog: {
+            select: {
+              callId: true,
+              status: true,
+              startTime: true,
+              endTime: true,
+              durationSeconds: true,
+              dataExtracted: true,
+              dataEvaluation: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+}
+
 type CreateBatchOutboundCallInput = {
   organizationId: string;
   userId: string | null;

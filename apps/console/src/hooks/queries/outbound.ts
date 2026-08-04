@@ -8,6 +8,7 @@ import type {
   CreateBatchCampaignInput,
   OutboundCallListParams,
 } from "@/src/lib/api/resources/outbound";
+import { downloadBlobAsFile } from "@/src/lib/export-csv";
 import type { QuickCallInput } from "@/src/models/outbound/quickCall";
 import { queryKeys } from "@/src/lib/query-keys";
 
@@ -29,7 +30,8 @@ export function useOutboundCall(outboundId?: string | null) {
 export function useCancelOutboundCall() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (outboundId: string) => outboundApi.cancelOutboundCall(outboundId),
+    mutationFn: (outboundId: string) =>
+      outboundApi.cancelOutboundCall(outboundId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.outbound.all });
       qc.invalidateQueries({ queryKey: queryKeys.calls.all });
@@ -44,7 +46,8 @@ export function useCancelOutboundCall() {
 export function useRetryOutboundCall() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (outboundId: string) => outboundApi.retryOutboundCall(outboundId),
+    mutationFn: (outboundId: string) =>
+      outboundApi.retryOutboundCall(outboundId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.outbound.all });
       qc.invalidateQueries({ queryKey: queryKeys.calls.all });
@@ -106,13 +109,28 @@ export function useCreateBatchCampaign() {
 export function useCancelBatchCampaign() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (campaignId: string) => outboundApi.cancelBatchCampaign(campaignId),
+    mutationFn: (campaignId: string) =>
+      outboundApi.cancelBatchCampaign(campaignId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.outbound.all });
       toast.success("Campaign cancelled");
     },
     onError: (err: Error) => {
       toast.error(err.message || "Could not cancel campaign");
+    },
+  });
+}
+
+export function useDownloadBatchCampaignResults() {
+  return useMutation({
+    mutationFn: (campaignId: string) =>
+      outboundApi.downloadBatchCampaignResultsCsv(campaignId),
+    onSuccess: ({ blob, filename }) => {
+      downloadBlobAsFile(filename, blob);
+      toast.success("Campaign results downloaded");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Could not download campaign results");
     },
   });
 }
