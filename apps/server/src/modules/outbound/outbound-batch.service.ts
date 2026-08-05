@@ -853,3 +853,330 @@ function readPositiveInteger(
     ? value
     : fallback;
 }
+
+type ExportBatchCampaignResultsDeps = {
+  repository?: Pick<
+    typeof outboundCallRepository,
+    "getBatchCampaignResults"
+  >;
+};
+
+export async function exportBatchCampaignResultsCsv(
+  args: { organizationId: string; campaignId: string },
+  deps: ExportBatchCampaignResultsDeps = {},
+) {
+  const repository = deps.repository ?? outboundCallRepository;
+  const campaign = await repository.getBatchCampaignResults(args);
+  if (!campaign) {
+    throw new BadRequestError("Batch campaign not found");
+  }
+
+  return {
+    filename: `${safeFilename(campaign.name || "campaign")}-results.csv`,
+    content: buildBatchCampaignResultsCsv(campaign),
+  };
+}
+
+type CampaignResults = NonNullable<
+  Awaited<ReturnType<typeof outboundCallRepository.getBatchCampaignResults>>
+>;
+type CampaignResultsCall = CampaignResults["outboundCalls"][number];
+type ResultsColumn = {
+  header: string;
+  value: (call: CampaignResultsCall) => unknown;
+};
+
+const excludedSourceColumns = new Set([
+  "phone_number",
+  "phonenumber",
+  "phone",
+  "language",
+  "voice_id",
+  "voiceid",
+  "first_message",
+  "firstmessage",
+  "prompt",
+  "system_prompt",
+  "systemprompt",
+]);
+
+export function buildBatchCampaignResultsCsv(campaign: CampaignResults) {
+  const calls = [...campaign.outboundCalls].sort(compareCampaignResultsCalls);
+  const sourceKeys = orderedUnique(
+    calls.flatMap((call) => Object.keys(sourceValues(call))),
+  ).filter((key) => !excludedSourceColumns.has(normalizeKey(key)));
+  const questionKeys = sourceKeys
+    .filter(isQuestionKey)
+    .sort(compareQuestionKeys);
+  const nonQuestionSourceKeys = sourceKeys.filter((key) => !isQuestionKey(key));
+  const extractedKeys = orderedUnique(
+    calls.flatMap((call) => Array.from(extractedValues(call).keys())),
+  );
+  const evaluationKeys = orderedUnique(
+    calls.flatMap((call) => Array.from(evaluationValues(call).keys())),
+  );
+  const usedExtractedKeys = new Set<string>();
+  const columns: ResultsColumn[] = [];
+  const usedHeaders = new Set<string>();
+
+  const addColumn = (header: string, value: ResultsColumn["value"]) => {
+    const uniqueHeader = uniqueCsvHeader(header, usedHeaders);
+    columns.push({ header: uniqueHeader, value });
+  };
+
+  addColumn("row_number", (call) => rowNumber(call));
+  addColumn("phone_number", (call) => call.phoneNumber);
+  addColumn("outbound_status", (call) => call.status);
+  addColumn("call_status", (call) => call.callLog?.status ?? "");
+  addColumn("call_id", (call) => call.callLog?.callId ?? "");
+  addColumn("outbound_id", (call) => call.outboundId);
+  addColumn("duration_seconds", (call) => call.callLog?.durationSeconds ?? "");
+  addColumn("failure_reason", (call) => failureReason(call));
+  addColumn("started_at", (call) =>
+    toIsoString(call.callLog?.startTime ?? null),
+  );
+  addColumn("ended_at", (call) => toIsoString(call.callLog?.endTime ?? null));
+
+  for (const key of nonQuestionSourceKeys) {
+    addColumn(key, (call) => sourceValues(call)[key] ?? "");
+  }
+
+  for (const key of questionKeys) {
+    const answerHeader = `${key}_answer`;
+    for (const matchedKey of matchingQuestionAnswerKeys(key, extractedKeys)) {
+      usedExtractedKeys.add(matchedKey);
+    }
+    addColumn(key, (call) => sourceValues(call)[key] ?? "");
+    addColumn(answerHeader, (call) => {
+      const answer = questionAnswer(call, key);
+      return answer?.value ?? "";
+    });
+  }
+
+  for (const key of extractedKeys) {
+    if (usedExtractedKeys.has(key)) continue;
+    addColumn(key, (call) => extractedValues(call).get(key) ?? "");
+  }
+
+  for (const key of evaluationKeys) {
+    addColumn(
+      `evaluation_${key}`,
+      (call) => evaluationValues(call).get(key) ?? "",
+    );
+  }
+
+  return [
+    columns.map((column) => column.header),
+    ...calls.map((call) => columns.map((column) => column.value(call))),
+  ]
+    .map((row) => row.map(csvEscape).join(","))
+    .join("\n");
+}
+
+function compareCampaignResultsCalls(
+  left: CampaignResultsCall,
+  right: CampaignResultsCall,
+) {
+  const leftRow = rowNumber(left);
+  const rightRow = rowNumber(right);
+  if (leftRow !== null && rightRow !== null && leftRow !== rightRow) {
+    return leftRow - rightRow;
+  }
+  if (leftRow !== null && rightRow === null) return -1;
+  if (leftRow === null && rightRow !== null) return 1;
+  return left.createdAt.getTime() - right.createdAt.getTime();
+}
+
+function sourceValues(call: CampaignResultsCall): Record<string, unknown> {
+  const optionalData = jsonObject(call.optionalData);
+  const raw = jsonObject(optionalData.raw);
+  const dynamicVariables = jsonObject(
+    optionalData.dynamicVariables ?? optionalData.dynamic_variables,
+  );
+  return { ...raw, ...dynamicVariables };
+}
+
+function extractedValues(call: CampaignResultsCall) {
+  return namedJsonValues(call.callLog?.dataExtracted, "name");
+}
+
+function evaluationValues(call: CampaignResultsCall) {
+  return namedJsonValues(call.callLog?.dataEvaluation, "identifier");
+}
+
+function namedJsonValues(
+  value: Prisma.JsonValue | null | undefined,
+  preferredKey: "name" | "identifier",
+) {
+  const values = new Map<string, string>();
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const record = jsonObject(item);
+      const name =
+        stringValue(record[preferredKey]) ??
+        stringValue(record.name) ??
+        stringValue(record.identifier) ??
+        stringValue(record.field) ??
+        stringValue(record.type);
+      if (!name) continue;
+      values.set(name, stringifyCsvValue(record.value));
+    }
+    return values;
+  }
+
+  for (const [key, entry] of Object.entries(jsonObject(value))) {
+    values.set(key, stringifyCsvValue(entry));
+  }
+  return values;
+}
+
+function questionAnswer(call: CampaignResultsCall, questionKey: string) {
+  const extracted = extractedValues(call);
+  const normalizedEntries = new Map(
+    Array.from(extracted.keys()).map((key) => [normalizeKey(key), key]),
+  );
+
+  for (const candidate of questionAnswerCandidates(questionKey)) {
+    const matchedKey = normalizedEntries.get(normalizeKey(candidate));
+    if (matchedKey) {
+      return {
+        matchedKey,
+        value: extracted.get(matchedKey) ?? "",
+      };
+    }
+  }
+  return null;
+}
+
+function matchingQuestionAnswerKeys(
+  questionKey: string,
+  extractedKeys: string[],
+) {
+  const normalizedEntries = new Map(
+    extractedKeys.map((key) => [normalizeKey(key), key]),
+  );
+  return questionAnswerCandidates(questionKey)
+    .map((candidate) => normalizedEntries.get(normalizeKey(candidate)))
+    .filter((key): key is string => Boolean(key));
+}
+
+function questionAnswerCandidates(questionKey: string) {
+  const questionNumber = questionIndex(questionKey);
+  return [
+    `${questionKey}_answer`,
+    `${questionKey}_response`,
+    questionNumber ? `question_${questionNumber}_answer` : "",
+    questionNumber ? `question_${questionNumber}_response` : "",
+    questionNumber ? `answer_${questionNumber}` : "",
+    questionNumber ? `response_${questionNumber}` : "",
+    questionNumber ? `q${questionNumber}_answer` : "",
+    questionNumber ? `q${questionNumber}_response` : "",
+  ].filter(Boolean);
+}
+
+function rowNumber(call: CampaignResultsCall) {
+  const optionalData = jsonObject(call.optionalData);
+  const value = optionalData.rowNumber ?? optionalData.row_number;
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function failureReason(call: CampaignResultsCall) {
+  const optionalData = jsonObject(call.optionalData);
+  return (
+    stringValue(optionalData.failureReason) ??
+    stringValue(optionalData.importError) ??
+    ""
+  );
+}
+
+function jsonObject(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+  return value as Record<string, unknown>;
+}
+
+function orderedUnique(values: string[]) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+  for (const value of values) {
+    if (seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+  return result;
+}
+
+function isQuestionKey(key: string) {
+  return questionIndex(key) !== null;
+}
+
+function questionIndex(key: string) {
+  const match = /^question[_\s-]*(\d+)$/i.exec(key.trim());
+  return match ? Number(match[1]) : null;
+}
+
+function compareQuestionKeys(left: string, right: string) {
+  return (questionIndex(left) ?? 0) - (questionIndex(right) ?? 0);
+}
+
+function normalizeKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "");
+}
+
+function uniqueCsvHeader(header: string, usedHeaders: Set<string>) {
+  let candidate = header || "column";
+  let suffix = 2;
+  while (usedHeaders.has(candidate)) {
+    candidate = `${header}_${suffix}`;
+    suffix += 1;
+  }
+  usedHeaders.add(candidate);
+  return candidate;
+}
+
+function csvEscape(value: unknown) {
+  const text = stringifyCsvValue(value);
+  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+}
+
+function stringifyCsvValue(value: unknown) {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return value.toISOString();
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
+function safeFilename(value: string) {
+  const filename = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 80);
+  return filename || "campaign";
+}
+
+function stringValue(value: unknown) {
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+function toIsoString(value: Date | null) {
+  return value ? value.toISOString() : "";
+}

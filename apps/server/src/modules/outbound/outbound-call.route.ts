@@ -29,6 +29,7 @@ import {
   cancelBatchCampaign,
   createBatchCampaign,
   createBatchUploadUrl,
+  exportBatchCampaignResultsCsv,
   getBatchCampaignDetail,
   ingestCampaignConversionEvent,
   listBatchCampaigns,
@@ -56,8 +57,12 @@ type CreateBatchCampaign = typeof createBatchCampaign;
 type CreateBatchUploadUrl = typeof createBatchUploadUrl;
 type ListBatchCampaigns = typeof listBatchCampaigns;
 type GetBatchCampaignDetail = typeof getBatchCampaignDetail;
+
 type BuildBatchCampaignReport = typeof buildBatchCampaignReport;
 type IngestCampaignConversionEvent = typeof ingestCampaignConversionEvent;
+
+type ExportBatchCampaignResultsCsv = typeof exportBatchCampaignResultsCsv;
+
 
 type OutboundCallRouterDeps = {
   authMiddleware?: Middleware;
@@ -74,8 +79,12 @@ type OutboundCallRouterDeps = {
   createBatchUploadUrl?: CreateBatchUploadUrl;
   listBatchCampaigns?: ListBatchCampaigns;
   getBatchCampaignDetail?: GetBatchCampaignDetail;
+
   buildBatchCampaignReport?: BuildBatchCampaignReport;
   ingestCampaignConversionEvent?: IngestCampaignConversionEvent;
+
+  exportBatchCampaignResultsCsv?: ExportBatchCampaignResultsCsv;
+
 };
 
 export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
@@ -101,9 +110,14 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
   const createUploadUrl = deps.createBatchUploadUrl ?? createBatchUploadUrl;
   const listBatches = deps.listBatchCampaigns ?? listBatchCampaigns;
   const getBatchDetail = deps.getBatchCampaignDetail ?? getBatchCampaignDetail;
+
   const buildReport = deps.buildBatchCampaignReport ?? buildBatchCampaignReport;
   const ingestConversion =
     deps.ingestCampaignConversionEvent ?? ingestCampaignConversionEvent;
+
+  const exportBatchResults =
+    deps.exportBatchCampaignResultsCsv ?? exportBatchCampaignResultsCsv;
+
 
   router.get(
     "/",
@@ -349,6 +363,32 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
           message: "Campaign report generated",
           data,
         });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.get(
+    "/batches/:campaignId/results.csv",
+    authenticate,
+    authorizeRead,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { organizationId } = getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const data = await exportBatchResults({
+          organizationId,
+          campaignId,
+        });
+
+        res
+          .status(StatusCodes.OK)
+          .set({
+            "Content-Type": "text/csv; charset=utf-8",
+            "Content-Disposition": `attachment; filename="${data.filename}"`,
+          })
+          .send(data.content);
       } catch (error) {
         next(error);
       }
