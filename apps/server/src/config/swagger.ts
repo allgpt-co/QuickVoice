@@ -614,6 +614,31 @@ export const swaggerSpec = {
             maximum: 180,
             default: 60,
           },
+          campaignIntelligence: {
+            type: "object",
+            description: "Optional campaign-level personalization, experiment, and goal configuration.",
+            properties: {
+              personalizationSchema: {
+                type: "object",
+                additionalProperties: true,
+              },
+              experiments: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+              goals: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+            },
+          },
+        },
+      },
+      CampaignReportBuildRequest: {
+        type: "object",
+        properties: {
+          randomized: { type: "boolean", default: false },
+          persistReport: { type: "boolean", default: false },
         },
       },
       BatchCampaign: {
@@ -1790,10 +1815,38 @@ export const swaggerSpec = {
         },
       },
     },
+    "/outbound-calls/batches/{campaignId}/conversions": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Ingest campaign conversion event",
+        description: "Validates, persists, and attributes a conversion event for the campaign. Conversion events can be rejected when validation fails.",
+        security: userAuthSecurity,
+        parameters: [{
+          name: "campaignId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Campaign conversion ingested" },
+          400: { description: "Conversion rejected or malformed" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
     "/outbound-calls/batches/{campaignId}/reports/preview": {
       post: {
         tags: ["Outbound Calls"],
-        summary: "Preview campaign attribution report",
+        summary: "Campaign report generated",
         description:
           "Builds variant-level counts, denominators, costs, conversion rates, confidence intervals, freshness, and observational/randomized evidence labels without automatic causal claims.",
         security: userAuthSecurity,
@@ -1809,7 +1862,7 @@ export const swaggerSpec = {
           required: true,
           content: {
             "application/json": {
-              schema: { type: "object", additionalProperties: true },
+              schema: { $ref: "#/components/schemas/CampaignReportBuildRequest" },
             },
           },
         },

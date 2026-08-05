@@ -14,6 +14,7 @@ test("OpenAPI documents billing, batch campaigns, and destructive agent cleanup"
     "/outbound-calls/batches/{campaignId}/personalization/preflight",
     "/outbound-calls/batches/{campaignId}/experiments/assignments",
     "/outbound-calls/batches/{campaignId}/conversions/validate",
+    "/outbound-calls/batches/{campaignId}/conversions",
     "/outbound-calls/batches/{campaignId}/reports/preview",
     "/kb/{kbId}/retry",
   ]) {

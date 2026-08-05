@@ -63,6 +63,7 @@ export const campaignPersonalizationSchema = z.object({
   version: z.number().int().positive().default(1),
   fields: z.array(campaignPersonalizationFieldSchema).min(1).max(200),
   templates: z.record(z.string(), z.string().max(20_000)).default({}),
+  attribution: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const campaignRecipientInputSchema = z.object({
@@ -122,6 +123,13 @@ export const campaignExperimentDefinitionSchema = z
     }
   });
 
+export const campaignGoalSchema = z.object({
+  key: z.string().trim().min(1).max(120),
+  version: z.number().int().positive().default(1),
+  definition: z.record(z.string(), z.unknown()).default({}),
+  attributionPolicy: z.record(z.string(), z.unknown()).default({}),
+});
+
 export const campaignAssignmentRequestSchema = z.object({
   experiment: campaignExperimentDefinitionSchema,
   unitKeys: z.array(z.string().trim().min(1).max(200)).min(1).max(100_000),
@@ -171,15 +179,28 @@ export const campaignReportRequestSchema = z.object({
     .default([]),
 });
 
+export const campaignBatchIntelligenceSchema = z.object({
+  personalizationSchema: campaignPersonalizationSchema.optional(),
+  experiments: z.array(campaignExperimentDefinitionSchema).default([]),
+  goals: z.array(campaignGoalSchema).default([]),
+});
+
+export const campaignReportBuildSchema = z.object({
+  randomized: z.boolean().default(false),
+  persistReport: z.boolean().default(false),
+});
+
 export type CampaignPersonalizationSchemaInput = z.infer<
   typeof campaignPersonalizationSchema
 >;
 export type CampaignPreflightRequest = z.infer<
   typeof campaignPreflightRequestSchema
 >;
+export type CampaignBatchIntelligence = z.infer<typeof campaignBatchIntelligenceSchema>;
 export type CampaignExperimentDefinition = z.infer<
   typeof campaignExperimentDefinitionSchema
 >;
+export type CampaignGoalDefinition = z.infer<typeof campaignGoalSchema>;
 export type CampaignAssignmentRequest = z.infer<
   typeof campaignAssignmentRequestSchema
 >;
@@ -187,3 +208,4 @@ export type CampaignConversionEventInput = z.infer<
   typeof campaignConversionEventSchema
 >;
 export type CampaignReportRequest = z.infer<typeof campaignReportRequestSchema>;
+export type CampaignReportBuildRequest = z.infer<typeof campaignReportBuildSchema>;

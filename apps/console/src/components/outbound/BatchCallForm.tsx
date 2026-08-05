@@ -19,6 +19,7 @@ import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
+import { Textarea } from "@/src/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -29,7 +30,19 @@ import {
 import { useAgentConfig, useAgents } from "@/src/hooks/queries/agents";
 import { useNumbers } from "@/src/hooks/queries/numbers";
 import { useCreateBatchCampaign } from "@/src/hooks/queries/outbound";
-import { outboundApi } from "@/src/lib/api/resources/outbound";
+import {
+  type CampaignExperimentDefinition,
+  type CampaignGoalDefinition,
+  type CampaignPersonalizationPreflightRequest,
+  type CampaignPersonalizationPreflightResponse,
+  type CampaignPersonalizationSchema,
+  type CampaignRecipientValue,
+  type CampaignBatchIntelligence,
+  CampaignIntelligenceFieldType,
+  CampaignIntelligenceMissingBehavior,
+  CampaignIntelligenceSource,
+  outboundApi,
+} from "@/src/lib/api/resources/outbound";
 import type { Agent, PhoneNumber } from "@/src/lib/api/types";
 import {
   batchCampaignSchema,
@@ -44,6 +57,8 @@ import {
 const ACCEPT_STRING =
   ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 const MAX_BATCH_UPLOAD_BYTES = 5 * 1024 * 1024;
+const PREVIEW_CAMPAIGN_ID = "preview-campaign";
+const PREVIEW_MAX_RECIPIENTS = 200;
 
 function asDialableAgents(agents: Agent[], numbers: PhoneNumber[]) {
   return agents
@@ -70,6 +85,278 @@ function templateFileName(agentName: string | undefined) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
   return `${base || "quickvoice"}-recipients-template.csv`;
+}
+
+function normalizeCsvHeader(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+}
+
+const SERVER_SIDE_SPECIAL_COLUMNS = new Set([
+  "phone_number",
+  "language",
+  "voice_id",
+  "first_message",
+  "prompt",
+  "system_prompt",
+  "recipient_key",
+  "recipientid",
+  "recipient",
+]);
+
+function parseCsvRows(content: string) {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let inQuotes = false;
+
+  for (let index = 0; index < content.length; index += 1) {
+    const char = content[index];
+    if (inQuotes) {
+      if (char === '"') {
+        if (content[index + 1] === '"') {
+          cell += '"';
+          index += 1;
+        } else {
+          inQuotes = false;
+        }
+      } else {
+        cell += char;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inQuotes = true;
+    } else if (char === ",") {
+      row.push(cell);
+      cell = "";
+    } else if (char === "\n") {
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+    } else if (char === "\r") {
+      if (content[index + 1] === "\n") index += 1;
+      row.push(cell);
+      rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+
+  if (cell.length > 0 || row.length > 0) {
+    row.push(cell);
+    rows.push(row);
+  }
+
+  return rows.filter((entry) => entry.some((value) => value.trim().length > 0));
+}
+
+function resolveRecipientKey(raw: Record<string, string>, phoneNumber: string, rowNumber: number) {
+  const explicit = raw.recipient_key ?? raw.recipientId ?? raw.recipientid ?? raw.recipient;
+  if (explicit?.trim()) return explicit.trim();
+  return phoneNumber || `row_${rowNumber}`;
+}
+
+function parseRecipientsFromCsv(file: File, maxRows: number): Promise<CampaignRecipientValue[]> {
+  return file
+    .text()
+    .then((raw) => parseCsvRows(raw.replace(/^\uFEFF/, "")))
+    .then((rows) => {
+      if (!rows.length) {
+        throw new Error("Recipient file is empty");
+      }
+
+      const headers = rows[0]!.map(normalizeCsvHeader);
+      if (!headers.includes("phone_number")) {
+        throw new Error("Recipient file must include phone_number column");
+      }
+
+      return rows
+        .slice(1, 1 + maxRows)
+        .map((row, index) => {
+          const rowNumber = index + 2;
+          const raw: Record<string, string> = {};
+          headers.forEach((header, col) => {
+            raw[header] = String(row[col] ?? "").trim();
+          });
+          const phoneNumber = raw.phone_number?.trim() ?? "";
+          const values: Record<string, string> = {};
+          for (const [key, value] of Object.entries(raw)) {
+            if (SERVER_SIDE_SPECIAL_COLUMNS.has(key)) continue;
+            if (value !== "") values[key] = value;
+          }
+
+          return {
+            recipientKey: resolveRecipientKey(raw, phoneNumber, rowNumber),
+            rowNumber,
+            values,
+          } satisfies CampaignRecipientValue;
+        })
+
+    });
+}
+
+function defaultValue<T>(input: string, fallback: T): T | null {
+  if (!input.trim()) return null;
+  return JSON.parse(input) as T;
+}
+
+function safeJsonParse<T>(input: string, fallback: T, label: string): T {
+  if (!input.trim()) return fallback;
+  try {
+    return JSON.parse(input) as T;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Invalid JSON";
+    throw new Error(`${label}: ${message}`);
+  }
+}
+
+function normalizeIntelligencePayload(input: {
+  personalizationText: string;
+  experimentsText: string;
+  goalsText: string;
+}): CampaignBatchIntelligence | undefined {
+  const personalization = defaultValue<CampaignPersonalizationSchema>(
+    input.personalizationText,
+    undefined as unknown as CampaignPersonalizationSchema,
+  );
+  const hasPersonalizationSchema =
+    Array.isArray(personalization?.fields) && personalization.fields.length > 0;
+
+  const experiments = safeJsonParse<CampaignExperimentDefinition[]>(
+    input.experimentsText,
+    [],
+    "Experiments JSON",
+  );
+  const goals = safeJsonParse<CampaignGoalDefinition[]>(
+    input.goalsText,
+    [],
+    "Goals JSON",
+  );
+
+  if (
+    !hasPersonalizationSchema &&
+    (!Array.isArray(experiments) || experiments.length === 0) &&
+    (!Array.isArray(goals) || goals.length === 0)
+  ) {
+    return undefined;
+  }
+
+  if (hasPersonalizationSchema) {
+    return {
+      personalizationSchema: {
+        version: personalization.version ?? 1,
+        fields: personalization.fields,
+        templates: personalization.templates ?? {},
+        attribution: personalization.attribution ?? {},
+      },
+      experiments: Array.isArray(experiments) ? experiments : [],
+      goals: Array.isArray(goals) ? goals : [],
+    };
+  }
+
+  return {
+    experiments: Array.isArray(experiments) ? experiments : [],
+    goals: Array.isArray(goals) ? goals : [],
+  };
+}
+
+function hasCampaignPreviewSchema(input: string) {
+  if (!input.trim()) return false;
+  try {
+    const parsed = JSON.parse(input) as CampaignPersonalizationSchema;
+    return Array.isArray(parsed?.fields) && parsed.fields.length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function sampleCampaignDefaults() {
+  const templates = ((): string => {
+    const schema = {
+      version: 1,
+      fields: [
+        {
+          name: "customer_name",
+          type: "string" as CampaignIntelligenceFieldType,
+          source: "customer_attribute" as CampaignIntelligenceSource,
+          required: true,
+          sensitive: false,
+          missingBehavior: "omit" as CampaignIntelligenceMissingBehavior,
+          invalidBehavior: "skip" as CampaignIntelligenceMissingBehavior,
+          maxLength: 120,
+        },
+      ],
+      templates: {
+        prompt: "You are calling {{customer_name}} about their support ticket.",
+      },
+      attribution: {
+        source: "issue_124",
+      },
+    };
+    return JSON.stringify(schema, null, 2);
+  })();
+
+  const experiments = JSON.stringify(
+    [
+      {
+        experimentId: "outbound_ab_demo",
+        version: 1,
+        hypothesis: "Test two openings to improve connection rate",
+        primaryMetric: "connected_rate",
+        guardrailMetrics: ["abandon_rate"],
+        unit: "recipient",
+        stoppingPolicy: "manual_review",
+        variants: [
+          {
+            key: "control",
+            name: "Control",
+            allocationBps: 5000,
+            isControl: true,
+            configVersion: {
+              prompt: "Hi {{customer_name}}, this is the control script.",
+            },
+          },
+          {
+            key: "variant_b",
+            name: "Variant B",
+            allocationBps: 5000,
+            isControl: false,
+            configVersion: {
+              prompt: "Hello {{customer_name}}, this is variant B script.",
+            },
+          },
+        ],
+      },
+    ],
+    null,
+    2,
+  );
+
+  const goals = JSON.stringify(
+    [
+      {
+        key: "goal_replied",
+        version: 1,
+        definition: {
+          metric: "reply",
+        },
+        attributionPolicy: {
+          model: "first_touch",
+        },
+      },
+    ],
+    null,
+    2,
+  );
+
+  return { templates, experiments, goals };
 }
 
 export function BatchCallForm() {
@@ -104,6 +391,19 @@ export function BatchCallForm() {
     null,
   );
 
+  const [personalizationInput, setPersonalizationInput] = useState(
+    sampleCampaignDefaults().templates,
+  );
+  const [experimentsInput, setExperimentsInput] = useState(
+    sampleCampaignDefaults().experiments,
+  );
+  const [goalsInput, setGoalsInput] = useState(sampleCampaignDefaults().goals);
+  const [preflightResult, setPreflightResult] = useState<
+    CampaignPersonalizationPreflightResponse | null
+  >(null);
+  const [preflightError, setPreflightError] = useState<string | null>(null);
+  const [isPreflighting, setIsPreflighting] = useState(false);
+
   const agentId = dialableAgents.some(
     (agent) => agent.agentId === requestedAgentId,
   )
@@ -136,7 +436,7 @@ export function BatchCallForm() {
   );
 
   const isLoading = agentsLoading || numbersLoading;
-  const isBusy = createBatch.isPending;
+  const isBusy = createBatch.isPending || isPreflighting;
   const canSubmit =
     Boolean(agentId) &&
     Boolean(fromNumber) &&
@@ -177,6 +477,65 @@ export function BatchCallForm() {
     URL.revokeObjectURL(url);
   }
 
+  function buildCampaignIntelligence() {
+    return normalizeIntelligencePayload({
+      personalizationText: personalizationInput,
+      experimentsText: experimentsInput,
+      goalsText: goalsInput,
+    });
+  }
+
+  async function runPreflight() {
+    if (!file) {
+      setPreflightError("Select a recipients file first");
+      return;
+    }
+
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      setPreflightError("Preflight preview currently supports CSV files only");
+      return;
+    }
+
+    if (!hasCampaignPreviewSchema(personalizationInput)) {
+      setPreflightError("Personalization schema with at least one field is required");
+      return;
+    }
+
+    setPreflightError(null);
+    setPreflightResult(null);
+    setIsPreflighting(true);
+
+    try {
+      const schema = safeJsonParse<CampaignPersonalizationSchema>(
+        personalizationInput,
+        {} as CampaignPersonalizationSchema,
+        "Personalization schema",
+      );
+      const recipients = await parseRecipientsFromCsv(file, PREVIEW_MAX_RECIPIENTS);
+      if (!recipients.length) {
+        throw new Error("Could not parse any preview rows from the CSV file");
+      }
+
+      const request: CampaignPersonalizationPreflightRequest = {
+        schema,
+        recipients,
+        includeSensitivePreview: false,
+      };
+      const result = await outboundApi.preflightCampaignPersonalization(
+        PREVIEW_CAMPAIGN_ID,
+        request,
+      );
+      setPreflightResult(result);
+      toast.success("Personalization preflight completed");
+    } catch (error) {
+      setPreflightError(
+        error instanceof Error ? error.message : "Could not run personalization preflight",
+      );
+    } finally {
+      setIsPreflighting(false);
+    }
+  }
+
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -196,6 +555,18 @@ export function BatchCallForm() {
     if (!parsed.success) {
       setFormError(
         parsed.error.issues[0]?.message ?? "Check the batch details",
+      );
+      return;
+    }
+
+    let campaignIntelligence: CampaignBatchIntelligence | undefined;
+    try {
+      campaignIntelligence = buildCampaignIntelligence();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "Could not parse campaign intelligence JSON",
       );
       return;
     }
@@ -227,14 +598,19 @@ export function BatchCallForm() {
             : null,
         timezone: parsed.data.timezone,
         ringingTimeoutSeconds: parsed.data.ringingTimeoutSeconds,
+        campaignIntelligence,
       });
-
-      setCreatedCampaignName(campaign.name);
       setName("");
       setScheduleMode("instant");
       setScheduledAt("");
       setRingingTimeoutSeconds(60);
+      setPersonalizationInput(sampleCampaignDefaults().templates);
+      setExperimentsInput(sampleCampaignDefaults().experiments);
+      setGoalsInput(sampleCampaignDefaults().goals);
+      setPreflightResult(null);
+      setPreflightError(null);
       resetFileInput();
+      setCreatedCampaignName(campaign.name);
     } catch (error) {
       setFormError(
         error instanceof Error ? error.message : "Could not create batch",
@@ -398,10 +774,88 @@ export function BatchCallForm() {
                 return;
               }
               setFormError(null);
+              setPreflightResult(null);
+              setPreflightError(null);
               setFile(selected);
             }}
           />
         </div>
+
+        <details className="border bg-muted/20 p-3" open>
+          <summary className="cursor-pointer text-sm font-semibold">
+            Campaign intelligence configuration
+          </summary>
+          <div className="mt-3 grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="personalizationSchema">
+                Personalization schema JSON
+              </Label>
+              <Textarea
+                id="personalizationSchema"
+                rows={10}
+                value={personalizationInput}
+                onChange={(event) => setPersonalizationInput(event.target.value)}
+                className="font-mono text-xs leading-relaxed"
+              />
+            </div>
+
+            <div className="grid gap-2 md:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="campaignExperiments">Experiments JSON (array)</Label>
+                <Textarea
+                  id="campaignExperiments"
+                  rows={8}
+                  value={experimentsInput}
+                  onChange={(event) => setExperimentsInput(event.target.value)}
+                  className="font-mono text-xs leading-relaxed"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="campaignGoals">Goals JSON (array)</Label>
+                <Textarea
+                  id="campaignGoals"
+                  rows={8}
+                  value={goalsInput}
+                  onChange={(event) => setGoalsInput(event.target.value)}
+                  className="font-mono text-xs leading-relaxed"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-muted-foreground">
+                Add any of personalization / experiments / goals. Leave fields blank to skip.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={runPreflight}
+                disabled={isPreflighting || !file}
+              >
+                {isPreflighting ? (
+                  <Loader2 className="animate-spin" />
+                ) : null}
+                Run personalization preflight (CSV preview)
+              </Button>
+            </div>
+
+            {preflightError ? (
+              <p className="text-sm text-destructive">{preflightError}</p>
+            ) : null}
+
+            {preflightResult ? (
+              <div className="rounded border bg-background p-3">
+                <p className="text-sm font-medium">Preflight preview</p>
+                <p className="text-xs text-muted-foreground">
+                  Selected rows: {preflightResult.selectedRecipients}, valid rows: {preflightResult.validRecipients}, skipped rows: {preflightResult.skippedRecipients}
+                </p>
+                <pre className="mt-2 max-h-56 overflow-auto rounded border bg-muted/30 p-2 text-xs">
+                  {JSON.stringify(preflightResult.rows.slice(0, 10), null, 2)}
+                </pre>
+              </div>
+            ) : null}
+          </div>
+        </details>
 
         <div className="grid gap-3">
           <Label>Schedule</Label>

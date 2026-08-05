@@ -4,6 +4,7 @@ import {
   OutboundCallMode,
   TelephonyProvider,
 } from "../../../prisma/generated/prisma/client.js";
+import { campaignBatchIntelligenceSchema } from "./outbound-campaign-intelligence.schema.js";
 
 const providerSchema = z.preprocess((value) => {
   if (typeof value === "string") return value.toUpperCase();
@@ -55,7 +56,7 @@ export type ListOutboundCallsArgs = ListOutboundCallsQuery & {
 };
 
 export type CancelOutboundCallInput = z.infer<typeof cancelOutboundCallSchema>;
-const supportedBatchExtension = /\.(csv|xlsx)$/i;
+const supportedBatchExtension = /(\.csv|\.xlsx)$/i;
 
 export const batchUploadUrlQuerySchema = z.object({
   fileName: z
@@ -80,6 +81,7 @@ export const createBatchCampaignSchema = z
     scheduledAt: z.coerce.date().optional().nullable(),
     timezone: z.string().trim().min(1).default("UTC"),
     ringingTimeoutSeconds: z.coerce.number().int().min(10).max(180).default(60),
+    campaignIntelligence: campaignBatchIntelligenceSchema.optional(),
   })
   .strip();
 

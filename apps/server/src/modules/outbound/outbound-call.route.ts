@@ -15,7 +15,6 @@ import {
 } from "./outbound-call.schema.js";
 import {
   assignExperimentVariants,
-  buildCampaignReport,
   preflightCampaignPersonalization,
   validateConversionEvent,
 } from "./outbound-campaign-intelligence.service.js";
@@ -23,13 +22,15 @@ import {
   campaignAssignmentRequestSchema,
   campaignConversionEventSchema,
   campaignPreflightRequestSchema,
-  campaignReportRequestSchema,
+  campaignReportBuildSchema,
 } from "./outbound-campaign-intelligence.schema.js";
 import {
+  buildBatchCampaignReport,
   cancelBatchCampaign,
   createBatchCampaign,
   createBatchUploadUrl,
   getBatchCampaignDetail,
+  ingestCampaignConversionEvent,
   listBatchCampaigns,
 } from "./outbound-batch.service.js";
 import {
@@ -55,6 +56,8 @@ type CreateBatchCampaign = typeof createBatchCampaign;
 type CreateBatchUploadUrl = typeof createBatchUploadUrl;
 type ListBatchCampaigns = typeof listBatchCampaigns;
 type GetBatchCampaignDetail = typeof getBatchCampaignDetail;
+type BuildBatchCampaignReport = typeof buildBatchCampaignReport;
+type IngestCampaignConversionEvent = typeof ingestCampaignConversionEvent;
 
 type OutboundCallRouterDeps = {
   authMiddleware?: Middleware;
@@ -71,6 +74,8 @@ type OutboundCallRouterDeps = {
   createBatchUploadUrl?: CreateBatchUploadUrl;
   listBatchCampaigns?: ListBatchCampaigns;
   getBatchCampaignDetail?: GetBatchCampaignDetail;
+  buildBatchCampaignReport?: BuildBatchCampaignReport;
+  ingestCampaignConversionEvent?: IngestCampaignConversionEvent;
 };
 
 export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
@@ -96,6 +101,9 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
   const createUploadUrl = deps.createBatchUploadUrl ?? createBatchUploadUrl;
   const listBatches = deps.listBatchCampaigns ?? listBatchCampaigns;
   const getBatchDetail = deps.getBatchCampaignDetail ?? getBatchCampaignDetail;
+  const buildReport = deps.buildBatchCampaignReport ?? buildBatchCampaignReport;
+  const ingestConversion =
+    deps.ingestCampaignConversionEvent ?? ingestCampaignConversionEvent;
 
   router.get(
     "/",
@@ -291,20 +299,55 @@ export function createOutboundCallRouter(deps: OutboundCallRouterDeps = {}) {
   );
 
   router.post(
+    "/batches/:campaignId/conversions",
+    authenticate,
+    authorizeCreate,
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const { organizationId } = getRequiredAuth(req);
+        const campaignId = getCampaignId(req);
+        const input = campaignConversionEventSchema.parse(req.body);
+        const data = await ingestConversion({
+          ...input,
+          organizationId,
+          campaignId,
+        });
+
+        res
+          .status(data.accepted ? StatusCodes.OK : StatusCodes.BAD_REQUEST)
+          .json({
+            success: data.accepted,
+            message: data.accepted
+              ? "Campaign conversion ingested"
+              : "Campaign conversion rejected",
+            data,
+          });
+      } catch (error) {
+        next(error);
+      }
+    },
+  );
+
+  router.post(
     "/batches/:campaignId/reports/preview",
     authenticate,
     authorizeRead,
     async (req: Request, res: Response, next: NextFunction) => {
       try {
-        getRequiredAuth(req);
+        const { organizationId } = getRequiredAuth(req);
         const campaignId = getCampaignId(req);
-        const input = campaignReportRequestSchema.parse(req.body);
-        const data = buildCampaignReport(input);
+        const input = campaignReportBuildSchema.parse(req.body);
+        const data = await buildReport({
+          organizationId,
+          campaignId,
+          randomized: input.randomized,
+          persistReport: input.persistReport,
+        });
 
         res.status(StatusCodes.OK).json({
           success: true,
-          message: "Campaign report preview generated",
-          data: { campaignId, ...data },
+          message: "Campaign report generated",
+          data,
         });
       } catch (error) {
         next(error);

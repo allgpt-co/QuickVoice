@@ -14,6 +14,8 @@ let getArgs: unknown[] = [];
 let cancelArgs: unknown[] = [];
 let retryArgs: unknown[] = [];
 let batchArgs: unknown[] = [];
+let conversionIngestArgs: unknown[] = [];
+let reportPreviewArgs: unknown[] = [];
 let uploadUrlArgs: unknown[] = [];
 let listBatchArgs: unknown[] = [];
 let batchDetailArgs: unknown[] = [];
@@ -123,6 +125,38 @@ before(async () => {
         return {
           uploadUrl: "https://s3.example.test/upload",
           s3Key: "outbound-batches/org_123/recipients.csv",
+        };
+      },
+      ingestCampaignConversionEvent: async (args: unknown) => {
+        conversionIngestArgs.push(args);
+        return {
+          campaignId: "campaign_123",
+          accepted: true,
+          canonical: {
+            goalKey: "booking_created",
+            dedupeKey: "booking_123",
+            externalCustomerId: "cust_1",
+          },
+          findings: [],
+          conversionId: "conv_1",
+          attributedAssignments: 1,
+        };
+      },
+      buildBatchCampaignReport: async (args: any) => {
+        reportPreviewArgs.push(args);
+        return {
+          campaignId: args.campaignId,
+          causalClaimAllowed: false,
+          totals: {
+            attempts: 10,
+            connected: 2,
+            conversions: 1,
+            conversionValueCents: 2500,
+            connectionRate: 0.2,
+            conversionRate: 0.1,
+          },
+          variants: [],
+          dataFreshnessAt: "2026-07-30T12:00:00.000Z",
         };
       },
       listBatchCampaigns: async (args: unknown) => {
@@ -382,6 +416,8 @@ test("POST /:outboundId/retry dispatches a replacement call", async () => {
 });
 
 test("campaign intelligence routes run before generic batch detail routing", async () => {
+  conversionIngestArgs = [];
+  reportPreviewArgs = [];
   const preflight = await requestJson(
     `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/personalization/preflight`,
     {
@@ -466,6 +502,40 @@ test("campaign intelligence routes run before generic batch detail routing", asy
   const conversionBody = await conversion.json();
   assert.equal(conversionBody.data.accepted, true);
 
+  const ingestion = await requestJson(
+    `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/conversions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        goalKey: "booking_created",
+        dedupeKey: "booking_456",
+        externalCustomerId: "cust_1",
+        occurredAt: "2026-07-30T12:00:01.000Z",
+        valueCents: 1500,
+        currency: "USD",
+        source: "crm-webhook",
+      }),
+    },
+  );
+  assert.equal(ingestion.status, 200);
+  const ingestionBody = await ingestion.json();
+  assert.equal(ingestionBody.success, true);
+  assert.equal(ingestionBody.data.accepted, true);
+  assert.deepEqual(conversionIngestArgs[0], {
+    organizationId: "org_123",
+    campaignId: "campaign_123",
+    goalKey: "booking_created",
+    dedupeKey: "booking_456",
+    externalCustomerId: "cust_1",
+    occurredAt: new Date("2026-07-30T12:00:01.000Z"),
+    valueCents: 1500,
+    currency: "USD",
+    source: "crm-webhook",
+    evidence: {},
+  });
+  assert.equal(conversionBody.data.accepted, true);
+
   const report = await requestJson(
     `${baseUrl}/api/v1/outbound-calls/batches/campaign_123/reports/preview`,
     {
@@ -473,22 +543,7 @@ test("campaign intelligence routes run before generic batch detail routing", asy
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         randomized: true,
-        attempts: [
-          {
-            unitKey: "cust_1",
-            variantKey: "control",
-            connected: true,
-            costCents: 100,
-          },
-        ],
-        conversions: [
-          {
-            unitKey: "cust_1",
-            variantKey: "control",
-            goalKey: "booking_created",
-            valueCents: 2500,
-          },
-        ],
+        persistReport: false,
       }),
     },
   );
@@ -496,4 +551,10 @@ test("campaign intelligence routes run before generic batch detail routing", asy
   const reportBody = await report.json();
   assert.equal(reportBody.data.causalClaimAllowed, false);
   assert.equal(reportBody.data.totals.conversions, 1);
+  assert.deepEqual(reportPreviewArgs[0], {
+    organizationId: "org_123",
+    campaignId: "campaign_123",
+    randomized: true,
+    persistReport: false,
+  });
 });
