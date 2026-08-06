@@ -11,7 +11,7 @@ function csvEscape(value: unknown) {
 export function downloadRowsAsCsv<T>(
   filename: string,
   rows: T[],
-  columns: CsvColumn<T>[]
+  columns: CsvColumn<T>[],
 ) {
   const csv = [
     columns.map((column) => column.header),
@@ -21,6 +21,15 @@ export function downloadRowsAsCsv<T>(
     .join("\n");
 
   const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+export function downloadBlobAsFile(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;

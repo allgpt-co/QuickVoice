@@ -67,6 +67,7 @@ import {
   useBatchCampaign,
   useBatchCampaigns,
   useCancelBatchCampaign,
+  useDownloadBatchCampaignResults,
 } from "@/src/hooks/queries/outbound";
 import {
   type CampaignConversionEventInput,
@@ -100,7 +101,8 @@ function statusLabel(status: string) {
 }
 
 function statusVariant(status: CampaignStatus) {
-  if (status === "FAILED" || status === "CANCELLED") return "destructive" as const;
+  if (status === "FAILED" || status === "CANCELLED")
+    return "destructive" as const;
   if (status === "COMPLETED") return "default" as const;
   if (status === "ACTIVE") return "secondary" as const;
   return "outline" as const;
@@ -113,7 +115,10 @@ function canCancelCampaign(status: CampaignStatus) {
 function completionPercent(campaign: BatchCampaign) {
   if (!campaign.totalRecipients) return 0;
   const completed = campaign.validRecipients + campaign.invalidRecipients;
-  return Math.min(100, Math.round((completed / campaign.totalRecipients) * 100));
+  return Math.min(
+    100,
+    Math.round((completed / campaign.totalRecipients) * 100),
+  );
 }
 
 function csvEscape(value: unknown) {
@@ -121,7 +126,10 @@ function csvEscape(value: unknown) {
   return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
-function downloadCampaignCsv(campaigns: BatchCampaign[], agentName: (id: string | null) => string) {
+function downloadCampaignCsv(
+  campaigns: BatchCampaign[],
+  agentName: (id: string | null) => string,
+) {
   const header = [
     "Campaign",
     "Status",
@@ -498,7 +506,10 @@ function CampaignDetailDialog({
             <div className="grid gap-3 sm:grid-cols-4">
               <div className="border p-3">
                 <p className="text-xs text-muted-foreground">Status</p>
-                <Badge className="mt-2 capitalize" variant={statusVariant(shown.status)}>
+                <Badge
+                  className="mt-2 capitalize"
+                  variant={statusVariant(shown.status)}
+                >
                   {statusLabel(shown.status)}
                 </Badge>
               </div>
@@ -580,7 +591,10 @@ function CampaignDetailDialog({
                         ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                        <TableCell
+                          colSpan={3}
+                          className="h-24 text-center text-muted-foreground"
+                        >
                           No calls imported yet.
                         </TableCell>
                       </TableRow>
@@ -599,13 +613,20 @@ function CampaignDetailDialog({
 }
 
 export function CampaignsPanel() {
-  const { data: campaigns = [], isLoading, isError, isFetching, refetch } =
-    useBatchCampaigns();
+  const {
+    data: campaigns = [],
+    isLoading,
+    isError,
+    isFetching,
+    refetch,
+  } = useBatchCampaigns();
   const { data: agents = [] } = useAgents();
   const cancelCampaign = useCancelBatchCampaign();
+  const downloadResults = useDownloadBatchCampaignResults();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"all" | CampaignStatus>("all");
-  const [selectedCampaign, setSelectedCampaign] = useState<BatchCampaign | null>(null);
+  const [selectedCampaign, setSelectedCampaign] =
+    useState<BatchCampaign | null>(null);
   const [cancelTarget, setCancelTarget] = useState<BatchCampaign | null>(null);
 
   const STATUS_OPTIONS: Array<"all" | CampaignStatus> = [
@@ -648,6 +669,10 @@ export function CampaignsPanel() {
     });
   }
 
+  function exportCampaignResults(campaign: BatchCampaign) {
+    downloadResults.mutate(campaign.campaignId);
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -665,7 +690,11 @@ export function CampaignsPanel() {
         title="Could not load campaigns"
         description="Refresh campaign management or try again after checking your connection."
         action={
-          <Button variant="outline" onClick={() => refetch()} disabled={isFetching}>
+          <Button
+            variant="outline"
+            onClick={() => refetch()}
+            disabled={isFetching}
+          >
             <RefreshCw className={isFetching ? "animate-spin" : undefined} />
             Retry
           </Button>
@@ -686,7 +715,10 @@ export function CampaignsPanel() {
             className="pl-9"
           />
         </div>
-        <Select value={status} onValueChange={(value) => setStatus(value as typeof status)}>
+        <Select
+          value={status}
+          onValueChange={(value) => setStatus(value as typeof status)}
+        >
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
@@ -701,7 +733,10 @@ export function CampaignsPanel() {
         <Button
           variant="outline"
           onClick={() => {
-            downloadCampaignCsv(filteredCampaigns, (id) => agentNames.get(id ?? "") ?? "-");
+            downloadCampaignCsv(
+              filteredCampaigns,
+              (id) => agentNames.get(id ?? "") ?? "-",
+            );
             toast.success("Campaign export downloaded");
           }}
           disabled={!filteredCampaigns.length}
@@ -737,12 +772,16 @@ export function CampaignsPanel() {
                     <div className="min-w-64 space-y-1">
                       <p className="font-medium">{campaign.name}</p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {agentNames.get(campaign.agentId ?? "") ?? "-"} · {campaign.sourceFileName ?? "No source file"}
+                        {agentNames.get(campaign.agentId ?? "") ?? "-"} ·{" "}
+                        {campaign.sourceFileName ?? "No source file"}
                       </p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge className="capitalize" variant={statusVariant(campaign.status)}>
+                    <Badge
+                      className="capitalize"
+                      variant={statusVariant(campaign.status)}
+                    >
                       {statusLabel(campaign.status)}
                     </Badge>
                   </TableCell>
@@ -782,9 +821,22 @@ export function CampaignsPanel() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Campaign actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => setSelectedCampaign(campaign)}>
+                        <DropdownMenuItem
+                          onClick={() => setSelectedCampaign(campaign)}
+                        >
                           <FileSpreadsheet className="size-4" />
                           View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => exportCampaignResults(campaign)}
+                          disabled={downloadResults.isPending}
+                        >
+                          {downloadResults.isPending ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Download className="size-4" />
+                          )}
+                          Export results CSV
                         </DropdownMenuItem>
                         {canCancelCampaign(campaign.status) ? (
                           <>
