@@ -137,6 +137,9 @@ test("importBatchCampaignRecipients persists valid and invalid file rows and sch
         sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}.csv`,
         sourceFileName: "file.csv",
         ringingTimeoutSeconds: 45,
+        personalizationSchemas: [],
+        experiments: [],
+        goals: [],
       };
     },
   };
@@ -255,6 +258,9 @@ test("importBatchCampaignRecipients rejects oversized recipient sets and marks t
               sourceFileKey: "outbound-batches/org_123/file.csv",
               sourceFileName: "file.csv",
               ringingTimeoutSeconds: 45,
+              personalizationSchemas: [],
+              experiments: [],
+              goals: [],
             }),
           },
           queue: {
