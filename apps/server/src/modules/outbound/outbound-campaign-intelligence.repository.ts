@@ -195,20 +195,22 @@ export async function createCampaignRecipientSnapshots(
 ) {
   if (rows.length === 0) return { count: 0 };
   return prisma.campaignRecipientSnapshot.createMany({
-    data: rows.map((row) => ({
-      organizationId: row.organizationId,
-      campaignId: row.campaignId,
-      outboundId: row.outboundId,
-      schemaVersion: row.schemaVersion,
-      rowNumber: row.rowNumber,
-      recipientKey: row.recipientKey,
-      values: row.values as unknown as Prisma.JsonObject,
-      findings: row.findings as unknown as Prisma.JsonArray,
-      renderedConfigDigest: row.renderedConfigDigest,
-      renderedPreview: row.renderedPreview as unknown as Prisma.JsonObject,
-      skipped: row.skipped,
-      skipReason: row.skipReason,
-    } satisfies Prisma.CampaignRecipientSnapshotCreateManyInput),
+    data: rows.map((row) => {
+      return {
+        organizationId: row.organizationId,
+        campaignId: row.campaignId,
+        outboundId: row.outboundId,
+        schemaVersion: row.schemaVersion,
+        rowNumber: row.rowNumber,
+        recipientKey: row.recipientKey,
+        values: row.values as unknown as Prisma.JsonObject,
+        findings: row.findings as unknown as Prisma.JsonArray,
+        renderedConfigDigest: row.renderedConfigDigest,
+        renderedPreview: row.renderedPreview as unknown as Prisma.JsonObject,
+        skipped: row.skipped,
+        skipReason: row.skipReason,
+      };
+    }),
   });
 }
 
@@ -263,7 +265,7 @@ export async function createCampaignConversionEvent(
       rejected: input.rejected,
       rejectionReason: input.rejectionReason,
       revision: 1,
-    } satisfies Prisma.CampaignConversionEventCreateInput,
+    } as Prisma.CampaignConversionEventUncheckedCreateInput,
   });
 }
 
@@ -294,18 +296,20 @@ export async function createCampaignConversionAttributions(
   if (rows.length === 0) return { count: 0 };
 
   return prisma.campaignAttributionResult.createMany({
-    data: rows.map((row) => ({
-      organizationId: row.organizationId,
-      campaignId: row.campaignId,
-      conversionId: row.conversionId,
-      goalId: row.goalId,
-      experimentId: row.experimentId,
-      variantId: row.variantId,
-      policyVersion: row.policyVersion,
-      model: row.model,
-      attributedValueCents: row.attributedValueCents,
-      evidence: row.evidence as unknown as Prisma.JsonObject,
-    } satisfies Prisma.CampaignAttributionResultCreateManyInput),
+    data: rows.map((row) => {
+      return {
+        organizationId: row.organizationId,
+        campaignId: row.campaignId,
+        conversionId: row.conversionId,
+        goalId: row.goalId,
+        experimentId: row.experimentId,
+        variantId: row.variantId,
+        policyVersion: row.policyVersion,
+        model: row.model,
+        attributedValueCents: row.attributedValueCents,
+        evidence: row.evidence as unknown as Prisma.JsonObject,
+      };
+    }),
   });
 }
 
