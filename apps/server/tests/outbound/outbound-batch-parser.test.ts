@@ -26,6 +26,7 @@ test("parseBatchRecipients maps CSV columns to overrides and dynamic variables",
   ]);
   assert.deepEqual(result.validRows[0], {
     rowNumber: 2,
+    recipientKey: "+15550001111",
     phoneNumber: "+15550001111",
     language: "en-US",
     voiceId: "aura-2-athena-en",
@@ -35,15 +36,24 @@ test("parseBatchRecipients maps CSV columns to overrides and dynamic variables",
       city: "Austin",
       other_dyn_variable: "renewal",
     },
+    values: {
+      city: "Austin",
+      other_dyn_variable: "renewal",
+    },
   });
   assert.deepEqual(result.validRows[1], {
     rowNumber: 3,
+    recipientKey: "+15550002222",
     phoneNumber: "+15550002222",
     language: null,
     voiceId: null,
     firstMessage: "Hello Pat",
     systemPrompt: null,
     dynamicVariables: {
+      city: "Dallas",
+      other_dyn_variable: "priority",
+    },
+    values: {
       city: "Dallas",
       other_dyn_variable: "priority",
     },
@@ -83,12 +93,16 @@ test("parseBatchRecipients maps XLSX columns to overrides and dynamic variables"
   assert.equal(result.validRows.length, 1);
   assert.deepEqual(result.validRows[0], {
     rowNumber: 2,
+    recipientKey: "+15550001111",
     phoneNumber: "+15550001111",
     language: "hi-IN",
     voiceId: "aura-2-athena-en",
     firstMessage: "Hi {{city}}",
     systemPrompt: "Prompt {{city}}",
     dynamicVariables: {
+      city: "Mumbai",
+    },
+    values: {
       city: "Mumbai",
     },
   });
