@@ -1,4 +1,4 @@
-export const defaultMcpServerUrl = "https://mcp.quickvoice.co/mcp";
+export const defaultMcpServerUrl = "http://f8v7lu4tuihjzigkrrun0s6d.207.244.241.161.sslip.io/mcp";
 
 export function buildMcpConfig({
   apiKey,
