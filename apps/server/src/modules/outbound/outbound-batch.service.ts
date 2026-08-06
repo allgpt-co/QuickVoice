@@ -64,6 +64,10 @@ type ImportBatchDeps = {
     BatchRepository,
     "getCampaignForImport" | "createBatchOutboundCalls" | "markBatchImported"
   > & { markCampaignFailed?: typeof outboundCallRepository.markCampaignFailed };
+  campaignIntelligenceRepository?: Pick<
+    typeof campaignIntelligenceRepository,
+    "getCampaignForImport"
+  >;
   queue?: BatchQueueLike;
   readFile?: (key: string) => Promise<Buffer>;
   now?: () => Date;
@@ -269,12 +273,14 @@ export async function importBatchCampaignRecipients(
   deps: ImportBatchDeps = {}
 ) {
   const repository = deps.repository ?? outboundCallRepository;
+  const campaignIntelligenceRepo =
+    deps.campaignIntelligenceRepository ?? campaignIntelligenceRepository;
   const queue = deps.queue ?? getOutboundBatchQueue();
   const readFile = deps.readFile ?? readObjectBuffer;
   const now = deps.now ?? (() => new Date());
 
   const campaign =
-    await campaignIntelligenceRepository.getCampaignForImport(args.campaignId);
+    await campaignIntelligenceRepo.getCampaignForImport(args.campaignId);
   if (!campaign) {
     throw new Error("Batch campaign not found");
   }
