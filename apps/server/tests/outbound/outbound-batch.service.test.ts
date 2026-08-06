@@ -187,8 +187,17 @@ test("importBatchCampaignRecipients persists valid and invalid file rows and sch
         city: "Mumbai",
         other_dyn_variable: "renewal",
       },
+      recipientKey: "+15550001111",
+      recipientValues: {
+        city: "Mumbai",
+        other_dyn_variable: "renewal",
+      },
       ringingTimeoutSeconds: 45,
       sourceFileName: "file.csv",
+      importError: null,
+      preflightFindings: [],
+      preflightRenderedPreview: {},
+      preflightRenderedConfigDigest: "",
     },
   });
   assert.equal(createRows[1][1].status, "FAILED");
