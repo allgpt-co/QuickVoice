@@ -10,6 +10,7 @@ import {
   FileSpreadsheet,
   Loader2,
   RefreshCw,
+  Settings2,
   UploadCloud,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -19,7 +20,6 @@ import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
-import { Textarea } from "@/src/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -31,16 +31,11 @@ import { useAgentConfig, useAgents } from "@/src/hooks/queries/agents";
 import { useNumbers } from "@/src/hooks/queries/numbers";
 import { useCreateBatchCampaign } from "@/src/hooks/queries/outbound";
 import {
-  type CampaignExperimentDefinition,
-  type CampaignGoalDefinition,
   type CampaignPersonalizationPreflightRequest,
   type CampaignPersonalizationPreflightResponse,
   type CampaignPersonalizationSchema,
   type CampaignRecipientValue,
   type CampaignBatchIntelligence,
-  CampaignIntelligenceFieldType,
-  CampaignIntelligenceMissingBehavior,
-  CampaignIntelligenceSource,
   outboundApi,
 } from "@/src/lib/api/resources/outbound";
 import type { Agent, PhoneNumber } from "@/src/lib/api/types";
@@ -53,6 +48,25 @@ import {
   normalizeAgentVariables,
   uniqueDynamicVariableNames,
 } from "@/src/lib/agents/dynamic-variables";
+import {
+  PersonalizationFieldBuilder,
+  type PersonalizationField,
+  fieldsToSchema,
+  schemaToFields,
+} from "./PersonalizationFieldBuilder";
+import {
+  ExperimentBuilder,
+  type ExperimentData,
+  experimentsToDefinition,
+  definitionToExperiments,
+} from "./ExperimentBuilder";
+import {
+  GoalBuilder,
+  type GoalData,
+  goalsToDefinition,
+  definitionToGoals,
+} from "./GoalBuilder";
+import { CSVPreview } from "./CSVPreview";
 
 const ACCEPT_STRING =
   ".csv,.xlsx,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
@@ -202,163 +216,6 @@ function parseRecipientsFromCsv(file: File, maxRows: number): Promise<CampaignRe
     });
 }
 
-function defaultValue<T>(input: string, fallback: T): T {
-  if (!input.trim()) return fallback;
-  return JSON.parse(input) as T;
-}
-
-function safeJsonParse<T>(input: string, fallback: T, label: string): T {
-  if (!input.trim()) return fallback;
-  try {
-    return JSON.parse(input) as T;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid JSON";
-    throw new Error(`${label}: ${message}`);
-  }
-}
-
-function normalizeIntelligencePayload(input: {
-  personalizationText: string;
-  experimentsText: string;
-  goalsText: string;
-}): CampaignBatchIntelligence | undefined {
-  const personalization = defaultValue<CampaignPersonalizationSchema>(
-    input.personalizationText,
-    undefined as unknown as CampaignPersonalizationSchema,
-  );
-  const hasPersonalizationSchema =
-    Array.isArray(personalization?.fields) && personalization.fields.length > 0;
-
-  const experiments = safeJsonParse<CampaignExperimentDefinition[]>(
-    input.experimentsText,
-    [],
-    "Experiments JSON",
-  );
-  const goals = safeJsonParse<CampaignGoalDefinition[]>(
-    input.goalsText,
-    [],
-    "Goals JSON",
-  );
-
-  if (
-    !hasPersonalizationSchema &&
-    (!Array.isArray(experiments) || experiments.length === 0) &&
-    (!Array.isArray(goals) || goals.length === 0)
-  ) {
-    return undefined;
-  }
-
-  if (hasPersonalizationSchema) {
-    return {
-      personalizationSchema: {
-        version: personalization.version ?? 1,
-        fields: personalization.fields,
-        templates: personalization.templates ?? {},
-        attribution: personalization.attribution ?? {},
-      },
-      experiments: Array.isArray(experiments) ? experiments : [],
-      goals: Array.isArray(goals) ? goals : [],
-    };
-  }
-
-  return {
-    experiments: Array.isArray(experiments) ? experiments : [],
-    goals: Array.isArray(goals) ? goals : [],
-  };
-}
-
-function hasCampaignPreviewSchema(input: string) {
-  if (!input.trim()) return false;
-  try {
-    const parsed = JSON.parse(input) as CampaignPersonalizationSchema;
-    return Array.isArray(parsed?.fields) && parsed.fields.length > 0;
-  } catch {
-    return false;
-  }
-}
-
-function sampleCampaignDefaults() {
-  const templates = ((): string => {
-    const schema = {
-      version: 1,
-      fields: [
-        {
-          name: "customer_name",
-          type: "string" as CampaignIntelligenceFieldType,
-          source: "customer_attribute" as CampaignIntelligenceSource,
-          required: true,
-          sensitive: false,
-          missingBehavior: "omit" as CampaignIntelligenceMissingBehavior,
-          invalidBehavior: "skip" as CampaignIntelligenceMissingBehavior,
-          maxLength: 120,
-        },
-      ],
-      templates: {
-        prompt: "You are calling {{customer_name}} about their support ticket.",
-      },
-      attribution: {
-        source: "issue_124",
-      },
-    };
-    return JSON.stringify(schema, null, 2);
-  })();
-
-  const experiments = JSON.stringify(
-    [
-      {
-        experimentId: "outbound_ab_demo",
-        version: 1,
-        hypothesis: "Test two openings to improve connection rate",
-        primaryMetric: "connected_rate",
-        guardrailMetrics: ["abandon_rate"],
-        unit: "recipient",
-        stoppingPolicy: "manual_review",
-        variants: [
-          {
-            key: "control",
-            name: "Control",
-            allocationBps: 5000,
-            isControl: true,
-            configVersion: {
-              prompt: "Hi {{customer_name}}, this is the control script.",
-            },
-          },
-          {
-            key: "variant_b",
-            name: "Variant B",
-            allocationBps: 5000,
-            isControl: false,
-            configVersion: {
-              prompt: "Hello {{customer_name}}, this is variant B script.",
-            },
-          },
-        ],
-      },
-    ],
-    null,
-    2,
-  );
-
-  const goals = JSON.stringify(
-    [
-      {
-        key: "goal_replied",
-        version: 1,
-        definition: {
-          metric: "reply",
-        },
-        attributionPolicy: {
-          model: "first_touch",
-        },
-      },
-    ],
-    null,
-    2,
-  );
-
-  return { templates, experiments, goals };
-}
-
 export function BatchCallForm() {
   const {
     data: agents = [],
@@ -391,18 +248,20 @@ export function BatchCallForm() {
     null,
   );
 
-  const [personalizationInput, setPersonalizationInput] = useState(
-    sampleCampaignDefaults().templates,
-  );
-  const [experimentsInput, setExperimentsInput] = useState(
-    sampleCampaignDefaults().experiments,
-  );
-  const [goalsInput, setGoalsInput] = useState(sampleCampaignDefaults().goals);
+  // Visual component state
+  const [personalizationFields, setPersonalizationFields] = useState<PersonalizationField[]>([]);
+  const [templates, setTemplates] = useState<{
+    prompt?: string;
+    firstMessage?: string;
+  }>({});
+  const [experiments, setExperiments] = useState<ExperimentData[]>([]);
+  const [goals, setGoals] = useState<GoalData[]>([]);
   const [preflightResult, setPreflightResult] = useState<
     CampaignPersonalizationPreflightResponse | null
   >(null);
   const [preflightError, setPreflightError] = useState<string | null>(null);
   const [isPreflighting, setIsPreflighting] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const agentId = dialableAgents.some(
     (agent) => agent.agentId === requestedAgentId,
@@ -477,12 +336,28 @@ export function BatchCallForm() {
     URL.revokeObjectURL(url);
   }
 
-  function buildCampaignIntelligence() {
-    return normalizeIntelligencePayload({
-      personalizationText: personalizationInput,
-      experimentsText: experimentsInput,
-      goalsText: goalsInput,
-    });
+  function buildCampaignIntelligence(): CampaignBatchIntelligence | undefined {
+    const hasPersonalization = personalizationFields.length > 0;
+    const hasExperiments = experiments.length > 0;
+    const hasGoals = goals.length > 0;
+
+    if (!hasPersonalization && !hasExperiments && !hasGoals) {
+      return undefined;
+    }
+
+    return {
+      personalizationSchema: hasPersonalization
+        ? {
+            ...fieldsToSchema(personalizationFields),
+            templates: {
+              ...(templates.prompt && { prompt: templates.prompt }),
+              ...(templates.firstMessage && { firstMessage: templates.firstMessage }),
+            },
+          }
+        : undefined,
+      experiments: hasExperiments ? experimentsToDefinition(experiments) : [],
+      goals: hasGoals ? goalsToDefinition(goals) : [],
+    } as CampaignBatchIntelligence;
   }
 
   async function runPreflight() {
@@ -496,8 +371,8 @@ export function BatchCallForm() {
       return;
     }
 
-    if (!hasCampaignPreviewSchema(personalizationInput)) {
-      setPreflightError("Personalization schema with at least one field is required");
+    if (personalizationFields.length === 0) {
+      setPreflightError("Add at least one personalization field to run preflight");
       return;
     }
 
@@ -506,11 +381,7 @@ export function BatchCallForm() {
     setIsPreflighting(true);
 
     try {
-      const schema = safeJsonParse<CampaignPersonalizationSchema>(
-        personalizationInput,
-        {} as CampaignPersonalizationSchema,
-        "Personalization schema",
-      );
+      const schema = fieldsToSchema(personalizationFields);
       const recipients = await parseRecipientsFromCsv(file, PREVIEW_MAX_RECIPIENTS);
       if (!recipients.length) {
         throw new Error("Could not parse any preview rows from the CSV file");
@@ -604,9 +475,10 @@ export function BatchCallForm() {
       setScheduleMode("instant");
       setScheduledAt("");
       setRingingTimeoutSeconds(60);
-      setPersonalizationInput(sampleCampaignDefaults().templates);
-      setExperimentsInput(sampleCampaignDefaults().experiments);
-      setGoalsInput(sampleCampaignDefaults().goals);
+      setPersonalizationFields([]);
+      setTemplates({});
+      setExperiments([]);
+      setGoals([]);
       setPreflightResult(null);
       setPreflightError(null);
       resetFileInput();
@@ -783,81 +655,103 @@ export function BatchCallForm() {
           />
         </div>
 
-        <details className="border bg-muted/20 p-3" open>
-          <summary className="cursor-pointer text-sm font-semibold">
-            Campaign intelligence configuration
-          </summary>
-          <div className="mt-3 grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="personalizationSchema">
-                Personalization schema JSON
-              </Label>
-              <Textarea
-                id="personalizationSchema"
-                rows={10}
-                value={personalizationInput}
-                onChange={(event) => setPersonalizationInput(event.target.value)}
-                className="font-mono text-xs leading-relaxed"
-              />
-            </div>
+        {/* CSV Preview - Auto-shown when file is uploaded */}
+        <CSVPreview file={file} maxRows={10} autoPreview />
 
-            <div className="grid gap-2 md:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="campaignExperiments">Experiments JSON (array)</Label>
-                <Textarea
-                  id="campaignExperiments"
-                  rows={8}
-                  value={experimentsInput}
-                  onChange={(event) => setExperimentsInput(event.target.value)}
-                  className="font-mono text-xs leading-relaxed"
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="campaignGoals">Goals JSON (array)</Label>
-                <Textarea
-                  id="campaignGoals"
-                  rows={8}
-                  value={goalsInput}
-                  onChange={(event) => setGoalsInput(event.target.value)}
-                  className="font-mono text-xs leading-relaxed"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-xs text-muted-foreground">
-                Add any of personalization / experiments / goals. Leave fields blank to skip.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={runPreflight}
-                disabled={isPreflighting || !file}
-              >
-                {isPreflighting ? (
-                  <Loader2 className="animate-spin" />
-                ) : null}
-                Run personalization preflight (CSV preview)
-              </Button>
-            </div>
-
-            {preflightError ? (
-              <p className="text-sm text-destructive">{preflightError}</p>
-            ) : null}
-
-            {preflightResult ? (
-              <div className="rounded border bg-background p-3">
-                <p className="text-sm font-medium">Preflight preview</p>
+        {/* Campaign Intelligence Section */}
+        <div className="rounded-lg border bg-card">
+          <button
+            type="button"
+            className="w-full flex items-center justify-between p-4 text-left"
+            onClick={() => setShowAdvanced(!showAdvanced)}
+          >
+            <div className="flex items-center gap-2">
+              <Settings2 className="size-4 text-muted-foreground" />
+              <div>
+                <h3 className="text-sm font-semibold">Campaign Intelligence</h3>
                 <p className="text-xs text-muted-foreground">
-                  Selected rows: {preflightResult.selectedRecipients}, valid rows: {preflightResult.validRecipients}, skipped rows: {preflightResult.skippedRecipients}
+                  Personalization, A/B testing, and conversion goals
                 </p>
-                <pre className="mt-2 max-h-56 overflow-auto rounded border bg-muted/30 p-2 text-xs">
-                  {JSON.stringify(preflightResult.rows.slice(0, 10), null, 2)}
-                </pre>
               </div>
-            ) : null}
-          </div>
-        </details>
+            </div>
+            <Badge variant="outline" className="ml-2">
+              {personalizationFields.length + experiments.length + goals.length} configured
+            </Badge>
+          </button>
+
+          {showAdvanced && (
+            <div className="border-t p-4 space-y-6">
+              {/* Personalization Fields */}
+              <PersonalizationFieldBuilder
+                value={personalizationFields}
+                onChange={setPersonalizationFields}
+                templates={templates}
+                onTemplatesChange={setTemplates}
+              />
+
+              {/* A/B Testing Experiments */}
+              <ExperimentBuilder
+                value={experiments}
+                onChange={setExperiments}
+              />
+
+              {/* Conversion Goals */}
+              <GoalBuilder
+                value={goals}
+                onChange={setGoals}
+              />
+
+              {/* Preflight Button */}
+              {personalizationFields.length > 0 && (
+                <div className="pt-4 border-t">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Test Personalization</p>
+                      <p className="text-xs text-muted-foreground">
+                        Verify your fields match the CSV data
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={runPreflight}
+                      disabled={isPreflighting || !file}
+                    >
+                      {isPreflighting ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : null}
+                      Run Preflight Check
+                    </Button>
+                  </div>
+
+                  {preflightError && (
+                    <div className="mt-3 p-3 rounded-lg bg-destructive/10 text-sm text-destructive">
+                      {preflightError}
+                    </div>
+                  )}
+
+                  {preflightResult && (
+                    <div className="mt-3 p-3 rounded-lg border bg-background">
+                      <p className="text-sm font-medium text-emerald-600">
+                        ✓ Preflight successful
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Selected: {preflightResult.selectedRecipients} • 
+                        Valid: {preflightResult.validRecipients} • 
+                        Skipped: {preflightResult.skippedRecipients}
+                      </p>
+                      {preflightResult.rows.length > 0 && (
+                        <div className="mt-2 max-h-40 overflow-auto rounded border bg-muted/30 p-2 text-xs font-mono">
+                          {JSON.stringify(preflightResult.rows.slice(0, 5), null, 2)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
 
         <div className="grid gap-3">
           <Label>Schedule</Label>
