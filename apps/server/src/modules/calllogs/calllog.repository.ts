@@ -1,4 +1,8 @@
-import { Prisma } from "../../../prisma/generated/prisma/client.js";
+import {
+  CallStatus,
+  CampaignStatus,
+  Prisma,
+} from "../../../prisma/generated/prisma/client.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import prisma from "../../config/prisma.js";
 import { redactJson, redactText } from "../../lib/redaction.js";
@@ -90,11 +94,56 @@ export const saveCallLogInTransaction = async (
         callId: callLog.callId,
         organizationId: input.organizationId,
       });
+    } else {
+      await completeCampaignIfAllOutboundCallsTerminal(
+        tx,
+        input.organizationId,
+        outboundId,
+      );
     }
   }
 
   return callLog;
 };
+
+async function completeCampaignIfAllOutboundCallsTerminal(
+  tx: Prisma.TransactionClient,
+  organizationId: string,
+  outboundId: string,
+) {
+  const outbound = await tx.outboundCall.findFirst({
+    where: { outboundId, organizationId },
+    select: { campaignId: true },
+  });
+  if (!outbound?.campaignId) return;
+
+  const pendingCalls = await tx.outboundCall.count({
+    where: {
+      organizationId,
+      campaignId: outbound.campaignId,
+      status: { in: [CallStatus.SCHEDULED, CallStatus.IN_PROGRESS] },
+    },
+  });
+  if (pendingCalls > 0) return;
+
+  await tx.campaign.updateMany({
+    where: {
+      organizationId,
+      campaignId: outbound.campaignId,
+      status: {
+        in: [
+          CampaignStatus.SCHEDULED,
+          CampaignStatus.ACTIVE,
+          CampaignStatus.PROCESSED,
+        ],
+      },
+    },
+    data: {
+      status: CampaignStatus.COMPLETED,
+      completedAt: new Date(),
+    },
+  });
+}
 
 export function buildCallLogIdentityFields(
   input: IngestCallLogArgs,

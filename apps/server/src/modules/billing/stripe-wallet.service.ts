@@ -114,7 +114,7 @@ export async function createTopUpCheckout(args: {
   try {
     const session = await stripeClient.checkout.sessions.create(
       {
-        ui_mode: "embedded_page",
+        ui_mode: "embedded",
         mode: "payment",
         customer: customerId,
         line_items: [

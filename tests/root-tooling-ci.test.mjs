@@ -143,7 +143,7 @@ test("security overrides keep legacy glob callers on patched modern dependencies
   const overrides = manifest.pnpm?.overrides ?? {};
   const patchedDependencies = manifest.pnpm?.patchedDependencies ?? {};
 
-  assert.equal(overrides["brace-expansion@>=3"], "5.0.8");
+  assert.equal(overrides["brace-expansion@>=3"], "5.0.9");
   assert.equal(overrides["minimatch@3"], "10.2.5");
   assert.equal(overrides["minimatch@9"], "10.2.5");
   assert.equal(

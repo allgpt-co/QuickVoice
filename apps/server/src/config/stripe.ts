@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 
-export const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-06-24.dahlia";
+export const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2025-10-29.clover";
 
 export const isStripeConfigured = Boolean(
   process.env.STRIPE_SECRET_KEY?.trim(),

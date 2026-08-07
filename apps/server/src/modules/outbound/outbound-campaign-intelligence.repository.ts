@@ -208,7 +208,7 @@ export async function createCampaignRecipientSnapshots(
       renderedPreview: row.renderedPreview as unknown as Prisma.JsonObject,
       skipped: row.skipped,
       skipReason: row.skipReason,
-    } satisfies Prisma.CampaignRecipientSnapshotCreateManyInput),
+    })),
   });
 }
 
@@ -263,7 +263,7 @@ export async function createCampaignConversionEvent(
       rejected: input.rejected,
       rejectionReason: input.rejectionReason,
       revision: 1,
-    } satisfies Prisma.CampaignConversionEventCreateInput,
+    } as Prisma.CampaignConversionEventUncheckedCreateInput,
   });
 }
 
@@ -305,7 +305,7 @@ export async function createCampaignConversionAttributions(
       model: row.model,
       attributedValueCents: row.attributedValueCents,
       evidence: row.evidence as unknown as Prisma.JsonObject,
-    } satisfies Prisma.CampaignAttributionResultCreateManyInput),
+    })),
   });
 }
 

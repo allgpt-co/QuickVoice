@@ -3,6 +3,7 @@ import { z } from "zod";
 const agentTemplateSlugSchema = z.enum([
   "business",
   "medical",
+  "questionnaire",
   "blank",
   "support",
 ]);

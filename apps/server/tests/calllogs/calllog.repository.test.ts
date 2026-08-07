@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   CallStatus,
+  CampaignStatus,
   TelephonyProvider,
 } from "../../prisma/generated/prisma/client.js";
 import {
@@ -185,4 +186,122 @@ test("duplicate call identifiers cannot cross organization boundaries", async ()
     saveCallLogInTransaction(tx as never, baseInput, true),
     /Call identifier is already in use/,
   );
+});
+
+test("call log ingestion completes the parent campaign after the final outbound call is terminal", async () => {
+  let campaignUpdate: any = null;
+  const tx = {
+    callLog: {
+      createMany: async () => ({ count: 1 }),
+      findUnique: async () => ({
+        callId: baseInput.callId,
+        organizationId: baseInput.organizationId,
+      }),
+    },
+    outboundCall: {
+      updateMany: async () => ({ count: 1 }),
+      findFirst: async () => ({ campaignId: "campaign_123" }),
+      count: async () => 0,
+    },
+    campaign: {
+      updateMany: async (args: any) => {
+        campaignUpdate = args;
+        return { count: 1 };
+      },
+    },
+  };
+
+  await saveCallLogInTransaction(
+    tx as never,
+    {
+      ...baseInput,
+      metadata: { ...baseInput.metadata, outboundId: "outbound_123" },
+    },
+    true,
+  );
+
+  assert.equal(campaignUpdate.where.organizationId, baseInput.organizationId);
+  assert.equal(campaignUpdate.where.campaignId, "campaign_123");
+  assert.deepEqual(campaignUpdate.where.status.in, [
+    CampaignStatus.SCHEDULED,
+    CampaignStatus.ACTIVE,
+    CampaignStatus.PROCESSED,
+  ]);
+  assert.equal(campaignUpdate.data.status, CampaignStatus.COMPLETED);
+  assert.ok(campaignUpdate.data.completedAt instanceof Date);
+});
+
+test("call log ingestion leaves a parent campaign active while sibling outbound calls are pending", async () => {
+  let campaignUpdates = 0;
+  const tx = {
+    callLog: {
+      createMany: async () => ({ count: 1 }),
+      findUnique: async () => ({
+        callId: baseInput.callId,
+        organizationId: baseInput.organizationId,
+      }),
+    },
+    outboundCall: {
+      updateMany: async () => ({ count: 1 }),
+      findFirst: async () => ({ campaignId: "campaign_123" }),
+      count: async () => 1,
+    },
+    campaign: {
+      updateMany: async () => {
+        campaignUpdates += 1;
+        return { count: 0 };
+      },
+    },
+  };
+
+  await saveCallLogInTransaction(
+    tx as never,
+    {
+      ...baseInput,
+      metadata: { ...baseInput.metadata, outboundId: "outbound_123" },
+    },
+    true,
+  );
+
+  assert.equal(campaignUpdates, 0);
+});
+
+test("call log ingestion does not inspect campaign completion for non-campaign outbound calls", async () => {
+  let pendingChecks = 0;
+  let campaignUpdates = 0;
+  const tx = {
+    callLog: {
+      createMany: async () => ({ count: 1 }),
+      findUnique: async () => ({
+        callId: baseInput.callId,
+        organizationId: baseInput.organizationId,
+      }),
+    },
+    outboundCall: {
+      updateMany: async () => ({ count: 1 }),
+      findFirst: async () => ({ campaignId: null }),
+      count: async () => {
+        pendingChecks += 1;
+        return 0;
+      },
+    },
+    campaign: {
+      updateMany: async () => {
+        campaignUpdates += 1;
+        return { count: 0 };
+      },
+    },
+  };
+
+  await saveCallLogInTransaction(
+    tx as never,
+    {
+      ...baseInput,
+      metadata: { ...baseInput.metadata, outboundId: "outbound_123" },
+    },
+    true,
+  );
+
+  assert.equal(pendingChecks, 0);
+  assert.equal(campaignUpdates, 0);
 });
