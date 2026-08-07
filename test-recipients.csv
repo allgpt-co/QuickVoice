@@ -1,0 +1,11 @@
+phone_number,customer_name,offer_type,city,account_balance,membership_level
++15551234567,John Smith,renewal,Austin,1500.00,Gold
++15559876543,Jane Doe,upgrade,Dallas,2500.00,Platinum
++15551112222,Bob Johnson,trial,Houston,0.00,Free
++15553334444,Alice Brown,renewal,Seattle,850.00,Silver
++15555556666,Charlie Wilson,upgrade,Portland,3200.00,Platinum
++15557778888,Diana Ross,trial,San Francisco,0.00,Free
++15558889999,Edward King,renewal,Los Angeles,1200.00,Gold
++15554443333,Fiona Green,upgrade,Phoenix,1800.00,Gold
++15552221111,George Hall,trial,Denver,0.00,Free
++15556667777,Hannah White,renewal,Boston,2200.00,Platinum

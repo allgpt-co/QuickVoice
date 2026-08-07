@@ -1,0 +1,7 @@
+phone_number,customer_name,offer_type,city,account_balance,membership_level
++15551111111,Valid User,renewal,Austin,100.00,Gold
+invalid_phone_number,Invalid Phone,test,Dallas,0.00,Free
++15552222222,,upgrade,Seattle,500.00,Silver
++15553333333,Missing Offer Type,,San Francisco,0.00,Free
++15554444444,Test User,renewal,,750.00,Bronze
++15555555555,Valid User 2,upgrade,Boston,1000.00,Gold

@@ -1,0 +1,21 @@
+phone_number,customer_name,offer_type,city,account_balance,membership_level
++15551111111,Test User 1,renewal,New York,100.00,Bronze
++15552222222,Test User 2,upgrade,Chicago,500.00,Silver
++15553333333,Test User 3,trial,Miami,0.00,Free
++15554444444,Test User 4,renewal,Seattle,1000.00,Gold
++15555555555,Test User 5,upgrade,Boston,2500.00,Platinum
++15556666666,Test User 6,trial,Atlanta,0.00,Free
++15557777777,Test User 7,renewal,Dallas,750.00,Silver
++15558888888,Test User 8,upgrade,Portland,1500.00,Gold
++15559999999,Test User 9,trial,Phoenix,0.00,Free
++15550000000,Test User 10,renewal,Houston,3000.00,Platinum
++15550101010,Test User 11,upgrade,Denver,800.00,Silver
++15550202020,Test User 12,trial,San Diego,0.00,Free
++15550303030,Test User 13,renewal,Austin,1200.00,Gold
++15550404040,Test User 14,upgrade,Nashville,2000.00,Platinum
++15550505050,Test User 15,trial,Detroit,0.00,Free
++15550606060,Test User 16,renewal,Minneapolis,600.00,Bronze
++15550707070,Test User 17,upgrade,Orlando,1700.00,Gold
++15550808080,Test User 18,trial,Charlotte,0.00,Free
++15550909090,Test User 19,renewal,San Antonio,950.00,Silver
++15550010101,Test User 20,upgrade,Philadelphia,2800.00,Platinum
