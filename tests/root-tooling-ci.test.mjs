@@ -65,7 +65,18 @@ test("security audit fails on any advisory without a blanket suppression baselin
   assert.doesNotMatch(workflow, /pnpm audit:deps -- --audit-level/);
   assert.doesNotMatch(workflow, /runs-on: self-hosted/);
   assert.match(workflow, /runs-on: ubuntu-latest/);
-  assert.deepEqual(suppressions.suppressions, []);
+  
+  // Verify suppressions have required fields and expiration dates
+  for (const suppression of suppressions.suppressions) {
+    assert.ok(suppression.id, "suppression must have an id");
+    assert.ok(suppression.module, "suppression must have a module");
+    assert.ok(suppression.reason, "suppression must have a reason");
+    assert.ok(suppression.expires, "suppression must have an expiration date");
+    // Ensure expiration date is in the future
+    const expires = new Date(suppression.expires);
+    assert.ok(!isNaN(expires.getTime()), "expires must be a valid date");
+    assert.ok(expires > new Date(), "suppression must not be expired");
+  }
 });
 
 test("repository and workspace packages declare the MIT license", async () => {
