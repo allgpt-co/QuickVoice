@@ -409,7 +409,7 @@ export function PersonalizationFieldBuilder({
       {value.length === 0 ? (
         <div className="rounded-lg border border-dashed bg-muted/20 p-8 text-center">
           <p className="text-sm text-muted-foreground">
-            No fields defined yet. Click "Add Field" to start.
+            No fields defined yet. Click &quot;Add Field&quot; to start.
           </p>
         </div>
       ) : (

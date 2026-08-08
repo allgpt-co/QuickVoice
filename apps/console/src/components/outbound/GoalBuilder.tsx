@@ -184,7 +184,7 @@ function GoalEditor({
                 onChange={(e) => onChange({ ...goal, customMetric: e.target.value })}
               />
               <p className="text-xs text-muted-foreground">
-                Define the criteria for this goal (e.g., "Recipient said 'yes' to appointment offer")
+                Define the criteria for this goal (e.g., Recipient said &quot;yes&quot; to appointment offer)
               </p>
             </div>
           )}

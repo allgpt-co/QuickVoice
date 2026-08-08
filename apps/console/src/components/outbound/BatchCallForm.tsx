@@ -33,7 +33,6 @@ import { useCreateBatchCampaign } from "@/src/hooks/queries/outbound";
 import {
   type CampaignPersonalizationPreflightRequest,
   type CampaignPersonalizationPreflightResponse,
-  type CampaignPersonalizationSchema,
   type CampaignRecipientValue,
   type CampaignBatchIntelligence,
   outboundApi,
@@ -52,19 +51,16 @@ import {
   PersonalizationFieldBuilder,
   type PersonalizationField,
   fieldsToSchema,
-  schemaToFields,
 } from "./PersonalizationFieldBuilder";
 import {
   ExperimentBuilder,
   type ExperimentData,
   experimentsToDefinition,
-  definitionToExperiments,
 } from "./ExperimentBuilder";
 import {
   GoalBuilder,
   type GoalData,
   goalsToDefinition,
-  definitionToGoals,
 } from "./GoalBuilder";
 import { CSVPreview } from "./CSVPreview";
 

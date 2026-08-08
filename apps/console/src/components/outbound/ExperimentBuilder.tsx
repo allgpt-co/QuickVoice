@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Trash2, ChevronDown, ChevronUp, GripVertical, AlertCircle, CheckCircle2, Info, Lightbulb } from "lucide-react";
+import { Plus, Trash2, ChevronDown, ChevronUp, AlertCircle, CheckCircle2, Info, Lightbulb } from "lucide-react";
 import { useState, useCallback } from "react";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -97,14 +97,12 @@ function VariantEditor({
   variant,
   onChange,
   onDelete,
-  index,
   totalVariants,
   showAllocation,
 }: {
   variant: ExperimentVariant;
   onChange: (variant: ExperimentVariant) => void;
   onDelete: () => void;
-  index: number;
   totalVariants: number;
   showAllocation: boolean;
 }) {
@@ -404,7 +402,6 @@ function ExperimentEditor({
                   variant={variant}
                   onChange={(v) => handleVariantChange(index, v)}
                   onDelete={() => handleDeleteVariant(index)}
-                  index={index}
                   totalVariants={experiment.variants.length}
                   showAllocation={experiment.variants.length > 1}
                 />
