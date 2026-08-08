@@ -1,4 +1,17 @@
 {
   "$schema": "./audit-suppressions.schema.json",
-  "suppressions": []
+  "suppressions": [
+    {
+      "id": "GHSA-5p4m-2wfm-xmqj",
+      "module": "js-yaml",
+      "reason": "js-yaml is a transitive dependency used by config parsers. The vulnerability affects !!omap resolution which is not used in our codebase. Override to 3.15.0/4.3.0 already applied.",
+      "expires": "2026-09-07"
+    },
+    {
+      "id": "GHSA-2v37-7h3g-55p8",
+      "module": "nanoid",
+      "reason": "nanoid is a transitive dependency. The vulnerability only affects custom generators with size zero, which is not a pattern used in our dependencies.",
+      "expires": "2026-09-07"
+    }
+  ]
 }
