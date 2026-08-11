@@ -37,7 +37,7 @@ ENV NODE_ENV=production
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends openssl \
+    && apt-get install -y --no-install-recommends curl openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1001 nodejs \
