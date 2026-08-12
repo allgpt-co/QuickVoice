@@ -35,6 +35,16 @@ jobs:
             exit 1
           fi
 
+          image_without_digest="${AI_IMAGE%@*}"
+          image_name="${image_without_digest%:*}"
+          tag="${image_without_digest##*:}"
+
+          curl --fail --show-error --silent \
+            --request PATCH "${COOLIFY_API_URL}/applications/${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}" \
+            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
+
           curl --fail --show-error --silent \
             --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}&force=false" \
             --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
@@ -44,4 +54,5 @@ jobs:
             echo "## QuickVoice AI hotfix deploy"
             echo "- Coolify AI app UUID: ${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}"
             echo "- Requested AI image: ${AI_IMAGE}"
+            echo "- Coolify image tag: ${tag}"
           } >> "${GITHUB_STEP_SUMMARY}"

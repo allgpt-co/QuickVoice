@@ -346,6 +346,8 @@ jobs:
             local resource_uuid="$2"
             local image_uri="$3"
             local image_tag="$4"
+            local image_name="${image_tag%:*}"
+            local tag="${image_tag##*:}"
 
             if [ -z "$resource_uuid" ]; then
               echo "[fail] Missing Coolify resource UUID for ${label}."
@@ -357,6 +359,12 @@ jobs:
             fi
 
             curl --fail --show-error --silent \
+              --request PATCH "${COOLIFY_API_URL}/applications/${resource_uuid}" \
+              --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              --header "Content-Type: application/json" \
+              --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
+
+            curl --fail --show-error --silent \
               --request POST "${COOLIFY_API_URL}/deploy?uuid=${resource_uuid}&force=false" \
               --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
               --header "Content-Type: application/json"
@@ -365,6 +373,7 @@ jobs:
               echo "- ${label} Coolify app UUID: ${resource_uuid}"
               echo "- ${label} image: ${image_uri}"
               echo "- ${label} image tag: ${image_tag}"
+              echo "- ${label} Coolify image tag: ${tag}"
             } >> "$GITHUB_STEP_SUMMARY"
           }
 

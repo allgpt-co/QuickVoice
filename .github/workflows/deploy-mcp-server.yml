@@ -204,6 +204,15 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          image_name="${MCP_IMAGE_TAG%:*}"
+          tag="${MCP_IMAGE_TAG##*:}"
+
+          curl --fail --show-error --silent \
+            --request PATCH "${COOLIFY_API_URL}/applications/${COOLIFY_RESOURCE_UUID}" \
+            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            --header "Content-Type: application/json" \
+            --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
+
           curl --fail --show-error --silent \
             --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_RESOURCE_UUID}&force=false" \
             --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
@@ -214,6 +223,7 @@ jobs:
             echo "- Coolify app UUID: ${COOLIFY_RESOURCE_UUID}"
             echo "- Image URI: ${MCP_IMAGE_URI}"
             echo "- Image tag: ${MCP_IMAGE_TAG}"
+            echo "- Coolify image tag: ${tag}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
   scan-image:
