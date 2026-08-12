@@ -1,4 +1,10 @@
 from dotenv import load_dotenv
+from pathlib import Path
+import os
+APP_DIR = Path(__file__).resolve().parent
+load_dotenv(APP_DIR / ".env")
+
+from telemetry import setup_langfuse
 
 from livekit import agents, rtc
 from livekit.agents import (
@@ -44,22 +50,23 @@ from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
+from utils.auth import is_explicit_dev_mode
 from utils.logger import logger
 from utils.logger import redact_sensitive
 from utils.runtime_readiness import validate_runtime_startup
 import asyncio
 import json
 from datetime import datetime, timezone
-import os
-from pathlib import Path
+# import os
+# from pathlib import Path
 import signal
 import subprocess
 import sys
 import threading
 import time
 
-APP_DIR = Path(__file__).resolve().parent
-load_dotenv(APP_DIR / ".env")
+# APP_DIR = Path(__file__).resolve().parent
+# load_dotenv(APP_DIR / ".env")
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -251,7 +258,8 @@ def attach_resolved_voice_config(config: dict) -> dict:
 
 def build_session_provider_kwargs(config: dict) -> dict:
     voice_config = config.get("voice_config")
-    if isinstance(voice_config, dict):
+
+    if isinstance(voice_config, dict) and not is_explicit_dev_mode():
         adapters = build_voice_provider_adapters(voice_config)
         logger.info("Voice provider adapters: {}", redact_sensitive(adapters.summary))
         return {"stt": adapters.stt, "llm": adapters.llm, "tts": adapters.tts}
@@ -528,10 +536,27 @@ class Assistant(Agent):
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
 
+# async def entrypoint(ctx: JobContext):
+#     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
+
+#     await ctx.connect()
+
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
+    trace_provider = setup_langfuse(
+        metadata={
+            "langfuse.session.id": ctx.room.name,
+        }
+    )
+
+    async def flush_trace():
+        trace_provider.force_flush()
+
+    ctx.add_shutdown_callback(flush_trace)
+
     await ctx.connect()
+
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
         voice_metadata = parse_voice_session_metadata(raw_metadata)
