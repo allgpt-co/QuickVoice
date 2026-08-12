@@ -24,7 +24,8 @@ permissions:
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
   MCP_ECR_REPOSITORY: ${{ vars.MCP_ECR_REPOSITORY }}
-  MCP_COOLIFY_WEBHOOK_URL: ${{ vars.MCP_COOLIFY_WEBHOOK_URL }}
+  COOLIFY_API_URL: ${{ vars.COOLIFY_API_URL }}
+  COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID: ${{ vars.COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID }}
 
 jobs:
   validate-config:
@@ -36,7 +37,8 @@ jobs:
           REQUIRED_AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
           REQUIRED_AWS_REGION: ${{ env.AWS_REGION }}
           REQUIRED_MCP_ECR_REPOSITORY: ${{ env.MCP_ECR_REPOSITORY }}
-          REQUIRED_MCP_COOLIFY_WEBHOOK_URL: ${{ env.MCP_COOLIFY_WEBHOOK_URL }}
+          REQUIRED_COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
+          REQUIRED_COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID }}
           REQUIRED_COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         shell: bash
         run: |
@@ -55,8 +57,12 @@ jobs:
             echo "[fail] Missing GitHub repository variable: MCP_ECR_REPOSITORY"
             missing=1
           fi
-          if [ -z "${REQUIRED_MCP_COOLIFY_WEBHOOK_URL}" ]; then
-            echo "[fail] Missing GitHub repository variable: MCP_COOLIFY_WEBHOOK_URL"
+          if [ -z "${REQUIRED_COOLIFY_API_URL}" ]; then
+            echo "[fail] Missing GitHub repository variable: COOLIFY_API_URL"
+            missing=1
+          fi
+          if [ -z "${REQUIRED_COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID}" ]; then
+            echo "[fail] Missing GitHub repository variable: COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID"
             missing=1
           fi
           if [ -z "${REQUIRED_COOLIFY_API_TOKEN}" ]; then
@@ -73,7 +79,8 @@ jobs:
               echo "- Repository variable: AWS_ROLE_ARN"
               echo "- Repository variable: AWS_REGION"
               echo "- Repository variable: MCP_ECR_REPOSITORY"
-              echo "- Repository variable: MCP_COOLIFY_WEBHOOK_URL"
+              echo "- Repository variable: COOLIFY_API_URL"
+              echo "- Repository variable: COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID"
               echo "- Repository secret: COOLIFY_API_TOKEN"
             } >> "${GITHUB_STEP_SUMMARY}"
             exit 1
@@ -84,6 +91,7 @@ jobs:
             echo "[ok] Required GitHub Actions configuration is present."
             echo "- AWS region: ${REQUIRED_AWS_REGION}"
             echo "- MCP ECR repository: ${REQUIRED_MCP_ECR_REPOSITORY}"
+            echo "- Coolify MCP app UUID: ${REQUIRED_COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
   security-audit:
@@ -186,9 +194,10 @@ jobs:
     environment:
       name: production-mcp-server
     steps:
-      - name: Call Coolify deploy webhook
+      - name: Trigger Coolify deployment
         env:
-          COOLIFY_WEBHOOK_URL: ${{ env.MCP_COOLIFY_WEBHOOK_URL }}
+          COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
+          COOLIFY_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID }}
           COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
           MCP_IMAGE_URI: ${{ needs.build-and-push.outputs.image_uri }}
           MCP_IMAGE_TAG: ${{ needs.build-and-push.outputs.image_tag }}
@@ -196,12 +205,13 @@ jobs:
         run: |
           set -euo pipefail
           curl --fail --show-error --silent \
-            --request POST "${COOLIFY_WEBHOOK_URL}" \
+            --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_RESOURCE_UUID}&force=false" \
             --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             --header "Content-Type: application/json"
 
           {
             echo "## Coolify deployment triggered"
+            echo "- Coolify app UUID: ${COOLIFY_RESOURCE_UUID}"
             echo "- Image URI: ${MCP_IMAGE_URI}"
             echo "- Image tag: ${MCP_IMAGE_TAG}"
           } >> "${GITHUB_STEP_SUMMARY}"

@@ -58,7 +58,7 @@ Pass if existing local env files are kept, not overwritten. Fail if the script p
 
 Validate local service data flow. `docker-compose.dev.yml` must expose Postgres `postgres:16` on `127.0.0.1:${POSTGRES_PORT:-5432}:5432`, Redis `redis:7` on `127.0.0.1:${REDIS_PORT:-6379}:6379`, and Mailpit `axllent/mailpit:v1.23` only under profile `mail` on `127.0.0.1:1025` and `127.0.0.1:8025`. Pass if both Postgres and Redis have healthchecks and named volumes. Fail if database or Redis ports bind to `0.0.0.0`.
 
-Validate backend deployment flow in `.github/workflows/backend-build.yml`. Pass if deploy waits for `quality-gate`, validates `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `ECS_CLUSTER`, and `ECS_SERVICE`, uses image digests, scans HIGH/CRITICAL vulnerabilities, signs images, updates only configured ECS containers, waits for `services-stable`, and writes rollback metadata. Fail if `:latest` tags, mutable image references, missing scans, or missing rollback metadata appear.
+Validate backend deployment flow in `.github/workflows/backend-build.yml`. Pass if deploy waits for `quality-gate`, validates `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `COOLIFY_API_URL`, `COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID`, `COOLIFY_QUICKVOICE_AI_RESOURCE_UUID`, and `COOLIFY_API_TOKEN`, uses image digests for rollback metadata, scans HIGH/CRITICAL vulnerabilities, signs images, and triggers only configured Coolify app UUIDs. Fail if missing scans, missing rollback metadata, or ECS deployment commands appear.
 
 ## Setup And Required Services
 
@@ -362,9 +362,9 @@ AI flags: set `AI_API_ENABLED=false` and run `scripts/dev-up.sh`. Pass if AI API
 
 Expired audit suppression: run `SECURITY_AUDIT_TODAY=2026-07-20 node scripts/security-audit.mjs --check-suppressions-only`. Pass if it exits non-zero and lists expired suppressions. Fail if expired suppressions are ignored.
 
-Backend deploy missing variables: run the GitHub workflow manually in a repo/environment without required variables. Pass if “Validate deployment configuration” fails and lists missing `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `ECS_CLUSTER`, and `ECS_SERVICE`. Fail if deploy proceeds.
+Backend deploy missing variables: run the GitHub workflow manually in a repo/environment without required variables. Pass if “Validate deployment configuration” fails and lists missing `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `COOLIFY_API_URL`, `COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID`, `COOLIFY_QUICKVOICE_AI_RESOURCE_UUID`, and `COOLIFY_API_TOKEN`. Fail if deploy proceeds.
 
-ECS container mismatch: configure `SERVER_ECS_CONTAINER_NAME` or `AI_ECS_CONTAINER_NAME` to a name absent from the current task definition. Pass if deploy fails before registering a bad task definition. Fail if it silently deploys the wrong container.
+Coolify resource mismatch: configure `COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID` or `COOLIFY_QUICKVOICE_AI_RESOURCE_UUID` to an invalid UUID in a non-production test repository/environment. Pass if the Coolify deploy request fails and the workflow stops. Fail if deploy silently succeeds against the wrong app.
 
 ## Test Data, Fixtures, Accounts, And Roles
 
@@ -400,7 +400,7 @@ Blocked if Docker daemon or Buildx is unavailable. Pass once Compose config rend
 
 Blocked if npm, pip, Docker Hub, PyTorch CPU wheel index, or other package registries are unreachable. Pass when dependency installs complete with frozen lockfile and requirements. Fail if lockfile or requirements are modified to work around network issues without approval.
 
-Blocked for production backend deploy without GitHub repo variables `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `ECS_CLUSTER`, and `ECS_SERVICE`. Pass when the workflow validates variables and deploys through protected `production-backend`. Fail if deploy bypasses the validation step.
+Blocked for production backend deploy without GitHub repo variables `AWS_ROLE_ARN`, `AWS_REGION`, `ECR_REPOSITORY`, `AI_ECR_REPOSITORY`, `COOLIFY_API_URL`, `COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID`, `COOLIFY_QUICKVOICE_AI_RESOURCE_UUID`, and `COOLIFY_API_TOKEN`. Pass when the workflow validates variables and deploys through protected `production-backend`. Fail if deploy bypasses the validation step.
 
 Blocked for LiveKit, Twilio, Telnyx, Stripe, Google OAuth, production email, S3, Smithery, Pinecone, and Gemini-style AI provider checks without credentials and product-owner approval. Pass only with sandbox credentials, documented expected behavior, and no live customer data. Fail if tests use production credentials in local env files.
 

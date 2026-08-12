@@ -190,7 +190,13 @@ test("deploy workflows are gated, immutable, scanned, signed, and environment pr
   assert.match(workflow, /GITHUB_STEP_SUMMARY/);
   assert.match(workflow, /GitHub repository variables/);
   assert.match(workflow, /github\.sha/);
-  assert.doesNotMatch(workflow, /:latest/);
+  assert.match(workflow, /COOLIFY_API_URL/);
+  assert.match(workflow, /COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID/);
+  assert.match(workflow, /COOLIFY_QUICKVOICE_AI_RESOURCE_UUID/);
+  assert.match(workflow, /deploy\?uuid=\$\{resource_uuid\}&force=false/);
+  assert.doesNotMatch(workflow, /aws ecs/);
+  assert.doesNotMatch(workflow, /ECS_CLUSTER/);
+  assert.doesNotMatch(workflow, /ECS_SERVICE/);
   assert.match(workflow, /docker build \\/);
   assert.match(workflow, /docker push/);
   assert.match(workflow, /aws ecr describe-images/);

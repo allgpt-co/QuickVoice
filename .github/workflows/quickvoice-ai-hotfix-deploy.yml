@@ -4,13 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       ai_image:
-        description: Immutable quickvoice-ai image URI to deploy
+        description: QuickVoice AI image expected to be configured on the Coolify app before triggering deploy
         required: true
         default: 557690613141.dkr.ecr.us-east-1.amazonaws.com/allgpt-co/quickvoice-ai:sha-65e2778ea121f67407906f05595a05b2ab49cdb7@sha256:1be327ebbd515217949cabfcce6e5bd8b010264e72b82c303242623528c111ad
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   deploy-ai:
@@ -19,91 +18,30 @@ jobs:
     environment:
       name: production-backend
     env:
-      AWS_REGION: ${{ vars.AWS_REGION }}
-      ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-      ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-      AI_ECS_CONTAINER_NAME: ${{ vars.AI_ECS_CONTAINER_NAME || 'quickvoice-ai' }}
+      COOLIFY_API_URL: ${{ vars.COOLIFY_API_URL }}
+      COOLIFY_QUICKVOICE_AI_RESOURCE_UUID: ${{ vars.COOLIFY_QUICKVOICE_AI_RESOURCE_UUID }}
       AI_IMAGE: ${{ inputs.ai_image }}
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy AI image to ECS
+      - name: Trigger Coolify AI deployment
         id: deploy
+        env:
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ -z "${AWS_REGION}" ] || [ -z "${ECS_CLUSTER}" ] || [ -z "${ECS_SERVICE}" ]; then
-            echo "[fail] Missing AWS_REGION, ECS_CLUSTER, or ECS_SERVICE repository variable."
+          if [ -z "${COOLIFY_API_URL}" ] || [ -z "${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}" ] || [ -z "${COOLIFY_API_TOKEN}" ]; then
+            echo "[fail] Missing COOLIFY_API_URL, COOLIFY_QUICKVOICE_AI_RESOURCE_UUID, or COOLIFY_API_TOKEN."
             exit 1
           fi
 
-          current_task_definition_arn="$(aws ecs describe-services \
-            --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}" \
-            --query 'services[0].taskDefinition' \
-            --output text)"
-
-          if [ -z "${current_task_definition_arn}" ] || [ "${current_task_definition_arn}" = "None" ]; then
-            echo "[fail] Could not resolve current task definition for ${ECS_SERVICE}."
-            exit 1
-          fi
-
-          aws ecs describe-task-definition \
-            --task-definition "${current_task_definition_arn}" \
-            --query taskDefinition \
-            > task-definition.json
-
-          if ! jq -e --arg container "${AI_ECS_CONTAINER_NAME}" \
-            '.containerDefinitions[] | select(.name == $container)' task-definition.json > /dev/null; then
-            echo "[fail] Container ${AI_ECS_CONTAINER_NAME} was not found in ${current_task_definition_arn}."
-            exit 1
-          fi
-
-          jq \
-            --arg container "${AI_ECS_CONTAINER_NAME}" \
-            --arg image "${AI_IMAGE}" '
-            .containerDefinitions |= map(
-              if .name == $container then .image = $image else . end
-            )
-            | del(
-              .taskDefinitionArn,
-              .revision,
-              .status,
-              .requiresAttributes,
-              .compatibilities,
-              .registeredAt,
-              .registeredBy
-            )
-          ' task-definition.json > new-task-definition.json
-
-          new_task_definition_arn="$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)"
-
-          aws ecs update-service \
-            --cluster "${ECS_CLUSTER}" \
-            --service "${ECS_SERVICE}" \
-            --task-definition "${new_task_definition_arn}" \
-            --force-new-deployment
-
-          aws ecs wait services-stable \
-            --cluster "${ECS_CLUSTER}" \
-            --services "${ECS_SERVICE}"
-
-          echo "task_definition=${new_task_definition_arn}" >> "${GITHUB_OUTPUT}"
+          curl --fail --show-error --silent \
+            --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}&force=false" \
+            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+            --header "Content-Type: application/json"
 
           {
             echo "## QuickVoice AI hotfix deploy"
-            echo "- Cluster: ${ECS_CLUSTER}"
-            echo "- Service: ${ECS_SERVICE}"
-            echo "- Container: ${AI_ECS_CONTAINER_NAME}"
-            echo "- Previous task definition: ${current_task_definition_arn}"
-            echo "- New task definition: ${new_task_definition_arn}"
-            echo "- AI image: ${AI_IMAGE}"
+            echo "- Coolify AI app UUID: ${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}"
+            echo "- Requested AI image: ${AI_IMAGE}"
           } >> "${GITHUB_STEP_SUMMARY}"
