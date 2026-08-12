@@ -47,10 +47,19 @@ after(async () => {
   });
 });
 
-test("runtime mode is unavailable without the internal API key", async () => {
+test("runtime mode is available without exposing sensitive configuration", async () => {
   const response = await requestJson(`${baseUrl}/api/v1/system/runtime-mode`);
 
-  assert.equal(response.status, 401);
+  assert.equal(response.status, 200);
+  const body = await response.json<{
+    success: boolean;
+    data: Record<string, unknown>;
+  }>();
+  assert.deepEqual(Object.keys(body.data).sort(), [
+    "billingMode",
+    "runtimeProtocolVersion",
+    "service",
+  ]);
 });
 
 test("runtime mode reports the server billing mode to an internal caller", async () => {
