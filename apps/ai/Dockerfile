@@ -65,7 +65,8 @@ COPY . .
 
 # Change ownership of all app files to the non-privileged user
 # This ensures the application can read/write files as needed
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /var/lib/quickvoice/billing-usage \
+  && chown -R appuser:appuser /app /var/lib/quickvoice
 
 # Switch to the non-privileged user for all subsequent operations
 # This improves security by not running as root
