@@ -135,10 +135,6 @@ jobs:
             --query 'Invalidation.Id' \
             --output text)"
 
-          aws cloudfront wait invalidation-completed \
-            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
-            --id "${invalidation_id}"
-
           echo "invalidation_id=${invalidation_id}" >> "${GITHUB_OUTPUT}"
 
       - name: Write deployment summary
