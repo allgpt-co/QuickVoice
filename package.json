@@ -24,7 +24,8 @@
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
     "audit:deps": "node scripts/security-audit.mjs",
     "claims:audit": "node scripts/audit-public-claims.mjs",
-    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
+    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source",
+    "release:check": "node scripts/check-release-metadata.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
