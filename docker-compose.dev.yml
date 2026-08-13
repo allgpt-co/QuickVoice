@@ -46,6 +46,24 @@ services:
       - "127.0.0.1:1025:1025"
       - "127.0.0.1:8025:8025"
 
+  # ── Langfuse observability (self-hosted) ──────────────────────────────────
+  langfuse:
+    image: langfuse/langfuse:2
+    container_name: quickvoice-dev-langfuse
+    restart: unless-stopped
+    profiles: ["langfuse"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://quickvoice:quickvoice@postgres:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3100
+      NEXTAUTH_SECRET: dev-langfuse-secret-change-me
+      SALT: dev-langfuse-salt-change-me
+      TELEMETRY_ENABLED: "false"
+    ports:
+      - "127.0.0.1:${LANGFUSE_PORT:-3100}:3000"
+
 volumes:
   quickvoice_postgres_data:
   quickvoice_redis_data:
