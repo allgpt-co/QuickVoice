@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from utils.langfuse_setup import setup_langfuse
 
 from livekit import agents, rtc
 from livekit.agents import (
@@ -527,9 +528,19 @@ class Assistant(Agent):
         )
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
-
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
+
+    trace_provider = setup_langfuse(
+        metadata={
+            "langfuse.session.id": ctx.room.name,
+        }
+    )
+
+    async def flush_trace():
+        trace_provider.force_flush()
+
+    ctx.add_shutdown_callback(flush_trace)
 
     await ctx.connect()
     raw_metadata = ctx.job.metadata or ""
