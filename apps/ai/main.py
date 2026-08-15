@@ -61,6 +61,20 @@ import time
 APP_DIR = Path(__file__).resolve().parent
 load_dotenv(APP_DIR / ".env")
 
+try:
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from langfuse.opentelemetry import LangfuseSpanProcessor
+
+    provider = TracerProvider()
+    provider.add_span_processor(LangfuseSpanProcessor())
+    trace.set_tracer_provider(provider)
+    logger.info("Langfuse OpenTelemetry integration enabled.")
+except ImportError:
+    logger.info("Langfuse or OpenTelemetry not installed, skipping telemetry.")
+except Exception as e:
+    logger.warning(f"Failed to initialize Langfuse telemetry: {e}")
+
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
     "You are a friendly, reliable voice assistant that answers questions, "
