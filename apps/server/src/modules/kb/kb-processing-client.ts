@@ -15,6 +15,10 @@ type KbProcessingResponse = {
   documents?: unknown;
 };
 
+type KbProcessingStatusHandler = (
+  status: KbProcessingResponse,
+) => void | Promise<void>;
+
 const TERMINAL_JOB_STATUSES = new Set([
   "succeeded",
   "partial_failed",
@@ -32,6 +36,7 @@ export async function processKbDocuments({
   fetchImpl = fetch,
   pollIntervalMs = DEFAULT_POLL_INTERVAL_MS,
   timeoutMs = DEFAULT_TIMEOUT_MS,
+  onStatus,
 }: {
   aiApiUrl: string;
   internalApiKey: string;
@@ -39,6 +44,7 @@ export async function processKbDocuments({
   fetchImpl?: FetchLike;
   pollIntervalMs?: number;
   timeoutMs?: number;
+  onStatus?: KbProcessingStatusHandler;
 }) {
   const baseUrl = trimTrailingSlashes(aiApiUrl);
   const body = await fetchJson(fetchImpl, `${baseUrl}/kb/process`, {
@@ -49,6 +55,7 @@ export async function processKbDocuments({
     },
     body: JSON.stringify(payload),
   });
+  await onStatus?.(body);
 
   if (Array.isArray(body.processed) || isTerminalJob(body)) {
     return body;
@@ -66,7 +73,32 @@ export async function processKbDocuments({
     pollIntervalMs,
     timeoutMs,
     jobId: getString(body.jobId) ?? statusUrl,
+    onStatus,
   });
+}
+
+export async function deleteKbDocumentVectors({
+  aiApiUrl,
+  internalApiKey,
+  agentId,
+  kbId,
+  fetchImpl = fetch,
+}: {
+  aiApiUrl: string;
+  internalApiKey: string;
+  agentId: string;
+  kbId: string;
+  fetchImpl?: FetchLike;
+}) {
+  const baseUrl = trimTrailingSlashes(aiApiUrl);
+  await fetchJson(
+    fetchImpl,
+    `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}`,
+    {
+      method: "DELETE",
+      headers: { "x-internal-key": internalApiKey },
+    },
+  );
 }
 
 async function pollKbJob({
@@ -76,6 +108,7 @@ async function pollKbJob({
   pollIntervalMs,
   timeoutMs,
   jobId,
+  onStatus,
 }: {
   fetchImpl: FetchLike;
   statusUrl: string;
@@ -83,6 +116,7 @@ async function pollKbJob({
   pollIntervalMs: number;
   timeoutMs: number;
   jobId: string;
+  onStatus?: KbProcessingStatusHandler;
 }) {
   const deadline = Date.now() + timeoutMs;
 
@@ -91,6 +125,7 @@ async function pollKbJob({
       method: "GET",
       headers: { "x-internal-key": internalApiKey },
     });
+    await onStatus?.(body);
 
     if (isTerminalJob(body)) {
       return body;
@@ -111,7 +146,7 @@ async function fetchJson(fetchImpl: FetchLike, url: string, init: RequestInit) {
   const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(`KB processing failed (${response.status}): ${text}`);
+    throw new Error(`KB processing failed with HTTP ${response.status}`);
   }
 
   if (!text) {
@@ -122,7 +157,7 @@ async function fetchJson(fetchImpl: FetchLike, url: string, init: RequestInit) {
     return JSON.parse(text) as KbProcessingResponse;
   } catch {
     throw new Error(
-      `KB processing returned non-JSON response (${response.status}): ${text}`,
+      `KB processing returned a non-JSON response with HTTP ${response.status}`,
     );
   }
 }

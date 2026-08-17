@@ -3,28 +3,28 @@
 
 :root {
   color-scheme: dark;
-  --qv-blue: #6ea8ff;
-  --qv-blue-ink: #9dc2ff;
-  --qv-bg: #070a12;
-  --qv-bg-muted: #0d1320;
-  --qv-ink: #f8fafc;
-  --qv-muted: #a8b3c5;
-  --qv-border: rgba(148, 163, 184, 0.22);
-  --qv-card: #0b1020;
-  --qv-card-soft: #111827;
-  --qv-code: #050816;
-  --qv-shadow: rgba(0, 0, 0, 0.36);
+  --qv-blue: #8b5cf6;
+  --qv-blue-ink: #a855f7;
+  --qv-bg: #000000;
+  --qv-bg-muted: #1a1a1a;
+  --qv-ink: #ffffff;
+  --qv-muted: #94a3b8;
+  --qv-border: #262626;
+  --qv-card: #0a0a0a;
+  --qv-card-soft: #1a1a1a;
+  --qv-code: #0b0b0f;
+  --qv-shadow: rgba(0, 0, 0, 0.45);
 }
 
 :root[data-theme="light"] {
   color-scheme: light;
-  --qv-blue: #002fa7;
-  --qv-blue-ink: #001f70;
+  --qv-blue: #2563eb;
+  --qv-blue-ink: #1d4ed8;
   --qv-bg: #ffffff;
-  --qv-bg-muted: #f7f7f8;
+  --qv-bg-muted: #f1f5f9;
   --qv-ink: #0f172a;
-  --qv-muted: #5f6b7a;
-  --qv-border: #dfe3ea;
+  --qv-muted: #64748b;
+  --qv-border: #e2e8f0;
   --qv-card: #ffffff;
   --qv-card-soft: #f8fafc;
   --qv-code: #0b1220;
@@ -56,8 +56,9 @@ body {
   background-image:
     linear-gradient(to right, color-mix(in srgb, var(--qv-border) 64%, transparent) 1px, transparent 1px),
     linear-gradient(to bottom, color-mix(in srgb, var(--qv-border) 64%, transparent) 1px, transparent 1px),
-    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--qv-blue) 13%, transparent), transparent 34rem);
-  background-size: 40px 40px, 40px 40px, auto;
+    radial-gradient(circle at 18% 0%, color-mix(in srgb, var(--qv-blue) 18%, transparent), transparent 34rem),
+    radial-gradient(circle at 82% 18%, color-mix(in srgb, var(--qv-blue-ink) 10%, transparent), transparent 28rem);
+  background-size: 40px 40px, 40px 40px, auto, auto;
 }
 
 .prose-qv {
@@ -121,6 +122,19 @@ body {
 }
 .ring-\[var\(--qv-border\)\] {
   --tw-ring-color: var(--qv-border) !important;
+}
+
+.text-\[\#002FA7\] {
+  color: var(--qv-blue) !important;
+}
+.bg-\[\#002FA7\] {
+  background-color: var(--qv-blue) !important;
+}
+.border-\[\#002FA7\] {
+  border-color: var(--qv-blue) !important;
+}
+.hover\:bg-\[\#001f70\]:hover {
+  background-color: var(--qv-blue-ink) !important;
 }
 
 :root[data-theme="dark"] .hover\:bg-white:hover {
@@ -197,6 +211,7 @@ body {
   --scalar-color-3: color-mix(in srgb, var(--qv-muted) 78%, transparent) !important;
   --scalar-border-color: var(--qv-border) !important;
   --scalar-accent: var(--qv-blue) !important;
+  --scalar-color-accent: var(--qv-blue) !important;
   --scalar-sidebar-background-1: var(--qv-card) !important;
   --scalar-sidebar-background-2: var(--qv-card-soft) !important;
   --scalar-sidebar-color-1: var(--qv-ink) !important;

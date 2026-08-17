@@ -2,11 +2,26 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Loader2, PlugZap, Search, ShieldCheck, Wrench } from "lucide-react";
+import {
+  AlertCircle,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  Globe2,
+  KeyRound,
+  Loader2,
+  PlugZap,
+  Search,
+  ShieldCheck,
+  Tag,
+  Wrench,
+} from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
+import { validateCustomMcpUrl } from "@/src/components/tools/custom-mcp-url";
 import { useConnectMcp, useMcpCatalog, useOpenMcpSetup } from "@/src/hooks/queries/mcp";
 import type { McpCatalogItem } from "@/src/lib/api/types";
 
@@ -95,11 +110,13 @@ function AppLogo({ item }: { item: McpCatalogItem }) {
 
 function MarketplaceAction({
   item,
+  isDisabled,
   isPending,
   onConnect,
   onSetup,
 }: {
   item: McpCatalogItem;
+  isDisabled: boolean;
   isPending: boolean;
   onConnect: () => void;
   onSetup: (setupUrl: string, mcpConnectionId: string) => void;
@@ -148,7 +165,7 @@ function MarketplaceAction({
 
   if (item.connectionStatus === "ERROR" || item.connectionStatus === "DISCONNECTED") {
     return (
-      <Button variant="outline" size="sm" disabled={isPending} onClick={onConnect}>
+      <Button variant="outline" size="sm" disabled={isDisabled} onClick={onConnect}>
         {isPending ? <Loader2 className="size-4 animate-spin" /> : <AlertCircle className="size-4" />}
         Retry setup
       </Button>
@@ -156,7 +173,7 @@ function MarketplaceAction({
   }
 
   return (
-    <Button size="sm" disabled={isPending} onClick={onConnect}>
+    <Button size="sm" disabled={isDisabled} onClick={onConnect}>
       {isPending ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
       Connect
     </Button>
@@ -168,6 +185,11 @@ export function McpMarketplace() {
   const openMcpSetup = useOpenMcpSetup();
   const [customUrl, setCustomUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [customSetup, setCustomSetup] = useState<{
+    setupUrl: string;
+    mcpConnectionId: string;
+    displayName: string;
+  } | null>(null);
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -184,6 +206,9 @@ export function McpMarketplace() {
   const { data, isError, isLoading } = useMcpCatalog(catalogParams);
   const catalog = data?.items.length ? data.items : isError ? FALLBACK_CATALOG : [];
   const pagination = data?.pagination;
+  const customUrlValidation = validateCustomMcpUrl(customUrl);
+  const isCustomConnectPending =
+    connectMcp.isPending && Boolean(connectMcp.variables?.customUrl);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
@@ -196,46 +221,173 @@ export function McpMarketplace() {
 
   return (
     <div className="space-y-4">
-      <div className="border bg-card p-4">
+      <div className="border bg-card">
         <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-sm font-semibold">Custom MCP server</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Connect an HTTPS remote MCP server that is not in the verified catalog.
+          <div className="p-4">
+            <p className="text-sm font-semibold">Connect a custom MCP server</p>
+            <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+              Use this option when a server provider has given you a remote MCP endpoint that is not in the
+              verified catalog.
             </p>
           </div>
-          <Badge variant="outline">Unverified</Badge>
+          <Badge variant="outline" className="m-4 shrink-0">Unverified</Badge>
         </div>
-        <div className="mt-4 grid gap-3 md:grid-cols-[1fr_220px_auto]">
+
+        <div className="border-y bg-muted/30 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Before you connect
+          </p>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <div className="flex gap-3">
+              <Globe2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Remote endpoint</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Use the full public HTTPS endpoint, usually ending in <code>/mcp</code>. Legacy <code>/sse</code>{" "}
+                  endpoints are accepted.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Publicly reachable</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  The server must be reachable from the internet. Localhost and private network URLs are not
+                  supported.
+                </p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <KeyRound aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <div>
+                <p className="text-sm font-medium">Authorization comes next</p>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                  Do not put tokens or passwords in the URL. If the server needs sign-in or setup, you will
+                  complete it after connecting.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <form
+          className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_280px_auto] lg:items-start"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (!customUrlValidation.isValid) return;
+            connectMcp.mutate(
+              {
+                customUrl: customUrl.trim(),
+                displayName: displayName.trim() || undefined,
+              },
+              {
+                onSuccess: (connection) => {
+                  setCustomUrl("");
+                  setDisplayName("");
+                  setCustomSetup(
+                    connection.setupUrl
+                      ? {
+                          setupUrl: connection.setupUrl,
+                          mcpConnectionId: connection.mcpConnectionId,
+                          displayName: connection.displayName,
+                        }
+                      : null
+                  );
+                },
+              }
+            );
+          }}
+        >
           <div className="space-y-1.5">
-            <Label htmlFor="custom-mcp-url">MCP URL</Label>
+            <Label htmlFor="custom-mcp-url">
+              MCP endpoint URL <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="custom-mcp-url"
+              type="url"
+              inputMode="url"
               value={customUrl}
               placeholder="https://example.com/mcp"
-              onChange={(event) => setCustomUrl(event.target.value)}
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={customUrl ? !customUrlValidation.isValid : undefined}
+              aria-describedby="custom-mcp-url-help custom-mcp-url-status"
+              onChange={(event) => {
+                setCustomUrl(event.target.value);
+                setCustomSetup(null);
+              }}
             />
+            <p id="custom-mcp-url-help" className="text-xs leading-5 text-muted-foreground">
+              Paste the exact endpoint URL, including its <code>/mcp</code> or <code>/sse</code> path.
+            </p>
+            <p
+              id="custom-mcp-url-status"
+              role={customUrlValidation.tone === "error" ? "alert" : undefined}
+              className={
+                customUrlValidation.tone === "error"
+                  ? "text-xs leading-5 text-destructive"
+                  : customUrlValidation.tone === "success"
+                    ? "text-xs leading-5 text-emerald-700 dark:text-emerald-300"
+                    : "text-xs leading-5 text-muted-foreground"
+              }
+            >
+              {customUrlValidation.message}
+            </p>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="custom-mcp-name">Name</Label>
+            <Label htmlFor="custom-mcp-name">
+              Display name <span className="font-normal text-muted-foreground">(optional)</span>
+            </Label>
             <Input
               id="custom-mcp-name"
               value={displayName}
-              placeholder="Internal tools"
+              maxLength={100}
+              placeholder="Cloudflare demo"
               onChange={(event) => setDisplayName(event.target.value)}
             />
+            <p className="text-xs leading-5 text-muted-foreground">
+              This label is shown only inside QuickVoice so your team can recognize the connection. If left
+              blank, the server hostname is used.
+            </p>
           </div>
           <Button
-            className="self-end"
-            disabled={!customUrl || connectMcp.isPending}
-            onClick={() =>
-              connectMcp.mutate({ customUrl, displayName: displayName || undefined })
-            }
+            type="submit"
+            className="lg:mt-6"
+            disabled={!customUrlValidation.isValid || connectMcp.isPending}
           >
-            {connectMcp.isPending ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
+            {isCustomConnectPending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <PlugZap className="size-4" />
+            )}
             Connect
           </Button>
-        </div>
+        </form>
+
+        {customSetup && (
+          <div role="status" className="mx-4 mb-4 flex flex-col gap-3 border border-blue-500/30 bg-blue-500/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-3">
+              <Tag aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-blue-700 dark:text-blue-300" />
+              <div>
+                <p className="text-sm font-medium">{customSetup.displayName} needs additional setup</p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Continue in a new tab to authorize or configure the server, then return to QuickVoice.
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              onClick={() =>
+                openMcpSetup(customSetup.setupUrl, customSetup.mcpConnectionId)
+              }
+            >
+              <ExternalLink className="size-4" />
+              Continue setup
+            </Button>
+          </div>
+        )}
       </div>
 
       {isError && (
@@ -320,7 +472,11 @@ export function McpMarketplace() {
               </div>
               <MarketplaceAction
                 item={item}
-                isPending={connectMcp.isPending}
+                isDisabled={connectMcp.isPending}
+                isPending={
+                  connectMcp.isPending &&
+                  connectMcp.variables?.catalogSlug === item.slug
+                }
                 onConnect={() => connectMcp.mutate({ catalogSlug: item.slug })}
                 onSetup={openMcpSetup}
               />

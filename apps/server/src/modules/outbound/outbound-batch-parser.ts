@@ -22,12 +22,14 @@ const xmlParser = new XMLParser({
 
 export type ParsedBatchRecipient = {
   rowNumber: number;
+  recipientKey: string;
   phoneNumber: string;
   language: string | null;
   voiceId: string | null;
   firstMessage: string | null;
   systemPrompt: string | null;
   dynamicVariables: Record<string, string>;
+  values: Record<string, string>;
 };
 
 export type InvalidBatchRecipient = {
@@ -83,14 +85,19 @@ export function parseBatchRecipients(
       return;
     }
 
+    const trimmedPhone = phoneNumber.trim();
+    const recipientKey = resolveRecipientKey(raw, trimmedPhone, rowNumber);
+
     validRows.push({
       rowNumber,
-      phoneNumber: phoneNumber.trim(),
+      recipientKey,
+      phoneNumber: trimmedPhone,
       language: nullableTrim(raw.language),
       voiceId: nullableTrim(raw.voice_id),
       firstMessage: nullableTrim(raw.first_message),
       systemPrompt: nullableTrim(raw.prompt) ?? nullableTrim(raw.system_prompt),
       dynamicVariables: buildDynamicVariables(raw),
+      values: buildRecipientValues(raw),
     });
   });
 
@@ -301,6 +308,20 @@ function isEmptyRecord(record: Record<string, string>) {
   return Object.values(record).every((value) => value.length === 0);
 }
 
+function resolveRecipientKey(
+  raw: Record<string, string>,
+  phoneNumber: string,
+  rowNumber: number,
+) {
+  const explicitKey =
+    raw.recipient_key ??
+    raw.recipientId ??
+    raw.recipientid ??
+    raw.recipient;
+  if (explicitKey?.trim()) return explicitKey.trim();
+  return phoneNumber || `row_${rowNumber}`;
+}
+
 function nullableTrim(value: string | undefined) {
   const trimmed = value?.trim() ?? "";
   return trimmed.length > 0 ? trimmed : null;
@@ -313,4 +334,13 @@ function buildDynamicVariables(raw: Record<string, string>) {
     variables[key] = value;
   }
   return variables;
+}
+
+function buildRecipientValues(raw: Record<string, string>) {
+  const values: Record<string, string> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (SPECIAL_COLUMNS.has(key) || key.length === 0) continue;
+    values[key] = value;
+  }
+  return values;
 }

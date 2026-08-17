@@ -101,9 +101,9 @@ pnpm --filter web lint
 
 - Lint enforcement: pass if no `eslint-plugin-only-warn` or `onlyWarn` plugin is present and `turbo/no-undeclared-env-vars` is an error.
 - Secrets: pass if scoped files contain no `.env` values, access tokens, API keys, private URLs, or live vendor credentials.
-- Dependency security: run `pnpm audit:deps -- --audit-level high` in a full setup; pass if it exits 0 or only reports approved, unexpired suppressions. Block if pnpm registry access is unavailable.
+- Dependency security: run `pnpm audit:deps -- --audit-level low` in a full setup; pass if it exits 0 or only reports approved, unexpired suppressions. Block if pnpm registry access is unavailable.
 - Compliance claims: pass if scoped package docs make no SOC 2, HIPAA, PCI, GDPR, retention, or audit-log claims. Fail if config docs add unsupported compliance promises.
-- License: pass if shared package manifests keep `AGPL-3.0-only`, matching the root project license.
+- License: pass if shared package manifests keep `MIT`, matching the root project license.
 
 ## Edge Cases And Failure Modes
 

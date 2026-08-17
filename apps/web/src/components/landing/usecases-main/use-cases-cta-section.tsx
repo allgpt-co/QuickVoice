@@ -46,8 +46,8 @@ export function UseCasesCtaSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto"
             >
-              Join thousands of businesses already using QuickVoice to automate
-              operations, enhance customer experiences, and drive efficiency.
+              Map a bounded call workflow, inspect the implementation, and test
+              the handoffs and provider requirements before production use.
             </motion.p>
 
             <motion.div

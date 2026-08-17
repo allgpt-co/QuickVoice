@@ -1,6 +1,9 @@
-livekit-agents[silero,turn-detector]~=1.2
+livekit-agents[silero]~=1.6
 livekit-api>=1.1,<2
 livekit-plugins-aws~=1.6
+# LiveKit 1.6 imports the legacy TranscribeStreamingClient alias. SDK 0.8
+# deprecates that alias, which breaks our warning-as-error test gate.
+aws-sdk-transcribe-streaming~=0.7.0
 livekit-plugins-deepgram~=1.6
 livekit-plugins-elevenlabs~=1.6
 livekit-plugins-sarvam~=1.6

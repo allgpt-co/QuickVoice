@@ -85,6 +85,100 @@ enum AgentWidgetSessionStatus {
   FAILED
 }
 
+enum BillingTransactionType {
+  PROMOTIONAL_GRANT
+  TOP_UP
+  CALL_RESERVATION
+  CALL_SETTLEMENT
+  RESERVATION_RELEASE
+  NUMBER_PURCHASE
+  NUMBER_RENEWAL
+  REFUND
+  DISPUTE
+  ADJUSTMENT
+  DEBT_INCURRED
+  DEBT_REPAYMENT
+}
+
+enum BillingReservationPurpose {
+  CALL_USAGE
+  PHONE_NUMBER_PURCHASE
+  PHONE_NUMBER_RENEWAL
+}
+
+enum BillingReservationStatus {
+  ACTIVE
+  SETTLED
+  RELEASED
+}
+
+enum TopUpStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+  DISPUTED
+}
+
+enum TopUpKind {
+  MANUAL
+  AUTOMATIC
+}
+
+enum TopUpTaxMode {
+  DISABLED
+  STRIPE_TAX
+}
+
+enum CallBillingSessionStatus {
+  AUTHORIZED
+  ACTIVE
+  ENDED
+  RECONCILING
+  SETTLED
+  DEBT
+}
+
+enum CallBillingMode {
+  WALLET
+  LEGACY_SUBSCRIPTION
+}
+
+enum StripeWebhookEventStatus {
+  RECEIVED
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
+enum TelephonyCostReportStatus {
+  PENDING
+  PROCESSING
+  COMPLETE
+  FAILED
+  EXPIRED
+}
+
+enum PhoneNumberBillingStatus {
+  ACTIVE
+  SUSPENDED
+  RELEASE_PENDING
+  RELEASING
+  RELEASED
+}
+
+enum PhoneNumberPurchaseStatus {
+  PENDING
+  RESERVED
+  PROVIDER_PENDING
+  PROVIDER_PURCHASED
+  NUMBER_PERSISTED
+  SUCCEEDED
+  FAILED
+  REQUIRES_ATTENTION
+}
+
 // ─── Better Auth Core Tables ─────────────────────────────────────────────────
 
 model User {
@@ -116,6 +210,7 @@ model User {
   mcpConnections   McpConnection[]
   secrets          Secret[]
   auditLogs        AuditLog[]
+  promotionalGrant PromotionalGrant?
 
   @@unique([email])
 }
@@ -202,32 +297,48 @@ model Apikey {
 // ─── Organization & Team ─────────────────────────────────────────────────────
 
 model Organization {
-  id                String             @id
-  name              String
-  slug              String
-  logo              String?
-  createdAt         DateTime
-  metadata          String?
-  stripeCustomerId  String?
-  members           Member[]
-  invitations       Invitation[]
-  accessKey         String?
-  plan              PlanId             @default(free)
-  agents            Agent[]
-  agentWidgets      AgentWidget[]
-  knowledgeSources  KnowledgeSource[]
-  phoneNumbers      PhoneNumber[]
-  tools             Tool[]
-  mcpConnections    McpConnection[]
-  mcpCatalogItems   McpServerCatalogItem[]
-  agentMcpConnections AgentMcpConnection[]
-  mcpToolExecutionLogs McpToolExecutionLog[]
-  secrets           Secret[]
-  callLogs          CallLog[]
-  outboundCalls     OutboundCall[]
-  campaigns         Campaign[]
-  organizationroles OrganizationRole[]
-  auditLogs         AuditLog[]
+  id                             String                          @id
+  name                           String
+  slug                           String
+  logo                           String?
+  createdAt                      DateTime
+  metadata                       String?
+  stripeCustomerId               String?
+  members                        Member[]
+  invitations                    Invitation[]
+  accessKey                      String?
+  plan                           PlanId                          @default(free)
+  agents                         Agent[]
+  agentWidgets                   AgentWidget[]
+  knowledgeSources               KnowledgeSource[]
+  phoneNumbers                   PhoneNumber[]
+  tools                          Tool[]
+  mcpConnections                 McpConnection[]
+  mcpCatalogItems                McpServerCatalogItem[]
+  agentMcpConnections            AgentMcpConnection[]
+  mcpToolExecutionLogs           McpToolExecutionLog[]
+  secrets                        Secret[]
+  callLogs                       CallLog[]
+  outboundCalls                  OutboundCall[]
+  campaigns                      Campaign[]
+  campaignPersonalizationSchemas CampaignPersonalizationSchema[]
+  campaignRecipientSnapshots     CampaignRecipientSnapshot[]
+  campaignExperiments            CampaignExperiment[]
+  campaignExperimentAssignments  CampaignExperimentAssignment[]
+  campaignGoals                  CampaignGoal[]
+  campaignConversionEvents       CampaignConversionEvent[]
+  campaignAttributionResults     CampaignAttributionResult[]
+  campaignReportSnapshots        CampaignReportSnapshot[]
+  organizationroles              OrganizationRole[]
+  auditLogs                      AuditLog[]
+  billingAccount                 BillingAccount?
+  billingTransactions            BillingTransaction[]
+  billingReservations            BillingReservation[]
+  promotionalGrant               PromotionalGrant?
+  topUps                         TopUp[]
+  callBillingSessions            CallBillingSession[]
+  stripeWebhookEvents            StripeWebhookEvent[]
+  phoneNumberPurchases           PhoneNumberPurchase[]
 
   @@unique([slug])
   @@index([stripeCustomerId])
@@ -304,27 +415,345 @@ model Subscription {
   @@index([status])
 }
 
+// ─── Prepaid Wallet Billing ─────────────────────────────────────────────────
+
+model BillingAccount {
+  billingAccountId            String               @id @default(uuid())
+  organizationId              String               @unique
+  organization                Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  currency                    String               @default("USD")
+  paidBalanceMicros           BigInt               @default(0)
+  promotionalBalanceMicros    BigInt               @default(0)
+  reservedPaidMicros          BigInt               @default(0)
+  reservedPromotionalMicros   BigInt               @default(0)
+  debtMicros                  BigInt               @default(0)
+  autoRechargeEnabled         Boolean              @default(false)
+  autoRechargeThresholdMicros BigInt               @default(5000000)
+  autoRechargeAmountMicros    BigInt               @default(20000000)
+  stripePaymentMethodId       String?
+  paymentMethodRequestVersion Int                  @default(0)
+  paymentMethodAppliedVersion Int                  @default(0)
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  transactions                BillingTransaction[]
+  reservations                BillingReservation[]
+  promotionalGrant            PromotionalGrant?
+  topUps                      TopUp[]
+  callBillingSessions         CallBillingSession[]
+
+  @@index([autoRechargeEnabled])
+}
+
+// This is an append-only ledger. Application code never updates or deletes
+// rows; mutable reservation/account projections are derived alongside inserts
+// in the same serializable database transaction.
+model BillingTransaction {
+  billingTransactionId           String                 @id @default(uuid())
+  billingAccountId               String
+  billingAccount                 BillingAccount         @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId                 String
+  organization                   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  type                           BillingTransactionType
+  idempotencyKey                 String
+  grossAmountMicros              BigInt                 @default(0)
+  paidBalanceDeltaMicros         BigInt                 @default(0)
+  promotionalBalanceDeltaMicros  BigInt                 @default(0)
+  reservedPaidDeltaMicros        BigInt                 @default(0)
+  reservedPromotionalDeltaMicros BigInt                 @default(0)
+  debtDeltaMicros                BigInt                 @default(0)
+  paidBalanceAfterMicros         BigInt
+  promotionalBalanceAfterMicros  BigInt
+  reservedPaidAfterMicros        BigInt
+  reservedPromotionalAfterMicros BigInt
+  debtAfterMicros                BigInt
+  referenceType                  String?
+  referenceId                    String?
+  description                    String?
+  metadata                       Json?
+  createdAt                      DateTime               @default(now())
+  promotionalGrant               PromotionalGrant?
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@index([organizationId, createdAt])
+  @@index([referenceType, referenceId])
+  @@index([type, createdAt])
+}
+
+model BillingReservation {
+  billingReservationId    String                    @id @default(uuid())
+  billingAccountId        String
+  billingAccount          BillingAccount            @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId          String
+  organization            Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  purpose                 BillingReservationPurpose
+  status                  BillingReservationStatus  @default(ACTIVE)
+  idempotencyKey          String
+  amountMicros            BigInt
+  paidAmountMicros        BigInt                    @default(0)
+  promotionalAmountMicros BigInt                    @default(0)
+  settledAmountMicros     BigInt                    @default(0)
+  debtIncurredMicros      BigInt                    @default(0)
+  referenceType           String?
+  referenceId             String?
+  expiresAt               DateTime?
+  settledAt               DateTime?
+  releasedAt              DateTime?
+  createdAt               DateTime                  @default(now())
+  updatedAt               DateTime                  @updatedAt
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@index([organizationId, status])
+  @@index([referenceType, referenceId])
+  @@index([expiresAt])
+}
+
+model PromotionalGrant {
+  promotionalGrantId   String              @id @default(uuid())
+  userId               String?             @unique
+  user                 User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  // HMAC of normalized verified email. It survives user deletion so deleting
+  // and recreating an account cannot claim the signup promotion repeatedly.
+  identityHash         String              @unique
+  organizationId       String?             @unique
+  organization         Organization?       @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  billingAccountId     String?             @unique
+  billingAccount       BillingAccount?     @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: SetNull)
+  amountMicros         BigInt
+  billingTransactionId String?             @unique
+  billingTransaction   BillingTransaction? @relation(fields: [billingTransactionId], references: [billingTransactionId], onDelete: SetNull)
+  reason               String              @default("signup")
+  grantedAt            DateTime            @default(now())
+
+  @@index([organizationId])
+  @@index([billingAccountId])
+}
+
+model TopUp {
+  topUpId                        String         @id @default(uuid())
+  billingAccountId               String
+  billingAccount                 BillingAccount @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId                 String
+  organization                   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUserId              String?
+  idempotencyKey                 String
+  kind                           TopUpKind      @default(MANUAL)
+  automaticContextKey            String?
+  processingToken                String?
+  processingExpiresAt            DateTime?
+  reconciliationNextAt           DateTime?
+  reconciliationAttempts         Int            @default(0)
+  stripeCheckoutSessionId        String?        @unique
+  stripePaymentIntentId          String?        @unique
+  stripeTaxCalculationId         String?        @unique
+  taxMode                        TopUpTaxMode   @default(DISABLED)
+  stripeTaxCode                  String?
+  amountMicros                   BigInt
+  taxMicros                      BigInt         @default(0)
+  creditedMicros                 BigInt         @default(0)
+  refundedMicros                 BigInt         @default(0)
+  disputedMicros                 BigInt         @default(0)
+  refundTargetProviderCents      BigInt         @default(0)
+  disputeTargetProviderCents     BigInt         @default(0)
+  stripeDisputeId                String?
+  disputeState                   String         @default("NONE")
+  financialProcessingToken       String?
+  financialProcessingExpiresAt   DateTime?
+  financialReconciliationPending Boolean        @default(false)
+  status                         TopUpStatus    @default(PENDING)
+  failureCode                    String?
+  failureMessage                 String?
+  createdAt                      DateTime       @default(now())
+  updatedAt                      DateTime       @updatedAt
+  completedAt                    DateTime?
+
+  @@unique([billingAccountId, idempotencyKey])
+  @@unique([billingAccountId, automaticContextKey])
+  @@index([organizationId, createdAt])
+  @@index([status, createdAt])
+  @@index([kind, status, reconciliationNextAt])
+  @@index([financialReconciliationPending, financialProcessingExpiresAt])
+}
+
+model CallBillingSession {
+  callBillingSessionId     String                   @id @default(uuid())
+  callId                   String                   @unique
+  billingAccountId         String
+  billingAccount           BillingAccount           @relation(fields: [billingAccountId], references: [billingAccountId], onDelete: Cascade)
+  organizationId           String
+  organization             Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  status                   CallBillingSessionStatus @default(AUTHORIZED)
+  billingMode              CallBillingMode          @default(WALLET)
+  admissionGeneration      Int                      @default(1)
+  rateCatalogVersion       String
+  rateSnapshot             Json
+  lastModelUsage           Json?
+  activeReservationId      String?
+  sessionId                String?                  @unique
+  roomName                 String?
+  agentId                  String?
+  userId                   String?
+  lastUsageSequence        Int                      @default(0)
+  processingUsageSequence  Int?
+  processingUsageStartedAt DateTime?
+  connectedSeconds         Int                      @default(0)
+  connectedMilliseconds    BigInt                   @default(0)
+  aiCostMicros             BigInt                   @default(0)
+  platformCostMicros       BigInt                   @default(0)
+  telephonyEstimatedMicros BigInt                   @default(0)
+  telephonyFinalMicros     BigInt?
+  unreportedTailMicros     BigInt                   @default(0)
+  totalSettledMicros       BigInt                   @default(0)
+  debtIncurredMicros       BigInt                   @default(0)
+  telephonyProvider        TelephonyProvider?
+  providerCallId           String?
+  providerBillableSeconds  Int?
+  reconciliationAttempts   Int                      @default(0)
+  reconciliationClaimedAt  DateTime?
+  reconciliationNextAt     DateTime?
+  reconciliationLastError  String?
+  startedAt                DateTime?
+  endedAt                  DateTime?
+  reconciledAt             DateTime?
+  createdAt                DateTime                 @default(now())
+  updatedAt                DateTime                 @updatedAt
+
+  @@unique([telephonyProvider, providerCallId])
+  @@index([organizationId, status])
+  @@index([roomName])
+  @@index([agentId])
+  @@index([userId])
+  @@index([status, endedAt])
+  @@index([status, reconciliationNextAt])
+}
+
+// Telnyx SIP trunk charges are published asynchronously as CDR CSV reports.
+// Persisting report requests makes provider-final reconciliation restart-safe
+// and prevents duplicate paid report generation after a worker crash.
+model TelephonyCostReport {
+  telephonyCostReportId String                    @id @default(uuid())
+  provider              TelephonyProvider
+  periodStart           DateTime
+  periodEnd             DateTime
+  externalReportId      String?                   @unique
+  status                TelephonyCostReportStatus @default(PENDING)
+  reportUrl             String?
+  attempts              Int                       @default(0)
+  nextAttemptAt         DateTime?
+  processingToken       String?
+  processingExpiresAt   DateTime?
+  lastError             String?
+  processedAt           DateTime?
+  createdAt             DateTime                  @default(now())
+  updatedAt             DateTime                  @updatedAt
+
+  @@unique([provider, periodStart, periodEnd])
+  @@index([provider, status, nextAttemptAt])
+  @@index([processingExpiresAt])
+}
+
+model StripeWebhookEvent {
+  stripeEventId  String                   @id
+  organizationId String?
+  organization   Organization?            @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  type           String
+  status         StripeWebhookEventStatus @default(RECEIVED)
+  livemode       Boolean
+  payload        Json
+  attempts       Int                      @default(0)
+  lastError      String?
+  receivedAt     DateTime                 @default(now())
+  processedAt    DateTime?
+  updatedAt      DateTime                 @updatedAt
+
+  @@index([organizationId, receivedAt])
+  @@index([status, receivedAt])
+  @@index([type, receivedAt])
+}
+
 // ─── App Resource Models ─────────────────────────────────────────────────────
 
 model PhoneNumber {
-  phId           String            @id @default(uuid())
-  number         String            @unique
-  organizationId String
-  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId         String?
-  user           User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
-  agentId        String?
-  agent          Agent?            @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  sid            String
-  friendlyName   String
-  provider       TelephonyProvider @default(TWILIO)
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  phId                      String                   @id @default(uuid())
+  number                    String                   @unique
+  organizationId            String
+  organization              Organization             @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId                    String?
+  user                      User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  agentId                   String?
+  agent                     Agent?                   @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  sid                       String
+  friendlyName              String
+  provider                  TelephonyProvider        @default(TWILIO)
+  billingStatus             PhoneNumberBillingStatus @default(ACTIVE)
+  providerMonthlyCostMicros BigInt?
+  rentalPriceMicros         BigInt?
+  nextBillingAt             DateTime?
+  lastBilledAt              DateTime?
+  billingSuspendedAt        DateTime?
+  scheduledReleaseAt        DateTime?
+  billingOperationToken     String?
+  billingOperationExpiresAt DateTime?
+  billingReleaseClaimedAt   DateTime?
+  billingFailureCount       Int                      @default(0)
+  lastBillingAttemptAt      DateTime?
+  billingNoticeSentAt       DateTime?
+  billingSuspendedAgentId   String?
+  billingCountryIso         String?
+  billingNumberType         String?
+  billingRateCatalogVersion String?
+  createdAt                 DateTime                 @default(now())
+  updatedAt                 DateTime                 @updatedAt
 
   @@index([organizationId])
   @@index([agentId])
   @@index([userId])
   @@index([sid])
+  @@index([billingStatus, nextBillingAt])
+  @@index([billingStatus, scheduledReleaseAt])
+  @@index([billingStatus, billingOperationExpiresAt])
+}
+
+// Durable quote consumption and provider-purchase state. A completed row is
+// intentionally retained after the PhoneNumber is released so the signed quote
+// nonce can never purchase or debit a second time.
+model PhoneNumberPurchase {
+  phoneNumberPurchaseId     String                    @id @default(uuid())
+  quoteNonce                String                    @unique
+  organizationId            String
+  organization              Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  requestedByUserId         String?
+  phoneNumber               String
+  provider                  TelephonyProvider
+  providerMonthlyCostMicros BigInt
+  rentalPriceMicros         BigInt
+  billingCountryIso         String
+  billingNumberType         String
+  rateCatalogVersion        String
+  quoteExpiresAt            DateTime
+  status                    PhoneNumberPurchaseStatus @default(PENDING)
+  billingReservationId      String?                   @unique
+  providerResourceId        String?
+  providerOrderId           String?
+  providerFriendlyName      String?
+  persistedPhoneNumberId    String                    @unique
+  providerAttemptedAt       DateTime?
+  providerPurchasedAt       DateTime?
+  phonePersistedAt          DateTime?
+  completedAt               DateTime?
+  failedAt                  DateTime?
+  processingToken           String?
+  processingExpiresAt       DateTime?
+  attemptCount              Int                       @default(0)
+  lastErrorCode             String?
+  lastErrorMessage          String?
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+
+  @@index([organizationId, createdAt])
+  @@index([phoneNumber, status])
+  @@index([status, processingExpiresAt])
+  @@index([providerResourceId])
+  @@index([providerOrderId])
 }
 
 model Agent {
@@ -337,28 +766,25 @@ model Agent {
   name                  String
   templateId            String?
   isActive              Boolean             @default(true)
-  // TODO : Change in backend and frontend
+  // Tracks whether an AgentConfiguration has been created.
   isConfigured          Boolean             @default(false)
   createdAt             DateTime            @default(now())
   updatedAt             DateTime            @updatedAt
   configuration         AgentConfiguration?
   widgets               AgentWidget[]
-  // TODO : Change in API, removed callLog[]
+  // Denormalized counters keep agent-list reads inexpensive.
   callLogsCount         Int                 @default(0)
   callLogs              CallLog[]
   phoneNumbers          PhoneNumber[]
   knowledgeSources      KnowledgeSource[]
   outboundCalls         OutboundCall[]
   campaigns             Campaign[]
-  // TODO : Change in API also fetch in agent config page, removed knowledgeSources[]
   knowledgeSourcesCount Int                 @default(0)
-  // TODO:Change in API, removed phoneNumbers[]
   phoneNumbersCount     Int                 @default(0)
-  // TODO: Fetch tools in agent config, removed tools[]
   toolsCount            Int                 @default(0)
 
-  tools Tool[] @relation("AgentTools")
-  mcpConnections AgentMcpConnection[]
+  tools                Tool[]                @relation("AgentTools")
+  mcpConnections       AgentMcpConnection[]
   mcpToolExecutionLogs McpToolExecutionLog[]
 
   @@unique([organizationId, agentSlug])
@@ -375,7 +801,7 @@ model AgentConfiguration {
   temperature                       Float    @default(0.7)
   data_needed                       Json?    @default("[]")
   data_evaluation                   Json?    @default("[]")
-  // TODO: Add voiceId to the enum
+  // Provider-defined catalog identifier; not constrained to one provider enum.
   voiceId                           String
   concurrent_calls_limit            Int
   conversation_retention_days       Int      @default(30)
@@ -396,9 +822,9 @@ model AgentConfiguration {
   voice_speed                       Float
   voice_stability                   Float
   zero_pii_retention                Boolean  @default(false)
-  llmModel                          String   @default("gpt-4o-mini")
-  sttModel                          String   @default("nova-3")
-  ttsModel                          String   @default("aura-2")
+  llmModel                          String   @default("bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0")
+  sttModel                          String   @default("deepgram/nova-3")
+  ttsModel                          String   @default("deepgram/aura-2")
   agent_language                    String   @default("en")
   initiation_webhook                Json?
   post_call_webhook                 Json?
@@ -409,21 +835,21 @@ model AgentConfiguration {
 }
 
 model AgentWidget {
-  widgetId        String       @id
+  widgetId        String               @id
   organizationId  String
-  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization    Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   agentId         String
-  agent           Agent        @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
+  agent           Agent                @relation(fields: [agentId], references: [agentId], onDelete: Cascade)
   name            String
-  enabled         Boolean      @default(false)
-  allowedOrigins  Json         @default("[]")
-  theme           Json         @default("{}")
-  consentRequired Boolean      @default(true)
+  enabled         Boolean              @default(false)
+  allowedOrigins  Json                 @default("[]")
+  theme           Json                 @default("{}")
+  consentRequired Boolean              @default(true)
   consentText     String?
   createdByUserId String?
   updatedByUserId String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
   sessions        AgentWidgetSession[]
 
   @@index([organizationId])
@@ -472,6 +898,9 @@ model KnowledgeSource {
   storagePath      String
   sourceType       sourceType
   status           kbStatus
+  errorCode        String?
+  errorMessage     String?
+  errorRetryable   Boolean?
   metadata         Json?
   lastIndexedAt    DateTime?
   uploadedAt       DateTime     @default(now())
@@ -507,11 +936,10 @@ model CallLog {
   dataEvaluation     Json?            @default("[]")
   // Future-use fields
   callCostCents      Int?
-  // TODO Remove include transcripts from api call
   transcripts        CallTranscript[]
-  // TODO Change in api for delete and fetch credits
+  // Soft-deleted rows retain only the minimum operational tombstone.
   deleted            Boolean          @default(false)
-  outbound           OutboundCall?    
+  outbound           OutboundCall?
 
   @@index([organizationId])
   @@index([organizationId, startTime])
@@ -535,28 +963,31 @@ model CallTranscript {
 }
 
 model OutboundCall {
-  outboundId     String       @id @default(uuid())
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  agentId        String?
-  agent          Agent?       @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  userId         String?
-  user           User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
-  campaignId     String?
-  campaign       Campaign?    @relation(fields: [campaignId], references: [campaignId], onDelete: SetNull)
-  scheduledAt    DateTime?
-  callLogId      String?        @unique
-  callLog        CallLog?       @relation(fields: [callLogId], references: [callId], onDelete: SetNull)
+  outboundId            String                         @id @default(uuid())
+  organizationId        String
+  organization          Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  agentId               String?
+  agent                 Agent?                         @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  userId                String?
+  user                  User?                          @relation(fields: [userId], references: [id], onDelete: SetNull)
+  campaignId            String?
+  campaign              Campaign?                      @relation(fields: [campaignId], references: [campaignId], onDelete: SetNull)
+  scheduledAt           DateTime?
+  callLogId             String?                        @unique
+  callLog               CallLog?                       @relation(fields: [callLogId], references: [callId], onDelete: SetNull)
   // Call Data
-  phoneNumber  String
-  fromNumber   String
-  firstMessage String?
-  systemPrompt String?
-  optionalData Json?            @default("{}")
-  mode         OutboundCallMode
-  status       CallStatus
-  createdAt    DateTime         @default(now())
-  updatedAt    DateTime         @updatedAt
+  phoneNumber           String
+  fromNumber            String
+  firstMessage          String?
+  systemPrompt          String?
+  optionalData          Json?                          @default("{}")
+  recipientSnapshots    CampaignRecipientSnapshot[]
+  experimentAssignments CampaignExperimentAssignment[]
+  attributionResults    CampaignAttributionResult[]
+  mode                  OutboundCallMode
+  status                CallStatus
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
 
   @@index([organizationId])
   @@index([agentId])
@@ -566,34 +997,243 @@ model OutboundCall {
 }
 
 model Campaign {
-  campaignId     String         @id @default(uuid())
-  organizationId String
-  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  name           String
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  agentId        String?
-  agent          Agent?         @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
-  fromNumber     String
-  scheduledAt    DateTime?
-  sourceFileKey  String?
-  sourceFileName String?
-  totalRecipients Int          @default(0)
-  validRecipients Int          @default(0)
-  invalidRecipients Int        @default(0)
-  ringingTimeoutSeconds Int    @default(60)
-  timezone       String        @default("UTC")
-  status         CampaignStatus
-  startedAt      DateTime?
-  completedAt    DateTime?
-  userId         String?
-  user           User?          @relation(fields: [userId], references: [id], onDelete: SetNull)
-  outboundCalls  OutboundCall[]
+  campaignId             String                          @id @default(uuid())
+  organizationId         String
+  organization           Organization                    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name                   String
+  createdAt              DateTime                        @default(now())
+  updatedAt              DateTime                        @updatedAt
+  agentId                String?
+  agent                  Agent?                          @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
+  fromNumber             String
+  scheduledAt            DateTime?
+  sourceFileKey          String?
+  sourceFileName         String?
+  totalRecipients        Int                             @default(0)
+  validRecipients        Int                             @default(0)
+  invalidRecipients      Int                             @default(0)
+  ringingTimeoutSeconds  Int                             @default(60)
+  timezone               String                          @default("UTC")
+  status                 CampaignStatus
+  startedAt              DateTime?
+  completedAt            DateTime?
+  userId                 String?
+  user                   User?                           @relation(fields: [userId], references: [id], onDelete: SetNull)
+  outboundCalls          OutboundCall[]
+  personalizationSchemas CampaignPersonalizationSchema[]
+  recipientSnapshots     CampaignRecipientSnapshot[]
+  experiments            CampaignExperiment[]
+  experimentAssignments  CampaignExperimentAssignment[]
+  goals                  CampaignGoal[]
+  conversionEvents       CampaignConversionEvent[]
+  attributionResults     CampaignAttributionResult[]
+  reportSnapshots        CampaignReportSnapshot[]
 
   @@index([organizationId])
   @@index([agentId])
   @@index([userId])
   @@index([status, scheduledAt])
+}
+
+model CampaignPersonalizationSchema {
+  schemaId       String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId     String
+  campaign       Campaign     @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  version        Int
+  fields         Json
+  templates      Json         @default("{}")
+  attribution    Json         @default("{}")
+  createdAt      DateTime     @default(now())
+
+  @@unique([campaignId, version])
+  @@index([organizationId])
+  @@index([campaignId])
+}
+
+model CampaignRecipientSnapshot {
+  snapshotId           String        @id @default(uuid())
+  organizationId       String
+  organization         Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId           String
+  campaign             Campaign      @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  outboundId           String?
+  outboundCall         OutboundCall? @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  schemaVersion        Int
+  rowNumber            Int?
+  recipientKey         String
+  values               Json
+  findings             Json          @default("[]")
+  renderedConfigDigest String
+  renderedPreview      Json          @default("{}")
+  skipped              Boolean       @default(false)
+  skipReason           String?
+  createdAt            DateTime      @default(now())
+
+  @@unique([campaignId, recipientKey, schemaVersion])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([outboundId])
+}
+
+model CampaignExperiment {
+  experimentId       String                         @id @default(uuid())
+  organizationId     String
+  organization       Organization                   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                       @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  version            Int
+  definition         Json
+  status             String                         @default("DRAFT")
+  startedAt          DateTime?
+  stoppedAt          DateTime?
+  createdAt          DateTime                       @default(now())
+  variants           CampaignExperimentVariant[]
+  assignments        CampaignExperimentAssignment[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([campaignId, version])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([status])
+}
+
+model CampaignExperimentVariant {
+  variantId          String                         @id @default(uuid())
+  experimentId       String
+  experiment         CampaignExperiment             @relation(fields: [experimentId], references: [experimentId], onDelete: Cascade)
+  key                String
+  name               String
+  allocationBps      Int
+  configVersion      Json
+  isControl          Boolean                        @default(false)
+  createdAt          DateTime                       @default(now())
+  assignments        CampaignExperimentAssignment[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([experimentId, key])
+  @@index([experimentId])
+}
+
+model CampaignExperimentAssignment {
+  assignmentId    String                    @id @default(uuid())
+  organizationId  String
+  organization    Organization              @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId      String
+  campaign        Campaign                  @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  experimentId    String
+  experiment      CampaignExperiment        @relation(fields: [experimentId], references: [experimentId], onDelete: Cascade)
+  variantId       String
+  variant         CampaignExperimentVariant @relation(fields: [variantId], references: [variantId], onDelete: Cascade)
+  outboundId      String?
+  outboundCall    OutboundCall?             @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  unitKey         String
+  assignmentHash  String
+  excluded        Boolean                   @default(false)
+  exclusionReason String?
+  assignedAt      DateTime                  @default(now())
+
+  @@unique([experimentId, unitKey])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([variantId])
+  @@index([outboundId])
+}
+
+model CampaignGoal {
+  goalId             String                      @id @default(uuid())
+  organizationId     String
+  organization       Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                    @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  key                String
+  version            Int
+  definition         Json
+  attributionPolicy  Json
+  createdAt          DateTime                    @default(now())
+  conversions        CampaignConversionEvent[]
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([campaignId, key, version])
+  @@index([organizationId])
+  @@index([campaignId])
+}
+
+model CampaignConversionEvent {
+  conversionId       String                      @id @default(uuid())
+  organizationId     String
+  organization       Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign                    @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  goalId             String?
+  goal               CampaignGoal?               @relation(fields: [goalId], references: [goalId], onDelete: SetNull)
+  goalKey            String
+  dedupeKey          String
+  externalCustomerId String
+  occurredAt         DateTime
+  ingestedAt         DateTime                    @default(now())
+  valueCents         Int?
+  currency           String?
+  source             String
+  evidence           Json
+  revision           Int                         @default(1)
+  rejected           Boolean                     @default(false)
+  rejectionReason    String?
+  attributionResults CampaignAttributionResult[]
+
+  @@unique([organizationId, dedupeKey])
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([goalKey])
+  @@index([externalCustomerId])
+}
+
+model CampaignAttributionResult {
+  attributionId        String                     @id @default(uuid())
+  organizationId       String
+  organization         Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId           String
+  campaign             Campaign                   @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  conversionId         String
+  conversion           CampaignConversionEvent    @relation(fields: [conversionId], references: [conversionId], onDelete: Cascade)
+  goalId               String?
+  goal                 CampaignGoal?              @relation(fields: [goalId], references: [goalId], onDelete: SetNull)
+  experimentId         String?
+  experiment           CampaignExperiment?        @relation(fields: [experimentId], references: [experimentId], onDelete: SetNull)
+  variantId            String?
+  variant              CampaignExperimentVariant? @relation(fields: [variantId], references: [variantId], onDelete: SetNull)
+  outboundId           String?
+  outboundCall         OutboundCall?              @relation(fields: [outboundId], references: [outboundId], onDelete: SetNull)
+  policyVersion        Int
+  model                String
+  attributedValueCents Int?
+  evidence             Json
+  computedAt           DateTime                   @default(now())
+  revision             Int                        @default(1)
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([conversionId])
+  @@index([experimentId])
+  @@index([variantId])
+}
+
+model CampaignReportSnapshot {
+  reportId           String       @id @default(uuid())
+  organizationId     String
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaignId         String
+  campaign           Campaign     @relation(fields: [campaignId], references: [campaignId], onDelete: Cascade)
+  scope              String
+  definitionsVersion Int
+  dataFreshnessAt    DateTime
+  report             Json
+  createdAt          DateTime     @default(now())
+
+  @@index([organizationId])
+  @@index([campaignId])
+  @@index([scope])
 }
 
 // ─── Config & Secrets ────────────────────────────────────────────────────────
@@ -625,24 +1265,24 @@ model Tool {
 }
 
 model McpServerCatalogItem {
-  mcpServerId     String           @id @default(uuid())
-  organizationId  String?
-  organization    Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  slug            String
-  name            String
-  description     String
-  source          McpCatalogSource @default(SMITHERY)
-  provider        String           @default("smithery")
-  mcpUrl          String
+  mcpServerId       String           @id @default(uuid())
+  organizationId    String?
+  organization      Organization?    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  slug              String
+  name              String
+  description       String
+  source            McpCatalogSource @default(SMITHERY)
+  provider          String           @default("smithery")
+  mcpUrl            String
   smitheryServerKey String?
-  authType        String           @default("oauth")
-  categories      Json?            @default("[]")
-  verified        Boolean          @default(false)
-  toolCount       Int              @default(0)
-  metadata        Json?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  connections     McpConnection[]
+  authType          String           @default("oauth")
+  categories        Json?            @default("[]")
+  verified          Boolean          @default(false)
+  toolCount         Int              @default(0)
+  metadata          Json?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  connections       McpConnection[]
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -651,27 +1291,27 @@ model McpServerCatalogItem {
 }
 
 model McpConnection {
-  mcpConnectionId       String              @id @default(uuid())
-  organizationId        String
-  organization          Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  userId                String?
-  user                  User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  catalogItemId         String?
-  catalogItem           McpServerCatalogItem? @relation(fields: [catalogItemId], references: [mcpServerId], onDelete: SetNull)
-  displayName           String
-  provider              String              @default("smithery")
-  mcpUrl                String
-  smitheryNamespace     String
-  smitheryConnectionId  String
-  status                McpConnectionStatus @default(PENDING)
-  setupUrl              String?
-  tools                 Json?               @default("[]")
-  metadata              Json?
-  lastSyncedAt          DateTime?
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
-  agents                AgentMcpConnection[]
-  executionLogs         McpToolExecutionLog[]
+  mcpConnectionId      String                @id @default(uuid())
+  organizationId       String
+  organization         Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userId               String?
+  user                 User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  catalogItemId        String?
+  catalogItem          McpServerCatalogItem? @relation(fields: [catalogItemId], references: [mcpServerId], onDelete: SetNull)
+  displayName          String
+  provider             String                @default("smithery")
+  mcpUrl               String
+  smitheryNamespace    String
+  smitheryConnectionId String
+  status               McpConnectionStatus   @default(PENDING)
+  setupUrl             String?
+  tools                Json?                 @default("[]")
+  metadata             Json?
+  lastSyncedAt         DateTime?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  agents               AgentMcpConnection[]
+  executionLogs        McpToolExecutionLog[]
 
   @@unique([organizationId, smitheryConnectionId])
   @@index([organizationId])

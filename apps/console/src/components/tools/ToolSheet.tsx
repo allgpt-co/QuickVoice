@@ -49,7 +49,10 @@ const toolParam = z.object({
   name: z.string().trim().min(1, "Name is required"),
   type: z.enum(["String", "Number", "Boolean"]),
   valueType: z.enum(["LLM Prompt", "Static Value", "Dynamic Variable"]),
-  value: z.union([z.string(), z.number(), z.boolean(), z.null()]).optional().nullable(),
+  value: z
+    .union([z.string(), z.number(), z.boolean(), z.null()])
+    .optional()
+    .nullable(),
   description: z.string(),
   allowedValues: z.array(z.string()),
   required: z.boolean(),
@@ -65,7 +68,13 @@ const formSchema = z.object({
   api_path_params: z.array(toolParam),
   api_body: z.array(toolParam),
   dynamic_variables: z.array(kvPair),
-  response_timeout_secs: z.coerce.number().int().min(1).max(300).optional().or(z.literal("")),
+  response_timeout_secs: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .max(300)
+    .optional()
+    .or(z.literal("")),
   disable_interruptions: z.boolean(),
   force_pre_tool_speech: z.boolean(),
 });
@@ -104,11 +113,17 @@ function toFormValues(tool: Tool): FormInput {
     description: tool.description,
     api_url: tool.api_url,
     api_method: tool.api_method as FormValues["api_method"],
-    api_headers: tool.api_headers ?? [],
+    api_headers: (tool.api_headers ?? []).map((pair) => ({
+      ...pair,
+      value: pair.value ?? "",
+    })),
     api_query_params: (tool.api_query_params ?? []) as ToolParam[],
     api_path_params: (tool.api_path_params ?? []) as ToolParam[],
     api_body: (tool.api_body ?? []) as ToolParam[],
-    dynamic_variables: tool.dynamic_variables ?? [],
+    dynamic_variables: (tool.dynamic_variables ?? []).map((pair) => ({
+      ...pair,
+      value: pair.value ?? "",
+    })),
     response_timeout_secs: tool.response_timeout_secs ?? "",
     disable_interruptions: tool.disable_interruptions,
     force_pre_tool_speech: tool.force_pre_tool_speech,
@@ -143,13 +158,19 @@ function LinkedAgentsSection({
     <div className="space-y-3 px-6 py-5">
       <Separator />
       <div className="pt-1">
-        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Linked Agents</p>
-        <p className="mt-0.5 text-xs text-muted-foreground/70">Agents that can invoke this tool mid-conversation.</p>
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Linked Agents
+        </p>
+        <p className="mt-0.5 text-xs text-muted-foreground/70">
+          Agents that can invoke this tool mid-conversation.
+        </p>
       </div>
       {isLoading ? (
         <p className="text-xs text-muted-foreground">Loading agents…</p>
       ) : !allAgents.length ? (
-        <p className="text-xs text-muted-foreground">No agents in this organization yet.</p>
+        <p className="text-xs text-muted-foreground">
+          No agents in this organization yet.
+        </p>
       ) : (
         <div className="space-y-1.5">
           {allAgents.map((agent) => {
@@ -177,9 +198,13 @@ function LinkedAgentsSection({
                   {pending ? (
                     <Loader2 className="size-3 animate-spin" />
                   ) : linked ? (
-                    <><Check className="size-3" /> Linked</>
+                    <>
+                      <Check className="size-3" /> Linked
+                    </>
                   ) : (
-                    <><Plus className="size-3" /> Link</>
+                    <>
+                      <Plus className="size-3" /> Link
+                    </>
                   )}
                 </Button>
               </div>
@@ -229,11 +254,15 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
   const urlValue = useWatch({ control, name: "api_url" });
 
   useEffect(() => {
-    const matches = [...(urlValue ?? "").matchAll(/\{(\w+)\}/g)].map((m) => m[1]);
+    const matches = [...(urlValue ?? "").matchAll(/\{(\w+)\}/g)].map(
+      (m) => m[1],
+    );
     if (!matches.length) return;
     const current = getValues("api_path_params") ?? [];
     const currentMap = new Map(current.map((p) => [p.name, p]));
-    const next = matches.map((name) => currentMap.get(name) ?? { ...EMPTY_PARAM, name });
+    const next = matches.map(
+      (name) => currentMap.get(name) ?? { ...EMPTY_PARAM, name },
+    );
     const unchanged =
       next.length === current.length &&
       next.every((p, i) => p.name === current[i]?.name);
@@ -253,10 +282,17 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
     const dynamicVariables = cleanKvPairs(values.dynamic_variables as KVPair[]);
     const payload = {
       ...values,
-      response_timeout_secs: values.response_timeout_secs === "" ? null : Number(values.response_timeout_secs),
+      response_timeout_secs:
+        values.response_timeout_secs === ""
+          ? null
+          : Number(values.response_timeout_secs),
       api_headers: apiHeaders.length ? apiHeaders : null,
-      api_query_params: values.api_query_params.length ? values.api_query_params : null,
-      api_path_params: values.api_path_params.length ? values.api_path_params : null,
+      api_query_params: values.api_query_params.length
+        ? values.api_query_params
+        : null,
+      api_path_params: values.api_path_params.length
+        ? values.api_path_params
+        : null,
       api_body: values.api_body.length ? values.api_body : null,
       dynamic_variables: dynamicVariables.length ? dynamicVariables : null,
     };
@@ -282,23 +318,47 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="flex w-full flex-col gap-0 overflow-y-auto sm:max-w-lg">
         <SheetHeader className="border-b px-6 py-4">
-          <SheetTitle>{mode === "create" ? "New tool" : "Edit tool"}</SheetTitle>
+          <SheetTitle>
+            {mode === "create" ? "New tool" : "Edit tool"}
+          </SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="flex flex-1 flex-col">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="flex flex-1 flex-col"
+        >
           <div className="flex-1 space-y-6 px-6 py-5">
             {/* Basic */}
             <section className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Basic</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Basic
+              </p>
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" placeholder="Lookup customer" {...register("name")} />
-                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                <Input
+                  id="name"
+                  placeholder="Lookup customer"
+                  {...register("name")}
+                />
+                {errors.name && (
+                  <p className="text-xs text-destructive">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Fetches customer data by ID" rows={2} {...register("description")} />
-                {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+                <Textarea
+                  id="description"
+                  placeholder="Fetches customer data by ID"
+                  rows={2}
+                  {...register("description")}
+                />
+                {errors.description && (
+                  <p className="text-xs text-destructive">
+                    {errors.description.message}
+                  </p>
+                )}
               </div>
             </section>
 
@@ -306,11 +366,21 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
 
             {/* API Config */}
             <section className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">API Config</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                API Config
+              </p>
               <div className="space-y-2">
                 <Label htmlFor="api_url">URL</Label>
-                <Input id="api_url" placeholder="https://api.example.com/lookup" {...register("api_url")} />
-                {errors.api_url && <p className="text-xs text-destructive">{errors.api_url.message}</p>}
+                <Input
+                  id="api_url"
+                  placeholder="https://api.example.com/lookup"
+                  {...register("api_url")}
+                />
+                {errors.api_url && (
+                  <p className="text-xs text-destructive">
+                    {errors.api_url.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label>Method</Label>
@@ -324,7 +394,9 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
                       </SelectTrigger>
                       <SelectContent>
                         {["GET", "POST", "PUT", "PATCH", "DELETE"].map((m) => (
-                          <SelectItem key={m} value={m}>{m}</SelectItem>
+                          <SelectItem key={m} value={m}>
+                            {m}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -337,7 +409,9 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
 
             {/* Headers */}
             <section className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Headers</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Headers
+              </p>
               <Controller
                 name="api_headers"
                 control={control}
@@ -409,8 +483,13 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
             {/* Dynamic Variables */}
             <section className="space-y-3">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Dynamic Variables</p>
-                <p className="mt-1 text-xs text-muted-foreground">Variables the agent runtime injects into the API call at runtime.</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Dynamic Variables
+                </p>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Variables the agent runtime injects into the API call at
+                  runtime.
+                </p>
               </div>
               <Controller
                 name="dynamic_variables"
@@ -431,30 +510,44 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
 
             {/* Behavior */}
             <section className="space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Behavior</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Behavior
+              </p>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Pre-tool speech</p>
-                  <p className="text-xs text-muted-foreground">Agent speaks before calling this tool</p>
+                  <p className="text-xs text-muted-foreground">
+                    Agent speaks before calling this tool
+                  </p>
                 </div>
                 <Controller
                   name="force_pre_tool_speech"
                   control={control}
                   render={({ field }) => (
-                    <Switch checked={field.value} onCheckedChange={field.onChange} disabled={isPending} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isPending}
+                    />
                   )}
                 />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium">Disable interruptions</p>
-                  <p className="text-xs text-muted-foreground">Prevent caller from interrupting while tool runs</p>
+                  <p className="text-xs text-muted-foreground">
+                    Prevent caller from interrupting while tool runs
+                  </p>
                 </div>
                 <Controller
                   name="disable_interruptions"
                   control={control}
                   render={({ field }) => (
-                    <Switch checked={field.value} onCheckedChange={field.onChange} disabled={isPending} />
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={isPending}
+                    />
                   )}
                 />
               </div>
@@ -474,7 +567,12 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
           </div>
 
           <SheetFooter className="border-t px-6 py-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isPending}
+            >
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>

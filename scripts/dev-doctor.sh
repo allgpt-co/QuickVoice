@@ -150,6 +150,12 @@ check_compose_health() {
 
 check_env_templates
 
+if [ "${BASH_VERSINFO[0]}" -ge 4 ]; then
+  ok "Bash is installed: ${BASH_VERSION}"
+else
+  fail "Bash >= 4 is required by the development scripts. Found: ${BASH_VERSION}"
+fi
+
 if command -v task >/dev/null 2>&1; then
   ok "go-task is installed: $(task --version | head -n 1)"
 else
@@ -163,13 +169,13 @@ else
 fi
 
 if command -v node >/dev/null 2>&1; then
-  if node -e 'const major=Number(process.versions.node.split(".")[0]); process.exit(major >= 18 ? 0 : 1)' >/dev/null 2>&1; then
+  if node -e 'const [major, minor] = process.versions.node.split(".").map(Number); const supported = (major === 20 && minor >= 19) || (major === 22 && minor >= 13) || major >= 24; process.exit(supported ? 0 : 1)' >/dev/null 2>&1; then
     ok "Node.js is installed: $(node -v)"
   else
-    fail "Node.js >= 18 is required. Found: $(node -v)"
+    fail "Node.js ^20.19, ^22.13, or >=24 is required. Found: $(node -v)"
   fi
 else
-  fail "Node.js >= 18 is required."
+  fail "Node.js ^20.19, ^22.13, or >=24 is required."
 fi
 
 if command -v corepack >/dev/null 2>&1; then
@@ -219,13 +225,15 @@ fi
 if [ "$failures" -gt 0 ]; then
   cat >&2 <<'EOF'
 
-Install hints for Ubuntu:
+Install hints for Ubuntu or WSL2:
   sudo apt-get update
-  sudo apt-get install -y docker.io docker-compose-v2 golang-go
+  sudo apt-get install -y docker.io docker-compose-v2 golang-go python3 python3-venv
   sudo usermod -aG docker "$USER"
   go install github.com/go-task/task/v3/cmd/task@latest
   export PATH="$PATH:$HOME/go/bin"
 
+Install Node.js ^20.19, ^22.13, or >=24 with a Node version manager or the official Node.js
+packages; the Node.js version in a distribution repository may be too old.
 After changing docker group membership, reconnect your SSH session.
 EOF
   exit 1

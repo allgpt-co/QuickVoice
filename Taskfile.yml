@@ -36,12 +36,12 @@ tasks:
       - corepack prepare pnpm@{{.PNPM_VERSION}} --activate
       - pnpm install --lockfile-only
 
-  deps:python:
-    desc: Create the AI Python virtualenv and install requirements
+    deps:python:
+    desc: Create the AI Python virtualenv and install runtime and test requirements
     dir: apps/ai
     cmds:
       - python -m venv .venv
-      - bash -c ". .venv/Scripts/activate 2>/dev/null || . .venv/bin/activate; python -m pip install --upgrade pip && python -m pip install -r requirements.txt"
+      - bash -c ". .venv/Scripts/activate 2>/dev/null || . .venv/bin/activate; python -m pip install --upgrade pip && python -m pip install -r requirements-dev.txt"
 
   deps:
     desc: Install Node and Python dependencies

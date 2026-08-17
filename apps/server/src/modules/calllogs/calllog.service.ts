@@ -1,7 +1,11 @@
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { livekitRoomServiceClient } from "../../config/livekit.js";
-import { generateDownloadUrl } from "../../config/s3.js";
+import { deleteObject, generateDownloadUrl } from "../../config/s3.js";
 import { reportCallMinutesUsage } from "../billing/metered-usage.service.js";
+import {
+  hasActiveLegacySubscription,
+  isLegacyBilledCall,
+} from "../billing/call-metering.service.js";
 import * as calllogRepository from "./calllog.repository.js";
 import type {
   IngestCallLogArgs,
@@ -26,7 +30,7 @@ const isHttpUrl = (value: string) => {
 
 export const signCallRecordingUrl = async <T extends CallWithRecording>(
   call: T,
-  signer: RecordingSigner = generateDownloadUrl
+  signer: RecordingSigner = generateDownloadUrl,
 ): Promise<T> => {
   if (!call.audioRecordingPath || isHttpUrl(call.audioRecordingPath)) {
     return call;
@@ -38,20 +42,27 @@ export const signCallRecordingUrl = async <T extends CallWithRecording>(
   };
 };
 
-export const ingestCallLog = async (args: IngestCallLogArgs) =>{
+export const ingestCallLog = async (args: IngestCallLogArgs) => {
   const callLog = await calllogRepository.saveCallLog(args);
-  await reportCallMinutesUsage({
-    organizationId: args.organizationId,
-    callId: args.callId,
-    durationSeconds: args.durationSeconds,
-    timestamp: new Date(args.endTime),
-  }).catch((error) => {
-    console.warn("[billing] failed to report Stripe call usage", {
+  // Stripe meters only still-active legacy subscriptions. Prepaid calls are
+  // settled by the wallet reporter and must never be reported a second time.
+  if (
+    (await isLegacyBilledCall(args.organizationId, args.callId)) ||
+    (await hasActiveLegacySubscription(args.organizationId))
+  ) {
+    await reportCallMinutesUsage({
       organizationId: args.organizationId,
       callId: args.callId,
-      error: error instanceof Error ? error.message : String(error),
+      durationSeconds: args.durationSeconds,
+      timestamp: new Date(args.endTime),
+    }).catch((error) => {
+      console.warn("[billing] failed to report legacy Stripe call usage", {
+        organizationId: args.organizationId,
+        callId: args.callId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     });
-  });
+  }
   return callLog;
 };
 
@@ -110,17 +121,20 @@ export type LiveCallRoom = {
 export const listLiveCalls = async (
   organizationId: string,
   roomClient: LiveKitRoomClient = livekitRoomServiceClient as LiveKitRoomClient,
-  registry?: LiveCallRegistry
+  registry?: LiveCallRegistry,
 ) => {
   let registered: CallStartedEvent[] | null = null;
   if (registry) {
     try {
       registered = await registry.listActiveCalls(organizationId);
     } catch (error) {
-      console.warn("[live-calls] Redis registry unavailable; using LiveKit fallback", {
-        organizationId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      console.warn(
+        "[live-calls] Redis registry unavailable; using LiveKit fallback",
+        {
+          organizationId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
     }
   }
 
@@ -132,13 +146,16 @@ export const listLiveCalls = async (
       .filter((room): room is LiveCallRoom => room !== null);
   } catch (error) {
     if (registered) {
-      console.warn("[live-calls] LiveKit unavailable; returning Redis registry", {
-        organizationId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      console.warn(
+        "[live-calls] LiveKit unavailable; returning Redis registry",
+        {
+          organizationId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
       return enrichAgentNames(
         organizationId,
-        registered.map((event) => liveCallFromRegistry(event, null))
+        registered.map((event) => liveCallFromRegistry(event, null)),
       );
     }
     throw error;
@@ -149,15 +166,16 @@ export const listLiveCalls = async (
   const claimedCallIds = new Set<string>();
   if (registered) {
     const roomsByName = new Map(
-      normalizedRooms.map((room) => [room.roomName, room])
+      normalizedRooms.map((room) => [room.roomName, room]),
     );
     const roomsByCallId = new Map(
-      normalizedRooms.map((room) => [room.callId, room])
+      normalizedRooms.map((room) => [room.callId, room]),
     );
     const stale: CallStartedEvent[] = [];
     for (const event of registered) {
       claimedCallIds.add(event.callId);
-      const room = roomsByName.get(event.roomName) ?? roomsByCallId.get(event.callId);
+      const room =
+        roomsByName.get(event.roomName) ?? roomsByCallId.get(event.callId);
       if (!room) {
         const startedAt = Date.parse(event.startedAt);
         const withinVisibilityGrace =
@@ -176,38 +194,47 @@ export const listLiveCalls = async (
     if (registry && stale.length > 0) {
       await Promise.all(
         stale.map((event) =>
-          registry.markCallStale(organizationId, event.callId).catch((error) => {
-            console.warn("[live-calls] failed to clean stale registry entry", {
-              organizationId,
-              callId: event.callId,
-              error: error instanceof Error ? error.message : String(error),
-            });
-          })
-        )
+          registry
+            .markCallStale(organizationId, event.callId)
+            .catch((error) => {
+              console.warn(
+                "[live-calls] failed to clean stale registry entry",
+                {
+                  organizationId,
+                  callId: event.callId,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+              );
+            }),
+        ),
       );
     }
   }
 
   const fallbackRooms = normalizedRooms.filter(
-    (room) => !claimedRooms.has(room.roomName) && !claimedCallIds.has(room.callId)
+    (room) =>
+      !claimedRooms.has(room.roomName) && !claimedCallIds.has(room.callId),
   );
   const scopedFallback = await Promise.all(
     fallbackRooms.map(async (room) =>
       (await calllogRepository.liveRoomBelongsToOrg(
         organizationId,
-        room.roomName
+        room.roomName,
       ))
         ? room
-        : null
-    )
+        : null,
+    ),
   );
   calls.push(
-    ...scopedFallback.filter((room): room is LiveCallRoom => room !== null)
+    ...scopedFallback.filter((room): room is LiveCallRoom => room !== null),
   );
 
-  const enriched = await enrichAgentNames(organizationId, mergeCallsByCallId(calls));
+  const enriched = await enrichAgentNames(
+    organizationId,
+    mergeCallsByCallId(calls),
+  );
   return enriched.sort((a, b) =>
-    (b.startedAt ?? "").localeCompare(a.startedAt ?? "")
+    (b.startedAt ?? "").localeCompare(a.startedAt ?? ""),
   );
 };
 
@@ -215,7 +242,7 @@ export const endLiveCall = async (
   organizationId: string,
   roomName: string,
   roomClient: LiveKitRoomClient = livekitRoomServiceClient as LiveKitRoomClient,
-  registry?: LiveCallRegistry
+  registry?: LiveCallRegistry,
 ) => {
   const normalizedRoomName = roomName.trim();
   if (!normalizedRoomName) {
@@ -226,7 +253,7 @@ export const endLiveCall = async (
     try {
       registeredCall = await registry.findActiveCallByRoom(
         organizationId,
-        normalizedRoomName
+        normalizedRoomName,
       );
     } catch (error) {
       console.warn("[live-calls] Redis ownership check unavailable", {
@@ -239,7 +266,7 @@ export const endLiveCall = async (
     registeredCall !== null ||
     (await calllogRepository.liveRoomBelongsToOrg(
       organizationId,
-      normalizedRoomName
+      normalizedRoomName,
     ));
   if (!belongsToOrg) {
     throw new NotFoundError("Live call room not found");
@@ -252,8 +279,7 @@ export const endLiveCall = async (
   return {
     status: "ended" as const,
     roomName: normalizedRoomName,
-    callId:
-      registeredCall?.callId ?? callIdFromRoomName(normalizedRoomName),
+    callId: registeredCall?.callId ?? callIdFromRoomName(normalizedRoomName),
   };
 };
 
@@ -267,8 +293,11 @@ function normalizeLiveRoom(room: unknown): LiveCallRoom | null {
     roomName,
     callId: callIdFromRoomName(roomName),
     direction: roomName.startsWith("outbound_") ? "outbound" : "inbound",
-    participantCount: numberValue(record.numParticipants ?? record.num_participants) ?? 0,
-    startedAt: liveKitTimestamp(record.creationTime ?? record.creation_time ?? record.createdAt),
+    participantCount:
+      numberValue(record.numParticipants ?? record.num_participants) ?? 0,
+    startedAt: liveKitTimestamp(
+      record.creationTime ?? record.creation_time ?? record.createdAt,
+    ),
     status: "active",
     agentId: null,
     agentName: null,
@@ -279,7 +308,7 @@ function normalizeLiveRoom(room: unknown): LiveCallRoom | null {
 
 function liveCallFromRegistry(
   event: CallStartedEvent,
-  room: LiveCallRoom | null
+  room: LiveCallRoom | null,
 ): LiveCallRoom {
   return {
     roomName: event.roomName,
@@ -309,7 +338,8 @@ function mergeCallsByCallId(calls: LiveCallRoom[]) {
         call.participantCount > existing.participantCount
           ? call.participantCount
           : existing.participantCount,
-      direction: existing.direction === "unknown" ? call.direction : existing.direction,
+      direction:
+        existing.direction === "unknown" ? call.direction : existing.direction,
       startedAt: existing.startedAt ?? call.startedAt,
       agentId: existing.agentId ?? call.agentId,
       agentName: existing.agentName ?? call.agentName,
@@ -320,24 +350,19 @@ function mergeCallsByCallId(calls: LiveCallRoom[]) {
   return [...byCallId.values()];
 }
 
-async function enrichAgentNames(
-  organizationId: string,
-  calls: LiveCallRoom[]
-) {
+async function enrichAgentNames(organizationId: string, calls: LiveCallRoom[]) {
   const agentIds = Array.from(
     new Set(
       calls
         .map((call) => call.agentId)
-        .filter((agentId): agentId is string => Boolean(agentId))
-    )
+        .filter((agentId): agentId is string => Boolean(agentId)),
+    ),
   );
   const agents = await calllogRepository.listAgentNamesForOrg(
     organizationId,
-    agentIds
+    agentIds,
   );
-  const names = new Map(
-    agents.map((agent) => [agent.agentId, agent.name])
-  );
+  const names = new Map(agents.map((agent) => [agent.agentId, agent.name]));
   return calls.map((call) => ({
     ...call,
     agentName: call.agentId ? (names.get(call.agentId) ?? null) : null,
@@ -369,9 +394,12 @@ function callIdFromRoomName(roomName: string) {
 
 function liveKitTimestamp(value: unknown): string | null {
   if (value == null) return null;
-  if (typeof value === "bigint") return new Date(Number(value) * 1000).toISOString();
+  if (typeof value === "bigint")
+    return new Date(Number(value) * 1000).toISOString();
   if (typeof value === "number") {
-    return new Date((value > 10_000_000_000 ? value : value * 1000)).toISOString();
+    return new Date(
+      value > 10_000_000_000 ? value : value * 1000,
+    ).toISOString();
   }
   if (typeof value === "string") {
     const numeric = Number(value);
@@ -398,9 +426,32 @@ function numberValue(value: unknown): number | null {
 
 export const deleteCallLog = async (
   organizationId: string,
-  callId: string
+  callId: string,
+  dependencies: {
+    deleteObjectImpl?: typeof deleteObject;
+    deleteCallLogImpl?: typeof calllogRepository.deleteCallLog;
+    getCallForDeletionImpl?: typeof calllogRepository.getCallForDeletion;
+  } = {},
 ) => {
-  const ok = await calllogRepository.deleteCallLog(callId, organizationId);
+  const getCallForDeletion =
+    dependencies.getCallForDeletionImpl ?? calllogRepository.getCallForDeletion;
+  const call = await getCallForDeletion(callId, organizationId);
+  if (!call) {
+    throw new NotFoundError("Call log not found");
+  }
+
+  if (call.audioRecordingPath && !isHttpUrl(call.audioRecordingPath)) {
+    const deleteRecording = dependencies.deleteObjectImpl ?? deleteObject;
+    await deleteRecording(call.audioRecordingPath);
+  }
+
+  const deleteCallLogImpl =
+    dependencies.deleteCallLogImpl ?? calllogRepository.deleteCallLog;
+  const ok = await deleteCallLogImpl(
+    callId,
+    organizationId,
+    call.audioRecordingPath,
+  );
   if (!ok) {
     throw new NotFoundError("Call log not found");
   }

@@ -54,15 +54,26 @@ export type IngestCallLogArgs = IngestCallLogInput;
 // Query params for GET /calllogs. Parsed inline in the controller against
 // req.query, because the shared validate middleware only looks at req.body.
 // Mirrors the approach used for searchNumbersSchema in phone.controller.ts.
-export const listCallLogsQuerySchema = z.object({
-  agentId: z.string().uuid().optional(),
-  status: z.nativeEnum(CallStatus).optional(),
-  direction: z.enum(["inbound", "outbound"]).optional(),
-  from: z.string().datetime().optional(),
-  to: z.string().datetime().optional(),
-  limit: z.coerce.number().int().positive().max(100).default(20),
-  cursor: z.string().optional(),
-});
+export const listCallLogsQuerySchema = z
+  .object({
+    agentId: z.string().uuid().optional(),
+    status: z.nativeEnum(CallStatus).optional(),
+    direction: z.enum(["inbound", "outbound"]).optional(),
+    from: z.string().datetime().optional(),
+    to: z.string().datetime().optional(),
+    limit: z.coerce.number().int().positive().max(100).default(20),
+    cursor: z.string().optional(),
+  })
+  .refine(
+    (data) =>
+      !data.from ||
+      !data.to ||
+      new Date(data.from).getTime() <= new Date(data.to).getTime(),
+    {
+      path: ["to"],
+      message: "to must be on or after from",
+    },
+  );
 export type ListCallLogsQuery = z.infer<typeof listCallLogsQuerySchema>;
 export type ListCallLogsArgs = ListCallLogsQuery & { organizationId: string };
 

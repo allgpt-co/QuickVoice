@@ -98,18 +98,48 @@ test("referenced local image and manifest assets exist", () => {
 
 test("pricing, FAQ, and HIPAA copy use aligned public claims", () => {
   const pricing = read("src/app/pricing/page.tsx");
+  const pricingDetails = read("src/components/pricing/usage-pricing.tsx");
+  const pricingCopy = `${pricing}\n${pricingDetails}`;
   const homepage = read("src/app/page.tsx");
   const faq = read("src/components/mvpblocks/faq-2.tsx");
   const hipaa = read("src/app/compliance/hipaa/page.tsx");
 
-  assert.match(pricing, /BAA available[\s\S]+plans:\s*\[false, false, false, false, true, true\]/);
-  assert.doesNotMatch(pricing, /BAA\) on the Enterprise tier/);
+  assert.doesNotMatch(pricingCopy, /BAA available/);
+  assert.match(
+    pricingCopy,
+    /repository or pricing selection does not by itself establish HIPAA compliance/,
+  );
   assert.doesNotMatch(homepage, /up to 100 minutes of calls/);
   assert.doesNotMatch(faq, /up to 100 minutes of calls/);
-  assert.match(homepage, /15 browser-only minutes/);
-  assert.match(faq, /15 browser-only minutes/);
-  assert.match(hipaa, /Scale and Enterprise healthcare customers/);
-  assert.doesNotMatch(hipaa, /every healthcare customer/);
+  assert.match(pricingCopy, /\$5 promotional call credit/);
+  assert.match(pricingCopy, /\$0\.01 \/ connected minute/);
+  assert.match(pricingCopy, /From \$2 \/ 30 days/);
+  assert.doesNotMatch(
+    pricingCopy,
+    /Starter \(\$49\/mo\)|15 browser-only minutes|included minutes/,
+  );
+  assert.match(hipaa, /HIPAA is a deployment outcome, not a repository badge/);
+  assert.match(
+    hipaa,
+    /open-source repository does not by itself establish HIPAA/,
+  );
+  assert.doesNotMatch(hipaa, /fully HIPAA compliant/i);
+});
+
+test("terms describe the prepaid wallet, metered charges, and number-loss lifecycle", () => {
+  const terms = read("src/app/terms-of-service/page.tsx");
+
+  assert.match(terms, /Prepaid Wallet, Usage Charges, and Phone Numbers/);
+  assert.match(terms, /one-time \$5[\s\S]*promotional call credit/);
+  assert.match(terms, /cannot be used to buy or renew a[\s\S]*phone number/);
+  assert.match(terms, /provider market cost plus 20%/);
+  assert.match(terms, /platform[\s\S]*\$0\.01 per connected minute/);
+  assert.match(terms, /optionally enable[\s\S]*auto-reload/);
+  assert.match(terms, /scheduled for release 72 hours after suspension/);
+  assert.match(terms, /outstanding debt/);
+  assert.match(terms, /generally non-refundable/);
+  assert.doesNotMatch(terms, /Subscription Plans and Payments/);
+  assert.doesNotMatch(terms, /end of your current billing period/);
 });
 
 test("desktop nav, FAQ accordions, and landmarks are keyboard-accessible", () => {

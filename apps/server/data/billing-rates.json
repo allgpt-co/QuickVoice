@@ -1,0 +1,97 @@
+{
+  "schemaVersion": 1,
+  "catalogVersion": "2026-08-01.1",
+  "currency": "USD",
+  "effectiveAt": "2026-08-01T00:00:00.000Z",
+  "markupBasisPoints": {
+    "ai": 2000,
+    "telephony": 2000
+  },
+  "platformFeeMicrosPerConnectedMinute": "10000",
+  "minimumNumberRentalMicros": "2000000",
+  "foreignExchangeSnapshots": {
+    "INR": {
+      "currencyUnitsPerUsd": "96.5600",
+      "observedAt": "2026-07-24",
+      "source": "https://www.federalreserve.gov/releases/h10/current/"
+    }
+  },
+  "ai": {
+    "stt": {
+      "deepgram/nova-3": {
+        "baseMicrosPerAudioMinute": "4800",
+        "source": "https://deepgram.com/pricing"
+      },
+      "deepgram/nova-3-multilingual": {
+        "baseMicrosPerAudioMinute": "5800",
+        "source": "https://deepgram.com/pricing"
+      },
+      "deepgram/nova-2": {
+        "baseMicrosPerAudioMinute": "5834",
+        "source": "https://deepgram.com/pricing"
+      },
+      "sarvam/saaras:v3": {
+        "baseMicrosPerAudioMinute": "5179",
+        "source": "https://www.sarvam.ai/pricing"
+      }
+    },
+    "llm": {
+      "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0": {
+        "baseInputMicrosPerMillionTokens": "1000000",
+        "baseOutputMicrosPerMillionTokens": "5000000",
+        "source": "https://aws.amazon.com/bedrock/pricing/"
+      },
+      "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0": {
+        "baseInputMicrosPerMillionTokens": "3000000",
+        "baseOutputMicrosPerMillionTokens": "15000000",
+        "source": "https://aws.amazon.com/bedrock/pricing/"
+      },
+      "bedrock/us.amazon.nova-micro-v1:0": {
+        "baseInputMicrosPerMillionTokens": "35000",
+        "baseOutputMicrosPerMillionTokens": "140000",
+        "source": "https://aws.amazon.com/bedrock/pricing/"
+      },
+      "bedrock/us.amazon.nova-lite-v1:0": {
+        "baseInputMicrosPerMillionTokens": "60000",
+        "baseOutputMicrosPerMillionTokens": "240000",
+        "source": "https://aws.amazon.com/bedrock/pricing/"
+      }
+    },
+    "tts": {
+      "deepgram/aura-2": {
+        "baseMicrosPerThousandCharacters": "30000",
+        "source": "https://deepgram.com/pricing"
+      },
+      "elevenlabs/eleven_flash_v2_5": {
+        "baseMicrosPerThousandCharacters": "50000",
+        "source": "https://elevenlabs.io/pricing/api"
+      },
+      "elevenlabs/eleven_turbo_v2_5": {
+        "baseMicrosPerThousandCharacters": "50000",
+        "source": "https://elevenlabs.io/pricing/api"
+      },
+      "sarvam/bulbul:v3": {
+        "baseMicrosPerThousandCharacters": "31069",
+        "source": "https://www.sarvam.ai/pricing"
+      }
+    }
+  },
+  "telephony": {
+    "twilio": {
+      "default": {
+        "baseInboundMicrosPerMinute": "8500",
+        "baseOutboundMicrosPerMinute": "14000",
+        "baseNumberRentalMicrosPerThirtyDays": "1150000"
+      },
+      "source": "https://www.twilio.com/en-us/voice/pricing/us"
+    },
+    "telnyx": {
+      "default": {
+        "baseInboundMicrosPerMinute": "2000",
+        "baseOutboundMicrosPerMinute": "7000",
+        "baseNumberRentalMicrosPerThirtyDays": "1000000"
+      },
+      "source": "https://telnyx.com/pricing/call-control"
+    }
+  }
+}

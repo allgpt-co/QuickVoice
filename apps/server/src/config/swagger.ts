@@ -1,16 +1,20 @@
 const apiVersion = process.env.API_VERSION || "v1";
 const basePath = `/api/${apiVersion}`;
 
-const userAuthSecurity = [
-  { sessionCookie: [] },
-  { apiKey: [] },
-];
+const userAuthSecurity = [{ sessionCookie: [] }, { apiKey: [] }];
 
 const internalAuthSecurity: never[] = [];
 
 const errorResponse = {
   type: "object",
-  required: ["success", "code", "message", "details", "fieldErrors", "requestId"],
+  required: [
+    "success",
+    "code",
+    "message",
+    "details",
+    "fieldErrors",
+    "requestId",
+  ],
   properties: {
     success: { type: "boolean", example: false },
     code: { type: "string", example: "VALIDATION_ERROR" },
@@ -58,7 +62,8 @@ export const swaggerSpec = {
   info: {
     title: "QuickVoice Server API",
     version: apiVersion,
-    description: "Interactive API documentation for the QuickVoice Express server.",
+    description:
+      "Interactive API documentation for the QuickVoice Express server.",
   },
   servers: [
     {
@@ -75,6 +80,7 @@ export const swaggerSpec = {
     { name: "Calls" },
     { name: "Knowledge Base" },
     { name: "Outbound Calls" },
+    { name: "Billing" },
     { name: "Tools" },
     { name: "MCP Integrations" },
     { name: "Readiness" },
@@ -93,7 +99,7 @@ export const swaggerSpec = {
         in: "header",
         name: "x-api-key",
         description:
-          "Organization-scoped QuickVoice API key. Send the raw key in the x-api-key header; do not use Authorization: Bearer for external API keys.",
+          "Read-only organization-scoped QuickVoice API key. Send the raw key in the x-api-key header; do not use Authorization: Bearer. API keys cannot manage billing or phone-number ownership.",
       },
     },
     schemas: {
@@ -137,7 +143,10 @@ export const swaggerSpec = {
         ],
         properties: {
           agent_language: { type: "string", example: "en-US" },
-          firstMessage: { type: "string", example: "Hello, how can I help you today?" },
+          firstMessage: {
+            type: "string",
+            example: "Hello, how can I help you today?",
+          },
           systemPrompt: {
             type: "string",
             example: "You are a friendly, reliable voice assistant.",
@@ -169,11 +178,20 @@ export const swaggerSpec = {
           preemptive_generation: { type: "boolean", example: true },
           ivr_navigation_enabled: { type: "boolean", example: true },
           timezone: { type: "string", example: "Asia/Calcutta" },
+          store_call_audio: { type: "boolean", default: true },
+          zero_pii_retention: { type: "boolean", default: false },
+          conversation_retention_days: {
+            type: "integer",
+            minimum: 1,
+            maximum: 3650,
+            default: 30,
+          },
         },
         example: {
           agent_language: "en-US",
           firstMessage: "Hello, how can I help you today?",
-          systemPrompt: "You are a friendly, reliable voice assistant for handling customer calls.",
+          systemPrompt:
+            "You are a friendly, reliable voice assistant for handling customer calls.",
           llmModel: "google/gemini-2.5-flash",
           sttModel: "nova-3",
           ttsModel: "aura-2",
@@ -191,6 +209,9 @@ export const swaggerSpec = {
           preemptive_generation: true,
           ivr_navigation_enabled: true,
           timezone: "Asia/Calcutta",
+          store_call_audio: true,
+          zero_pii_retention: false,
+          conversation_retention_days: 30,
         },
       },
       DataItem: {
@@ -275,7 +296,8 @@ export const swaggerSpec = {
           provider: {
             type: "string",
             enum: ["TWILIO", "TELNYX"],
-            description: "Telephony provider. Lowercase values are accepted and normalized.",
+            description:
+              "Telephony provider. Lowercase values are accepted and normalized.",
           },
           phoneNumber: { type: "string", example: "+14155551234" },
         },
@@ -299,15 +321,60 @@ export const swaggerSpec = {
           },
         },
       },
+      UpdateKbRequest: {
+        type: "object",
+        minProperties: 1,
+        properties: {
+          name: { type: "string", minLength: 1, maxLength: 200 },
+          agentId: { type: "string", format: "uuid" },
+          url: {
+            type: "string",
+            format: "uri",
+            description: "Editable only for URL knowledge sources.",
+          },
+        },
+      },
       KbDocument: {
         type: "object",
         required: ["name", "sourceType"],
         properties: {
           name: { type: "string", example: "Pricing FAQ" },
-          sourceType: { type: "string", enum: ["PDF", "TXT", "CSV", "DOCX", "URL"] },
+          sourceType: {
+            type: "string",
+            enum: ["PDF", "TXT", "CSV", "DOCX", "XLSX", "XLS", "URL"],
+          },
           url: { type: "string", format: "uri", nullable: true },
           s3Key: { type: "string", nullable: true },
           originalFileName: { type: "string", nullable: true },
+        },
+      },
+      KbJobMetadata: {
+        type: "object",
+        properties: {
+          jobId: {
+            type: "string",
+            description: "BullMQ job identifier for support correlation.",
+          },
+          processorJobId: {
+            type: "string",
+            description: "Downstream AI processing job identifier.",
+          },
+          stage: {
+            type: "string",
+            example: "extracting",
+          },
+          progress: {
+            type: "object",
+            properties: {
+              processed: { type: "integer", minimum: 0 },
+              total: { type: "integer", minimum: 0 },
+              percent: { type: "number", minimum: 0, maximum: 100 },
+            },
+          },
+          failureReason: { type: "string" },
+          retryable: { type: "boolean" },
+          retryCount: { type: "integer", minimum: 0 },
+          retryOfJobId: { type: "string" },
         },
       },
       CallLogRequest: {
@@ -395,11 +462,37 @@ export const swaggerSpec = {
           value: { nullable: true },
         },
       },
-      UploadUrlResponse: {
+      KbUploadUrlResponse: {
         type: "object",
+        required: [
+          "uploadUrl",
+          "s3Key",
+          "sourceType",
+          "contentType",
+          "maxUploadBytes",
+        ],
         properties: {
           uploadUrl: { type: "string", format: "uri" },
           s3Key: { type: "string", example: "kb/org_123/file.pdf" },
+          sourceType: {
+            type: "string",
+            enum: ["PDF", "TXT", "CSV", "DOCX", "XLSX", "XLS"],
+          },
+          contentType: { type: "string", example: "application/pdf" },
+          maxUploadBytes: { type: "integer", example: 10485760 },
+        },
+      },
+      BatchUploadUrlResponse: {
+        type: "object",
+        required: ["uploadUrl", "s3Key", "contentType", "maxUploadBytes"],
+        properties: {
+          uploadUrl: { type: "string", format: "uri" },
+          s3Key: {
+            type: "string",
+            example: "outbound-batches/org_123/file.csv",
+          },
+          contentType: { type: "string", example: "text/csv" },
+          maxUploadBytes: { type: "integer", example: 5242880 },
         },
       },
       QuickOutboundCallRequest: {
@@ -409,17 +502,30 @@ export const swaggerSpec = {
           agentId: { type: "string", format: "uuid" },
           phoneNumber: { type: "string", example: "+15550001111" },
           fromNumber: { type: "string", example: "+15551230000" },
-          firstMessage: { type: "string", example: "Hi, this is QuickVoice calling back." },
-          systemPrompt: { type: "string", example: "Keep the call concise and helpful." },
+          firstMessage: {
+            type: "string",
+            example: "Hi, this is QuickVoice calling back.",
+          },
+          systemPrompt: {
+            type: "string",
+            example: "Keep the call concise and helpful.",
+          },
           username: { type: "string", example: "Ada" },
           provider: { type: "string", enum: ["TWILIO", "TELNYX"] },
-          sid: { type: "string", description: "Optional provider number SID override." },
+          sid: {
+            type: "string",
+            description: "Optional provider number SID override.",
+          },
         },
       },
       CancelOutboundCallRequest: {
         type: "object",
         properties: {
-          reason: { type: "string", maxLength: 500, example: "Customer requested cancellation" },
+          reason: {
+            type: "string",
+            maxLength: 500,
+            example: "Customer requested cancellation",
+          },
         },
       },
       OutboundCall: {
@@ -436,9 +542,20 @@ export const swaggerSpec = {
           mode: { type: "string", enum: ["quick", "campaign"] },
           status: {
             type: "string",
-            enum: ["NOT_ANSWERED", "SCHEDULED", "PROCESSED", "IN_PROGRESS", "COMPLETED", "FAILED"],
+            enum: [
+              "NOT_ANSWERED",
+              "SCHEDULED",
+              "PROCESSED",
+              "IN_PROGRESS",
+              "COMPLETED",
+              "FAILED",
+            ],
           },
-          failureReason: { type: "string", nullable: true, example: "LiveKit unavailable" },
+          failureReason: {
+            type: "string",
+            nullable: true,
+            example: "LiveKit unavailable",
+          },
           cancellationReason: { type: "string", nullable: true },
           scheduledAt: { type: "string", format: "date-time", nullable: true },
           createdAt: { type: "string", format: "date-time" },
@@ -467,20 +584,170 @@ export const swaggerSpec = {
           updatedAt: { type: "string", format: "date-time" },
         },
       },
+      CreateBatchCampaignRequest: {
+        type: "object",
+        required: [
+          "name",
+          "agentId",
+          "fromNumber",
+          "sourceFileKey",
+          "sourceFileName",
+        ],
+        properties: {
+          name: { type: "string", example: "Renewal reminders" },
+          agentId: { type: "string", format: "uuid" },
+          fromNumber: { type: "string", example: "+15551230000" },
+          sourceFileKey: {
+            type: "string",
+            example: "outbound-batches/org_123/file.csv",
+          },
+          sourceFileName: { type: "string", example: "renewals.csv" },
+          scheduledAt: {
+            type: "string",
+            format: "date-time",
+            nullable: true,
+          },
+          timezone: { type: "string", default: "UTC" },
+          ringingTimeoutSeconds: {
+            type: "integer",
+            minimum: 10,
+            maximum: 180,
+            default: 60,
+          },
+          campaignIntelligence: {
+            type: "object",
+            description: "Optional campaign-level personalization, experiment, and goal configuration.",
+            properties: {
+              personalizationSchema: {
+                type: "object",
+                additionalProperties: true,
+              },
+              experiments: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+              goals: {
+                type: "array",
+                items: { type: "object", additionalProperties: true },
+              },
+            },
+          },
+        },
+      },
+      CampaignReportBuildRequest: {
+        type: "object",
+        properties: {
+          randomized: { type: "boolean", default: false },
+          persistReport: { type: "boolean", default: false },
+        },
+      },
+      BatchCampaign: {
+        type: "object",
+        additionalProperties: true,
+        properties: {
+          campaignId: { type: "string", format: "uuid" },
+          name: { type: "string" },
+          agentId: { type: "string", format: "uuid" },
+          status: {
+            type: "string",
+            enum: [
+              "SCHEDULED",
+              "ACTIVE",
+              "COMPLETED",
+              "CANCELLED",
+              "PROCESSED",
+              "FAILED",
+            ],
+          },
+          totalRecipients: { type: "integer" },
+          validRecipients: { type: "integer" },
+          invalidRecipients: { type: "integer" },
+          scheduledAt: {
+            type: "string",
+            format: "date-time",
+            nullable: true,
+          },
+        },
+      },
+      BillingUsage: {
+        type: "object",
+        required: [
+          "plan",
+          "periodStart",
+          "periodEnd",
+          "usedMinutes",
+          "usedSeconds",
+          "overageMinutes",
+          "callCount",
+        ],
+        properties: {
+          plan: { type: "string", example: "starter" },
+          subscriptionStatus: {
+            type: "string",
+            nullable: true,
+            example: "active",
+          },
+          periodStart: { type: "string", format: "date-time" },
+          periodEnd: { type: "string", format: "date-time" },
+          includedMinutes: { type: "integer", nullable: true },
+          usedMinutes: { type: "integer" },
+          usedSeconds: { type: "integer" },
+          remainingMinutes: { type: "integer", nullable: true },
+          overageMinutes: { type: "integer" },
+          percentUsed: { type: "number", nullable: true },
+          callCount: { type: "integer" },
+        },
+      },
       ToolRequest: {
         type: "object",
         required: ["name", "description", "api_url"],
         properties: {
           name: { type: "string", example: "Lookup order" },
-          description: { type: "string", example: "Fetch order status for a caller." },
-          api_url: { type: "string", format: "uri", example: "https://api.example.com/orders" },
-          api_method: { type: "string", enum: ["GET", "POST", "PUT", "PATCH", "DELETE"], default: "POST" },
-          api_headers: { type: "array", items: { type: "object" }, nullable: true },
-          api_body: { type: "array", items: { type: "object" }, nullable: true },
-          api_query_params: { type: "array", items: { type: "object" }, nullable: true },
-          api_path_params: { type: "array", items: { type: "object" }, nullable: true },
-          response_timeout_secs: { type: "integer", minimum: 1, maximum: 300, nullable: true },
-          dynamic_variables: { type: "array", items: { type: "object" }, nullable: true },
+          description: {
+            type: "string",
+            example: "Fetch order status for a caller.",
+          },
+          api_url: {
+            type: "string",
+            format: "uri",
+            example: "https://api.example.com/orders",
+          },
+          api_method: {
+            type: "string",
+            enum: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+            default: "POST",
+          },
+          api_headers: {
+            type: "array",
+            items: { type: "object" },
+            nullable: true,
+          },
+          api_body: {
+            type: "array",
+            items: { type: "object" },
+            nullable: true,
+          },
+          api_query_params: {
+            type: "array",
+            items: { type: "object" },
+            nullable: true,
+          },
+          api_path_params: {
+            type: "array",
+            items: { type: "object" },
+            nullable: true,
+          },
+          response_timeout_secs: {
+            type: "integer",
+            minimum: 1,
+            maximum: 300,
+            nullable: true,
+          },
+          dynamic_variables: {
+            type: "array",
+            items: { type: "object" },
+            nullable: true,
+          },
           disable_interruptions: { type: "boolean", default: false },
           force_pre_tool_speech: { type: "boolean", default: true },
         },
@@ -501,13 +768,15 @@ export const swaggerSpec = {
           catalogSlug: {
             type: "string",
             example: "smithery/slack",
-            description: "Connect a catalog server. Provide either catalogSlug or customUrl.",
+            description:
+              "Connect a catalog server. Provide either catalogSlug or customUrl.",
           },
           customUrl: {
             type: "string",
             format: "uri",
             example: "https://mcp.example.com/sse",
-            description: "Connect a custom MCP server. Provide either catalogSlug or customUrl.",
+            description:
+              "Connect a custom MCP server. Provide either catalogSlug or customUrl.",
           },
           displayName: { type: "string", example: "Slack workspace" },
         },
@@ -519,7 +788,14 @@ export const swaggerSpec = {
           mcpConnectionId: { type: "string", format: "uuid" },
           status: {
             type: "string",
-            enum: ["PENDING", "CONNECTED", "AUTH_REQUIRED", "INPUT_REQUIRED", "ERROR", "DISCONNECTED"],
+            enum: [
+              "PENDING",
+              "CONNECTED",
+              "AUTH_REQUIRED",
+              "INPUT_REQUIRED",
+              "ERROR",
+              "DISCONNECTED",
+            ],
           },
           setupUrl: { type: "string", format: "uri", nullable: true },
         },
@@ -578,25 +854,33 @@ export const swaggerSpec = {
       BadRequest: {
         description: "Bad request",
         content: {
-          "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
         },
       },
       Unauthorized: {
         description: "Unauthorized",
         content: {
-          "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
         },
       },
       Forbidden: {
         description: "Forbidden",
         content: {
-          "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
         },
       },
       NotFound: {
         description: "Not found",
         content: {
-          "application/json": { schema: { $ref: "#/components/schemas/ErrorResponse" } },
+          "application/json": {
+            schema: { $ref: "#/components/schemas/ErrorResponse" },
+          },
         },
       },
     },
@@ -620,7 +904,8 @@ export const swaggerSpec = {
         responses: {
           200: { description: "Core server dependencies are ready" },
           503: {
-            description: "One or more readiness checks failed or are not configured",
+            description:
+              "One or more required core dependencies are unavailable",
             content: {
               "application/json": {
                 schema: {
@@ -725,7 +1010,14 @@ export const swaggerSpec = {
         tags: ["Agents"],
         summary: "Update an agent",
         security: userAuthSecurity,
-        parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -741,13 +1033,41 @@ export const swaggerSpec = {
           404: { $ref: "#/components/responses/NotFound" },
         },
       },
+      delete: {
+        tags: ["Agents"],
+        summary: "Delete an agent and its external resources",
+        description:
+          "Unlinks provider phone numbers, deletes knowledge assets and agent-scoped secrets, then removes the agent.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "id",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: { description: "Agent deleted" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
     },
     "/agents/{agentId}/config": {
       get: {
         tags: ["Agents"],
         summary: "Get agent configuration",
         security: userAuthSecurity,
-        parameters: [{ name: "agentId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Agent configuration" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -758,7 +1078,14 @@ export const swaggerSpec = {
         tags: ["Agents"],
         summary: "Create or update agent configuration",
         security: userAuthSecurity,
-        parameters: [{ name: "agentId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -785,6 +1112,9 @@ export const swaggerSpec = {
                 },
                 preemptive_generation: true,
                 timezone: "Asia/Calcutta",
+                store_call_audio: true,
+                zero_pii_retention: false,
+                conversation_retention_days: 30,
               },
             },
           },
@@ -807,11 +1137,21 @@ export const swaggerSpec = {
             in: "query",
             required: true,
             schema: { type: "string", enum: ["TWILIO", "TELNYX"] },
-            description: "Telephony provider. Lowercase values are accepted and normalized.",
+            description:
+              "Telephony provider. Lowercase values are accepted and normalized.",
           },
-          { name: "country", in: "query", required: true, schema: { type: "string", example: "US" } },
+          {
+            name: "country",
+            in: "query",
+            required: true,
+            schema: { type: "string", example: "US" },
+          },
           { name: "areaCode", in: "query", schema: { type: "integer" } },
-          { name: "limit", in: "query", schema: { type: "integer", maximum: 50 } },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", maximum: 50 },
+          },
         ],
         responses: {
           200: { description: "Available numbers" },
@@ -855,7 +1195,14 @@ export const swaggerSpec = {
         tags: ["Numbers"],
         summary: "Assign or unassign a phone number",
         security: userAuthSecurity,
-        parameters: [{ name: "phId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "phId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -874,7 +1221,14 @@ export const swaggerSpec = {
         tags: ["Numbers"],
         summary: "Release a phone number",
         security: userAuthSecurity,
-        parameters: [{ name: "phId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "phId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Phone number released" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -889,12 +1243,32 @@ export const swaggerSpec = {
         summary: "List call logs",
         security: userAuthSecurity,
         parameters: [
-          { name: "agentId", in: "query", schema: { type: "string", format: "uuid" } },
+          {
+            name: "agentId",
+            in: "query",
+            schema: { type: "string", format: "uuid" },
+          },
           { name: "status", in: "query", schema: { type: "string" } },
-          { name: "direction", in: "query", schema: { type: "string", enum: ["inbound", "outbound"] } },
-          { name: "from", in: "query", schema: { type: "string", format: "date-time" } },
-          { name: "to", in: "query", schema: { type: "string", format: "date-time" } },
-          { name: "limit", in: "query", schema: { type: "integer", maximum: 100, default: 20 } },
+          {
+            name: "direction",
+            in: "query",
+            schema: { type: "string", enum: ["inbound", "outbound"] },
+          },
+          {
+            name: "from",
+            in: "query",
+            schema: { type: "string", format: "date-time" },
+          },
+          {
+            name: "to",
+            in: "query",
+            schema: { type: "string", format: "date-time" },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", maximum: 100, default: 20 },
+          },
           { name: "cursor", in: "query", schema: { type: "string" } },
         ],
         responses: {
@@ -906,7 +1280,8 @@ export const swaggerSpec = {
       post: {
         tags: ["Calls"],
         summary: "Ingest a completed call log",
-        description: "Internal-only endpoint for trusted server-to-server call ingestion.",
+        description:
+          "Internal-only endpoint for trusted server-to-server call ingestion. Repeating the same callId for the same organization is idempotent.",
         security: internalAuthSecurity,
         requestBody: {
           required: true,
@@ -918,6 +1293,7 @@ export const swaggerSpec = {
         },
         responses: {
           201: { description: "Call log ingested" },
+          400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
         },
@@ -928,7 +1304,14 @@ export const swaggerSpec = {
         tags: ["Calls"],
         summary: "Get a call log",
         security: userAuthSecurity,
-        parameters: [{ name: "callId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "callId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Call log" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -940,7 +1323,14 @@ export const swaggerSpec = {
         tags: ["Calls"],
         summary: "Delete a call log",
         security: userAuthSecurity,
-        parameters: [{ name: "callId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "callId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Call log deleted" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -955,8 +1345,17 @@ export const swaggerSpec = {
         summary: "List call transcripts",
         security: userAuthSecurity,
         parameters: [
-          { name: "callId", in: "path", required: true, schema: { type: "string" } },
-          { name: "limit", in: "query", schema: { type: "integer", maximum: 100, default: 50 } },
+          {
+            name: "callId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", maximum: 100, default: 50 },
+          },
           { name: "cursor", in: "query", schema: { type: "string" } },
         ],
         responses: {
@@ -971,9 +1370,15 @@ export const swaggerSpec = {
       get: {
         tags: ["Knowledge Base"],
         summary: "List knowledge sources",
+        description:
+          "Poll this endpoint while a source is PROCESSING. Job stage, progress, identifiers, and terminal failure reasons are returned in source metadata.",
         security: userAuthSecurity,
         parameters: [
-          { name: "agentId", in: "query", schema: { type: "string", format: "uuid" } },
+          {
+            name: "agentId",
+            in: "query",
+            schema: { type: "string", format: "uuid" },
+          },
         ],
         responses: {
           200: { description: "Knowledge source list" },
@@ -1008,31 +1413,111 @@ export const swaggerSpec = {
           "Use this before creating non-URL knowledge sources: request upload URL, upload file to S3, then create the source with the returned s3Key and poll /kb.",
         security: userAuthSecurity,
         parameters: [
-          { name: "fileName", in: "query", required: true, schema: { type: "string", example: "pricing.pdf" } },
-          { name: "contentType", in: "query", required: true, schema: { type: "string", example: "application/pdf" } },
+          {
+            name: "fileName",
+            in: "query",
+            required: true,
+            schema: { type: "string", example: "pricing.pdf" },
+          },
+          {
+            name: "contentType",
+            in: "query",
+            required: true,
+            schema: { type: "string", example: "application/pdf" },
+          },
+          {
+            name: "fileSize",
+            in: "query",
+            required: true,
+            schema: { type: "integer", minimum: 1, example: 245760 },
+          },
         ],
         responses: {
           200: {
             description: "Presigned upload URL",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/UploadUrlResponse" },
+                schema: { $ref: "#/components/schemas/KbUploadUrlResponse" },
               },
             },
           },
+          400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
     "/kb/{kbId}": {
+      patch: {
+        tags: ["Knowledge Base"],
+        summary: "Update and reprocess a knowledge source",
+        description:
+          "Updates supported source configuration. Name or agent changes reprocess any source; URL changes are supported for URL sources only.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "kbId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/UpdateKbRequest" },
+            },
+          },
+        },
+        responses: {
+          200: {
+            description: "Knowledge source updated and queued for processing",
+          },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
       delete: {
         tags: ["Knowledge Base"],
         summary: "Delete a knowledge source",
         security: userAuthSecurity,
-        parameters: [{ name: "kbId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "kbId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Knowledge source deleted" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/kb/{kbId}/retry": {
+      post: {
+        tags: ["Knowledge Base"],
+        summary: "Retry a failed knowledge source",
+        description:
+          "Atomically transitions an ERROR source to PROCESSING and enqueues a new ingestion job. Sources already queued or active are rejected.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "kbId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
+        responses: {
+          202: { description: "Knowledge source queued for retry" },
+          400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
           404: { $ref: "#/components/responses/NotFound" },
@@ -1045,25 +1530,47 @@ export const swaggerSpec = {
         summary: "List outbound calls",
         security: userAuthSecurity,
         parameters: [
-          { name: "agentId", in: "query", schema: { type: "string", format: "uuid" } },
+          {
+            name: "agentId",
+            in: "query",
+            schema: { type: "string", format: "uuid" },
+          },
           {
             name: "status",
             in: "query",
             schema: {
               type: "string",
-              enum: ["NOT_ANSWERED", "SCHEDULED", "PROCESSED", "IN_PROGRESS", "COMPLETED", "FAILED"],
+              enum: [
+                "NOT_ANSWERED",
+                "SCHEDULED",
+                "PROCESSED",
+                "IN_PROGRESS",
+                "COMPLETED",
+                "FAILED",
+              ],
             },
           },
-          { name: "mode", in: "query", schema: { type: "string", enum: ["quick", "campaign"] } },
-          { name: "limit", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 20 } },
+          {
+            name: "mode",
+            in: "query",
+            schema: { type: "string", enum: ["quick", "campaign"] },
+          },
+          {
+            name: "limit",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 20 },
+          },
           { name: "cursor", in: "query", schema: { type: "string" } },
         ],
         responses: {
           200: {
-            description: "Outbound call list with count, filters, and next cursor",
+            description:
+              "Outbound call list with count, filters, and next cursor",
             content: {
               "application/json": {
-                schema: { $ref: "#/components/schemas/OutboundCallListResponse" },
+                schema: {
+                  $ref: "#/components/schemas/OutboundCallListResponse",
+                },
               },
             },
           },
@@ -1093,12 +1600,293 @@ export const swaggerSpec = {
         },
       },
     },
+    "/outbound-calls/batch-upload-url": {
+      get: {
+        tags: ["Outbound Calls"],
+        summary: "Generate a direct batch-file upload URL",
+        description:
+          "Accepts CSV or XLSX. The signed PUT requires the exact canonical content type and byte length returned by this request.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "fileName",
+            in: "query",
+            required: true,
+            schema: { type: "string", example: "recipients.csv" },
+          },
+          {
+            name: "contentType",
+            in: "query",
+            required: true,
+            schema: { type: "string", example: "text/csv" },
+          },
+          {
+            name: "fileSize",
+            in: "query",
+            required: true,
+            schema: { type: "integer", minimum: 1, example: 8192 },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Presigned batch upload URL",
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/BatchUploadUrlResponse",
+                },
+              },
+            },
+          },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches": {
+      get: {
+        tags: ["Outbound Calls"],
+        summary: "List batch campaigns",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "agentId",
+            in: "query",
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Batch campaign list",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "array",
+                  items: { $ref: "#/components/schemas/BatchCampaign" },
+                },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Create a batch campaign",
+        security: userAuthSecurity,
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                $ref: "#/components/schemas/CreateBatchCampaignRequest",
+              },
+            },
+          },
+        },
+        responses: {
+          201: { description: "Batch campaign created" },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}": {
+      get: {
+        tags: ["Outbound Calls"],
+        summary: "Get batch campaign details and recipients",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        responses: {
+          200: {
+            description: "Batch campaign details",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/BatchCampaign" },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}/personalization/preflight": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Preflight typed campaign personalization",
+        description:
+          "Validates per-recipient typed variables, missing/invalid behavior, masked previews, and rendered configuration digests before dispatch.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Personalization preflight result" },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}/experiments/assignments": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Assign campaign experiment variants",
+        description:
+          "Computes deterministic hash-based variant assignment with exclusions and balance diagnostics. Persist assignments before dispatch in production workflows.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Experiment assignments" },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}/conversions/validate": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Validate campaign conversion event",
+        description:
+          "Validates conversion identity, timestamp, value/currency, source evidence, and idempotency key before ingestion and attribution.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Conversion accepted" },
+          400: { description: "Conversion rejected or malformed" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}/conversions": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Ingest campaign conversion event",
+        description: "Validates, persists, and attributes a conversion event for the campaign. Conversion events can be rejected when validation fails.",
+        security: userAuthSecurity,
+        parameters: [{
+          name: "campaignId",
+          in: "path",
+          required: true,
+          schema: { type: "string", format: "uuid" },
+        }],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { type: "object", additionalProperties: true },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Campaign conversion ingested" },
+          400: { description: "Conversion rejected or malformed" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
+    "/outbound-calls/batches/{campaignId}/reports/preview": {
+      post: {
+        tags: ["Outbound Calls"],
+        summary: "Campaign report generated",
+        description:
+          "Builds variant-level counts, denominators, costs, conversion rates, confidence intervals, freshness, and observational/randomized evidence labels without automatic causal claims.",
+        security: userAuthSecurity,
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: { $ref: "#/components/schemas/CampaignReportBuildRequest" },
+            },
+          },
+        },
+        responses: {
+          200: { description: "Campaign report preview" },
+          400: { $ref: "#/components/responses/BadRequest" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+        },
+      },
+    },
     "/outbound-calls/{outboundId}": {
       get: {
         tags: ["Outbound Calls"],
         summary: "Get outbound call detail",
         security: userAuthSecurity,
-        parameters: [{ name: "outboundId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "outboundId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: {
             description: "Outbound call detail",
@@ -1119,7 +1907,14 @@ export const swaggerSpec = {
         tags: ["Outbound Calls"],
         summary: "Get compact outbound call status for polling",
         security: userAuthSecurity,
-        parameters: [{ name: "outboundId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "outboundId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: {
             description: "Outbound call status and failure reason",
@@ -1142,11 +1937,20 @@ export const swaggerSpec = {
         description:
           "Cancels only calls that are still SCHEDULED. In-progress carrier calls cannot be stopped by this endpoint.",
         security: userAuthSecurity,
-        parameters: [{ name: "outboundId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "outboundId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/CancelOutboundCallRequest" },
+              schema: {
+                $ref: "#/components/schemas/CancelOutboundCallRequest",
+              },
             },
           },
         },
@@ -1164,13 +1968,41 @@ export const swaggerSpec = {
         tags: ["Outbound Calls"],
         summary: "Retry a failed or unanswered outbound call",
         security: userAuthSecurity,
-        parameters: [{ name: "outboundId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "outboundId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           201: { description: "Replacement outbound call dispatched" },
           400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
           404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
+    "/billing/usage": {
+      get: {
+        tags: ["Billing"],
+        summary: "Get current billing-period usage",
+        description:
+          "Returns call and minute usage for the active subscription period, or the current UTC month when no active subscription period exists.",
+        security: userAuthSecurity,
+        responses: {
+          200: {
+            description: "Billing usage",
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/BillingUsage" },
+              },
+            },
+          },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -1192,7 +2024,9 @@ export const swaggerSpec = {
         requestBody: {
           required: true,
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ToolRequest" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ToolRequest" },
+            },
           },
         },
         responses: {
@@ -1207,11 +2041,20 @@ export const swaggerSpec = {
         tags: ["Tools"],
         summary: "Update a tool",
         security: userAuthSecurity,
-        parameters: [{ name: "toolId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "toolId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ToolRequest" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ToolRequest" },
+            },
           },
         },
         responses: {
@@ -1225,7 +2068,14 @@ export const swaggerSpec = {
         tags: ["Tools"],
         summary: "Delete a tool",
         security: userAuthSecurity,
-        parameters: [{ name: "toolId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "toolId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Tool deleted" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1239,7 +2089,14 @@ export const swaggerSpec = {
         tags: ["Tools"],
         summary: "List tools attached to an agent",
         security: userAuthSecurity,
-        parameters: [{ name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        parameters: [
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
         responses: {
           200: { description: "Agent tools" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1254,8 +2111,18 @@ export const swaggerSpec = {
         summary: "Attach a tool to an agent",
         security: userAuthSecurity,
         parameters: [
-          { name: "toolId", in: "path", required: true, schema: { type: "string" } },
-          { name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          {
+            name: "toolId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
         ],
         responses: {
           200: { description: "Tool attached" },
@@ -1271,8 +2138,18 @@ export const swaggerSpec = {
         summary: "Detach a tool from an agent",
         security: userAuthSecurity,
         parameters: [
-          { name: "toolId", in: "path", required: true, schema: { type: "string" } },
-          { name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          {
+            name: "toolId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
         ],
         responses: {
           200: { description: "Tool detached" },
@@ -1288,11 +2165,23 @@ export const swaggerSpec = {
         summary: "List MCP catalog entries",
         security: userAuthSecurity,
         parameters: [
-          { name: "page", in: "query", schema: { type: "integer", minimum: 1, default: 1 } },
-          { name: "pageSize", in: "query", schema: { type: "integer", minimum: 1, maximum: 100, default: 24 } },
+          {
+            name: "page",
+            in: "query",
+            schema: { type: "integer", minimum: 1, default: 1 },
+          },
+          {
+            name: "pageSize",
+            in: "query",
+            schema: { type: "integer", minimum: 1, maximum: 100, default: 24 },
+          },
           { name: "search", in: "query", schema: { type: "string" } },
           { name: "verified", in: "query", schema: { type: "boolean" } },
-          { name: "sort", in: "query", schema: { type: "string", enum: ["popular", "name"] } },
+          {
+            name: "sort",
+            in: "query",
+            schema: { type: "string", enum: ["popular", "name"] },
+          },
         ],
         responses: {
           200: { description: "MCP catalog" },
@@ -1319,7 +2208,9 @@ export const swaggerSpec = {
         requestBody: {
           required: true,
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/McpConnectionRequest" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/McpConnectionRequest" },
+            },
           },
         },
         responses: {
@@ -1334,7 +2225,14 @@ export const swaggerSpec = {
         tags: ["MCP Integrations"],
         summary: "Refresh an MCP connection",
         security: userAuthSecurity,
-        parameters: [{ name: "mcpConnectionId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "mcpConnectionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "MCP connection refreshed" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1348,7 +2246,14 @@ export const swaggerSpec = {
         tags: ["MCP Integrations"],
         summary: "Disconnect an MCP connection",
         security: userAuthSecurity,
-        parameters: [{ name: "mcpConnectionId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "mcpConnectionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "MCP connection disconnected" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1362,7 +2267,14 @@ export const swaggerSpec = {
         tags: ["MCP Integrations"],
         summary: "List MCP connections attached to an agent",
         security: userAuthSecurity,
-        parameters: [{ name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } }],
+        parameters: [
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
         responses: {
           200: { description: "Agent MCP connections" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1377,12 +2289,24 @@ export const swaggerSpec = {
         summary: "Attach an MCP connection to an agent",
         security: userAuthSecurity,
         parameters: [
-          { name: "mcpConnectionId", in: "path", required: true, schema: { type: "string" } },
-          { name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          {
+            name: "mcpConnectionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
         ],
         requestBody: {
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/AttachMcpRequest" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/AttachMcpRequest" },
+            },
           },
         },
         responses: {
@@ -1399,8 +2323,18 @@ export const swaggerSpec = {
         summary: "Detach an MCP connection from an agent",
         security: userAuthSecurity,
         parameters: [
-          { name: "mcpConnectionId", in: "path", required: true, schema: { type: "string" } },
-          { name: "agentId", in: "path", required: true, schema: { type: "string", format: "uuid" } },
+          {
+            name: "mcpConnectionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "agentId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
         ],
         responses: {
           200: { description: "MCP connection detached" },
@@ -1416,13 +2350,25 @@ export const swaggerSpec = {
         summary: "Execute an MCP tool",
         security: userAuthSecurity,
         parameters: [
-          { name: "mcpConnectionId", in: "path", required: true, schema: { type: "string" } },
-          { name: "toolName", in: "path", required: true, schema: { type: "string" } },
+          {
+            name: "mcpConnectionId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+          {
+            name: "toolName",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
         ],
         requestBody: {
           required: true,
           content: {
-            "application/json": { schema: { $ref: "#/components/schemas/ExecuteMcpToolRequest" } },
+            "application/json": {
+              schema: { $ref: "#/components/schemas/ExecuteMcpToolRequest" },
+            },
           },
         },
         responses: {

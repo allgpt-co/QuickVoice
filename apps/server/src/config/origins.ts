@@ -16,6 +16,9 @@ export const trustedOrigins = Array.from(
   new Set(
     [
       ...splitOrigins(process.env.CONSOLE_URL),
+      ...splitOrigins(process.env.WEB_URL),
+      ...splitOrigins(process.env.DOCS_URL),
+      ...splitOrigins(process.env.CORS_ORIGINS),
       serverBaseUrl,
     ].map(trimTrailingSlashes),
   ),

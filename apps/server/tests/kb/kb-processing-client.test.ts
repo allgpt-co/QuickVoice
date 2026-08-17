@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { processKbDocuments } from "../../src/modules/kb/kb-processing-client.js";
+import {
+  deleteKbDocumentVectors,
+  processKbDocuments,
+} from "../../src/modules/kb/kb-processing-client.js";
 import { assertKbProcessingSucceeded } from "../../src/modules/kb/kb-processing-result.js";
 
 test("processKbDocuments polls async AI jobs until terminal document results", async () => {
@@ -79,4 +82,34 @@ test("processKbDocuments polls async AI jobs until terminal document results", a
     ],
   });
   assert.doesNotThrow(() => assertKbProcessingSucceeded(body, ["kb_1"]));
+});
+
+
+test("deleteKbDocumentVectors removes the previous agent namespace before reprocessing", async () => {
+  const calls: Array<{ url: string; method: string; key: string | null }> = [];
+  const fetchImpl: typeof fetch = async (url, init) => {
+    const headers = new Headers(init?.headers);
+    calls.push({
+      url: String(url),
+      method: init?.method ?? "GET",
+      key: headers.get("x-internal-key"),
+    });
+    return Response.json({ success: true });
+  };
+
+  await deleteKbDocumentVectors({
+    aiApiUrl: "http://ai.local/",
+    internalApiKey: "internal-key",
+    agentId: "agent/previous",
+    kbId: "kb source",
+    fetchImpl,
+  });
+
+  assert.deepEqual(calls, [
+    {
+      url: "http://ai.local/kb/agent%2Fprevious/kb%20source",
+      method: "DELETE",
+      key: "internal-key",
+    },
+  ]);
 });

@@ -1,0 +1,59 @@
+name: Documentation gap
+description: Report missing, stale, unclear, or contradictory project documentation.
+title: "[Docs]: "
+labels:
+  - documentation
+assignees: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Documentation should describe behavior that exists in the repository and distinguish local placeholders from working external integrations. Do not use this form to publish security findings or private data.
+  - type: input
+    id: location
+    attributes:
+      label: Documentation location
+      description: Link a page or provide a repository path and heading.
+      placeholder: README.md#quick-start
+    validations:
+      required: true
+  - type: textarea
+    id: reader_goal
+    attributes:
+      label: Reader goal
+      description: What was the reader trying to accomplish?
+    validations:
+      required: true
+  - type: textarea
+    id: gap
+    attributes:
+      label: Current gap
+      description: Quote only the short phrase needed to identify the gap, then explain why it is unclear or incorrect.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Repository evidence
+      description: Point to current code, scripts, tests, config, or behavior that the documentation should match.
+      placeholder: Path, command output, or reproducible local behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: proposed_outcome
+    attributes:
+      label: Proposed outcome
+      description: Describe the smallest documentation change that would resolve the gap.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched open issues and pull requests for this documentation gap.
+          required: true
+        - label: I am not proposing an unverified customer, performance, compliance, partnership, or production-readiness claim.
+          required: true
+        - label: I removed credentials and private data from examples and screenshots.
+          required: true

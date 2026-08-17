@@ -5,9 +5,9 @@ type ConfiguredTemplateSlug = Exclude<AgentTemplateSlug, "blank">;
 
 const baseConfig = {
   agent_language: "en",
-  llmModel: "openai/gpt-4o-mini",
-  sttModel: "nova-3",
-  ttsModel: "eleven_flash_v2_5",
+  llmModel: "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+  sttModel: "deepgram/nova-3",
+  ttsModel: "deepgram/aura-2",
   use_rag: false,
   voiceId: "EXAVITQu4vr4xnSDxMaL",
   initiation_webhook: null,

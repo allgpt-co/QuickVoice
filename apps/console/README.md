@@ -1,36 +1,52 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QuickVoice Console
+
+`apps/console` is the Next.js customer console for configuring organizations, agents, phone numbers, calls, knowledge bases, tools, API keys, billing, and settings. It is one part of the QuickVoice monorepo; it is not a standalone hosted product.
 
 ## Getting Started
 
-First, run the development server:
+The supported full-stack path starts at the repository root:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```sh
+task doctor
+task up:dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+This prepares `apps/console/.env.local` from the tracked `.env.dev.example`, starts the API and local dependencies, applies migrations, and serves the console at [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+To run only the console after dependencies and the API are already available:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```sh
+task env:dev
+pnpm install --frozen-lockfile
+task console:dev
+```
+
+The console expects the API at the URL configured by `NEXT_PUBLIC_SERVER_URL` (the development template uses `http://localhost:5000`). Starting the console alone does not start Postgres, Redis, the API server, or the AI worker.
+
+## Requirements And Boundaries
+
+- Node.js `^20.19 || ^22.13 || >=24` and `pnpm@9.0.0`
+- A Linux environment with Bash `>=4`; use WSL2 on Windows
+- The root API and its local data services for authenticated product flows
+- External credentials for OAuth, billing, LiveKit, telephony, storage, email delivery, and model-provider actions
+
+Placeholder values in `.env.dev.example` are safe development markers, not working provider accounts. Do not add real credentials to tracked files or public bug reports. See the root [setup boundaries](../../README.md#setup-boundaries) and [support policy](../../SUPPORT.md).
+
+## Checks
+
+Run package-specific checks from the repository root:
+
+```sh
+pnpm --filter console lint
+pnpm --filter console check-types
+pnpm --filter console build
+node --test apps/console/tests/*.test.mjs
+```
+
+Use the root `pnpm test` or `pnpm ci:local` when a console change also affects shared configuration or API contracts.
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [Repository overview](../../README.md)
+- [Contribution workflow](../../CONTRIBUTING.md)
+- [Next.js documentation](https://nextjs.org/docs)

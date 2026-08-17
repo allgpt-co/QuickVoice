@@ -61,7 +61,16 @@ export const ModelName = {
   Member: 'Member',
   Invitation: 'Invitation',
   Subscription: 'Subscription',
+  BillingAccount: 'BillingAccount',
+  BillingTransaction: 'BillingTransaction',
+  BillingReservation: 'BillingReservation',
+  PromotionalGrant: 'PromotionalGrant',
+  TopUp: 'TopUp',
+  CallBillingSession: 'CallBillingSession',
+  TelephonyCostReport: 'TelephonyCostReport',
+  StripeWebhookEvent: 'StripeWebhookEvent',
   PhoneNumber: 'PhoneNumber',
+  PhoneNumberPurchase: 'PhoneNumberPurchase',
   Agent: 'Agent',
   AgentConfiguration: 'AgentConfiguration',
   AgentWidget: 'AgentWidget',
@@ -71,6 +80,15 @@ export const ModelName = {
   CallTranscript: 'CallTranscript',
   OutboundCall: 'OutboundCall',
   Campaign: 'Campaign',
+  CampaignPersonalizationSchema: 'CampaignPersonalizationSchema',
+  CampaignRecipientSnapshot: 'CampaignRecipientSnapshot',
+  CampaignExperiment: 'CampaignExperiment',
+  CampaignExperimentVariant: 'CampaignExperimentVariant',
+  CampaignExperimentAssignment: 'CampaignExperimentAssignment',
+  CampaignGoal: 'CampaignGoal',
+  CampaignConversionEvent: 'CampaignConversionEvent',
+  CampaignAttributionResult: 'CampaignAttributionResult',
+  CampaignReportSnapshot: 'CampaignReportSnapshot',
   Tool: 'Tool',
   McpServerCatalogItem: 'McpServerCatalogItem',
   McpConnection: 'McpConnection',
@@ -264,6 +282,217 @@ export const SubscriptionScalarFieldEnum = {
 export type SubscriptionScalarFieldEnum = (typeof SubscriptionScalarFieldEnum)[keyof typeof SubscriptionScalarFieldEnum]
 
 
+export const BillingAccountScalarFieldEnum = {
+  billingAccountId: 'billingAccountId',
+  organizationId: 'organizationId',
+  currency: 'currency',
+  paidBalanceMicros: 'paidBalanceMicros',
+  promotionalBalanceMicros: 'promotionalBalanceMicros',
+  reservedPaidMicros: 'reservedPaidMicros',
+  reservedPromotionalMicros: 'reservedPromotionalMicros',
+  debtMicros: 'debtMicros',
+  autoRechargeEnabled: 'autoRechargeEnabled',
+  autoRechargeThresholdMicros: 'autoRechargeThresholdMicros',
+  autoRechargeAmountMicros: 'autoRechargeAmountMicros',
+  stripePaymentMethodId: 'stripePaymentMethodId',
+  paymentMethodRequestVersion: 'paymentMethodRequestVersion',
+  paymentMethodAppliedVersion: 'paymentMethodAppliedVersion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BillingAccountScalarFieldEnum = (typeof BillingAccountScalarFieldEnum)[keyof typeof BillingAccountScalarFieldEnum]
+
+
+export const BillingTransactionScalarFieldEnum = {
+  billingTransactionId: 'billingTransactionId',
+  billingAccountId: 'billingAccountId',
+  organizationId: 'organizationId',
+  type: 'type',
+  idempotencyKey: 'idempotencyKey',
+  grossAmountMicros: 'grossAmountMicros',
+  paidBalanceDeltaMicros: 'paidBalanceDeltaMicros',
+  promotionalBalanceDeltaMicros: 'promotionalBalanceDeltaMicros',
+  reservedPaidDeltaMicros: 'reservedPaidDeltaMicros',
+  reservedPromotionalDeltaMicros: 'reservedPromotionalDeltaMicros',
+  debtDeltaMicros: 'debtDeltaMicros',
+  paidBalanceAfterMicros: 'paidBalanceAfterMicros',
+  promotionalBalanceAfterMicros: 'promotionalBalanceAfterMicros',
+  reservedPaidAfterMicros: 'reservedPaidAfterMicros',
+  reservedPromotionalAfterMicros: 'reservedPromotionalAfterMicros',
+  debtAfterMicros: 'debtAfterMicros',
+  referenceType: 'referenceType',
+  referenceId: 'referenceId',
+  description: 'description',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+} as const
+
+export type BillingTransactionScalarFieldEnum = (typeof BillingTransactionScalarFieldEnum)[keyof typeof BillingTransactionScalarFieldEnum]
+
+
+export const BillingReservationScalarFieldEnum = {
+  billingReservationId: 'billingReservationId',
+  billingAccountId: 'billingAccountId',
+  organizationId: 'organizationId',
+  purpose: 'purpose',
+  status: 'status',
+  idempotencyKey: 'idempotencyKey',
+  amountMicros: 'amountMicros',
+  paidAmountMicros: 'paidAmountMicros',
+  promotionalAmountMicros: 'promotionalAmountMicros',
+  settledAmountMicros: 'settledAmountMicros',
+  debtIncurredMicros: 'debtIncurredMicros',
+  referenceType: 'referenceType',
+  referenceId: 'referenceId',
+  expiresAt: 'expiresAt',
+  settledAt: 'settledAt',
+  releasedAt: 'releasedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BillingReservationScalarFieldEnum = (typeof BillingReservationScalarFieldEnum)[keyof typeof BillingReservationScalarFieldEnum]
+
+
+export const PromotionalGrantScalarFieldEnum = {
+  promotionalGrantId: 'promotionalGrantId',
+  userId: 'userId',
+  identityHash: 'identityHash',
+  organizationId: 'organizationId',
+  billingAccountId: 'billingAccountId',
+  amountMicros: 'amountMicros',
+  billingTransactionId: 'billingTransactionId',
+  reason: 'reason',
+  grantedAt: 'grantedAt'
+} as const
+
+export type PromotionalGrantScalarFieldEnum = (typeof PromotionalGrantScalarFieldEnum)[keyof typeof PromotionalGrantScalarFieldEnum]
+
+
+export const TopUpScalarFieldEnum = {
+  topUpId: 'topUpId',
+  billingAccountId: 'billingAccountId',
+  organizationId: 'organizationId',
+  requestedByUserId: 'requestedByUserId',
+  idempotencyKey: 'idempotencyKey',
+  kind: 'kind',
+  automaticContextKey: 'automaticContextKey',
+  processingToken: 'processingToken',
+  processingExpiresAt: 'processingExpiresAt',
+  reconciliationNextAt: 'reconciliationNextAt',
+  reconciliationAttempts: 'reconciliationAttempts',
+  stripeCheckoutSessionId: 'stripeCheckoutSessionId',
+  stripePaymentIntentId: 'stripePaymentIntentId',
+  stripeTaxCalculationId: 'stripeTaxCalculationId',
+  taxMode: 'taxMode',
+  stripeTaxCode: 'stripeTaxCode',
+  amountMicros: 'amountMicros',
+  taxMicros: 'taxMicros',
+  creditedMicros: 'creditedMicros',
+  refundedMicros: 'refundedMicros',
+  disputedMicros: 'disputedMicros',
+  refundTargetProviderCents: 'refundTargetProviderCents',
+  disputeTargetProviderCents: 'disputeTargetProviderCents',
+  stripeDisputeId: 'stripeDisputeId',
+  disputeState: 'disputeState',
+  financialProcessingToken: 'financialProcessingToken',
+  financialProcessingExpiresAt: 'financialProcessingExpiresAt',
+  financialReconciliationPending: 'financialReconciliationPending',
+  status: 'status',
+  failureCode: 'failureCode',
+  failureMessage: 'failureMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  completedAt: 'completedAt'
+} as const
+
+export type TopUpScalarFieldEnum = (typeof TopUpScalarFieldEnum)[keyof typeof TopUpScalarFieldEnum]
+
+
+export const CallBillingSessionScalarFieldEnum = {
+  callBillingSessionId: 'callBillingSessionId',
+  callId: 'callId',
+  billingAccountId: 'billingAccountId',
+  organizationId: 'organizationId',
+  status: 'status',
+  billingMode: 'billingMode',
+  admissionGeneration: 'admissionGeneration',
+  rateCatalogVersion: 'rateCatalogVersion',
+  rateSnapshot: 'rateSnapshot',
+  lastModelUsage: 'lastModelUsage',
+  activeReservationId: 'activeReservationId',
+  sessionId: 'sessionId',
+  roomName: 'roomName',
+  agentId: 'agentId',
+  userId: 'userId',
+  lastUsageSequence: 'lastUsageSequence',
+  processingUsageSequence: 'processingUsageSequence',
+  processingUsageStartedAt: 'processingUsageStartedAt',
+  connectedSeconds: 'connectedSeconds',
+  connectedMilliseconds: 'connectedMilliseconds',
+  aiCostMicros: 'aiCostMicros',
+  platformCostMicros: 'platformCostMicros',
+  telephonyEstimatedMicros: 'telephonyEstimatedMicros',
+  telephonyFinalMicros: 'telephonyFinalMicros',
+  unreportedTailMicros: 'unreportedTailMicros',
+  totalSettledMicros: 'totalSettledMicros',
+  debtIncurredMicros: 'debtIncurredMicros',
+  telephonyProvider: 'telephonyProvider',
+  providerCallId: 'providerCallId',
+  providerBillableSeconds: 'providerBillableSeconds',
+  reconciliationAttempts: 'reconciliationAttempts',
+  reconciliationClaimedAt: 'reconciliationClaimedAt',
+  reconciliationNextAt: 'reconciliationNextAt',
+  reconciliationLastError: 'reconciliationLastError',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  reconciledAt: 'reconciledAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type CallBillingSessionScalarFieldEnum = (typeof CallBillingSessionScalarFieldEnum)[keyof typeof CallBillingSessionScalarFieldEnum]
+
+
+export const TelephonyCostReportScalarFieldEnum = {
+  telephonyCostReportId: 'telephonyCostReportId',
+  provider: 'provider',
+  periodStart: 'periodStart',
+  periodEnd: 'periodEnd',
+  externalReportId: 'externalReportId',
+  status: 'status',
+  reportUrl: 'reportUrl',
+  attempts: 'attempts',
+  nextAttemptAt: 'nextAttemptAt',
+  processingToken: 'processingToken',
+  processingExpiresAt: 'processingExpiresAt',
+  lastError: 'lastError',
+  processedAt: 'processedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TelephonyCostReportScalarFieldEnum = (typeof TelephonyCostReportScalarFieldEnum)[keyof typeof TelephonyCostReportScalarFieldEnum]
+
+
+export const StripeWebhookEventScalarFieldEnum = {
+  stripeEventId: 'stripeEventId',
+  organizationId: 'organizationId',
+  type: 'type',
+  status: 'status',
+  livemode: 'livemode',
+  payload: 'payload',
+  attempts: 'attempts',
+  lastError: 'lastError',
+  receivedAt: 'receivedAt',
+  processedAt: 'processedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type StripeWebhookEventScalarFieldEnum = (typeof StripeWebhookEventScalarFieldEnum)[keyof typeof StripeWebhookEventScalarFieldEnum]
+
+
 export const PhoneNumberScalarFieldEnum = {
   phId: 'phId',
   number: 'number',
@@ -273,11 +502,64 @@ export const PhoneNumberScalarFieldEnum = {
   sid: 'sid',
   friendlyName: 'friendlyName',
   provider: 'provider',
+  billingStatus: 'billingStatus',
+  providerMonthlyCostMicros: 'providerMonthlyCostMicros',
+  rentalPriceMicros: 'rentalPriceMicros',
+  nextBillingAt: 'nextBillingAt',
+  lastBilledAt: 'lastBilledAt',
+  billingSuspendedAt: 'billingSuspendedAt',
+  scheduledReleaseAt: 'scheduledReleaseAt',
+  billingOperationToken: 'billingOperationToken',
+  billingOperationExpiresAt: 'billingOperationExpiresAt',
+  billingReleaseClaimedAt: 'billingReleaseClaimedAt',
+  billingFailureCount: 'billingFailureCount',
+  lastBillingAttemptAt: 'lastBillingAttemptAt',
+  billingNoticeSentAt: 'billingNoticeSentAt',
+  billingSuspendedAgentId: 'billingSuspendedAgentId',
+  billingCountryIso: 'billingCountryIso',
+  billingNumberType: 'billingNumberType',
+  billingRateCatalogVersion: 'billingRateCatalogVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type PhoneNumberScalarFieldEnum = (typeof PhoneNumberScalarFieldEnum)[keyof typeof PhoneNumberScalarFieldEnum]
+
+
+export const PhoneNumberPurchaseScalarFieldEnum = {
+  phoneNumberPurchaseId: 'phoneNumberPurchaseId',
+  quoteNonce: 'quoteNonce',
+  organizationId: 'organizationId',
+  requestedByUserId: 'requestedByUserId',
+  phoneNumber: 'phoneNumber',
+  provider: 'provider',
+  providerMonthlyCostMicros: 'providerMonthlyCostMicros',
+  rentalPriceMicros: 'rentalPriceMicros',
+  billingCountryIso: 'billingCountryIso',
+  billingNumberType: 'billingNumberType',
+  rateCatalogVersion: 'rateCatalogVersion',
+  quoteExpiresAt: 'quoteExpiresAt',
+  status: 'status',
+  billingReservationId: 'billingReservationId',
+  providerResourceId: 'providerResourceId',
+  providerOrderId: 'providerOrderId',
+  providerFriendlyName: 'providerFriendlyName',
+  persistedPhoneNumberId: 'persistedPhoneNumberId',
+  providerAttemptedAt: 'providerAttemptedAt',
+  providerPurchasedAt: 'providerPurchasedAt',
+  phonePersistedAt: 'phonePersistedAt',
+  completedAt: 'completedAt',
+  failedAt: 'failedAt',
+  processingToken: 'processingToken',
+  processingExpiresAt: 'processingExpiresAt',
+  attemptCount: 'attemptCount',
+  lastErrorCode: 'lastErrorCode',
+  lastErrorMessage: 'lastErrorMessage',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PhoneNumberPurchaseScalarFieldEnum = (typeof PhoneNumberPurchaseScalarFieldEnum)[keyof typeof PhoneNumberPurchaseScalarFieldEnum]
 
 
 export const AgentScalarFieldEnum = {
@@ -395,6 +677,9 @@ export const KnowledgeSourceScalarFieldEnum = {
   storagePath: 'storagePath',
   sourceType: 'sourceType',
   status: 'status',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  errorRetryable: 'errorRetryable',
   metadata: 'metadata',
   lastIndexedAt: 'lastIndexedAt',
   uploadedAt: 'uploadedAt'
@@ -485,6 +770,156 @@ export const CampaignScalarFieldEnum = {
 } as const
 
 export type CampaignScalarFieldEnum = (typeof CampaignScalarFieldEnum)[keyof typeof CampaignScalarFieldEnum]
+
+
+export const CampaignPersonalizationSchemaScalarFieldEnum = {
+  schemaId: 'schemaId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  version: 'version',
+  fields: 'fields',
+  templates: 'templates',
+  attribution: 'attribution',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignPersonalizationSchemaScalarFieldEnum = (typeof CampaignPersonalizationSchemaScalarFieldEnum)[keyof typeof CampaignPersonalizationSchemaScalarFieldEnum]
+
+
+export const CampaignRecipientSnapshotScalarFieldEnum = {
+  snapshotId: 'snapshotId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  outboundId: 'outboundId',
+  schemaVersion: 'schemaVersion',
+  rowNumber: 'rowNumber',
+  recipientKey: 'recipientKey',
+  values: 'values',
+  findings: 'findings',
+  renderedConfigDigest: 'renderedConfigDigest',
+  renderedPreview: 'renderedPreview',
+  skipped: 'skipped',
+  skipReason: 'skipReason',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignRecipientSnapshotScalarFieldEnum = (typeof CampaignRecipientSnapshotScalarFieldEnum)[keyof typeof CampaignRecipientSnapshotScalarFieldEnum]
+
+
+export const CampaignExperimentScalarFieldEnum = {
+  experimentId: 'experimentId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  version: 'version',
+  definition: 'definition',
+  status: 'status',
+  startedAt: 'startedAt',
+  stoppedAt: 'stoppedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignExperimentScalarFieldEnum = (typeof CampaignExperimentScalarFieldEnum)[keyof typeof CampaignExperimentScalarFieldEnum]
+
+
+export const CampaignExperimentVariantScalarFieldEnum = {
+  variantId: 'variantId',
+  experimentId: 'experimentId',
+  key: 'key',
+  name: 'name',
+  allocationBps: 'allocationBps',
+  configVersion: 'configVersion',
+  isControl: 'isControl',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignExperimentVariantScalarFieldEnum = (typeof CampaignExperimentVariantScalarFieldEnum)[keyof typeof CampaignExperimentVariantScalarFieldEnum]
+
+
+export const CampaignExperimentAssignmentScalarFieldEnum = {
+  assignmentId: 'assignmentId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  experimentId: 'experimentId',
+  variantId: 'variantId',
+  outboundId: 'outboundId',
+  unitKey: 'unitKey',
+  assignmentHash: 'assignmentHash',
+  excluded: 'excluded',
+  exclusionReason: 'exclusionReason',
+  assignedAt: 'assignedAt'
+} as const
+
+export type CampaignExperimentAssignmentScalarFieldEnum = (typeof CampaignExperimentAssignmentScalarFieldEnum)[keyof typeof CampaignExperimentAssignmentScalarFieldEnum]
+
+
+export const CampaignGoalScalarFieldEnum = {
+  goalId: 'goalId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  key: 'key',
+  version: 'version',
+  definition: 'definition',
+  attributionPolicy: 'attributionPolicy',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignGoalScalarFieldEnum = (typeof CampaignGoalScalarFieldEnum)[keyof typeof CampaignGoalScalarFieldEnum]
+
+
+export const CampaignConversionEventScalarFieldEnum = {
+  conversionId: 'conversionId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  goalId: 'goalId',
+  goalKey: 'goalKey',
+  dedupeKey: 'dedupeKey',
+  externalCustomerId: 'externalCustomerId',
+  occurredAt: 'occurredAt',
+  ingestedAt: 'ingestedAt',
+  valueCents: 'valueCents',
+  currency: 'currency',
+  source: 'source',
+  evidence: 'evidence',
+  revision: 'revision',
+  rejected: 'rejected',
+  rejectionReason: 'rejectionReason'
+} as const
+
+export type CampaignConversionEventScalarFieldEnum = (typeof CampaignConversionEventScalarFieldEnum)[keyof typeof CampaignConversionEventScalarFieldEnum]
+
+
+export const CampaignAttributionResultScalarFieldEnum = {
+  attributionId: 'attributionId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  conversionId: 'conversionId',
+  goalId: 'goalId',
+  experimentId: 'experimentId',
+  variantId: 'variantId',
+  outboundId: 'outboundId',
+  policyVersion: 'policyVersion',
+  model: 'model',
+  attributedValueCents: 'attributedValueCents',
+  evidence: 'evidence',
+  computedAt: 'computedAt',
+  revision: 'revision'
+} as const
+
+export type CampaignAttributionResultScalarFieldEnum = (typeof CampaignAttributionResultScalarFieldEnum)[keyof typeof CampaignAttributionResultScalarFieldEnum]
+
+
+export const CampaignReportSnapshotScalarFieldEnum = {
+  reportId: 'reportId',
+  organizationId: 'organizationId',
+  campaignId: 'campaignId',
+  scope: 'scope',
+  definitionsVersion: 'definitionsVersion',
+  dataFreshnessAt: 'dataFreshnessAt',
+  report: 'report',
+  createdAt: 'createdAt'
+} as const
+
+export type CampaignReportSnapshotScalarFieldEnum = (typeof CampaignReportSnapshotScalarFieldEnum)[keyof typeof CampaignReportSnapshotScalarFieldEnum]
 
 
 export const ToolScalarFieldEnum = {

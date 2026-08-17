@@ -1,4 +1,4 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -9,12 +9,18 @@ import prisma from "../config/prisma.js";
 import { stripeClient } from "../config/stripe.js";
 import { sendEmail } from "./mailer.js";
 import { ac, roles } from "./permissions.js";
+
 import { plans } from "../../data/plans.js";
 import {
   isSecureServerUrl,
   serverBaseUrl,
   trustedOrigins,
 } from "../config/origins.js";
+import { cleanupOrganizationDeletionHook } from "../modules/organization/organization-cleanup.service.js";
+import { ensureBillingAccount } from "../modules/billing/wallet-ledger.service.js";
+import { maybeGrantSignupCredit } from "../modules/billing/signup-credit.service.js";
+import { ORGANIZATION_API_KEY_PERMISSIONS } from "../middleware/api-key-auth.js";
+import { isHostedBilling } from "../config/billing-mode.js";
 
 // ─── Better Auth server instance ────────────────────────────────────────────
 export const auth = betterAuth({
@@ -38,6 +44,17 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  databaseHooks: {
+    user: {
+      update: {
+        after: async (user) => {
+          if (user.emailVerified) {
+            await maybeGrantSignupCredit({ userId: user.id });
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -69,7 +86,12 @@ export const auth = betterAuth({
   plugins: [
     admin(),
     apiKey({
-      enableSessionForAPIKeys: true,
+      references: "organization",
+      enableSessionForAPIKeys: false,
+      enableMetadata: false,
+      permissions: {
+        defaultPermissions: ORGANIZATION_API_KEY_PERMISSIONS,
+      },
     }),
     organization({
       ac,
@@ -77,19 +99,65 @@ export const auth = betterAuth({
       dynamicAccessControl: {
         enabled: true,
       },
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization: org, user }) => {
+          await ensureBillingAccount(org.id);
+          await maybeGrantSignupCredit({
+            userId: user.id,
+            organizationId: org.id,
+          });
+        },
+        beforeDeleteOrganization: async ({ organization: org }) => {
+          try {
+            await cleanupOrganizationDeletionHook(org);
+          } catch (error) {
+            console.error("[organization] external cleanup blocked deletion", {
+              organizationId: org.id,
+              error:
+                error instanceof Error
+                  ? error.message
+                  : "Unknown cleanup error",
+            });
+            throw new APIError("BAD_REQUEST", {
+              message:
+                "Organization deletion did not complete. Cleanup is retry-safe and may already have released provider resources; retry after checking provider connectivity.",
+            });
+          }
+        },
+      },
     }),
     stripe({
       stripeClient,
       stripeWebhookSecret: process.env.STRIPE_WEBHOOK_SECRET!,
-      createCustomerOnSignUp: true,
+      createCustomerOnSignUp: false,
       subscription: {
         enabled: true,
         defaultPlan: "free",
         plans: plans,
+        authorizeReference: async ({ user, referenceId, action }) => {
+          // Prepaid wallets replace new plan purchases. Keep the plugin active
+          // only so existing subscriptions can be viewed and sunset cleanly.
+          if (
+            action === "upgrade-subscription" ||
+            action === "restore-subscription" ||
+            action === "billing-portal"
+          ) {
+            return false;
+          }
+          const member = await prisma.member.findUnique({
+            where: {
+              organizationId_userId: {
+                organizationId: referenceId,
+                userId: user.id,
+              },
+            },
+            select: { role: true },
+          });
+          if (action === "list-subscription") return member !== null;
+          return member?.role === "owner" || member?.role === "admin";
+        },
       },
-      organization: {
-        enabled: true,
-      },
+      organization: isHostedBilling ? { enabled: true } : undefined,
     }),
   ],
 });

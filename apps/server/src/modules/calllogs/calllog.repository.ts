@@ -1,4 +1,5 @@
 import { Prisma } from "../../../prisma/generated/prisma/client.js";
+import { BadRequestError } from "../../common/errors/badRequest.js";
 import prisma from "../../config/prisma.js";
 import { redactJson, redactText } from "../../lib/redaction.js";
 import type {
@@ -14,73 +15,104 @@ import { widgetRoomBelongsToOrg } from "../widgets/widget.repository.js";
 // the CallLog is still persisted (per product decision #4).
 export const saveCallLog = async (input: IngestCallLogArgs) => {
   const redactPii = process.env.CALL_LOG_PII_REDACTION !== "false";
-  const { callerId, metadata } = buildCallLogIdentityFields(input, redactPii);
 
-  return prisma.$transaction(async (tx) => {
-    const callLog = await tx.callLog.create({
-      data: {
-        callId: input.callId,
-        organizationId: input.organizationId,
-        agentId: input.agentId,
-        userId: input.userId,
-        startTime: new Date(input.startTime),
-        endTime: new Date(input.endTime),
-        durationSeconds: input.durationSeconds,
-        status: input.status,
-        direction: input.direction,
-        audioRecordingPath: input.recordingSid,
-        callerId,
-        metadata,
-        dataExtracted: redactPii ? redactJson(input.extractedData) : input.extractedData,
-        dataEvaluation: redactPii ? redactJson(input.evaluatedData) : input.evaluatedData,
-        
-      },
-    });
+  return prisma.$transaction((tx) =>
+    saveCallLogInTransaction(tx, input, redactPii),
+  );
+};
+
+export const saveCallLogInTransaction = async (
+  tx: Prisma.TransactionClient,
+  input: IngestCallLogArgs,
+  redactPii: boolean,
+) => {
+  const { callerId, metadata } = buildCallLogIdentityFields(input, redactPii);
+  const inserted = await tx.callLog.createMany({
+    data: {
+      callId: input.callId,
+      organizationId: input.organizationId,
+      agentId: input.agentId,
+      userId: input.userId,
+      startTime: new Date(input.startTime),
+      endTime: new Date(input.endTime),
+      durationSeconds: input.durationSeconds,
+      status: input.status,
+      direction: input.direction,
+      audioRecordingPath: input.recordingSid,
+      callerId,
+      metadata,
+      dataExtracted: redactPii
+        ? redactJson(input.extractedData)
+        : input.extractedData,
+      dataEvaluation: redactPii
+        ? redactJson(input.evaluatedData)
+        : input.evaluatedData,
+    },
+    skipDuplicates: true,
+  });
+
+  const callLog = await tx.callLog.findUnique({
+    where: { callId: input.callId },
+  });
+  if (!callLog || callLog.organizationId !== input.organizationId) {
+    throw new BadRequestError("Call identifier is already in use");
+  }
+
+  if (inserted.count === 0) {
+    return callLog;
+  }
+
+  if (input.transcripts.length > 0) {
     await tx.callTranscript.createMany({
       data: input.transcripts.map((transcript) => ({
         callLogId: callLog.callId,
         speaker: transcript.role,
-        messageText: redactPii ? redactText(transcript.message) : transcript.message,
+        messageText: redactPii
+          ? redactText(transcript.message)
+          : transcript.message,
         timestamp: new Date(transcript.timestamp),
         isPiiRedacted: redactPii,
       })),
     });
+  }
 
-    const outboundId = input.metadata?.outboundId ?? null;
-    if (outboundId) {
-      // updateMany with the composite {outboundId, organizationId} predicate
-      // is the tenant-safe write — a row in a different org yields count: 0
-      // instead of being updated, same pattern as linkAgent in phone.repository.
-      const linked = await tx.outboundCall.updateMany({
-        where: { outboundId, organizationId: input.organizationId },
-        data: { callLogId: callLog.callId, status: input.status },
+  const outboundId = input.metadata?.outboundId ?? null;
+  if (outboundId) {
+    // updateMany with the composite {outboundId, organizationId} predicate
+    // is the tenant-safe write. A row in a different org yields count: 0.
+    const linked = await tx.outboundCall.updateMany({
+      where: { outboundId, organizationId: input.organizationId },
+      data: { callLogId: callLog.callId, status: input.status },
+    });
+    if (linked.count === 0) {
+      console.warn("[calllogs] ingest: outboundId not linkable", {
+        outboundId,
+        callId: callLog.callId,
+        organizationId: input.organizationId,
       });
-      if (linked.count === 0) {
-        console.warn("[calllogs] ingest: outboundId not linkable", {
-          outboundId,
-          callId: callLog.callId,
-          organizationId: input.organizationId,
-        });
-      }
     }
+  }
 
-    return callLog;
-  });
+  return callLog;
 };
 
-export function buildCallLogIdentityFields(input: IngestCallLogArgs, redactPii: boolean) {
+export function buildCallLogIdentityFields(
+  input: IngestCallLogArgs,
+  redactPii: boolean,
+) {
   // The external party's number goes into callerId. On inbound it's the
   // caller; on outbound it's the callee. Keep structured phone fields raw so
   // call-log tables and details can show the actual number; redact only
   // free-form text that may contain incidental PII.
   const callerId =
-    (input.direction === "inbound" ? input.fromNumber : input.toNumber) ||
-    null;
+    (input.direction === "inbound" ? input.fromNumber : input.toNumber) || null;
   const summary = input.metadata?.summary ?? "";
   const intent = input.metadata?.intent ?? "";
-  const baseMetadata = (redactPii
-    ? redactJson(jsonObject(input.metadata))
-    : jsonObject(input.metadata)) as Prisma.InputJsonObject;
+  const baseMetadata = (
+    redactPii
+      ? redactJson(jsonObject(input.metadata))
+      : jsonObject(input.metadata)
+  ) as Prisma.InputJsonObject;
   const metadata = {
     ...baseMetadata,
     summary: redactPii ? redactText(summary) : summary,
@@ -139,7 +171,7 @@ export const listByOrg = async (args: ListCallLogsArgs) => {
 
 export const getCallByIdForOrg = async (
   callId: string,
-  organizationId: string
+  organizationId: string,
 ) => {
   // findFirst with the composite {callId, organizationId} predicate prevents
   // callers from reading a row that belongs to another org.
@@ -147,6 +179,18 @@ export const getCallByIdForOrg = async (
     where: { callId, organizationId, deleted: false },
   });
 };
+
+export const getCallForDeletion = async (
+  callId: string,
+  organizationId: string,
+) =>
+  prisma.callLog.findFirst({
+    where: { callId, organizationId, deleted: false },
+    select: {
+      callId: true,
+      audioRecordingPath: true,
+    },
+  });
 
 export const getTranscriptsByCallId = async (args: ListTranscriptsArgs) => {
   const { callId, organizationId, limit, cursor } = args;
@@ -166,7 +210,7 @@ export const getTranscriptsByCallId = async (args: ListTranscriptsArgs) => {
 
 export const liveRoomBelongsToOrg = async (
   organizationId: string,
-  roomName: string
+  roomName: string,
 ) => {
   if (roomName.startsWith("widget_")) {
     return widgetRoomBelongsToOrg(organizationId, roomName);
@@ -189,7 +233,7 @@ export const liveRoomBelongsToOrg = async (
 
 export const listAgentNamesForOrg = async (
   organizationId: string,
-  agentIds: string[]
+  agentIds: string[],
 ) => {
   if (agentIds.length === 0) return [];
   return prisma.agent.findMany({
@@ -201,12 +245,33 @@ export const listAgentNamesForOrg = async (
   });
 };
 
-export const deleteCallLog = async (callId: string, organizationId: string) => {
-  // Soft delete: flip `deleted=true`. Idempotent — a row already deleted
-  // yields count: 0, which the service surfaces as NotFoundError.
-  const result = await prisma.callLog.updateMany({
-    where: { callId, organizationId, deleted: false },
-    data: { deleted: true },
+export const deleteCallLog = async (
+  callId: string,
+  organizationId: string,
+  expectedRecordingPath: string | null,
+) => {
+  return prisma.$transaction(async (tx) => {
+    const result = await tx.callLog.updateMany({
+      where: {
+        callId,
+        organizationId,
+        deleted: false,
+        audioRecordingPath: expectedRecordingPath,
+      },
+      data: {
+        deleted: true,
+        audioRecordingPath: null,
+        callerId: null,
+        metadata: Prisma.JsonNull,
+        dataExtracted: [],
+        dataEvaluation: [],
+      },
+    });
+    if (result.count === 0) return false;
+
+    await tx.callTranscript.deleteMany({
+      where: { callLogId: callId },
+    });
+    return true;
   });
-  return result.count > 0;
 };

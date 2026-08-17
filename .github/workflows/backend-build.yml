@@ -24,10 +24,9 @@ env:
   SERVER_ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
   AI_ECR_REPOSITORY: ${{ vars.AI_ECR_REPOSITORY }}
   AWS_REGION: ${{ vars.AWS_REGION }}
-  ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
-  ECS_SERVICE: ${{ vars.ECS_SERVICE }}
-  SERVER_ECS_CONTAINER_NAME: ${{ vars.SERVER_ECS_CONTAINER_NAME || 'quickvoice-server' }}
-  AI_ECS_CONTAINER_NAME: ${{ vars.AI_ECS_CONTAINER_NAME || 'quickvoice-ai' }}
+  COOLIFY_API_URL: ${{ vars.COOLIFY_API_URL }}
+  COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID: ${{ vars.COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID }}
+  COOLIFY_QUICKVOICE_AI_RESOURCE_UUID: ${{ vars.COOLIFY_QUICKVOICE_AI_RESOURCE_UUID }}
 
 jobs:
   changes:
@@ -102,8 +101,10 @@ jobs:
           REQUIRED_AWS_REGION: ${{ env.AWS_REGION }}
           REQUIRED_SERVER_ECR_REPOSITORY: ${{ env.SERVER_ECR_REPOSITORY }}
           REQUIRED_AI_ECR_REPOSITORY: ${{ env.AI_ECR_REPOSITORY }}
-          REQUIRED_ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
-          REQUIRED_ECS_SERVICE: ${{ env.ECS_SERVICE }}
+          REQUIRED_COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
+          REQUIRED_COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID }}
+          REQUIRED_COOLIFY_QUICKVOICE_AI_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_AI_RESOURCE_UUID }}
+          REQUIRED_COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
           missing=0
           if [ -z "$REQUIRED_AWS_ROLE_ARN" ]; then
@@ -122,12 +123,20 @@ jobs:
             echo "[fail] Missing GitHub repository variable: AI_ECR_REPOSITORY"
             missing=1
           fi
-          if [ -z "$REQUIRED_ECS_CLUSTER" ]; then
-            echo "[fail] Missing GitHub repository variable: ECS_CLUSTER"
+          if [ -z "$REQUIRED_COOLIFY_API_URL" ]; then
+            echo "[fail] Missing GitHub repository variable: COOLIFY_API_URL"
             missing=1
           fi
-          if [ -z "$REQUIRED_ECS_SERVICE" ]; then
-            echo "[fail] Missing GitHub repository variable: ECS_SERVICE"
+          if [ -z "$REQUIRED_COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID" ]; then
+            echo "[fail] Missing GitHub repository variable: COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID"
+            missing=1
+          fi
+          if [ -z "$REQUIRED_COOLIFY_QUICKVOICE_AI_RESOURCE_UUID" ]; then
+            echo "[fail] Missing GitHub repository variable: COOLIFY_QUICKVOICE_AI_RESOURCE_UUID"
+            missing=1
+          fi
+          if [ -z "$REQUIRED_COOLIFY_API_TOKEN" ]; then
+            echo "[fail] Missing GitHub repository secret: COOLIFY_API_TOKEN"
             missing=1
           fi
 
@@ -141,8 +150,10 @@ jobs:
               echo "- AWS_REGION"
               echo "- ECR_REPOSITORY"
               echo "- AI_ECR_REPOSITORY"
-              echo "- ECS_CLUSTER"
-              echo "- ECS_SERVICE"
+              echo "- COOLIFY_API_URL"
+              echo "- COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID"
+              echo "- COOLIFY_QUICKVOICE_AI_RESOURCE_UUID"
+              echo "- COOLIFY_API_TOKEN secret"
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
@@ -153,10 +164,8 @@ jobs:
             echo "- AWS region: ${REQUIRED_AWS_REGION}"
             echo "- Server ECR repository: ${REQUIRED_SERVER_ECR_REPOSITORY}"
             echo "- AI ECR repository: ${REQUIRED_AI_ECR_REPOSITORY}"
-            echo "- ECS cluster: ${REQUIRED_ECS_CLUSTER}"
-            echo "- ECS service: ${REQUIRED_ECS_SERVICE}"
-            echo "- Server ECS container: ${SERVER_ECS_CONTAINER_NAME}"
-            echo "- AI ECS container: ${AI_ECS_CONTAINER_NAME}"
+            echo "- Coolify server app UUID: ${REQUIRED_COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID}"
+            echo "- Coolify AI app UUID: ${REQUIRED_COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}"
           } >> "$GITHUB_STEP_SUMMARY"
 
   build-server:
@@ -190,13 +199,15 @@ jobs:
         shell: bash
         env:
           IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.SERVER_ECR_REPOSITORY }}:sha-${{ github.sha }}
+          LATEST_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.SERVER_ECR_REPOSITORY }}:latest
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
             if docker build \
               --file apps/server/Dockerfile \
               --tag "${IMAGE_TAG}" \
-              . && docker push "${IMAGE_TAG}"; then
+              --tag "${LATEST_TAG}" \
+              . && docker push "${IMAGE_TAG}" && docker push "${LATEST_TAG}"; then
               digest="$(aws ecr describe-images \
                 --repository-name "${SERVER_ECR_REPOSITORY}" \
                 --image-ids imageTag="sha-${GITHUB_SHA}" \
@@ -260,13 +271,15 @@ jobs:
         shell: bash
         env:
           IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.AI_ECR_REPOSITORY }}:sha-${{ github.sha }}
+          LATEST_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.AI_ECR_REPOSITORY }}:latest
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
             if docker build \
               --file apps/ai/Dockerfile \
               --tag "${IMAGE_TAG}" \
-              apps/ai && docker push "${IMAGE_TAG}"; then
+              --tag "${LATEST_TAG}" \
+              apps/ai && docker push "${IMAGE_TAG}" && docker push "${LATEST_TAG}"; then
               digest="$(aws ecr describe-images \
                 --repository-name "${AI_ECR_REPOSITORY}" \
                 --image-ids imageTag="sha-${GITHUB_SHA}" \
@@ -300,7 +313,7 @@ jobs:
         run: docker buildx imagetools inspect "$AI_IMAGE_URI"
 
   deploy:
-    name: Deploy Backend Images to ECS
+    name: Deploy Backend Images to Coolify
     runs-on: self-hosted
     needs: [changes, validate-config, build-server, build-ai]
     if: |
@@ -311,132 +324,69 @@ jobs:
       && (needs.build-ai.result == 'success' || needs.build-ai.result == 'skipped')
     environment:
       name: production-backend
-    permissions:
-      id-token: write
-      contents: read
-    outputs:
-      task_definition: ${{ steps.deploy.outputs.task_definition }}
     steps:
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
-          aws-region: ${{ env.AWS_REGION }}
-
-      - name: Deploy image(s) to ECS
+      - name: Trigger Coolify deployment(s)
         id: deploy
         env:
           SERVER_CHANGED: ${{ needs.changes.outputs.server }}
           AI_CHANGED: ${{ needs.changes.outputs.ai }}
           SERVER_IMAGE_URI: ${{ needs.build-server.outputs.image_uri }}
+          SERVER_IMAGE_TAG: ${{ needs.build-server.outputs.image_tag }}
           AI_IMAGE_URI: ${{ needs.build-ai.outputs.image_uri }}
+          AI_IMAGE_TAG: ${{ needs.build-ai.outputs.image_tag }}
+          COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
+          COOLIFY_SERVER_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID }}
+          COOLIFY_AI_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_AI_RESOURCE_UUID }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         run: |
           set -euo pipefail
 
-          current_task_definition_arn="$(aws ecs describe-services \
-            --cluster "$ECS_CLUSTER" \
-            --services "$ECS_SERVICE" \
-            --query 'services[0].taskDefinition' \
-            --output text)"
+          deploy_coolify() {
+            local label="$1"
+            local resource_uuid="$2"
+            local image_uri="$3"
+            local image_tag="$4"
+            local image_name="${image_tag%:*}"
+            local tag="${image_tag##*:}"
 
-          aws ecs describe-task-definition \
-            --task-definition "$current_task_definition_arn" \
-            --query taskDefinition \
-            > task-definition.json
-
-          check_container() {
-            local container="$1"
-            if ! jq -e --arg container "$container" \
-              '.containerDefinitions[] | select(.name == $container)' task-definition.json > /dev/null; then
-              echo "[fail] Container '${container}' was not found in ${current_task_definition_arn}"
+            if [ -z "$resource_uuid" ]; then
+              echo "[fail] Missing Coolify resource UUID for ${label}."
               exit 1
             fi
+            if [ -z "$image_uri" ]; then
+              echo "[fail] Missing ${label} image digest."
+              exit 1
+            fi
+
+            curl --fail --show-error --silent \
+              --request PATCH "${COOLIFY_API_URL}/applications/${resource_uuid}" \
+              --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              --header "Content-Type: application/json" \
+              --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
+
+            curl --fail --show-error --silent \
+              --request POST "${COOLIFY_API_URL}/deploy?uuid=${resource_uuid}&force=false" \
+              --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
+              --header "Content-Type: application/json"
+
+            {
+              echo "- ${label} Coolify app UUID: ${resource_uuid}"
+              echo "- ${label} image: ${image_uri}"
+              echo "- ${label} image tag: ${image_tag}"
+              echo "- ${label} Coolify image tag: ${tag}"
+            } >> "$GITHUB_STEP_SUMMARY"
           }
 
-          if [ "$SERVER_CHANGED" = "true" ]; then
-            check_container "$SERVER_ECS_CONTAINER_NAME"
-            if [ -z "$SERVER_IMAGE_URI" ]; then
-              echo "[fail] Missing server image digest"
-              exit 1
-            fi
-          fi
-
-          if [ "$AI_CHANGED" = "true" ]; then
-            check_container "$AI_ECS_CONTAINER_NAME"
-            if [ -z "$AI_IMAGE_URI" ]; then
-              echo "[fail] Missing AI image digest"
-              exit 1
-            fi
-          fi
-
-          jq \
-            --arg server_changed "$SERVER_CHANGED" \
-            --arg server_container "$SERVER_ECS_CONTAINER_NAME" \
-            --arg server_image "$SERVER_IMAGE_URI" \
-            --arg ai_changed "$AI_CHANGED" \
-            --arg ai_container "$AI_ECS_CONTAINER_NAME" \
-            --arg ai_image "$AI_IMAGE_URI" '
-            .containerDefinitions |= map(
-              if .name == $server_container then
-                (if $server_changed == "true" then .image = $server_image else . end)
-                | .environment = (((.environment // []) | map(select(.name != "LIVEKIT_AGENT_NAME"))) + [{"name":"LIVEKIT_AGENT_NAME","value":"quickvoice-voice-agent"}])
-                | .secrets = ((.secrets // []) | map(select(.name != "TELNYX_CONNECTION_ID")))
-              elif .name == $ai_container then
-                (if $ai_changed == "true" then .image = $ai_image else . end)
-                | .environment = (((.environment // []) | map(select(
-                    .name != "PINECONE_INDEX"
-                    and .name != "PINECONE_EMBEDDING_MODEL"
-                    and .name != "PINECONE_NAMESPACE"
-                  ))) + [
-                    {"name":"PINECONE_INDEX","value":"quickvoice"},
-                    {"name":"PINECONE_EMBEDDING_MODEL","value":"llama-text-embed-v2"},
-                    {"name":"PINECONE_NAMESPACE","value":"documents"}
-                  ])
-              else . end
-            )
-            | del(
-              .taskDefinitionArn,
-              .revision,
-              .status,
-              .requiresAttributes,
-              .compatibilities,
-              .registeredAt,
-              .registeredBy
-            )
-          ' task-definition.json > new-task-definition.json
-
-          new_task_definition_arn="$(aws ecs register-task-definition \
-            --cli-input-json file://new-task-definition.json \
-            --query 'taskDefinition.taskDefinitionArn' \
-            --output text)"
-
-          aws ecs update-service \
-            --cluster "$ECS_CLUSTER" \
-            --service "$ECS_SERVICE" \
-            --task-definition "$new_task_definition_arn" \
-            --force-new-deployment
-
-          aws ecs wait services-stable \
-            --cluster "$ECS_CLUSTER" \
-            --services "$ECS_SERVICE"
-
-          echo "task_definition=${new_task_definition_arn}" >> "$GITHUB_OUTPUT"
-
           {
-            echo "## ECS deployment"
-            echo "- Cluster: ${ECS_CLUSTER}"
-            echo "- Service: ${ECS_SERVICE}"
-            echo "- Previous task definition: ${current_task_definition_arn}"
-            echo "- New task definition: ${new_task_definition_arn}"
-            if [ "$SERVER_CHANGED" = "true" ]; then
-              echo "- Server container: ${SERVER_ECS_CONTAINER_NAME}"
-              echo "- Server image: ${SERVER_IMAGE_URI}"
-            fi
-            if [ "$AI_CHANGED" = "true" ]; then
-              echo "- AI container: ${AI_ECS_CONTAINER_NAME}"
-              echo "- AI image: ${AI_IMAGE_URI}"
-            fi
+            echo "## Coolify deployment"
           } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "$SERVER_CHANGED" = "true" ]; then
+            deploy_coolify "Server" "$COOLIFY_SERVER_RESOURCE_UUID" "$SERVER_IMAGE_URI" "$SERVER_IMAGE_TAG"
+          fi
+          if [ "$AI_CHANGED" = "true" ]; then
+            deploy_coolify "AI" "$COOLIFY_AI_RESOURCE_UUID" "$AI_IMAGE_URI" "$AI_IMAGE_TAG"
+          fi
 
   scan-server:
     name: Scan Server Image
@@ -575,12 +525,10 @@ jobs:
           AI_IMAGE_TAG: ${{ needs.build-ai.outputs.image_tag }}
           SERVER_IMAGE_DIGEST: ${{ needs.build-server.outputs.digest }}
           AI_IMAGE_DIGEST: ${{ needs.build-ai.outputs.digest }}
-          TASK_DEFINITION: ${{ needs.deploy.outputs.task_definition }}
         run: |
           {
             echo "## Rollback metadata"
             echo "- Source commit: ${GITHUB_SHA}"
-            echo "- ECS task definition: ${TASK_DEFINITION}"
             if [ "$SERVER_CHANGED" = "true" ]; then
               echo "- Server image tag: ${SERVER_IMAGE_TAG}"
               echo "- Server image digest: ${SERVER_IMAGE_DIGEST}"

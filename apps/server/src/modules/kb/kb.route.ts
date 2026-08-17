@@ -4,7 +4,10 @@ import authMiddleware from "../../middleware/auth.middleware.js";
 import { requirePermission } from "../../middleware/authorize.middleware.js";
 import validate from "../../middleware/validate.middleware.js";
 import * as kbController from "./kb.controller.js";
-import { createKbApiSchema } from "./kb.schema.js";
+import {
+  createKbApiSchema,
+  updateKbApiSchema,
+} from "./kb.schema.js";
 
 const router = Router();
 
@@ -13,14 +16,14 @@ router.post(
   authMiddleware,
   requirePermission({ knowledgeSource: ["create"] }),
   validate(createKbApiSchema),
-  kbController.createKnowledgeSources
+  kbController.createKnowledgeSources,
 );
 
 router.get(
   "/",
   authMiddleware,
   requirePermission({ knowledgeSource: ["read"] }),
-  kbController.listKnowledgeSources
+  kbController.listKnowledgeSources,
 );
 
 // Returns a presigned S3 PUT URL for direct browser-to-S3 file upload.
@@ -29,14 +32,29 @@ router.get(
   "/upload-url",
   authMiddleware,
   requirePermission({ knowledgeSource: ["create"] }),
-  kbController.getUploadUrl
+  kbController.getUploadUrl,
+);
+
+router.post(
+  "/:kbId/retry",
+  authMiddleware,
+  requirePermission({ knowledgeSource: ["create"] }),
+  kbController.retryKnowledgeSource,
+);
+
+router.patch(
+  "/:kbId",
+  authMiddleware,
+  requirePermission({ knowledgeSource: ["update"] }),
+  validate(updateKbApiSchema),
+  kbController.updateKnowledgeSource,
 );
 
 router.delete(
   "/:kbId",
   authMiddleware,
   requirePermission({ knowledgeSource: ["delete"] }),
-  kbController.deleteKnowledgeSource
+  kbController.deleteKnowledgeSource,
 );
 
 export default router;

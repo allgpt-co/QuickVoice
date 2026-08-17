@@ -1,23 +1,17 @@
 import Stripe from "stripe";
 
-let _stripeClient: Stripe | null = null;
+export const STRIPE_API_VERSION: Stripe.LatestApiVersion = "2026-06-24.dahlia";
 
-export const stripeClient = new Proxy({} as Stripe, {
-  get(_target, prop) {
-    if (!_stripeClient) {
-      const key = process.env.STRIPE_SECRET_KEY;
-      if (!key || key.startsWith("sk_test_dev_placeholder")) {
-        // In dev without real Stripe credentials, defer the error to actual
-        // billing-route usage rather than crashing on startup.
-        console.warn(
-          "[stripe] STRIPE_SECRET_KEY is not set — billing routes will be unavailable."
-        );
-        _stripeClient = new Stripe("sk_test_placeholder_00000000000000");
-      } else {
-        _stripeClient = new Stripe(key);
-      }
-    }
-    const value = (_stripeClient as unknown as Record<string | symbol, unknown>)[prop];
-    return typeof value === "function" ? value.bind(_stripeClient) : value;
+export const isStripeConfigured = Boolean(
+  process.env.STRIPE_SECRET_KEY?.trim(),
+);
+
+// Stripe is an optional integration. A non-secret inert key lets the API boot
+// and report `not_configured` readiness without making billing calls usable.
+export const stripeClient = new Stripe(
+  process.env.STRIPE_SECRET_KEY?.trim() ?? "sk_test_quickvoice_not_configured",
+  {
+    apiVersion: STRIPE_API_VERSION,
+    typescript: true,
   },
-});
+);

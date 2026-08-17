@@ -113,3 +113,133 @@ export const AgentWidgetSessionStatus = {
 } as const
 
 export type AgentWidgetSessionStatus = (typeof AgentWidgetSessionStatus)[keyof typeof AgentWidgetSessionStatus]
+
+
+export const BillingTransactionType = {
+  PROMOTIONAL_GRANT: 'PROMOTIONAL_GRANT',
+  TOP_UP: 'TOP_UP',
+  CALL_RESERVATION: 'CALL_RESERVATION',
+  CALL_SETTLEMENT: 'CALL_SETTLEMENT',
+  RESERVATION_RELEASE: 'RESERVATION_RELEASE',
+  NUMBER_PURCHASE: 'NUMBER_PURCHASE',
+  NUMBER_RENEWAL: 'NUMBER_RENEWAL',
+  REFUND: 'REFUND',
+  DISPUTE: 'DISPUTE',
+  ADJUSTMENT: 'ADJUSTMENT',
+  DEBT_INCURRED: 'DEBT_INCURRED',
+  DEBT_REPAYMENT: 'DEBT_REPAYMENT'
+} as const
+
+export type BillingTransactionType = (typeof BillingTransactionType)[keyof typeof BillingTransactionType]
+
+
+export const BillingReservationPurpose = {
+  CALL_USAGE: 'CALL_USAGE',
+  PHONE_NUMBER_PURCHASE: 'PHONE_NUMBER_PURCHASE',
+  PHONE_NUMBER_RENEWAL: 'PHONE_NUMBER_RENEWAL'
+} as const
+
+export type BillingReservationPurpose = (typeof BillingReservationPurpose)[keyof typeof BillingReservationPurpose]
+
+
+export const BillingReservationStatus = {
+  ACTIVE: 'ACTIVE',
+  SETTLED: 'SETTLED',
+  RELEASED: 'RELEASED'
+} as const
+
+export type BillingReservationStatus = (typeof BillingReservationStatus)[keyof typeof BillingReservationStatus]
+
+
+export const TopUpStatus = {
+  PENDING: 'PENDING',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REFUNDED: 'REFUNDED',
+  PARTIALLY_REFUNDED: 'PARTIALLY_REFUNDED',
+  DISPUTED: 'DISPUTED'
+} as const
+
+export type TopUpStatus = (typeof TopUpStatus)[keyof typeof TopUpStatus]
+
+
+export const TopUpKind = {
+  MANUAL: 'MANUAL',
+  AUTOMATIC: 'AUTOMATIC'
+} as const
+
+export type TopUpKind = (typeof TopUpKind)[keyof typeof TopUpKind]
+
+
+export const TopUpTaxMode = {
+  DISABLED: 'DISABLED',
+  STRIPE_TAX: 'STRIPE_TAX'
+} as const
+
+export type TopUpTaxMode = (typeof TopUpTaxMode)[keyof typeof TopUpTaxMode]
+
+
+export const CallBillingSessionStatus = {
+  AUTHORIZED: 'AUTHORIZED',
+  ACTIVE: 'ACTIVE',
+  ENDED: 'ENDED',
+  RECONCILING: 'RECONCILING',
+  SETTLED: 'SETTLED',
+  DEBT: 'DEBT'
+} as const
+
+export type CallBillingSessionStatus = (typeof CallBillingSessionStatus)[keyof typeof CallBillingSessionStatus]
+
+
+export const CallBillingMode = {
+  WALLET: 'WALLET',
+  LEGACY_SUBSCRIPTION: 'LEGACY_SUBSCRIPTION'
+} as const
+
+export type CallBillingMode = (typeof CallBillingMode)[keyof typeof CallBillingMode]
+
+
+export const StripeWebhookEventStatus = {
+  RECEIVED: 'RECEIVED',
+  PROCESSING: 'PROCESSING',
+  PROCESSED: 'PROCESSED',
+  FAILED: 'FAILED'
+} as const
+
+export type StripeWebhookEventStatus = (typeof StripeWebhookEventStatus)[keyof typeof StripeWebhookEventStatus]
+
+
+export const TelephonyCostReportStatus = {
+  PENDING: 'PENDING',
+  PROCESSING: 'PROCESSING',
+  COMPLETE: 'COMPLETE',
+  FAILED: 'FAILED',
+  EXPIRED: 'EXPIRED'
+} as const
+
+export type TelephonyCostReportStatus = (typeof TelephonyCostReportStatus)[keyof typeof TelephonyCostReportStatus]
+
+
+export const PhoneNumberBillingStatus = {
+  ACTIVE: 'ACTIVE',
+  SUSPENDED: 'SUSPENDED',
+  RELEASE_PENDING: 'RELEASE_PENDING',
+  RELEASING: 'RELEASING',
+  RELEASED: 'RELEASED'
+} as const
+
+export type PhoneNumberBillingStatus = (typeof PhoneNumberBillingStatus)[keyof typeof PhoneNumberBillingStatus]
+
+
+export const PhoneNumberPurchaseStatus = {
+  PENDING: 'PENDING',
+  RESERVED: 'RESERVED',
+  PROVIDER_PENDING: 'PROVIDER_PENDING',
+  PROVIDER_PURCHASED: 'PROVIDER_PURCHASED',
+  NUMBER_PERSISTED: 'NUMBER_PERSISTED',
+  SUCCEEDED: 'SUCCEEDED',
+  FAILED: 'FAILED',
+  REQUIRES_ATTENTION: 'REQUIRES_ATTENTION'
+} as const
+
+export type PhoneNumberPurchaseStatus = (typeof PhoneNumberPurchaseStatus)[keyof typeof PhoneNumberPurchaseStatus]

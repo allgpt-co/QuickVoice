@@ -11,7 +11,7 @@ def recording_path(recording_id):
 
 def get_recording_storage_config():
     config = {
-        "bucket": os.getenv("S3_BUCKET_NAME") or os.getenv("BUCKET") or "quickintell-rcm",
+        "bucket": os.getenv("S3_BUCKET_NAME") or os.getenv("BUCKET"),
         "region": os.getenv("AWS_REGION") or os.getenv("REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1",
     }
     missing = [key for key in ("bucket", "region") if not config[key]]

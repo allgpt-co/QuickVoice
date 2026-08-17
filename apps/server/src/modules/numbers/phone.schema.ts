@@ -26,6 +26,7 @@ export const buyNumberSchema = z.object({
   phoneNumber: z
     .string()
     .regex(/^\+[1-9]\d{1,14}$/, "phoneNumber must be E.164 format (e.g. +14155551234)"),
+  quoteId: z.string().min(1).max(4096).optional(),
 });
 export type BuyNumberInput = z.infer<typeof buyNumberSchema>;
 export type BuyNumberArgs = BuyNumberInput & {

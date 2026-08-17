@@ -53,19 +53,20 @@ COPY requirements.txt ./
 # wheels that exceed the hosted runner's disk budget.
 ARG PREINSTALL_CPU_TORCH=false
 RUN if [ "$PREINSTALL_CPU_TORCH" = "true" ]; then \
-      pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu; \
+      pip install --no-cache-dir "torch>=2.5,<3" --index-url https://download.pytorch.org/whl/cpu; \
       pip install --no-cache-dir "setuptools>=78.1.1,<82"; \
     fi \
   && pip install --no-cache-dir -r requirements.txt
 
-# Copy all remaining pplication files into the container
+# Copy all remaining application files into the container
 # This includes source code, configuration files, and dependency specifications
 # (Excludes files specified in .dockerignore)
 COPY . .
 
 # Change ownership of all app files to the non-privileged user
 # This ensures the application can read/write files as needed
-RUN chown -R appuser:appuser /app
+RUN mkdir -p /var/lib/quickvoice/billing-usage \
+  && chown -R appuser:appuser /app /var/lib/quickvoice
 
 # Switch to the non-privileged user for all subsequent operations
 # This improves security by not running as root

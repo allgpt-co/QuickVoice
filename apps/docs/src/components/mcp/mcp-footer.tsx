@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { QuickVoiceLogo } from "@/components/quickvoice-logo";
 
 const groups = [
   {
@@ -30,8 +31,7 @@ export function McpFooter() {
       <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[1.2fr_1.8fr]">
         <div>
           <Link className="flex items-center gap-3 font-semibold" href="/">
-            <span className="grid size-9 place-items-center rounded-xl bg-[var(--qv-blue)] text-sm font-bold">QV</span>
-            <span>QuickVoice</span>
+            <QuickVoiceLogo />
           </Link>
           <p className="mt-4 max-w-md text-sm leading-6 text-slate-400">QuickVoice helps teams build, operate, and connect AI voice agents for calls, widgets, and support workflows.</p>
         </div>

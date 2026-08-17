@@ -1,17 +1,12 @@
-// Seed voice catalog.
-// TODO(backend): replace with a `GET /v1/voices` endpoint that returns the
-// provider-curated list; for now these IDs mirror the ones the LiveKit agent
-// runner accepts.
+// Fallback catalog used while the runtime voice catalog is loading or
+// unavailable. These IDs mirror the values accepted by the LiveKit worker.
 
 import type { VoiceCatalog } from "@/src/lib/api/types";
 
 export const LANGUAGES = [
   { code: "en", label: "English" },
-  { code: "es", label: "Spanish" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
   { code: "hi", label: "Hindi" },
-  { code: "pt", label: "Portuguese" },
+  { code: "en-IN", label: "English (India)" },
 ] as const;
 
 const ALL_LANGUAGE_CODES = LANGUAGES.map((language) => language.code);
@@ -60,7 +55,7 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Clear", "Confident", "Energetic"],
     useCases: ["Advertising", "Customer service"],
   },
@@ -72,7 +67,7 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Confident", "Comfortable"],
     useCases: ["Casual chat"],
   },
@@ -84,7 +79,7 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Smooth", "Warm", "Professional"],
     useCases: ["Informative"],
   },
@@ -96,7 +91,7 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Deep", "Trustworthy", "Smooth"],
     useCases: ["IVR"],
   },
@@ -108,7 +103,7 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Friendly", "Natural"],
     useCases: ["IVR"],
   },
@@ -120,7 +115,7 @@ export const VOICES: Voice[] = [
     locale: "en-GB",
     accent: "British",
     languages: ["en"],
-    ttsModels: ["aura-2"],
+    ttsModels: ["deepgram/aura-2"],
     styles: ["Warm", "Trustworthy", "Baritone"],
     useCases: ["Storytelling"],
   },
@@ -132,7 +127,10 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: [...ALL_LANGUAGE_CODES],
-    ttsModels: ["eleven-v3", "eleven-flash-v2.5", "eleven-turbo-v2.5"],
+    ttsModels: [
+      "elevenlabs/eleven_flash_v2_5",
+      "elevenlabs/eleven_turbo_v2_5",
+    ],
     styles: ["Calm", "Narrative", "Clear"],
     useCases: ["Customer service", "Narration"],
   },
@@ -144,7 +142,10 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: [...ALL_LANGUAGE_CODES],
-    ttsModels: ["eleven-v3", "eleven-flash-v2.5", "eleven-turbo-v2.5"],
+    ttsModels: [
+      "elevenlabs/eleven_flash_v2_5",
+      "elevenlabs/eleven_turbo_v2_5",
+    ],
     styles: ["Well-rounded", "Warm"],
     useCases: ["Conversational agents", "Narration"],
   },
@@ -156,7 +157,10 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: [...ALL_LANGUAGE_CODES],
-    ttsModels: ["eleven-v3", "eleven-flash-v2.5", "eleven-turbo-v2.5"],
+    ttsModels: [
+      "elevenlabs/eleven_flash_v2_5",
+      "elevenlabs/eleven_turbo_v2_5",
+    ],
     styles: ["Soft", "Warm"],
     useCases: ["Customer service", "Conversational agents"],
   },
@@ -168,9 +172,24 @@ export const VOICES: Voice[] = [
     locale: "en-US",
     accent: "American",
     languages: [...ALL_LANGUAGE_CODES],
-    ttsModels: ["eleven-v3", "eleven-flash-v2.5", "eleven-turbo-v2.5"],
+    ttsModels: [
+      "elevenlabs/eleven_flash_v2_5",
+      "elevenlabs/eleven_turbo_v2_5",
+    ],
     styles: ["Deep", "Narrative"],
     useCases: ["IVR", "Narration"],
+  },
+  {
+    id: "shubh",
+    name: "Shubh",
+    provider: "Sarvam",
+    gender: "masculine",
+    locale: "hi-IN",
+    accent: "Indian",
+    languages: ["hi", "en-IN"],
+    ttsModels: ["sarvam/bulbul:v3"],
+    styles: ["Conversational"],
+    useCases: ["Voice agents", "Customer service"],
   },
   {
     id: "f786b574-daa5-4673-aa0c-cbe3e8534c02",
@@ -274,7 +293,7 @@ export function normalizeLanguageCode(language: string): LanguageCode {
   const normalized = language.trim().toLowerCase();
   const baseLanguage = normalized.split("-", 1)[0];
   const matched = LANGUAGES.find(
-    (option) => option.code === normalized || option.code === baseLanguage
+    (option) => option.code === normalized || option.code === baseLanguage,
   );
 
   return matched?.code ?? "en";
@@ -282,7 +301,7 @@ export function normalizeLanguageCode(language: string): LanguageCode {
 
 function supportsLanguage(
   option: { languages: LanguageCode[] },
-  language: string
+  language: string,
 ) {
   return option.languages.includes(normalizeLanguageCode(language));
 }
@@ -290,56 +309,47 @@ function supportsLanguage(
 export function getVoicesForTtsModel(
   ttsModel: string,
   language = "en",
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.voices.filter(
-    (voice) => voice.ttsModels.includes(ttsModel) && supportsLanguage(voice, language)
+    (voice) =>
+      voice.ttsModels.includes(ttsModel) && supportsLanguage(voice, language),
   );
 }
 
 export function getDefaultVoiceForTtsModel(
   ttsModel: string,
   language = "en",
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getVoicesForTtsModel(ttsModel, language, options)[0]?.id ?? options.voices[0]?.id ?? "";
+  return (
+    getVoicesForTtsModel(ttsModel, language, options)[0]?.id ??
+    options.voices[0]?.id ??
+    ""
+  );
 }
 
 export const LLM_MODELS: ModelOption[] = [
-  // OpenAI
-  { id: "gpt-4o-mini", label: "GPT-4o mini", provider: "OpenAI" },
-  { id: "gpt-4o", label: "GPT-4o", provider: "OpenAI" },
-  { id: "gpt-4.1-mini", label: "GPT-4.1 mini", provider: "OpenAI" },
-  { id: "gpt-5-nano", label: "GPT-5 Nano", provider: "OpenAI" },
-  { id: "gpt-5-mini", label: "GPT-5 Mini", provider: "OpenAI" },
-  { id: "gpt-5", label: "GPT-5", provider: "OpenAI" },
-
-  // Anthropic
-  { id: "claude-haiku-4.5", label: "Claude Haiku 4.5", provider: "Anthropic" },
-  { id: "claude-sonnet-4.5", label: "Claude Sonnet 4.5", provider: "Anthropic" },
-  { id: "claude-sonnet-4", label: "Claude Sonnet 4", provider: "Anthropic" },
-  { id: "claude-opus-4", label: "Claude Opus 4", provider: "Anthropic" },
-
-  // Google Gemini
-  { id: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite", provider: "Google" },
-  { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", provider: "Google" },
-  { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", provider: "Google" },
-
-  { id: "gemini-3-flash", label: "Gemini 3 Flash", provider: "Google" },
-
-  { id: "gemini-3.1-flash-lite", label: "Gemini 3.1 Flash Lite", provider: "Google" },
-  { id: "gemini-3.1-pro", label: "Gemini 3.1 Pro", provider: "Google" },
-
-  { id: "gemini-3.5-flash", label: "Gemini 3.5 Flash", provider: "Google" },
-
-  // DeepSeek
-  { id: "deepseek-v3.1", label: "DeepSeek V3.1", provider: "DeepSeek" },
-
-  // Moonshot AI
-  { id: "kimi-k2.5", label: "Kimi K2.5", provider: "Moonshot AI" },
-
-  // xAI
-  { id: "grok-4", label: "Grok 4", provider: "xAI" },
+  {
+    id: "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    label: "Claude Haiku 4.5",
+    provider: "Amazon Bedrock",
+  },
+  {
+    id: "bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+    label: "Claude Sonnet 4.5",
+    provider: "Amazon Bedrock",
+  },
+  {
+    id: "bedrock/us.amazon.nova-micro-v1:0",
+    label: "Amazon Nova Micro",
+    provider: "Amazon Bedrock",
+  },
+  {
+    id: "bedrock/us.amazon.nova-lite-v1:0",
+    label: "Amazon Nova Lite",
+    provider: "Amazon Bedrock",
+  },
 ];
 
 export const COMMON_TIMEZONES = [
@@ -357,97 +367,57 @@ export const COMMON_TIMEZONES = [
 ];
 
 export const STT_MODELS: LanguageAwareModelOption[] = [
-  // Deepgram
-  { id: "nova-3", label: "Nova-3", provider: "Deepgram", languages: ["en"] },
-  { id: "nova-2", label: "Nova-2", provider: "Deepgram", languages: ["en"] },
-
-  // AssemblyAI
   {
-    id: "universal-streaming",
-    label: "Universal Streaming",
-    provider: "AssemblyAI",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "deepgram/nova-3",
+    label: "Nova-3",
+    provider: "Deepgram",
+    languages: ["en", "en-IN"],
   },
   {
-    id: "universal",
-    label: "Universal",
-    provider: "AssemblyAI",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "deepgram/nova-3-multilingual",
+    label: "Nova-3 Multilingual",
+    provider: "Deepgram",
+    languages: ["en", "en-IN", "hi"],
   },
-
-
-  // Speechmatics
   {
-    id: "speechmatics-standard",
-    label: "Standard",
-    provider: "Speechmatics",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "deepgram/nova-2",
+    label: "Nova-2",
+    provider: "Deepgram",
+    languages: ["en", "en-IN"],
   },
-
-  // ElevenLabs
   {
-    id: "elevenlabs-scribe-v2",
-    label: "Scribe v2",
-    provider: "ElevenLabs",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "sarvam/saaras:v3",
+    label: "Saaras v3",
+    provider: "Sarvam",
+    languages: ["hi", "en-IN"],
   },
 ];
 
 export const TTS_MODELS: LanguageAwareModelOption[] = [
-  // ElevenLabs
   {
-    id: "eleven-v3",
-    label: "Eleven v3",
-    provider: "ElevenLabs",
-    languages: [...ALL_LANGUAGE_CODES],
-  },
-  {
-    id: "eleven-flash-v2.5",
+    id: "elevenlabs/eleven_flash_v2_5",
     label: "Eleven Flash v2.5",
     provider: "ElevenLabs",
     languages: [...ALL_LANGUAGE_CODES],
   },
   {
-    id: "eleven-turbo-v2.5",
+    id: "elevenlabs/eleven_turbo_v2_5",
     label: "Eleven Turbo v2.5",
     provider: "ElevenLabs",
     languages: [...ALL_LANGUAGE_CODES],
   },
-
-  // Cartesia
   {
-    id: "sonic-3.5",
-    label: "Sonic 3.5",
-    provider: "Cartesia",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "deepgram/aura-2",
+    label: "Aura-2",
+    provider: "Deepgram",
+    languages: ["en"],
   },
   {
-    id: "sonic-3",
-    label: "Sonic 3",
-    provider: "Cartesia",
-    languages: [...ALL_LANGUAGE_CODES],
+    id: "sarvam/bulbul:v3",
+    label: "Bulbul v3",
+    provider: "Sarvam",
+    languages: ["hi", "en-IN"],
   },
-  {
-    id: "sonic-2",
-    label: "Sonic 2",
-    provider: "Cartesia",
-    languages: [...ALL_LANGUAGE_CODES],
-  },
-  {
-    id: "sonic-turbo",
-    label: "Sonic Turbo",
-    provider: "Cartesia",
-    languages: [...ALL_LANGUAGE_CODES],
-  },
-
-
-  // Deepgram
-  { id: "aura-2", label: "Aura-2", provider: "Deepgram", languages: ["en"] },
-
-  // Rime
-  { id: "rime-arcana", label: "Arcana", provider: "Rime", languages: ["en"] },
-  { id: "rime-mist", label: "Mist", provider: "Rime", languages: ["en"] },
-
 ];
 
 export const STATIC_VOICE_OPTIONS: VoiceOptions = {
@@ -467,7 +437,9 @@ function catalogLanguages(languages: string[] | undefined) {
   return languages?.length ? languages : ["en"];
 }
 
-export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOptions {
+export function buildVoiceOptionsFromCatalog(
+  catalog: VoiceCatalog,
+): VoiceOptions {
   return {
     languages: catalog.languages.map((language) => ({
       code: language.id,
@@ -500,7 +472,7 @@ export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOption
       accent: "",
       languages: catalogLanguages(voice.languages),
       ttsModels: (voice.tts_models ?? []).map((model) =>
-        providerModelId(voice.provider, model)
+        providerModelId(voice.provider, model),
       ),
       styles: [],
       useCases: [],
@@ -510,28 +482,36 @@ export function buildVoiceOptionsFromCatalog(catalog: VoiceCatalog): VoiceOption
 
 export function getSttModelsForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.sttModels.filter((model) => supportsLanguage(model, language));
 }
 
 export function getTtsModelsForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
   return options.ttsModels.filter((model) => supportsLanguage(model, language));
 }
 
 export function getDefaultSttModelForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getSttModelsForLanguage(language, options)[0]?.id ?? options.sttModels[0]?.id ?? "";
+  return (
+    getSttModelsForLanguage(language, options)[0]?.id ??
+    options.sttModels[0]?.id ??
+    ""
+  );
 }
 
 export function getDefaultTtsModelForLanguage(
   language: string,
-  options: VoiceOptions = STATIC_VOICE_OPTIONS
+  options: VoiceOptions = STATIC_VOICE_OPTIONS,
 ) {
-  return getTtsModelsForLanguage(language, options)[0]?.id ?? options.ttsModels[0]?.id ?? "";
+  return (
+    getTtsModelsForLanguage(language, options)[0]?.id ??
+    options.ttsModels[0]?.id ??
+    ""
+  );
 }

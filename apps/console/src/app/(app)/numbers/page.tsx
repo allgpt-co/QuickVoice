@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import {
     AlertCircle,
+    CalendarClock,
     Check,
     Copy,
     Filter,
@@ -18,6 +20,7 @@ import {
 import { PageHeader } from "@/src/components/common/PageHeader";
 import { EmptyState } from "@/src/components/common/EmptyState";
 import { Button } from "@/src/components/ui/button";
+import { Badge } from "@/src/components/ui/badge";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { Input } from "@/src/components/ui/input";
 import {
@@ -42,8 +45,11 @@ import {
 } from "@/src/components/ui/tooltip";
 import { BuyNumberDrawer } from "@/src/components/numbers/BuyNumberDrawer";
 import { AssignAgentSelect } from "@/src/components/numbers/AssignAgentSelect";
+import { ReleaseNumberDialog } from "@/src/components/numbers/ReleaseNumberDialog";
 import { useNumbers } from "@/src/hooks/queries/numbers";
-import type { PhoneNumber } from "@/src/lib/api/types";
+import type { PhoneNumber, PhoneNumberBillingStatus } from "@/src/lib/api/types";
+import { authClient } from "@/src/lib/auth-client";
+import { isBuiltInNumberManager } from "@/src/lib/numbers/permissions";
 import { cn } from "@/src/lib/utils";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
@@ -56,14 +62,118 @@ function formatDate(value: string) {
     });
 }
 
+function formatDateTime(value: string) {
+    return new Date(value).toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short",
+    });
+}
+
+function formatRentalPrice(
+    value: PhoneNumber["rentalPriceMicros"] | undefined,
+) {
+    if (value === null || value === undefined) return null;
+    const micros = Number(value);
+    if (!Number.isFinite(micros)) return null;
+    return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(micros / 1_000_000);
+}
+
+const BILLING_STATUS_META: Record<
+    PhoneNumberBillingStatus,
+    { label: string; className: string }
+> = {
+    ACTIVE: {
+        label: "Active",
+        className: "border-emerald-500/30 text-emerald-700 dark:text-emerald-300",
+    },
+    SUSPENDED: {
+        label: "Suspended",
+        className: "border-amber-500/30 text-amber-700 dark:text-amber-300",
+    },
+    RELEASE_PENDING: {
+        label: "Release pending",
+        className: "border-destructive/30 text-destructive",
+    },
+    RELEASING: {
+        label: "Release in progress",
+        className: "border-destructive/30 text-destructive",
+    },
+    RELEASED: {
+        label: "Released",
+        className: "border-muted-foreground/30 text-muted-foreground",
+    },
+};
+
+function NumberBillingSummary({ number }: { number: PhoneNumber }) {
+    const status = number.billingStatus ?? "ACTIVE";
+    const meta = BILLING_STATUS_META[status];
+    const rentalPrice = formatRentalPrice(
+        number.rentalPriceMicros ?? number.monthlyPriceMicros,
+    );
+    const atRisk =
+        status === "SUSPENDED" ||
+        status === "RELEASE_PENDING" ||
+        status === "RELEASING";
+
+    return (
+        <div
+            className={cn(
+                "space-y-1.5 text-xs",
+                atRisk && "border border-destructive/25 bg-destructive/5 p-3",
+            )}
+        >
+            <div className="flex flex-wrap items-center gap-2">
+                <Badge variant="outline" className={meta.className}>
+                    {meta.label}
+                </Badge>
+                <span className="font-medium text-foreground">
+                    {rentalPrice ? `${rentalPrice} / 30 days` : "Rental price pending"}
+                </span>
+            </div>
+            {status === "ACTIVE" ? (
+                <p className="flex items-center gap-1 text-muted-foreground">
+                    <CalendarClock className="size-3" />
+                    {number.nextBillingAt
+                        ? `Renews ${formatDateTime(number.nextBillingAt)}`
+                        : "Renewal date pending"}
+                </p>
+            ) : status === "RELEASED" ? (
+                <p className="font-medium text-destructive">
+                    This number has been released and cannot receive calls.
+                </p>
+            ) : (
+                <>
+                    <p className="font-medium text-destructive">
+                        Calling is suspended. Add paid credit to keep this number.
+                    </p>
+                    <p className="text-muted-foreground">
+                        {number.scheduledReleaseAt
+                            ? `Scheduled for release ${formatDateTime(number.scheduledReleaseAt)}`
+                            : "Release time pending"}
+                    </p>
+                </>
+            )}
+        </div>
+    );
+}
+
 // ── provider chip ─────────────────────────────────────────────────────────────
 
 const PROVIDER_META: Record<
     PhoneNumber["provider"],
     { label: string; cls: string }
 > = {
-    twilio:  { label: "TWILIO",  cls: "border-blue-500/20 bg-blue-500/10 text-blue-500" },
-    telnyx:  { label: "TELNYX",  cls: "border-cyan-500/20 bg-cyan-500/10 text-cyan-500" },
+    TWILIO:  { label: "TWILIO",  cls: "border-blue-500/20 bg-blue-500/10 text-blue-500" },
+    TELNYX:  { label: "TELNYX",  cls: "border-cyan-500/20 bg-cyan-500/10 text-cyan-500" },
 };
 
 function ProviderChip({ provider }: { provider: PhoneNumber["provider"] }) {
@@ -84,8 +194,8 @@ function ProviderChip({ provider }: { provider: PhoneNumber["provider"] }) {
 function NumbersPageSkeleton() {
     return (
         <div className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-3">
-                {[...Array(3)].map((_, i) => (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
                     <Skeleton key={i} className="h-24 w-full rounded-lg" />
                 ))}
             </div>
@@ -118,9 +228,18 @@ export default function NumbersPage() {
     const [providerFilter, setProviderFilter] = useState<"all" | PhoneNumber["provider"]>("all");
     const [routingFilter, setRoutingFilter] = useState<"all" | "assigned" | "unassigned">("all");
     const { data: numbers, isLoading, isError, isFetching, refetch } = useNumbers();
+    const { data: activeMemberRole } = authClient.useActiveMemberRole();
+    const canManageNumbers = isBuiltInNumberManager(activeMemberRole?.role);
 
     const assignedCount   = numbers?.filter((n) => n.agentId).length ?? 0;
     const unassignedCount = (numbers?.length ?? 0) - assignedCount;
+    const atRiskNumbers =
+        numbers?.filter(
+            (number) =>
+                number.billingStatus === "SUSPENDED" ||
+                number.billingStatus === "RELEASE_PENDING" ||
+                number.billingStatus === "RELEASING",
+        ) ?? [];
     const normalizedSearch = searchTerm.trim().toLowerCase();
     const filteredNumbers = useMemo(() => {
         const list = numbers ?? [];
@@ -131,6 +250,7 @@ export default function NumbersPage() {
                     number.friendlyName,
                     number.provider,
                     number.sid,
+                    number.billingStatus,
                 ]
                     .filter(Boolean)
                     .some((value) => String(value).toLowerCase().includes(normalizedSearch))
@@ -162,7 +282,7 @@ export default function NumbersPage() {
             <PageHeader
                 title="Phone numbers"
                 description="Route owned numbers to agents and keep assignment coverage visible."
-                actions={<BuyNumberDrawer />}
+                actions={canManageNumbers ? <BuyNumberDrawer /> : undefined}
             />
 
             {isLoading ? (
@@ -182,13 +302,15 @@ export default function NumbersPage() {
                 <EmptyState
                     icon={Phone}
                     title="No phone numbers yet"
-                    description="Buy a number from your telephony provider to start routing calls."
-                    action={<BuyNumberDrawer />}
+                    description={canManageNumbers
+                        ? "Buy a number from your telephony provider to start routing calls."
+                        : "No phone numbers have been added to this organization."}
+                    action={canManageNumbers ? <BuyNumberDrawer /> : undefined}
                 />
             ) : (
                 <>
                     {/* ── stat cards ── */}
-                    <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         {/* Total */}
                         <div className="rounded-lg border bg-card p-4 transition-all hover:border-blue-500/30 hover:shadow-sm">
                             <div className="flex items-center justify-between gap-3">
@@ -233,10 +355,57 @@ export default function NumbersPage() {
                                 {unassignedCount}
                             </p>
                         </div>
+
+                        <div className={cn(
+                            "rounded-lg border p-4 transition-all hover:shadow-sm",
+                            atRiskNumbers.length > 0
+                                ? "border-destructive/30 bg-destructive/5"
+                                : "bg-card hover:border-blue-500/30",
+                        )}>
+                            <div className="flex items-center justify-between gap-3">
+                                <p className={cn(
+                                    "text-sm font-medium",
+                                    atRiskNumbers.length > 0
+                                        ? "text-destructive"
+                                        : "text-muted-foreground",
+                                )}>
+                                    At risk
+                                </p>
+                                <CalendarClock className={cn(
+                                    "size-4",
+                                    atRiskNumbers.length > 0
+                                        ? "text-destructive"
+                                        : "text-blue-500",
+                                )} />
+                            </div>
+                            <p className={cn(
+                                "mt-3 text-2xl font-semibold",
+                                atRiskNumbers.length > 0
+                                    ? "text-destructive"
+                                    : "text-foreground",
+                            )}>
+                                {atRiskNumbers.length}
+                            </p>
+                        </div>
                     </div>
 
+                    {atRiskNumbers.length > 0 ? (
+                        <div className="flex flex-col gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm sm:flex-row sm:items-center">
+                            <AlertCircle className="size-4 shrink-0 text-destructive" />
+                            <span className="flex-1">
+                                {atRiskNumbers.length} phone number{atRiskNumbers.length === 1 ? " is" : "s are"} suspended or pending release. Recharge paid credit before the shown release time or the number may be permanently lost.
+                            </span>
+                            <Link
+                                href="/settings/billing"
+                                className="shrink-0 font-medium text-destructive underline underline-offset-4"
+                            >
+                                Recharge wallet
+                            </Link>
+                        </div>
+                    ) : null}
+
                     {/* ── routing warning banner ── */}
-                    {unassignedCount > 0 && !bannerDismissed ? (
+                    {canManageNumbers && unassignedCount > 0 && !bannerDismissed ? (
                         <div className="flex items-center gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-400">
                             <AlertCircle className="size-4 shrink-0" />
                             <span className="flex-1">
@@ -291,8 +460,8 @@ export default function NumbersPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All providers</SelectItem>
-                                    <SelectItem value="twilio">Twilio</SelectItem>
-                                    <SelectItem value="telnyx">Telnyx</SelectItem>
+                                    <SelectItem value="TWILIO">Twilio</SelectItem>
+                                    <SelectItem value="TELNYX">Telnyx</SelectItem>
                                 </SelectContent>
                             </Select>
                             <Select value={routingFilter} onValueChange={(value) => setRoutingFilter(value as typeof routingFilter)}>
@@ -323,7 +492,9 @@ export default function NumbersPage() {
                             <div>
                                 <h2 className="text-base font-semibold text-foreground">Routing table</h2>
                                 <p className="text-sm text-muted-foreground">
-                                    Assign each inbound number to the agent that should answer it.
+                                    {canManageNumbers
+                                        ? "Assign each inbound number to the agent that should answer it."
+                                        : "View which agent currently answers each inbound number."}
                                 </p>
                             </div>
                             <Button
@@ -384,9 +555,14 @@ export default function NumbersPage() {
                                         </div>
                                         <ProviderChip provider={number.provider} />
                                     </div>
+                                    <NumberBillingSummary number={number} />
                                     <div>
                                         <p className="mb-2 text-xs font-medium text-muted-foreground">Routing</p>
-                                        <AssignAgentSelect phId={number.phId} agentId={number.agentId} />
+                                        <AssignAgentSelect
+                                            phId={number.phId}
+                                            agentId={number.agentId}
+                                            readOnly={!canManageNumbers}
+                                        />
                                     </div>
                                     <div className="grid grid-cols-2 gap-3 text-xs text-muted-foreground">
                                         <div>
@@ -402,6 +578,14 @@ export default function NumbersPage() {
                                             <p className="mt-1 truncate font-mono text-foreground">{number.sid}</p>
                                         </div>
                                     </div>
+                                    {canManageNumbers &&
+                                    number.billingStatus !== "RELEASING" &&
+                                    number.billingStatus !== "RELEASED" ? (
+                                        <ReleaseNumberDialog
+                                            phId={number.phId}
+                                            phoneNumber={number.number}
+                                        />
+                                    ) : null}
                                 </div>
                             ))}
                         </div>
@@ -412,9 +596,13 @@ export default function NumbersPage() {
                                     <TableRow className="bg-muted/20 hover:bg-muted/20">
                                         <TableHead>Number</TableHead>
                                         <TableHead>Provider</TableHead>
+                                        <TableHead>Billing</TableHead>
                                         <TableHead>Routing</TableHead>
                                         <TableHead>Timeline</TableHead>
-                                        <TableHead className="text-right">SID</TableHead>
+                                        <TableHead>SID</TableHead>
+                                        {canManageNumbers ? (
+                                            <TableHead className="text-right">Actions</TableHead>
+                                        ) : null}
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -460,11 +648,17 @@ export default function NumbersPage() {
                                                 <ProviderChip provider={number.provider} />
                                             </TableCell>
 
+                                            {/* rental status and renewal */}
+                                            <TableCell className="min-w-[260px]">
+                                                <NumberBillingSummary number={number} />
+                                            </TableCell>
+
                                             {/* routing select */}
                                             <TableCell className="min-w-[220px]">
                                                 <AssignAgentSelect
                                                     phId={number.phId}
                                                     agentId={number.agentId}
+                                                    readOnly={!canManageNumbers}
                                                 />
                                             </TableCell>
 
@@ -479,7 +673,7 @@ export default function NumbersPage() {
                                             </TableCell>
 
                                             {/* SID with tooltip */}
-                                            <TableCell className="text-right">
+                                            <TableCell>
                                                 <Tooltip>
                                                     <TooltipTrigger asChild>
                                                         <span className="inline-flex cursor-help items-center gap-1 font-mono text-xs text-muted-foreground">
@@ -492,6 +686,19 @@ export default function NumbersPage() {
                                                     </TooltipContent>
                                                 </Tooltip>
                                             </TableCell>
+
+                                            {canManageNumbers ? (
+                                                <TableCell className="text-right">
+                                                    {number.billingStatus !== "RELEASING" &&
+                                                    number.billingStatus !== "RELEASED" ? (
+                                                        <ReleaseNumberDialog
+                                                            phId={number.phId}
+                                                            phoneNumber={number.number}
+                                                            compact
+                                                        />
+                                                    ) : null}
+                                                </TableCell>
+                                            ) : null}
                                         </TableRow>
                                     ))}
                                 </TableBody>

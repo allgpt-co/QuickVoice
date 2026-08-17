@@ -14,10 +14,13 @@
 // re-query.
 
 import { Request, Response, NextFunction } from "express";
+import { timingSafeEqual } from "node:crypto";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth.js";
 import { UnauthenticatedError } from "../common/errors/unauthenticated.js";
 import { recordAuditEvent } from "../modules/audit/audit-log.service.js";
+import prisma from "../config/prisma.js";
+import { resolveOrganizationApiKeyAuth } from "./api-key-auth.js";
 
 const API_KEY_HEADER = "x-api-key";
 const INTERNAL_ORG_HEADER = "x-organization-id";
@@ -26,13 +29,13 @@ const INTERNAL_USER_HEADER = "x-user-id";
 const authMiddleware = async (
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     // 1. Internal server-to-server bypass
     const bearerToken = getBearerToken(req.headers.authorization);
     if (bearerToken) {
-      if (bearerToken === process.env.INTERNAL_API_KEY) {
+      if (matchesInternalApiKey(bearerToken)) {
         // Internal callers must assert who they are acting on behalf of by
         // passing userId and organizationId as headers, query params, or in
         // the request body. We fail fast
@@ -48,7 +51,7 @@ const authMiddleware = async (
           getStringValue(req.query?.organizationId);
         if (!internalUserId || !internalOrgId) {
           throw new UnauthenticatedError(
-            "Internal calls must provide x-user-id and x-organization-id"
+            "Internal calls must provide x-user-id and x-organization-id",
           );
         }
 
@@ -62,9 +65,9 @@ const authMiddleware = async (
       }
     }
 
-    // 2. API key auth. QuickVoice API keys are organization-scoped. Better
-    // Auth's getSession() API-key hook only supports user-scoped keys, so we
-    // verify the key directly and build request auth from its metadata.
+    // 2. API key auth. The plugin-owned referenceId is the sole tenant source.
+    // API-key metadata is client controlled and must never provide identity,
+    // tenant, or authorization data.
     const apiKeyHeaderValue = getHeaderValue(req.headers[API_KEY_HEADER]);
     if (apiKeyHeaderValue) {
       const verified = await auth.api.verifyApiKey({
@@ -75,42 +78,35 @@ const authMiddleware = async (
         throw new UnauthenticatedError("Invalid API key");
       }
 
-      const keyRecord = verified.key as {
-        id?: string | null;
-        metadata?: unknown;
-        permissions?: unknown;
-        referenceId?: string | null;
-        userId?: string | null;
-      };
-      const metadata = normalizeMetadata(keyRecord.metadata);
-      const organizationId =
-        getString(metadata, "organizationId") ?? keyRecord.referenceId ?? null;
-      const userId =
-        getString(metadata, "userId") ??
-        getString(metadata, "createdByUserId") ??
-        keyRecord.userId ??
-        keyRecord.referenceId ??
-        null;
-
-      if (!organizationId || !userId) {
-        throw new UnauthenticatedError("API key is missing required metadata");
-      }
+      const resolved = await resolveOrganizationApiKeyAuth({
+        key: verified.key,
+        findOrganizationPrincipal: async (organizationId) => {
+          const member = await prisma.member.findFirst({
+            where: {
+              organizationId,
+              role: { in: ["owner", "admin"] },
+            },
+            orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+            select: { userId: true },
+          });
+          return member?.userId ?? null;
+        },
+      });
 
       req.auth = {
-        userId,
-        activeOrganizationId: organizationId,
+        userId: resolved.userId,
+        activeOrganizationId: resolved.organizationId,
         authMethod: "apiKey",
         session: null,
-        apiKeyPermissions:
-          normalizePermissions(keyRecord.permissions) ??
-          normalizePermissions(metadata?.permissions),
+        apiKeyId: resolved.apiKeyId,
+        apiKeyPermissions: resolved.permissions,
       };
       void recordAuditEvent({
-        organizationId,
-        userId,
+        organizationId: resolved.organizationId,
+        userId: resolved.userId,
         action: "api_key.authenticated",
         resourceType: "api_key",
-        resourceId: keyRecord.id ?? keyRecord.referenceId ?? null,
+        resourceId: resolved.apiKeyId,
         metadata: {
           method: req.method,
           path: req.originalUrl || req.url,
@@ -128,9 +124,11 @@ const authMiddleware = async (
       throw new UnauthenticatedError("Unauthorized");
     }
 
-    const sess = (session as {
-      session?: { activeOrganizationId?: string | null };
-    }).session;
+    const sess = (
+      session as {
+        session?: { activeOrganizationId?: string | null };
+      }
+    ).session;
 
     req.auth = {
       userId: (session as { user: { id: string } }).user.id,
@@ -163,75 +161,37 @@ function getBearerToken(value: string | undefined): string | null {
   return token ? token.replace(/^Bearer\s+/i, "").trim() : null;
 }
 
-function normalizeMetadata(value: unknown): Record<string, unknown> | null {
-  if (typeof value === "string") return safeJsonParse(value);
-  return value && typeof value === "object"
-    ? (value as Record<string, unknown>)
-    : null;
-}
-
-function getString(
-  source: Record<string, unknown> | null,
-  key: string
-): string | null {
-  const value = source?.[key];
-  return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-function safeJsonParse(value: string): Record<string, unknown> | null {
-  try {
-    const parsed = JSON.parse(value);
-    return parsed && typeof parsed === "object" ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function normalizePermissions(value: unknown): Record<string, string[]> | undefined {
-  const parsed =
-    typeof value === "string"
-      ? value.trim().length > 0
-        ? safeJsonParse(value)
-        : null
-      : value;
-  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-    return undefined;
-  }
-
-  const permissions: Record<string, string[]> = {};
-  for (const [resource, actions] of Object.entries(parsed)) {
-    if (!Array.isArray(actions)) continue;
-    const normalizedActions = actions.filter(
-      (action): action is string => typeof action === "string" && action.length > 0
-    );
-    if (normalizedActions.length > 0) {
-      permissions[resource] = normalizedActions;
-    }
-  }
-  return Object.keys(permissions).length > 0 ? permissions : undefined;
-}
-
-export const requireInternalApiKey=async (
+export const requireInternalApiKey = async (
   req: Request,
   _res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     // 1. Internal server-to-server bypass
     const bearerToken = getBearerToken(req.headers.authorization);
     if (!bearerToken) {
-      throw new UnauthenticatedError("Unauthorized")
+      throw new UnauthenticatedError("Unauthorized");
     }
 
-    if(bearerToken!=process.env.INTERNAL_API_KEY){
-      throw new UnauthenticatedError("Unauthorized")
+    if (!matchesInternalApiKey(bearerToken)) {
+      throw new UnauthenticatedError("Unauthorized");
     }
 
-    return next()
+    return next();
+  } catch (error) {
+    next(error);
   }
-  catch(error){
-    next(error)
-  }
+};
+
+export function matchesInternalApiKey(supplied: string) {
+  const expected = process.env.INTERNAL_API_KEY?.trim();
+  if (!expected) return false;
+  const suppliedBytes = Buffer.from(supplied);
+  const expectedBytes = Buffer.from(expected);
+  return (
+    suppliedBytes.length === expectedBytes.length &&
+    timingSafeEqual(suppliedBytes, expectedBytes)
+  );
 }
 
 export default authMiddleware;

@@ -12,12 +12,14 @@ const statement = {
   agentConfiguration: ["create", "read", "update", "delete"],
   agentWidget: ["create", "read", "update", "delete"],
   phoneNumber: ["create", "read", "update", "delete"],
-  knowledgeSource: ["create", "read", "delete"],
+  knowledgeSource: ["create", "read", "update", "delete"],
   callLogs: ["read", "delete"],
   outboundCalls: ["create", "read", "delete"],
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
 } as const;
 
 const ac = createAccessControl(statement);
@@ -28,12 +30,14 @@ const owner = ac.newRole({
   agentConfiguration: ["create", "read", "update", "delete"],
   agentWidget: ["create", "read", "update", "delete"],
   phoneNumber: ["create", "read", "update", "delete"],
-  knowledgeSource: ["create", "read", "delete"],
+  knowledgeSource: ["create", "read", "update", "delete"],
   callLogs: ["read", "delete"],
   outboundCalls: ["create", "read", "delete"],
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
   ...ownerAc.statements,
 });
 
@@ -43,12 +47,14 @@ const admin = ac.newRole({
   agentConfiguration: ["create", "read", "update", "delete"],
   agentWidget: ["create", "read", "update", "delete"],
   phoneNumber: ["create", "read", "update", "delete"],
-  knowledgeSource: ["create", "read", "delete"],
+  knowledgeSource: ["create", "read", "update", "delete"],
   callLogs: ["read", "delete"],
   outboundCalls: ["create", "read", "delete"],
   campaigns: ["create", "read", "delete"],
   tools: ["create", "read", "update", "delete"],
   secrets: ["create", "read", "delete"],
+  billing: ["read", "manage"],
+  apiKey: ["create", "read", "update", "delete"],
   ...adminAc.statements,
 });
 
@@ -64,6 +70,7 @@ const member = ac.newRole({
   campaigns: ["read"],
   tools: ["read"],
   secrets: ["read"],
+  billing: ["read"],
   ...memberAc.statements,
 });
 

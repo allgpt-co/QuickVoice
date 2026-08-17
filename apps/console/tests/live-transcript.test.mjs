@@ -24,6 +24,14 @@ test("socket events update only the authenticated organization cache", () => {
   assert.match(provider, /"live-call:started"/);
   assert.match(provider, /"live-call:updated"/);
   assert.match(provider, /"live-call:ended"/);
+  assert.match(
+    provider,
+    /item\.callId === call\.callId \|\| item\.roomName === call\.roomName/
+  );
+  assert.match(
+    provider,
+    /call\.callId !== event\.callId && call\.roomName !== event\.roomName/
+  );
 });
 
 test("watching a call replays, validates, deduplicates, and unwatches transcripts", () => {
@@ -58,6 +66,11 @@ test("live transcript UI restores selection and preserves reader scroll position
   assert.match(dock, /canEndCall && !transcript\.isEnded/);
   assert.match(dock, /fromNumber/);
   assert.match(dock, /toNumber/);
+  assert.match(
+    dock,
+    /existing\.callId === call\.callId \|\| existing\.roomName === call\.roomName/
+  );
+  assert.match(dock, /call\.roomName === selectedCall\.roomName/);
 });
 
 test("console declares the matching Socket.IO client dependency", () => {

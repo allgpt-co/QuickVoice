@@ -15,6 +15,7 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY apps/server/package.json apps/server/package.json
 COPY apps/widget/package.json apps/widget/package.json
 COPY packages/typescript-config packages/typescript-config
+COPY patches patches
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --filter server... --filter quickvoice-widget...
 
@@ -36,7 +37,7 @@ ENV NODE_ENV=production
 
 RUN apt-get update -y \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends openssl \
+    && apt-get install -y --no-install-recommends curl openssl \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1001 nodejs \
@@ -45,6 +46,7 @@ RUN groupadd --system --gid 1001 nodejs \
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 COPY apps/server/package.json apps/server/package.json
 COPY packages/typescript-config packages/typescript-config
+COPY patches patches
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
     pnpm install --frozen-lockfile --prod --filter server...
 RUN rm -rf \

@@ -10,9 +10,9 @@ export function defaultConfig(): ConfigureAgentInput {
     agent_language: "en",
     firstMessage: DEFAULT_FIRST_MESSAGE,
     systemPrompt: DEFAULT_SYSTEM_PROMPT,
-    llmModel: "gpt-4o-mini",
-    sttModel: "nova-3",
-    ttsModel: "aura-2",
+    llmModel: "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
+    sttModel: "deepgram/nova-3",
+    ttsModel: "deepgram/aura-2",
     use_rag: false,
     voiceId: "aura-2-asteria-en",
     data_needed: [],
@@ -27,13 +27,16 @@ export function defaultConfig(): ConfigureAgentInput {
       systemPrompt: [],
       placeholders: {},
     },
+    store_call_audio: true,
+    zero_pii_retention: false,
+    conversation_retention_days: 30,
   };
 }
 
 // Build a full ConfigureAgentInput by layering patch over current (or defaults).
 export function mergeConfig(
   current: AgentConfiguration | null | undefined,
-  patch: Partial<ConfigureAgentInput>
+  patch: Partial<ConfigureAgentInput>,
 ): ConfigureAgentInput {
   const base = defaultConfig();
   const fromCurrent: Partial<ConfigureAgentInput> = current
@@ -42,13 +45,15 @@ export function mergeConfig(
         firstMessage: current.firstMessage,
         systemPrompt: current.systemPrompt,
         llmModel: current.llmModel,
-        sttModel: current.sttModel ?? "nova-3",
-        ttsModel: current.ttsModel ?? "aura-2",
+        sttModel: current.sttModel ?? "deepgram/nova-3",
+        ttsModel: current.ttsModel ?? "deepgram/aura-2",
         use_rag: current.use_rag,
         voiceId: current.voiceId,
-        data_needed: (current.data_needed as ConfigureAgentInput["data_needed"]) ?? [],
+        data_needed:
+          (current.data_needed as ConfigureAgentInput["data_needed"]) ?? [],
         data_evaluation:
-          (current.data_evaluation as ConfigureAgentInput["data_evaluation"]) ?? [],
+          (current.data_evaluation as ConfigureAgentInput["data_evaluation"]) ??
+          [],
         initiation_webhook:
           current.initiation_webhook as ConfigureAgentInput["initiation_webhook"],
         post_call_webhook:
@@ -57,6 +62,9 @@ export function mergeConfig(
         ivr_navigation_enabled: current.ivr_navigation_enabled ?? true,
         timezone: current.timezone,
         variables: normalizeAgentVariables(current.variables),
+        store_call_audio: current.store_call_audio,
+        zero_pii_retention: current.zero_pii_retention,
+        conversation_retention_days: current.conversation_retention_days,
       }
     : {};
   return { ...base, ...fromCurrent, ...patch };

@@ -22,10 +22,45 @@ class ApiTests(unittest.TestCase):
     def test_non_health_routes_require_internal_auth(self):
         import api
 
-        with patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}, clear=False):
+        with patch.dict(
+            os.environ,
+            {
+                "INTERNAL_API_KEY": "internal-secret",
+                "QUICKVOICE_BILLING_MODE": "self_hosted",
+            },
+            clear=True,
+        ):
             with TestClient(api.app) as client:
                 self.assertEqual(client.get("/health").status_code, 200)
                 self.assertEqual(client.get("/agents/agent_123/config").status_code, 401)
+
+    def test_health_returns_503_with_hosted_configuration_failures(self):
+        import api
+
+        with patch.dict(
+            os.environ,
+            {"QUICKVOICE_BILLING_MODE": "hosted"},
+            clear=True,
+        ):
+            with TestClient(api.app) as client:
+                response = client.get("/health")
+
+        self.assertEqual(response.status_code, 503)
+        body = response.json()
+        self.assertFalse(body["ok"])
+        self.assertEqual(body["billingMode"], "hosted")
+        self.assertEqual(
+            body["checks"]["serverApiUrl"]["status"],
+            "not_configured",
+        )
+        self.assertEqual(
+            body["checks"]["internalApiKey"]["status"],
+            "not_configured",
+        )
+        self.assertEqual(
+            body["checks"]["billingUsageQueue"]["status"],
+            "not_configured",
+        )
 
     def test_voice_catalog_requires_internal_auth(self):
         import api

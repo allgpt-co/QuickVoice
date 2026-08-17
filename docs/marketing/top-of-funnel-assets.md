@@ -12,7 +12,7 @@
 
 #### Subheadline
 
-QuickVoice is AGPL, self-hostable AI phone-agent infrastructure: a Next.js console, Express/Node API, Python FastAPI service, LiveKit Agents worker, Twilio/Telnyx telephony, Postgres/Prisma, Redis/BullMQ, S3-compatible storage, Pinecone knowledge retrieval, MCP tools, call logs, and billing paths in one repo.
+QuickVoice is MIT-licensed, self-hostable AI phone-agent infrastructure: a Next.js console, Express/Node API, Python FastAPI service, LiveKit Agents worker, Twilio/Telnyx telephony, Postgres/Prisma, Redis/BullMQ, S3-compatible storage, Pinecone knowledge retrieval, MCP tools, call logs, and billing paths in one repo.
 
 #### CTA Buttons
 
@@ -137,7 +137,7 @@ That is before the underlying costs you are already paying for in some form: tel
 
 QuickVoice takes a different route.
 
-It is AGPL, self-hostable AI phone-agent infrastructure built with LiveKit Agents, Twilio/Telnyx, Express/Node, Python/FastAPI, Postgres/Prisma, Redis/BullMQ, S3-compatible storage, Pinecone, and Stripe usage hooks.
+It is MIT-licensed, self-hostable AI phone-agent infrastructure built with LiveKit Agents, Twilio/Telnyx, Express/Node, Python/FastAPI, Postgres/Prisma, Redis/BullMQ, S3-compatible storage, Pinecone, and Stripe usage hooks.
 
 You still pay your real providers. You just stop treating the entire voice stack as an opaque per-minute bundle.
 

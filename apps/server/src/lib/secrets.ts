@@ -90,6 +90,13 @@ export function resolveKeyValueSecrets<T>(value: T): T {
   return visitKeyValueFields(value, "resolve") as T;
 }
 
+export function restoreRedactedSecretReferences<T>(
+  value: T,
+  existingValue: unknown
+): T {
+  return restoreRedactedValue(value, existingValue) as T;
+}
+
 function visitSecretFields(value: unknown, mode: "encrypt" | "redact" | "resolve"): unknown {
   if (Array.isArray(value)) return value.map((item) => visitSecretFields(item, mode));
   if (!isRecord(value)) return value;
@@ -147,11 +154,63 @@ function transformSecretMapValue(value: SecretMapValue, mode: "encrypt" | "redac
   return next;
 }
 
+function restoreRedactedValue(
+  value: unknown,
+  existingValue: unknown
+): unknown {
+  if (Array.isArray(value)) {
+    const existingItems = Array.isArray(existingValue) ? existingValue : [];
+    return value.map((item, index) => {
+      const itemKey =
+        isRecord(item) && typeof item.key === "string" ? item.key : null;
+      const existingItem = itemKey
+        ? existingItems.find(
+            (candidate) =>
+              isRecord(candidate) && candidate.key === itemKey
+          )
+        : existingItems[index];
+      return restoreRedactedValue(item, existingItem);
+    });
+  }
+  if (!isRecord(value)) return value;
+
+  if (
+    value.redacted === true &&
+    (value.value === null || value.value === "")
+  ) {
+    const storedValue = isRecord(existingValue)
+      ? existingValue.value
+      : undefined;
+    if (
+      typeof storedValue !== "string" ||
+      (!isSecretReference(storedValue) &&
+        !isEncryptedSecretValue(storedValue))
+    ) {
+      throw new Error("A redacted secret no longer has a stored value");
+    }
+    const restored: Record<string, unknown> = {
+      ...value,
+      value: storedValue,
+    };
+    delete restored.redacted;
+    return restored;
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => key !== "redacted")
+      .map(([key, item]) => [
+        key,
+        restoreRedactedValue(
+          item,
+          isRecord(existingValue) ? existingValue[key] : undefined
+        ),
+      ])
+  );
+}
+
 function getEncryptionKey() {
-  const material =
-    process.env.SECRET_ENCRYPTION_KEY ??
-    process.env.BETTER_AUTH_SECRET ??
-    process.env.INTERNAL_API_KEY;
+  const material = process.env.SECRET_ENCRYPTION_KEY?.trim();
   if (!material) {
     throw new Error("SECRET_ENCRYPTION_KEY is required to encrypt integration secrets");
   }

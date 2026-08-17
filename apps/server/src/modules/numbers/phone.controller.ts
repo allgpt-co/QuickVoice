@@ -7,6 +7,7 @@ import * as phoneService from "./phone.service.js";
 import { searchNumbersSchema } from "./phone.schema.js";
 import { authorized } from "../../middleware/authorize.middleware.js";
 import { recordAuditEvent } from "../audit/audit-log.service.js";
+import { toBillingJson } from "../billing/billing-json.js";
 
 
 export const searchNumbers = authorized(async (req, res) => {
@@ -14,11 +15,14 @@ export const searchNumbers = authorized(async (req, res) => {
   // only parses req.body. ZodError bubbles to the global error handler and is
   // mapped to a 400.
   const input = searchNumbersSchema.parse(req.query);
-  const results = await phoneService.searchAvailableNumbers(input);
+  const results = await phoneService.searchAvailableNumbers(
+    input,
+    req.auth.activeOrganizationId,
+  );
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Available numbers fetched successfully",
-    data: results,
+    data: toBillingJson(results),
   });
 });
 
@@ -27,7 +31,7 @@ export const listNumbers = authorized(async (req, res) => {
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Phone numbers fetched successfully",
-    data: numbers,
+    data: toBillingJson(numbers),
   });
 });
 
@@ -40,7 +44,7 @@ export const buyNumber = authorized(async (req, res) => {
   res.status(StatusCodes.CREATED).json({
     success: true,
     message: "Phone number purchased successfully",
-    data: number,
+    data: toBillingJson(number),
   });
   void recordAuditEvent({
     organizationId: req.auth.activeOrganizationId,
@@ -65,7 +69,7 @@ export const updateNumber = authorized(async (req, res) => {
   res.status(StatusCodes.OK).json({
     success: true,
     message: "Phone number updated successfully",
-    data: updated,
+    data: toBillingJson(updated),
   });
   void recordAuditEvent({
     organizationId: req.auth.activeOrganizationId,

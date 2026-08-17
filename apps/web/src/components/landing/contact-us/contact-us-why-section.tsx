@@ -1,38 +1,45 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Rocket, DollarSign, Target, Wrench, Shield, Globe } from "lucide-react";
+import {
+  Rocket,
+  DollarSign,
+  Target,
+  Wrench,
+  Shield,
+  Globe,
+} from "lucide-react";
 
 const whyItems = [
   {
     icon: Rocket,
-    title: "Rapid Deployment",
-    desc: "Get your voice agents up and running in minutes, not months. Our no-code platform makes it incredibly easy to deploy AI solutions.",
+    title: "Deployment Planning",
+    desc: "Map prerequisites, providers, integrations, safeguards, tests, and ownership for the exact call workflow you want to operate.",
   },
   {
     icon: DollarSign,
-    title: "Cost Savings",
-    desc: "Reduce operational costs by up to 70% while improving customer satisfaction. Our voice agents work 24/7 without breaks or sick days.",
+    title: "Cost Visibility",
+    desc: "Model telephony, speech, model, storage, infrastructure, support, and operating costs instead of relying on a single headline rate.",
   },
   {
     icon: Target,
-    title: "Proven Results",
-    desc: "Join 10,000+ businesses that have increased sales by 40% and improved customer satisfaction by 85% with our voice AI solutions.",
+    title: "Evaluation Design",
+    desc: "Define a baseline, success criteria, failure thresholds, and a measured pilot before publishing performance or ROI claims.",
   },
   {
     icon: Wrench,
-    title: "Easy Integration",
-    desc: "Seamlessly integrate with your existing CRM, helpdesk, and business tools. No complex technical setup required.",
+    title: "Integration Review",
+    desc: "Identify the APIs and tools a workflow needs, the actions each can take, and the authorization and fallback rules around them.",
   },
   {
     icon: Shield,
-    title: "Enterprise Security",
-    desc: "Bank-level security with SOC 2 Type II certification, HIPAA compliance, and end-to-end encryption for all conversations.",
+    title: "Security Boundaries",
+    desc: "Review identity, permissions, secrets, logs, recordings, transcripts, retention, storage, providers, and incident response.",
   },
   {
     icon: Globe,
-    title: "Global Support",
-    desc: "Multilingual support in 50+ languages with 24/7 availability. Serve customers worldwide with authentic local accents.",
+    title: "Provider Selection",
+    desc: "Choose and test the telephony, speech, voice, model, data, and infrastructure providers required by your deployment.",
   },
 ];
 
@@ -66,7 +73,8 @@ export function ContactUsWhySection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg leading-8 text-muted-foreground max-w-3xl mx-auto"
           >
-            Discover how our award-winning voice AI platform can transform your business operations and customer experience.
+            Discover how our award-winning voice AI platform can transform your
+            business operations and customer experience.
           </motion.p>
         </div>
 
@@ -79,7 +87,7 @@ export function ContactUsWhySection() {
               viewport={{ once: true }}
               transition={{
                 default: { duration: 0.6, delay: index * 0.1, ease: "easeOut" },
-                y: { duration: 0.2, ease: "easeOut" }
+                y: { duration: 0.2, ease: "easeOut" },
               }}
               whileHover={{ y: -4 }}
               className="group relative transform-gpu space-y-3 rounded-xl border border-border bg-transparent p-6 transition-all duration-200 ease-out hover:border-primary/30 [box-shadow:0_-20px_80px_-20px_rgba(var(--primary-rgb),0.18)_inset] hover:[box-shadow:0_-20px_80px_-20px_rgba(var(--primary-rgb),0.25)_inset]"
@@ -90,8 +98,12 @@ export function ContactUsWhySection() {
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 mb-4 transition-all duration-200 ease-out group-hover:bg-primary/20 mx-auto">
                   <item.icon className="h-8 w-8 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors duration-200 ease-out group-hover:text-primary">{item.title}</h3>
-                <p className="text-sm text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground/80">{item.desc}</p>
+                <h3 className="text-lg font-semibold text-foreground mb-2 transition-colors duration-200 ease-out group-hover:text-primary">
+                  {item.title}
+                </h3>
+                <p className="text-sm text-muted-foreground transition-colors duration-200 ease-out group-hover:text-foreground/80">
+                  {item.desc}
+                </p>
               </div>
             </motion.div>
           ))}

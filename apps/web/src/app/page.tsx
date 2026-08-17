@@ -2,7 +2,6 @@ import dynamic from "next/dynamic";
 
 // Above-fold: server-rendered immediately (SSR)
 import { HeroSection } from "@/components/landing/hero-section";
-import { CustomersSection } from "@/components/customers/customers";
 
 // Below-fold: lazy-loaded to reduce initial JS parse
 const FeaturesSection = dynamic(() =>
@@ -13,11 +12,6 @@ const FeaturesSection = dynamic(() =>
 const AboutSection = dynamic(() =>
   import("@/components/landing/about-section").then((m) => ({
     default: m.AboutSection,
-  })),
-);
-const TestimonialsSection = dynamic(() =>
-  import("@/components/landing/testimonials-section").then((m) => ({
-    default: m.TestimonialsSection,
   })),
 );
 const CtaSection = dynamic(() =>
@@ -111,12 +105,6 @@ const homepageSchema = [
     operatingSystem: "Web",
     browserRequirements: "Requires JavaScript. Requires HTML5.",
     url: "https://quickvoice.co",
-    offers: [
-      { "@type": "Offer", name: "Free", price: "0", priceCurrency: "USD" },
-      { "@type": "Offer", name: "Starter", price: "49", priceCurrency: "USD" },
-      { "@type": "Offer", name: "Growth", price: "99", priceCurrency: "USD" },
-      { "@type": "Offer", name: "Scale", price: "399", priceCurrency: "USD" },
-    ],
   },
 ];
 
@@ -166,14 +154,6 @@ const faqSchema = {
     },
     {
       "@type": "Question",
-      name: "Is there a free trial available?",
-      acceptedAnswer: {
-        "@type": "Answer",
-        text: "Yes, the Free plan includes 15 browser-only minutes each month so you can test the builder before a production launch. No credit card is required.",
-      },
-    },
-    {
-      "@type": "Question",
       name: "Does the repository alone prove compliance?",
       acceptedAnswer: {
         "@type": "Answer",
@@ -185,7 +165,7 @@ const faqSchema = {
       name: "Can I customize QuickVoice?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "Yes. The AGPL repo is designed to be inspected and extended, including agents, knowledge sources, campaigns, permissions, billing paths, provider integrations, and deployment choices.",
+        text: "Yes. The MIT-licensed repo is designed to be inspected and extended, including agents, knowledge sources, campaigns, permissions, billing paths, provider integrations, and deployment choices.",
       },
     },
   ],
@@ -204,10 +184,8 @@ export default function Home() {
       />
       <main className="min-h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100">
         <HeroSection />
-        <CustomersSection />
         <FeaturesSection />
         <AboutSection />
-        <TestimonialsSection />
         <CtaSection />
         <FaqSection />
         <ContactSection />

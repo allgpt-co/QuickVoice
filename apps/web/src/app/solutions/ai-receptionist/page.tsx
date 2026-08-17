@@ -28,14 +28,14 @@ import {
 export const metadata: Metadata = {
   title: "AI Receptionist — 24/7 Automated Call Answering",
   description:
-    "Deploy an AI receptionist that answers calls 24/7, books appointments, and routes callers. HIPAA compliant. 100+ languages. Try free.",
+    "Explore a configurable AI receptionist workflow for answering, scheduling, routing, and escalation on open-source phone-agent infrastructure.",
   alternates: {
     canonical: "https://quickvoice.co/solutions/ai-receptionist",
   },
   openGraph: {
     title: "AI Receptionist — 24/7 Automated Call Answering",
     description:
-      "Deploy an AI receptionist that answers calls 24/7, books appointments, and routes callers. HIPAA compliant. 100+ languages. Try free.",
+      "Explore a configurable AI receptionist workflow for answering, scheduling, routing, and escalation.",
     url: "https://quickvoice.co/solutions/ai-receptionist",
     siteName: "QuickVoice",
     type: "website",
@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "AI Receptionist — 24/7 Automated Call Answering",
     description:
-      "Deploy an AI receptionist that answers calls 24/7, books appointments, and routes callers. HIPAA compliant. 100+ languages. Try free.",
+      "Explore a configurable AI receptionist workflow for answering, scheduling, routing, and escalation.",
     images: ["/og-image.png"],
   },
 };
@@ -66,21 +66,21 @@ const STEPS = [
     step: "1",
     title: "Configure",
     description:
-      "Set your greeting, business hours, call routing rules, and FAQ answers in a no-code dashboard. Upload your knowledge base so the AI speaks your brand voice.",
+      "Set a greeting, business hours, routing rules, and knowledge sources in the configuration dashboard.",
     icon: Settings,
   },
   {
     step: "2",
     title: "Connect",
     description:
-      "Forward your existing business number or provision a new one. Integrate with your calendar, CRM, and helpdesk in a few clicks.",
+      "Configure LiveKit plus Twilio or Telnyx, then connect approved calendars, CRMs, or helpdesks through their APIs or tool interfaces.",
     icon: Plug,
   },
   {
     step: "3",
     title: "Go Live",
     description:
-      "Your AI receptionist starts answering calls instantly. Monitor live dashboards, review transcripts, and fine-tune as needed.",
+      "Test identity checks, tools, transfers, consent, retention, and failure paths before enabling a production phone number.",
     icon: Rocket,
   },
 ];
@@ -107,19 +107,19 @@ const FEATURES = [
   {
     title: "Multi-Language Support",
     description:
-      "Serve a global audience with support for 100+ languages. The AI detects the caller's language automatically.",
+      "Configure languages supported by the speech and voice providers in your deployment, then test each language and fallback path.",
     icon: Globe,
   },
   {
-    title: "HIPAA Compliant",
+    title: "Compliance Review",
     description:
-      "Built for regulated industries. Encrypted data, PHI redaction, audit logs, and BAA available on qualifying plans.",
+      "Inspect redaction, retention, access, logs, secrets, and provider boundaries; compliance still depends on the complete deployment and operating controls.",
     icon: ShieldCheck,
   },
   {
-    title: "CRM Sync",
+    title: "External Tools",
     description:
-      "Log every call, capture lead details, and push data to Salesforce, HubSpot, or your custom CRM via API.",
+      "Attach allowlisted MCP or HTTP tools to approved workflows and keep side-effect actions behind explicit safeguards.",
     icon: RefreshCw,
   },
 ];
@@ -128,7 +128,7 @@ const USE_CASES = [
   {
     industry: "Healthcare",
     description:
-      "Handle patient intake calls, schedule appointments, send reminders, and route urgent calls to on-call staff — all while staying HIPAA compliant.",
+      "Evaluate intake, scheduling, reminder, and escalation workflows only after the exact deployment passes healthcare security, privacy, legal, and operational review.",
     icon: Stethoscope,
   },
   {
@@ -229,16 +229,16 @@ const FAQS = [
     a: "Yes. You can fully customize the greeting script, hold music, voice tone, speaking pace, and language. The AI adapts to your brand personality so callers experience a consistent, professional interaction.",
   },
   {
-    q: "Is my data secure and HIPAA compliant?",
-    a: "Absolutely. QuickVoice uses end-to-end encryption, automatic PHI redaction, and role-based access controls. HIPAA-ready logging is available on the Scale plan, and we sign Business Associate Agreements on the Enterprise tier.",
+    q: "Is my deployment automatically secure or HIPAA compliant?",
+    a: "No. The repository and a plan selection do not establish compliance. Review the exact deployment, providers, contracts, access controls, retention, redaction, logs, incident response, and operating procedures before processing regulated data.",
   },
   {
     q: "How long does it take to set up?",
-    a: "Most businesses are live within minutes. You configure your receptionist through a no-code dashboard, connect your phone number, and start receiving AI-answered calls right away. No coding or IT resources required.",
+    a: "You can inspect the local product surface after installing the documented prerequisites. Real calls require LiveKit plus Twilio or Telnyx credentials, and production readiness depends on your integrations, testing, safeguards, and deployment choices.",
   },
   {
     q: "Can the AI receptionist handle multiple calls at the same time?",
-    a: "Yes. Unlike a human receptionist, the AI can handle an unlimited number of concurrent calls. No caller ever gets a busy signal or has to wait on hold.",
+    a: "The architecture can run concurrent calls, but actual capacity depends on your LiveKit, telephony, model, speech, infrastructure, rate-limit, and cost configuration. Load-test the intended deployment before publishing a capacity claim.",
   },
 ];
 
@@ -363,7 +363,8 @@ export default function AIReceptionistPage() {
           <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
             Replace voicemail with an AI-powered virtual receptionist that
             answers every call, books appointments, routes inquiries, and
-            captures leads — around the clock, in 100+ languages.
+            captures structured outcomes, subject to the providers, languages,
+            credentials, safeguards, and capacity you configure.
           </p>
 
           <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">

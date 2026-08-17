@@ -13,6 +13,22 @@ import type {
 import formatPhoneNumber from "../../common/utils/formatPhoneNumber.js";
 import setProviderBinding from "../../common/utils/setProviderBinding.js";
 import setLiveKitBinding from "../../common/utils/setLiveKitBinding.js";
+import { parseUsdToMicros } from "../billing/money.js";
+import { createNumberQuote } from "./number-quote.service.js";
+import { isHostedBilling } from "../../config/billing-mode.js";
+import { numberPurchaseService } from "./number-purchase.service.js";
+import { assertPhoneNumberCanLink } from "./phone-billing-guards.js";
+import {
+  createNumberDeleter,
+  type NumberDeletionDeps,
+} from "./number-deletion.service.js";
+
+export {
+  createNumberDeleter,
+  PhoneNumberReleaseClaimLostError,
+  type DeleteNumberOptions,
+  type NumberDeletionDeps,
+} from "./number-deletion.service.js";
 
 // Normalized shape returned by searchAvailableNumbers, so callers never have
 // to branch on provider-specific field names.
@@ -23,12 +39,16 @@ export type AvailableNumber = {
   locality?: string;
   region?: string;
   isoCountry?: string;
+  providerMonthlyCostMicros: string;
+  monthlyPriceMicros: string;
+  quoteId: string;
+  quoteExpiresAt: string;
+  rateCatalogVersion: string;
 };
 
-
-
-export const  searchAvailableNumbers = async (
-  input: SearchNumbersInput
+export const searchAvailableNumbers = async (
+  input: SearchNumbersInput,
+  organizationId: string,
 ): Promise<AvailableNumber[]> => {
   const { provider, country, areaCode, limit } = input;
 
@@ -41,16 +61,45 @@ export const  searchAvailableNumbers = async (
         limit: limit ?? 10,
       });
 
-    return results.map((r) => ({
-      phoneNumber: r.phoneNumber,
-      friendlyName: r.friendlyName,
-      locality: r.locality,
-      region: r.region,
-      isoCountry: r.isoCountry,
+    const pricing = await twilioClient.pricing.v1.phoneNumbers
+      .countries(country)
+      .fetch();
+    const localPrice = pricing.phoneNumberPrices?.find(
+      (price) => price.numberType?.toLowerCase() === "local",
+    );
+    if (
+      !localPrice?.currentPrice ||
+      pricing.priceUnit?.toUpperCase() !== "USD"
+    ) {
+      throw new BadRequestError(
+        "Current USD rental pricing is unavailable for this country",
+      );
+    }
+    const providerMonthlyCostMicros = parseUsdToMicros(localPrice.currentPrice);
 
-    }));
-  }
-  else {
+    return results.map((r) => {
+      const quote = createNumberQuote({
+        organizationId,
+        phoneNumber: r.phoneNumber,
+        provider,
+        providerMonthlyCostMicros,
+        billingCountryIso: country,
+        billingNumberType: "local",
+      });
+      return {
+        phoneNumber: r.phoneNumber,
+        friendlyName: r.friendlyName,
+        locality: r.locality,
+        region: r.region,
+        isoCountry: r.isoCountry,
+        providerMonthlyCostMicros: providerMonthlyCostMicros.toString(),
+        monthlyPriceMicros: quote.monthlyPriceMicros.toString(),
+        quoteId: quote.quoteId,
+        quoteExpiresAt: quote.expiresAt,
+        rateCatalogVersion: quote.rateCatalogVersion,
+      };
+    });
+  } else {
     // Telnyx
     const response = await telnyxClient.availablePhoneNumbers.list({
       filter: {
@@ -65,17 +114,47 @@ export const  searchAvailableNumbers = async (
     }
 
     return response.data.map((d) => {
+      const rawMonthlyCost = d.cost_information?.monthly_cost;
+      if (typeof rawMonthlyCost !== "string") {
+        throw new BadRequestError(
+          "Current USD rental pricing is unavailable for this number",
+        );
+      }
+      if (
+        d.cost_information?.currency &&
+        d.cost_information.currency.toUpperCase() !== "USD"
+      ) {
+        throw new BadRequestError(
+          "Only USD-denominated phone number rentals are currently supported",
+        );
+      }
+      const providerMonthlyCostMicros = parseUsdToMicros(rawMonthlyCost);
+      const quote = createNumberQuote({
+        organizationId,
+        phoneNumber: d.phone_number as string,
+        provider,
+        providerMonthlyCostMicros,
+        billingCountryIso: country,
+        billingNumberType: "local",
+      });
       return {
         phoneNumber: d.phone_number as string,
         friendlyName: formatPhoneNumber(d.phone_number as string),
-        locality: d.region_information?.find((r) => r.region_type === "location")?.region_name,
-        region: d.region_information?.find((r) => r.region_type === "state")?.region_name,
+        locality: d.region_information?.find(
+          (r) => r.region_type === "location",
+        )?.region_name,
+        region: d.region_information?.find((r) => r.region_type === "state")
+          ?.region_name,
         isoCountry: country,
-
+        providerMonthlyCostMicros: providerMonthlyCostMicros.toString(),
+        monthlyPriceMicros: quote.monthlyPriceMicros.toString(),
+        quoteId: quote.quoteId,
+        quoteExpiresAt: quote.expiresAt,
+        rateCatalogVersion: quote.rateCatalogVersion,
       };
     });
-  };
-}
+  }
+};
 
 export const listOrgNumbers = async (organizationId: string) => {
   return phoneRepository.listByOrg(organizationId);
@@ -92,6 +171,15 @@ export const listOrgNumbers = async (organizationId: string) => {
 export const buyNumber = async (args: BuyNumberArgs) => {
   const { organizationId, userId, provider, phoneNumber } = args;
 
+  if (isHostedBilling) {
+    return numberPurchaseService.purchaseNumber(args);
+  }
+
+  const existing = await phoneRepository.getByNumberForOrg(
+    phoneNumber,
+    organizationId,
+  );
+  if (existing) return existing;
 
   // Step 1: buy at provider WITHOUT attaching to the SIP trunk/connection.
   // Trunk/connection attachment happens later, during agent linking. Store the
@@ -112,7 +200,7 @@ export const buyNumber = async (args: BuyNumberArgs) => {
     const orderedNumber = order.data?.phone_numbers?.[0];
     if (!orderedNumber?.id) {
       throw new BadRequestError(
-        "Telnyx did not return a phone number ID for the order"
+        "Telnyx did not return a phone number ID for the order",
       );
     }
     sid = orderedNumber.id;
@@ -145,7 +233,7 @@ export const buyNumber = async (args: BuyNumberArgs) => {
     } catch (rollbackErr) {
       console.error(
         "[numbers] CRITICAL: rollback failed after buyNumber error — paid orphan at provider",
-        { provider, sid, phoneNumber, originalError: err, rollbackErr }
+        { provider, sid, phoneNumber, originalError: err, rollbackErr },
       );
     }
     throw err;
@@ -156,12 +244,12 @@ export const buyNumber = async (args: BuyNumberArgs) => {
 // unlink). Throws NotFoundError if a non-null agentId doesn't match anything.
 const assertAgentInOrg = async (
   agentId: string | null,
-  organizationId: string
+  organizationId: string,
 ) => {
   if (agentId === null) return;
   const exists = await agentRepository.agentExistsInOrg(
     agentId,
-    organizationId
+    organizationId,
   );
   if (!exists) {
     throw new NotFoundError("Agent not found");
@@ -173,7 +261,7 @@ const assertAgentInOrg = async (
 // purely a DB change — the number is already attached at both layers.
 const decideTrunkOp = (
   priorAgentId: string | null,
-  nextAgentId: string | null
+  nextAgentId: string | null,
 ): "attach" | "detach" | null => {
   const wasLinked = priorAgentId !== null;
   const willBeLinked = nextAgentId !== null;
@@ -202,6 +290,7 @@ export const linkAgentToNumber = async (args: UpdateNumberArgs) => {
   if (!existing) {
     throw new NotFoundError("Phone number not found");
   }
+  assertPhoneNumberCanLink(existing.billingStatus, agentId);
 
   const trunkOp = decideTrunkOp(existing.agentId, agentId);
 
@@ -231,7 +320,7 @@ export const linkAgentToNumber = async (args: UpdateNumberArgs) => {
       phId,
       organizationId,
       agentId,
-      existing.agentId
+      existing.agentId,
     );
     if (!updated) {
       throw new NotFoundError("Phone number not found");
@@ -256,7 +345,7 @@ export const linkAgentToNumber = async (args: UpdateNumberArgs) => {
             step: step.name,
             originalError: err,
             revertErr,
-          }
+          },
         );
       }
     }
@@ -264,25 +353,16 @@ export const linkAgentToNumber = async (args: UpdateNumberArgs) => {
   }
 };
 
-export const deleteNumber = async (organizationId: string, phId: string) => {
-  const existing = await phoneRepository.getByIdForOrg(phId, organizationId);
-  if (!existing) {
-    throw new NotFoundError("Phone number not found");
-  }
-
-  if (existing.agentId !== null) {
-    await setProviderBinding(false, existing);
-    await setLiveKitBinding(false, existing);
-  }
-
-  if (existing.provider === TelephonyProvider.TWILIO) {
-    await twilioClient.incomingPhoneNumbers(existing.sid).remove();
-  } else {
-    await telnyxClient.phoneNumbers.delete(existing.sid);
-  }
-
-  const deleted = await phoneRepository.deletePhoneNumber(phId, organizationId);
-  if (!deleted) {
-    throw new NotFoundError("Phone number not found");
-  }
+const numberDeletionDeps: NumberDeletionDeps = {
+  getByIdForOrg: phoneRepository.getByIdForOrg,
+  refreshClaimedNumberForRelease:
+    phoneRepository.refreshClaimedNumberForRelease,
+  setProviderBinding,
+  setLiveKitBinding,
+  removeTwilioNumber: (sid) => twilioClient.incomingPhoneNumbers(sid).remove(),
+  deleteTelnyxNumber: (sid) => telnyxClient.phoneNumbers.delete(sid),
+  deletePhoneNumber: phoneRepository.deletePhoneNumber,
+  deleteClaimedPhoneNumber: phoneRepository.deleteClaimedPhoneNumber,
 };
+
+export const deleteNumber = createNumberDeleter(numberDeletionDeps);

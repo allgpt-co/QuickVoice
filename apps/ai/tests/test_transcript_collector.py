@@ -94,6 +94,53 @@ class TranscriptCollectorTests(unittest.TestCase):
         self.assertEqual(collector.read()[0]["id"], "agent-committed-1")
         self.assertEqual(len(published), 1)
 
+    def test_user_stt_fallback_ignores_recent_agent_echo_fragment(self):
+        collector = TranscriptCollector()
+        collector.on_conversation_item_added(
+            SimpleNamespace(
+                created_at=1704067201.0,
+                item=SimpleNamespace(
+                    id="assistant-1",
+                    role="assistant",
+                    text_content=(
+                        "Hi, thanks for calling, I can help answer questions, "
+                        "capture details, or route the next step."
+                    ),
+                    created_at=1704067201.0,
+                ),
+            )
+        )
+        collector.on_user_input_transcribed(
+            SimpleNamespace(
+                transcript="Questions capture details or",
+                is_final=True,
+                created_at=1704067202.0,
+            )
+        )
+
+        self.assertEqual(len(collector.read()), 1)
+        self.assertEqual(collector.read()[0]["role"], "agent")
+
+    def test_committed_user_item_ignores_recent_agent_echo_fragment(self):
+        collector = TranscriptCollector()
+        collector.on_agent_transcription_final(
+            "I'm here to assist you.", time=1704067201.0
+        )
+        collector.on_conversation_item_added(
+            SimpleNamespace(
+                created_at=1704067202.0,
+                item=SimpleNamespace(
+                    id="user-echo-1",
+                    role="user",
+                    text_content="I'm here to assist you.",
+                    created_at=1704067202.0,
+                ),
+            )
+        )
+
+        self.assertEqual(len(collector.read()), 1)
+        self.assertEqual(collector.read()[0]["role"], "agent")
+
     def test_notifies_live_publisher_only_for_new_final_items(self):
         published = []
         collector = TranscriptCollector(on_item=published.append)

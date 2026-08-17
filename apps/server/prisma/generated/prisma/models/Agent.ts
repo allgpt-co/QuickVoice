@@ -765,14 +765,6 @@ export type AgentUpdateOneWithoutPhoneNumbersNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.AgentUpdateToOneWithWhereWithoutPhoneNumbersInput, Prisma.AgentUpdateWithoutPhoneNumbersInput>, Prisma.AgentUncheckedUpdateWithoutPhoneNumbersInput>
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type AgentCreateNestedOneWithoutConfigurationInput = {
   create?: Prisma.XOR<Prisma.AgentCreateWithoutConfigurationInput, Prisma.AgentUncheckedCreateWithoutConfigurationInput>
   connectOrCreate?: Prisma.AgentCreateOrConnectWithoutConfigurationInput

@@ -55,8 +55,10 @@ export const queryKeys = {
   },
   billing: {
     all: ["billing"] as const,
-    subscription: () => [...queryKeys.billing.all, "subscription"] as const,
-    usage: () => [...queryKeys.billing.all, "usage"] as const,
+    summary: (organizationId: string | null) =>
+      [...queryKeys.billing.all, "summary", organizationId] as const,
+    transactions: (organizationId: string | null) =>
+      [...queryKeys.billing.all, "transactions", organizationId] as const,
   },
   tools: {
     all: ["tools"] as const,

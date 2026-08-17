@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import agentRouter from "./modules/agent/agent.route.js";
+import billingRouter from "./modules/billing/billing.route.js";
 import calllogRouter from "./modules/calllogs/calllog.route.js";
 import dashboardRouter from "./modules/dashboard/dashboard.route.js";
 import kbRouter from "./modules/kb/kb.route.js";
@@ -14,6 +15,7 @@ import widgetRouter from "./modules/widgets/widget.route.js";
 const router = Router();
 
 router.use("/agents", agentRouter);
+router.use("/billing", billingRouter);
 router.use("/numbers", phoneRouter);
 router.use("/calls", calllogRouter);
 router.use("/dashboard", dashboardRouter);

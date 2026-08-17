@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -15,6 +16,7 @@ class TranscriptCollector:
         self._items: list[dict[str, Any]] = []
         self._seen_ids: set[str] = set()
         self._last_final_user_transcript: str | None = None
+        self._recent_agent_transcripts: list[str] = []
         self._on_item = on_item
 
     def attach(self, session: Any) -> "TranscriptCollector":
@@ -37,6 +39,8 @@ class TranscriptCollector:
             content = getattr(item, "content", "")
         text = _content_to_text(content)
         if not text:
+            return
+        if role == "user" and self._looks_like_agent_echo(text):
             return
 
         message_id = str(getattr(item, "id", "") or f"msg-{len(self._items)}")
@@ -67,6 +71,8 @@ class TranscriptCollector:
         if not text or text == self._last_final_user_transcript:
             return
         self._last_final_user_transcript = text
+        if self._looks_like_agent_echo(text):
+            return
 
         # Most final user turns also arrive through conversation_item_added.
         # Keep this as a fallback for STT events that are not materialized into
@@ -105,6 +111,8 @@ class TranscriptCollector:
         return list(self._items)
 
     def _append(self, item: dict[str, Any]) -> None:
+        if item.get("role") == "agent":
+            self._remember_agent_transcript(str(item.get("content") or ""))
         self._items.append(item)
         if self._on_item is None:
             return
@@ -114,6 +122,27 @@ class TranscriptCollector:
             # Live monitoring is optional and must never break transcript
             # collection or the voice session.
             return
+
+    def _remember_agent_transcript(self, text: str) -> None:
+        normalized = _normalize_text(text)
+        if len(normalized) < 12:
+            return
+        if (
+            self._recent_agent_transcripts
+            and self._recent_agent_transcripts[-1] == normalized
+        ):
+            return
+        self._recent_agent_transcripts.append(normalized)
+        del self._recent_agent_transcripts[:-5]
+
+    def _looks_like_agent_echo(self, text: str) -> bool:
+        normalized = _normalize_text(text)
+        if len(normalized) < 12 or len(normalized.split()) < 3:
+            return False
+        return any(
+            normalized in agent_text
+            for agent_text in self._recent_agent_transcripts[-5:]
+        )
 
     def _replace_matching_synthetic_turn(
         self,
@@ -149,4 +178,4 @@ def _content_to_text(content: Any) -> str:
 
 
 def _normalize_text(value: Any) -> str:
-    return " ".join(str(value or "").split()).casefold()
+    return " ".join(re.findall(r"\w+", str(value or "").casefold()))

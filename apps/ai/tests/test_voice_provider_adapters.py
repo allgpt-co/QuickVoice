@@ -78,6 +78,23 @@ class VoiceProviderAdapterTests(unittest.TestCase):
             with self.assertRaisesRegex(ProviderAdapterError, "AWS_SECRET_ACCESS_KEY"):
                 build_voice_provider_adapters(self.config)
 
+    def test_multilingual_nova_3_uses_runtime_multi_language(self):
+        config = {
+            **self.config,
+            "language": "hi",
+            "stt": {
+                "provider": "deepgram",
+                "model": "nova-3",
+                "language": "multi",
+                "billing_model": "deepgram/nova-3-multilingual",
+            },
+        }
+        with patch.dict(os.environ, {"DEEPGRAM_API_KEY": "d", "ELEVENLABS_API_KEY": "e"}, clear=True):
+            with patch("handlers.voice_provider_adapters.deepgram.STT") as stt:
+                build_voice_provider_adapters(config)
+
+        stt.assert_called_once_with(model="nova-3", language="multi", api_key="d")
+
 
 if __name__ == "__main__":
     unittest.main()

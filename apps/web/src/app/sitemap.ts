@@ -23,6 +23,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 1.0,
     },
+    {
+      url: `${baseUrl}/open-source`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.9,
+    },
 
     // Company pages
     {
@@ -162,12 +168,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  const caseStudyUrls: MetadataRoute.Sitemap = caseStudies.map((study: { slug: string }) => ({
-    url: `${baseUrl}/case-studies/${study.slug}`,
-    lastModified: new Date(),
-    changeFrequency: "monthly" as const,
-    priority: 0.7,
-  }));
+  const caseStudyUrls: MetadataRoute.Sitemap = caseStudies.map(
+    (study: { slug: string }) => ({
+      url: `${baseUrl}/case-studies/${study.slug}`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
+    }),
+  );
 
   return [...staticPages, ...blogUrls, ...caseStudyUrls];
 }

@@ -47,7 +47,8 @@ export function TravelHospitalityCtaSection() {
             transition={{ duration: 0.6, delay: 0.1 }}
             className="mb-6 max-w-md text-base text-white sm:text-lg md:mb-8"
           >
-            Join thousands of travel and hospitality businesses already using QuickVoice to enhance customer support, boost sales, and streamline operations.
+            Evaluate a bounded travel or hospitality call flow with your own
+            booking systems, policies, languages, and human handoffs.
           </motion.p>
 
           <motion.div
