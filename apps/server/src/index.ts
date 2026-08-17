@@ -33,6 +33,7 @@ const apiVersion = process.env.API_VERSION || "v1";
 const widgetAssetDir =
   process.env.WIDGET_ASSET_DIR ?? path.resolve(process.cwd(), "../widget/dist");
 
+
 app.get(`/api/${apiVersion}/docs.json`, (_req, res) => {
   res.json(swaggerSpec);
 });
@@ -98,17 +99,42 @@ app.options(
  * =========================
  */
 
-// Security headers
-app.use(helmet());
-
-// CORS
+// Security headers — disable helmet's cross-origin policies that conflict
+// with our CORS setup (crossOriginResourcePolicy: same-origin blocks the
+// Access-Control-Allow-Origin header from being respected by browsers).
 app.use(
-  cors({
-    origin: trustedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
   })
 );
+
+// ─── CORS ───────────────────────────────────────────────────────────────────
+// Hand-rolled middleware runs first so it isn't blocked by either:
+//  • the cors package's own OPTIONS short-circuit, or
+//  • Better Auth's toNodeHandler intercepting OPTIONS on auth routes.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && trustedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, Cookie"
+    );
+    if (req.method === "OPTIONS") {
+      res.setHeader("Access-Control-Max-Age", "600");
+      res.status(204).end();
+      return;
+    }
+  }
+  next();
+});
 
 // Request logger
 app.use(
@@ -126,7 +152,6 @@ app.use(
  * client API requests get stuck in a pending state.
  * See: https://better-auth.com/docs/integrations/express
  */
-
 app.all(`/api/${apiVersion}/auth/*splat`, toNodeHandler(auth));
 
 // Rate limit before JSON parsing so oversized or abusive request bodies are
