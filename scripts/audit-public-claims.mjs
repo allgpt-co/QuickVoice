@@ -139,11 +139,64 @@ function excerpt(value) {
   return value.replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
+function claimLines(file, text) {
+  const lines = text.split(/\r?\n/);
+  if (![".md", ".mdx"].includes(extname(file).toLowerCase())) return lines;
+
+  // Retained URL identities are not prose. Keep every other metadata field,
+  // link label/title, and the original line positions available to the audit.
+  const frontmatterEnd =
+    lines[0] === "---"
+      ? lines.findIndex(
+          (line, index) => index > 0 && /^(?:---|\.\.\.)$/.test(line),
+        )
+      : -1;
+  let fence;
+  return lines.map((line, index) => {
+    if (index > 0 && index < frontmatterEnd) {
+      const field = line.match(
+        /^(slug|canonical):[ \t]*(?:"([^"]*)"|'([^']*)'|([^ \t#]+))[ \t]*$/,
+      );
+      if (field) {
+        const value = field[2] ?? field[3] ?? field[4];
+        if (field[1] === "slug" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+          return "";
+        if (field[1] === "canonical") {
+          try {
+            if (/^https?:$/.test(new URL(value).protocol)) return "";
+          } catch {
+            /* Malformed metadata remains subject to the prose audit. */
+          }
+        }
+      }
+      return line;
+    }
+
+    const delimiter = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+    if (delimiter) {
+      if (!fence) fence = delimiter[1];
+      else if (
+        delimiter[1][0] === fence[0] &&
+        delimiter[1].length >= fence.length
+      )
+        fence = undefined;
+      return line;
+    }
+    if (fence) return line;
+    // Be conservative around inline code: its link-like text is visible.
+    if (line.includes("`")) return line;
+    return line.replace(
+      /(\[[^\]\n]*\]\()(?:https?:\/\/|\/)[^\s)\n]+(?=\s|\))/g,
+      "$1",
+    );
+  });
+}
+
 function auditFile(file) {
   const text = readFileSync(file, "utf8");
-  const lines = text.split(/\r?\n/);
+  const lines = claimLines(file, text);
   const findings = [];
-  for (const [index, line] of lines.entries()) {
+  for (const [index, line] of text.split(/\r?\n/).entries()) {
     if (line.includes(ALLOW_MARKER)) {
       findings.push({
         rule: "UNSUPPORTED_EXCEPTION",
