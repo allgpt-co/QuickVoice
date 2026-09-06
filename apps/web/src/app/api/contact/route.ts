@@ -20,9 +20,9 @@ function cleanString(value: unknown, maxLength: number): string {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
 }
 
-function parseSubmission(body: unknown):
-  | { ok: true; submission: ContactSubmission }
-  | { ok: false; error: string } {
+function parseSubmission(
+  body: unknown,
+): { ok: true; submission: ContactSubmission } | { ok: false; error: string } {
   if (!body || typeof body !== "object") {
     return { ok: false, error: "Invalid request payload" };
   }
@@ -70,10 +70,19 @@ function parseSubmission(body: unknown):
   };
 }
 
-async function forwardSubmission(submission: ContactSubmission, webhookUrl: string) {
+async function forwardSubmission(
+  submission: ContactSubmission,
+  webhookUrl: string,
+) {
+  const secret = process.env.CONTACT_WEBHOOK_SECRET?.trim();
   const response = await fetch(webhookUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(secret ? { "X-QuickVoice-Contact-Secret": secret } : {}),
+    },
+    // Do not carry the shared credential to a redirected destination.
+    ...(secret ? { redirect: "error" as const } : {}),
     body: JSON.stringify(submission),
     signal: AbortSignal.timeout(10_000),
   });
@@ -103,7 +112,10 @@ export async function POST(request: NextRequest) {
   const webhookUrl = process.env.CONTACT_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
     return NextResponse.json(
-      { error: "Contact delivery is temporarily unavailable. Please email info@quickvoice.co directly." },
+      {
+        error:
+          "Contact delivery is temporarily unavailable. Please email info@quickvoice.co directly.",
+      },
       { status: 503 },
     );
   }
