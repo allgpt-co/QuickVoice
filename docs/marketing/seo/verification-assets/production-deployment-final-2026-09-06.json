@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-09-06T10:46:18.617554+00:00",
+  "application": "QuickVoice marketing web",
+  "deployedRevision": "8bef8acea06593dea6c68c36d34dee03fd0e7599",
+  "deploymentStatus": "finished",
+  "applicationStatus": "running:healthy",
+  "finishedAt": "2026-09-06T10:44:32.000000Z",
+  "homeContainsVerifiedGaMeasurementId": true,
+  "contactSubmissionRepeated": false,
+  "apiHealthStatus": 200,
+  "apiHealthRoute": "/api/v1/health"
+}

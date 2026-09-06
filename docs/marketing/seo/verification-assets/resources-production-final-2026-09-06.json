@@ -1,0 +1,46 @@
+{
+  "observedAt": "2026-09-06T10:45:17.786975+00:00",
+  "webCommit": "8bef8acea06593dea6c68c36d34dee03fd0e7599",
+  "downloads": [
+    {
+      "file": "buyer-implementation-checklist.md",
+      "status": 200,
+      "mime": "text/markdown",
+      "bytes": 4537,
+      "reviewedHashMatch": true,
+      "sha256": "190fca728cd1a43d132003f689060b70ff60ad01d6de1ed376a1b4f0c7e8361a"
+    },
+    {
+      "file": "cost-estimation-guide.md",
+      "status": 200,
+      "mime": "text/markdown",
+      "bytes": 3818,
+      "reviewedHashMatch": true,
+      "sha256": "f6187f6eb8f29423fa72bb34d165e13bcf4a7b994754110fecc3b877a3b7b6a8"
+    },
+    {
+      "file": "cost-estimation-guide.pdf",
+      "status": 200,
+      "mime": "application/pdf",
+      "bytes": 5742,
+      "reviewedHashMatch": true,
+      "sha256": "a7e34d97a06a371100fa136ba908a388edfd7ec8902d9196cc02f47129927676"
+    },
+    {
+      "file": "cost-estimation.csv",
+      "status": 200,
+      "mime": "text/csv",
+      "bytes": 5471,
+      "reviewedHashMatch": true,
+      "sha256": "aacfae945d37f2b365c8d6e8057fb77abecaba00c44d46094ce8006da1bb9595"
+    },
+    {
+      "file": "phone-agent-checklist.pdf",
+      "status": 200,
+      "mime": "application/pdf",
+      "bytes": 6376,
+      "reviewedHashMatch": true,
+      "sha256": "5b334c2d6e572d5c12e57bb654e20489796eae41d501997337bfb90be4f133ee"
+    }
+  ]
+}

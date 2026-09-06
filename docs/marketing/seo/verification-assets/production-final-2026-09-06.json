@@ -1,0 +1,5392 @@
+{
+  "baseUrl": "https://quickvoice.co",
+  "sourceCommit": "465d7a1375b08fba8323a3cfdbf55e04347a927e",
+  "sourceBuildId": "RRjwscn1tG3SAGAtRqZqI",
+  "scope": "Read-only GET requests; source-based expectations; no form submissions; base URL determines local or live observations.",
+  "startedAt": "2026-09-06T10:45:43.552432+00:00",
+  "finishedAt": "2026-09-06T10:45:53.842318+00:00",
+  "durationSeconds": 10.29,
+  "summary": {
+    "inventoryRoutes": 157,
+    "publishedReviewedBlogs": 65,
+    "futureUnavailableBlogs": 25,
+    "illustrativeScenarios": 33,
+    "staticRoutes": 34,
+    "expectedSitemapUrls": 99,
+    "actualSitemapUrls": 99,
+    "blogSourcesChecked": 90,
+    "internalLinkOccurrences": 195,
+    "distinctInternalLinkDestinations": 41,
+    "brokenInternalLinkOccurrences": 0,
+    "socialImagesChecked": 3,
+    "failureCount": 0
+  },
+  "routes": [
+    {
+      "route": "/blog/ai-after-hours-call-handling",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-after-hours-call-handling"
+      ],
+      "robots": "index, follow,",
+      "title": "AI After-Hours Call Handling for Business",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 1087,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-billing-payment-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-billing-payment-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Billing Calls: A Practical Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 336,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-collection-calls-complete-guide",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-collection-calls-complete-guide"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Collection Calls: Scope and Evaluation Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 325,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-customer-surveys-nps-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-customer-surveys-nps-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Customer Survey Calls and NPS: A Practical Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 326,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-insurance-claims-processing-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-insurance-claims-processing-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Insurance Claims Calls: Intake and Status Workflows",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 312,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-medical-scheduling-voice-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-medical-scheduling-voice-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Medical Scheduling: A Practical Administrative Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 299,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-meeting-scheduler-voice-automation",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-meeting-scheduler-voice-automation"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Meeting Schedulers for Business Coordination",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 284,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-patient-intake-pre-visit-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-patient-intake-pre-visit-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Patient Intake Calls: An Administrative Planning Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 331,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-phone-answering-service-small-business",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-phone-answering-service-small-business"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Phone Answering Service for Small Business: What to Check",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 283,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-virtual-assistant-for-business",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-virtual-assistant-for-business"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Virtual Assistants for Business: A Buyer Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 419,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agent-security-data-privacy"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agent Security and Data Privacy: What Buyers Should Check",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 359,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agent-vs-call-center-bpo",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agent-vs-call-center-bpo"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents vs BPO: Cost and Operating Responsibility",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 356,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-accounting-tax-firms",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-accounting-tax-firms"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Accounting and Tax Firms",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 263,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-beauty-salons-spas",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-beauty-salons-spas"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Salons and Spas: Booking Workflows",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 323,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-dental-practices",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-dental-practices"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Dental Practices: Administrative Workflows",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 329,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-home-services",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-home-services"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Home Services: Intake and Dispatch Handoffs",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 250,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-insurance-companies",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-insurance-companies"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Insurance: Service Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 297,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-law-firms",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-law-firms"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Law Firms: Intake Planning Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 336,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-property-management",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-property-management"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Property Management: A Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 291,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-restaurants",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-restaurants"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Restaurants: Phone Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 448,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-staffing-agencies",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-staffing-agencies"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Staffing Agencies: Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 425,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-veterinary-clinics",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-veterinary-clinics"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Veterinary Clinics: Phone Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 317,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-assistant-vs-ai-voice-agent"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Assistant vs AI Voice Agent: Buyer Comparison",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 266,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/air-ai-alternatives",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/air-ai-alternatives"
+      ],
+      "robots": "index, follow,",
+      "title": "Air AI Alternatives: Current Options and Migration Checks",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 263,
+      "sourceDate": "2026-02-21",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026"
+      ],
+      "robots": "index, follow,",
+      "title": "Best AI Voice Agent Platforms in 2026: How to Choose",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 255,
+      "sourceDate": "2026-02-26",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/best-online-booking-systems-ai-voice",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/best-online-booking-systems-ai-voice"
+      ],
+      "robots": "index, follow,",
+      "title": "Best Online Booking System for AI Voice: Buyer Checklist",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 278,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/bland-ai-alternatives",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/bland-ai-alternatives"
+      ],
+      "robots": "index, follow,",
+      "title": "Bland AI Alternatives: A Practical Platform Comparison",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 288,
+      "sourceDate": "2026-02-25",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/enterprise-ai-voice-platform-guide",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/enterprise-ai-voice-platform-guide"
+      ],
+      "robots": "index, follow,",
+      "title": "Enterprise AI Voice Platform: Procurement and Pilot Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 260,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/free-ai-appointment-scheduling-tools",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/free-ai-appointment-scheduling-tools"
+      ],
+      "robots": "index, follow,",
+      "title": "Free AI Appointment Scheduling Tools: A Practical Comparison",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 310,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/how-to-automate-phone-calls-ai",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/how-to-automate-phone-calls-ai"
+      ],
+      "robots": "index, follow,",
+      "title": "How to Automate Phone Calls with AI: Practical Setup Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 324,
+      "sourceDate": "2026-02-27",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/how-to-migrate-ivr-to-ai-voice-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "Migrate IVR to AI Voice Agents: A Practical Cutover Plan",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 370,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/inbound-vs-outbound-ai-voice-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "Inbound vs Outbound AI Voice Agents: Business Planning Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 221,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/multi-language-ai-voice-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/multi-language-ai-voice-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "Multilingual AI Voice Agents: Support and Testing Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 223,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/online-appointment-scheduling-ai-voice",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/online-appointment-scheduling-ai-voice"
+      ],
+      "robots": "index, follow,",
+      "title": "Online Appointment Scheduling: Booking Links vs Phone Workflows",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 481,
+      "sourceDate": "2026-03-19",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/quickvoice-vs-voiceflow",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/quickvoice-vs-voiceflow"
+      ],
+      "robots": "index, follow,",
+      "title": "QuickVoice vs Voiceflow: Practical Voice-Agent Comparison",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 450,
+      "sourceDate": "2026-02-28",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/retell-ai-alternatives",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/retell-ai-alternatives"
+      ],
+      "robots": "index, follow,",
+      "title": "Retell AI Alternatives: A Business Evaluation Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 411,
+      "sourceDate": "2026-02-22",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/synthflow-alternatives",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/synthflow-alternatives"
+      ],
+      "robots": "index, follow,",
+      "title": "Synthflow Alternatives: Current Features and Buyer Checks",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 400,
+      "sourceDate": "2026-02-23",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/vapi-alternatives",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/vapi-alternatives"
+      ],
+      "robots": "index, follow,",
+      "title": "Vapi Alternatives: Retell, QuickVoice, and LiveKit Compared",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 343,
+      "sourceDate": "2026-02-24",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/what-is-an-ai-voice-agent",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/what-is-an-ai-voice-agent"
+      ],
+      "robots": "index, follow,",
+      "title": "What Is an AI Voice Agent? How It Works for Business",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 314,
+      "sourceDate": "2026-03-02",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agent-vs-ivr",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agent-vs-ivr"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agent vs IVR: Capabilities, Costs, and Fit",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 328,
+      "sourceDate": "2026-03-09",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/deploy-ai-voice-agent-no-code",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/deploy-ai-voice-agent-no-code"
+      ],
+      "robots": "index, follow,",
+      "title": "No-Code AI Voice Agent Setup: Console and Deployment Limits",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 285,
+      "sourceDate": "2026-03-16",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-appointment-scheduling-guide"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Appointment Scheduling: Workflow, Setup, and Evaluation",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 566,
+      "sourceDate": "2026-03-23",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agent Support Costs: How to Measure the Business Case",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 316,
+      "sourceDate": "2026-03-30",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/hipaa-compliant-ai-voice-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/hipaa-compliant-ai-voice-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "HIPAA and AI Voice Agents: Healthcare Deployment Review",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 339,
+      "sourceDate": "2026-04-06",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-real-estate",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-real-estate"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Real Estate: Enquiries and Viewings",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 324,
+      "sourceDate": "2026-04-13",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-outbound-calling-replacing-sdr-cold-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Outbound Calling and SDRs: Follow-Up Pilot Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 286,
+      "sourceDate": "2026-04-20",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-vs-human-agents-cost-comparison"
+      ],
+      "robots": "index, follow,",
+      "title": "AI vs Human Agents: A Practical Cost Comparison",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 276,
+      "sourceDate": "2026-04-27",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/automated-appointment-reminders-guide",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/automated-appointment-reminders-guide"
+      ],
+      "robots": "index, follow,",
+      "title": "Automated Appointment Reminders: A Workflow and Testing Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 263,
+      "sourceDate": "2026-05-04",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-phone-agents-automotive-dealerships",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-phone-agents-automotive-dealerships"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Phone Agents for Dealerships: A Workflow Guide",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 303,
+      "sourceDate": "2026-05-11",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/what-is-conversational-ai",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/what-is-conversational-ai"
+      ],
+      "robots": "index, follow,",
+      "title": "What Is Conversational AI? Chatbots and Voice Explained",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 312,
+      "sourceDate": "2026-05-18",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-ecommerce",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-ecommerce"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for E-Commerce: Orders and Returns",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 337,
+      "sourceDate": "2026-05-25",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-b2b-lead-qualification"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for B2B Lead Qualification: Questions and Handoffs",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 246,
+      "sourceDate": "2026-06-01",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/build-ai-voice-agent-small-business"
+      ],
+      "robots": "index, follow,",
+      "title": "How to Build an AI Voice Agent for a Small Business",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 285,
+      "sourceDate": "2026-06-08",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-financial-services",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-financial-services"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Financial Services: Define the Pilot Boundaries",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 331,
+      "sourceDate": "2026-06-15",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-debt-collection-calls",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-debt-collection-calls"
+      ],
+      "robots": "index, follow,",
+      "title": "Debt Collection AI: Disputes, Stop Requests, and Review States",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 301,
+      "sourceDate": "2026-06-22",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/roi-replacing-receptionist-ai-voice-agent"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Receptionist ROI: Build a Cost and Coverage Worksheet",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 383,
+      "sourceDate": "2026-06-29",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-hr-recruiting",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-hr-recruiting"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Recruiting: Candidate Intake Without Automated Ranking",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 300,
+      "sourceDate": "2026-07-06",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai"
+      ],
+      "robots": "index, follow,",
+      "title": "ElevenLabs vs Deepgram for Business Voice Agents",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 255,
+      "sourceDate": "2026-07-13",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/connect-ai-voice-agent-hubspot",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/connect-ai-voice-agent-hubspot"
+      ],
+      "robots": "index, follow,",
+      "title": "Connect Voice Call Outcomes to HubSpot: A Custom Integration Design",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 347,
+      "sourceDate": "2026-07-20",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-logistics",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-logistics"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Logistics: Shipment Status and Exception Design",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 324,
+      "sourceDate": "2026-07-27",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/10-ai-voice-agent-use-cases-healthcare",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/10-ai-voice-agent-use-cases-healthcare"
+      ],
+      "robots": "index, follow,",
+      "title": "Ten Administrative Voice AI Workflows for Healthcare Teams",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 1113,
+      "sourceDate": "2026-08-03",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-phone-agents-handle-objections",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-phone-agents-handle-objections"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Phone Objection Handling: Respectful Responses and Stop Rules",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 328,
+      "sourceDate": "2026-08-10",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/what-is-voice-cloning-ai-agents",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/what-is-voice-cloning-ai-agents"
+      ],
+      "robots": "index, follow,",
+      "title": "What Is Voice Cloning? Business Evaluation and Permission Checks",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 320,
+      "sourceDate": "2026-08-17",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/ai-voice-agents-manufacturing",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/ai-voice-agents-manufacturing"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Voice Agents for Manufacturing: Supplier Acknowledgment Design",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 319,
+      "sourceDate": "2026-08-24",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/quickvoice-vs-bland-ai",
+      "assetType": "blog",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog/quickvoice-vs-bland-ai"
+      ],
+      "robots": "index, follow,",
+      "title": "QuickVoice vs Bland AI: Compare Workflow Control and Ownership",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BlogPosting",
+        "Person",
+        "Organization",
+        "ImageObject",
+        "WebPage",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 404,
+      "sourceDate": "2026-08-31",
+      "expectedModified": "2026-09-06",
+      "reviewValid": true,
+      "future": false
+    },
+    {
+      "route": "/blog/quickvoice-vs-vapi",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 402,
+      "sourceDate": "2026-09-07",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/quickvoice-vs-synthflow",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 403,
+      "sourceDate": "2026-09-14",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/quickvoice-vs-retell-ai",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 329,
+      "sourceDate": "2026-09-21",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/case-study-call-center-cost-reduction-ai-voice",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 343,
+      "sourceDate": "2026-09-28",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/state-of-ai-voice-agents-2026",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 331,
+      "sourceDate": "2026-10-05",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/questions-before-buying-ai-voice-agent-platform",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 407,
+      "sourceDate": "2026-10-12",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/how-to-write-scripts-for-ai-voice-agents",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 230,
+      "sourceDate": "2026-10-19",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-travel-hospitality",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 343,
+      "sourceDate": "2026-10-26",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-saas-companies",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 382,
+      "sourceDate": "2026-11-02",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/what-is-no-code-ai",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 267,
+      "sourceDate": "2026-11-09",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/how-to-automate-order-status-calls",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 302,
+      "sourceDate": "2026-11-16",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/hidden-cost-of-missed-calls-small-business",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 244,
+      "sourceDate": "2026-11-23",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ai-voice-agent-implementation-checklist",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 348,
+      "sourceDate": "2026-11-30",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/how-ai-voice-agents-improve-first-call-resolution",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 263,
+      "sourceDate": "2026-12-07",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-education",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 262,
+      "sourceDate": "2026-12-14",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/quickvoice-vs-air-ai",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 370,
+      "sourceDate": "2026-12-21",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/how-to-reduce-no-show-rates",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 296,
+      "sourceDate": "2026-12-28",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/2027-predictions-ai-voice-agents",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 1030,
+      "sourceDate": "2027-01-04",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/building-ai-first-contact-center",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 359,
+      "sourceDate": "2027-01-11",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-vs-chatbots",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 245,
+      "sourceDate": "2027-01-18",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/real-estate-ai-follow-up-100-percent-inquiries",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 395,
+      "sourceDate": "2027-01-25",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/how-to-measure-ai-voice-agent-success-kpis",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 368,
+      "sourceDate": "2027-02-01",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/50-statistics-ai-customer-service-2026",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 1032,
+      "sourceDate": "2027-02-08",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/quickvoice-2026-year-in-review-roadmap-2027",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 409,
+      "sourceDate": "2027-02-15",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/blog/ultimate-ai-voice-agent-glossary",
+      "assetType": "blog",
+      "status": 404,
+      "expectedStatus": 404,
+      "canonical": [],
+      "robots": "noindex,index, follow,",
+      "title": "QuickVoice - Open-Source AI Phone Agent Stack",
+      "h1": 0,
+      "jsonLdTypes": [],
+      "elapsedMs": 325,
+      "sourceDate": "2027-02-22",
+      "expectedModified": null,
+      "reviewValid": false,
+      "future": true
+    },
+    {
+      "route": "/case-studies/automotive-lease-retention-equity-mining",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/automotive-lease-retention-equity-mining"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Lease-end enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 319
+    },
+    {
+      "route": "/case-studies/automotive-sales-lead-response-bdc",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/automotive-sales-lead-response-bdc"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Vehicle sales enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 286
+    },
+    {
+      "route": "/case-studies/automotive-service-scheduling-noshow-reduction",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/automotive-service-scheduling-noshow-reduction"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Service appointment requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 293
+    },
+    {
+      "route": "/case-studies/ecommerce-post-purchase-review-collection",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/ecommerce-post-purchase-review-collection"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Post-purchase feedback workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 250
+    },
+    {
+      "route": "/case-studies/ecommerce-returns-automation-nps-improvement",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/ecommerce-returns-automation-nps-improvement"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Returns requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 245
+    },
+    {
+      "route": "/case-studies/ecommerce-wismo-automation-peak-season",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/ecommerce-wismo-automation-peak-season"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Order status enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 273
+    },
+    {
+      "route": "/case-studies/education-k12-attendance-emergency-notifications",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/education-k12-attendance-emergency-notifications"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Attendance callbacks workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 208
+    },
+    {
+      "route": "/case-studies/education-online-student-retention",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/education-online-student-retention"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Student support follow-up workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 246
+    },
+    {
+      "route": "/case-studies/education-university-admissions-financial-aid",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/education-university-admissions-financial-aid"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Admissions and financial-aid enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 223
+    },
+    {
+      "route": "/case-studies/financial-services-banking-customer-service",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/financial-services-banking-customer-service"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Banking support intake workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 205
+    },
+    {
+      "route": "/case-studies/financial-services-collections-fdcpa-compliant",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/financial-services-collections-fdcpa-compliant"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Payment follow-up requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 231
+    },
+    {
+      "route": "/case-studies/financial-services-insurance-claims-fnol",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/financial-services-insurance-claims-fnol"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Claim notification intake workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 234
+    },
+    {
+      "route": "/case-studies/healthcare-appointment-scheduling-noshow-reduction",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/healthcare-appointment-scheduling-noshow-reduction"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Appointment requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 256
+    },
+    {
+      "route": "/case-studies/healthcare-patient-collections-compassionate",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/healthcare-patient-collections-compassionate"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Patient billing enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 234
+    },
+    {
+      "route": "/case-studies/healthcare-post-discharge-readmission-reduction",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/healthcare-post-discharge-readmission-reduction"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Post-discharge callback requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 215
+    },
+    {
+      "route": "/case-studies/hr-employee-benefits-helpdesk",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/hr-employee-benefits-helpdesk"
+      ],
+      "robots": "noindex, follow,",
+      "title": "HR policy enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 189
+    },
+    {
+      "route": "/case-studies/hr-recruiting-high-volume-phone-screening",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/hr-recruiting-high-volume-phone-screening"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Candidate information requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 231
+    },
+    {
+      "route": "/case-studies/hr-recruiting-seasonal-hiring-campaigns",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/hr-recruiting-seasonal-hiring-campaigns"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Seasonal recruitment enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 211
+    },
+    {
+      "route": "/case-studies/logistics-delivery-notifications-exception-management",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/logistics-delivery-notifications-exception-management"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Delivery updates and exceptions workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 238
+    },
+    {
+      "route": "/case-studies/logistics-freight-broker-carrier-capacity",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/logistics-freight-broker-carrier-capacity"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Carrier capacity enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 237
+    },
+    {
+      "route": "/case-studies/logistics-last-mile-delivery-coordination",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/logistics-last-mile-delivery-coordination"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Last-mile delivery coordination workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 218
+    },
+    {
+      "route": "/case-studies/manufacturing-preventive-maintenance-scheduling",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/manufacturing-preventive-maintenance-scheduling"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Maintenance scheduling requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 241
+    },
+    {
+      "route": "/case-studies/manufacturing-shift-coordination-workforce",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/manufacturing-shift-coordination-workforce"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Shift availability workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 245
+    },
+    {
+      "route": "/case-studies/manufacturing-supplier-po-confirmation",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/manufacturing-supplier-po-confirmation"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Supplier order confirmations workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 247
+    },
+    {
+      "route": "/case-studies/real-estate-instant-lead-followup-showings",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/real-estate-instant-lead-followup-showings"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Property viewing requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 241
+    },
+    {
+      "route": "/case-studies/real-estate-open-house-followup-nurture",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/real-estate-open-house-followup-nurture"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Open-house follow-up workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 262
+    },
+    {
+      "route": "/case-studies/real-estate-property-management-operations",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/real-estate-property-management-operations"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Tenant maintenance and leasing requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 243
+    },
+    {
+      "route": "/case-studies/saas-churn-prevention-nps-surveys",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/saas-churn-prevention-nps-surveys"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Customer feedback follow-up workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 239
+    },
+    {
+      "route": "/case-studies/saas-customer-onboarding-activation",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/saas-customer-onboarding-activation"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Customer onboarding enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 229
+    },
+    {
+      "route": "/case-studies/saas-renewal-upsell-expansion",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/saas-renewal-upsell-expansion"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Renewal enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 210
+    },
+    {
+      "route": "/case-studies/travel-airline-disruption-rebooking",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/travel-airline-disruption-rebooking"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Travel disruption enquiries workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 196
+    },
+    {
+      "route": "/case-studies/travel-hotel-post-stay-survey-loyalty",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/travel-hotel-post-stay-survey-loyalty"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Post-stay feedback workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 200
+    },
+    {
+      "route": "/case-studies/travel-hotel-reservations-upsell",
+      "assetType": "scenario",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies/travel-hotel-reservations-upsell"
+      ],
+      "robots": "noindex, follow,",
+      "title": "Hotel reservation requests workflow scenario | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 206
+    },
+    {
+      "route": "/blog",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/blog"
+      ],
+      "robots": "index, follow,",
+      "title": "Blog \u2014 AI Voice Agent Guides & Insights | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "CollectionPage",
+        "Organization",
+        "ImageObject",
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem"
+      ],
+      "elapsedMs": 1258
+    },
+    {
+      "route": "/case-studies",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/case-studies"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Phone-Agent Workflow Scenarios | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 397
+    },
+    {
+      "route": "/company/about-us",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/company/about-us"
+      ],
+      "robots": "index, follow,",
+      "title": "About QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "Organization"
+      ],
+      "elapsedMs": 184
+    },
+    {
+      "route": "/company/careers",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/company/careers"
+      ],
+      "robots": "index, follow,",
+      "title": "Contributions and careers | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 195
+    },
+    {
+      "route": "/company/contact",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/company/contact"
+      ],
+      "robots": "index, follow,",
+      "title": "Contact QuickVoice \u2014 Get a Demo or Support | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "ContactPage",
+        "Organization",
+        "ContactPoint"
+      ],
+      "elapsedMs": 241
+    },
+    {
+      "route": "/compliance/hipaa",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/compliance/hipaa"
+      ],
+      "robots": "index, follow,",
+      "title": "Healthcare Data & HIPAA Deployment Considerations | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 236
+    },
+    {
+      "route": "/industries/automotive",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/automotive"
+      ],
+      "robots": "index, follow,",
+      "title": "Automotive phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 265
+    },
+    {
+      "route": "/industries/e-commerce",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/e-commerce"
+      ],
+      "robots": "index, follow,",
+      "title": "E-commerce phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 259
+    },
+    {
+      "route": "/industries/education",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/education"
+      ],
+      "robots": "index, follow,",
+      "title": "Education phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 277
+    },
+    {
+      "route": "/industries/financial-services",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/financial-services"
+      ],
+      "robots": "index, follow,",
+      "title": "Open-Source AI Phone-Agent Infrastructure for Financial Services | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 256
+    },
+    {
+      "route": "/industries/healthcare",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/healthcare"
+      ],
+      "robots": "index, follow,",
+      "title": "Open-Source AI Phone-Agent Infrastructure for Healthcare | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "WebPage"
+      ],
+      "elapsedMs": 289
+    },
+    {
+      "route": "/industries/hr-recruiting",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/hr-recruiting"
+      ],
+      "robots": "index, follow,",
+      "title": "HR and recruiting phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 288
+    },
+    {
+      "route": "/industries/logistics",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/logistics"
+      ],
+      "robots": "index, follow,",
+      "title": "Logistics phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 297
+    },
+    {
+      "route": "/industries/manufacturing-engineering",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/manufacturing-engineering"
+      ],
+      "robots": "index, follow,",
+      "title": "Manufacturing phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 303
+    },
+    {
+      "route": "/industries",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries"
+      ],
+      "robots": "index, follow,",
+      "title": "Industry workflow guides | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 250
+    },
+    {
+      "route": "/industries/real-estate",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/real-estate"
+      ],
+      "robots": "index, follow,",
+      "title": "Real estate and property management for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 297
+    },
+    {
+      "route": "/industries/saas",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/saas"
+      ],
+      "robots": "index, follow,",
+      "title": "SaaS customer phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 291
+    },
+    {
+      "route": "/industries/travel-hospitality",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/industries/travel-hospitality"
+      ],
+      "robots": "index, follow,",
+      "title": "Travel and hospitality phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 290
+    },
+    {
+      "route": "/open-source",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/open-source"
+      ],
+      "robots": "index, follow,",
+      "title": "Open-Source AI Phone Agent Stack | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "SoftwareSourceCode"
+      ],
+      "elapsedMs": 293
+    },
+    {
+      "route": "/",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co"
+      ],
+      "robots": "index, follow,",
+      "title": "AI Phone Agents for Business Calls",
+      "h1": 1,
+      "jsonLdTypes": [
+        "WebSite",
+        "SearchAction",
+        "EntryPoint",
+        "Organization",
+        "ImageObject",
+        "ContactPoint",
+        "WebApplication",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 539
+    },
+    {
+      "route": "/pricing",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/pricing"
+      ],
+      "robots": "index, follow,",
+      "title": "Usage-based AI Voice Agent Pricing | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "WebApplication",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 303
+    },
+    {
+      "route": "/privacy-policy",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/privacy-policy"
+      ],
+      "robots": "index, follow,",
+      "title": "Privacy Policy | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 286
+    },
+    {
+      "route": "/solutions/ai-answering-service",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/solutions/ai-answering-service"
+      ],
+      "robots": "index, follow,",
+      "title": "AI answering service for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 282
+    },
+    {
+      "route": "/solutions/ai-receptionist",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/solutions/ai-receptionist"
+      ],
+      "robots": "index, follow,",
+      "title": "AI receptionist for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 302
+    },
+    {
+      "route": "/solutions",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/solutions"
+      ],
+      "robots": "index, follow,",
+      "title": "Phone-agent solutions | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 262
+    },
+    {
+      "route": "/terms-of-service",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/terms-of-service"
+      ],
+      "robots": "index, follow,",
+      "title": "Terms of Service | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 301
+    },
+    {
+      "route": "/use-cases/appointment-scheduling",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/appointment-scheduling"
+      ],
+      "robots": "index, follow,",
+      "title": "Appointment scheduling for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 293
+    },
+    {
+      "route": "/use-cases/customer-support",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/customer-support"
+      ],
+      "robots": "index, follow,",
+      "title": "Customer support for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 298
+    },
+    {
+      "route": "/use-cases/operations-automation",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/operations-automation"
+      ],
+      "robots": "index, follow,",
+      "title": "Operations phone workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 287
+    },
+    {
+      "route": "/use-cases/order-status-returns",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/order-status-returns"
+      ],
+      "robots": "index, follow,",
+      "title": "Order status and returns workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 313
+    },
+    {
+      "route": "/use-cases",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases"
+      ],
+      "robots": "index, follow,",
+      "title": "Business phone use cases | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 248
+    },
+    {
+      "route": "/use-cases/reminders-collections",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/reminders-collections"
+      ],
+      "robots": "index, follow,",
+      "title": "Reminder and payment follow-up workflows for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 294
+    },
+    {
+      "route": "/use-cases/sales-lead-gen",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/use-cases/sales-lead-gen"
+      ],
+      "robots": "index, follow,",
+      "title": "Sales qualification for business | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [
+        "BreadcrumbList",
+        "ListItem",
+        "ListItem",
+        "FAQPage",
+        "Question",
+        "Answer",
+        "Question",
+        "Answer"
+      ],
+      "elapsedMs": 300
+    },
+    {
+      "route": "/resources",
+      "assetType": "marketing_route",
+      "status": 200,
+      "expectedStatus": 200,
+      "canonical": [
+        "https://quickvoice.co/resources"
+      ],
+      "robots": "index, follow,",
+      "title": "AI phone-agent buyer resources | QuickVoice",
+      "h1": 1,
+      "jsonLdTypes": [],
+      "elapsedMs": 282
+    }
+  ],
+  "sitemap": {
+    "missing": [],
+    "unexpected": [],
+    "urls": [
+      "https://quickvoice.co",
+      "https://quickvoice.co/open-source",
+      "https://quickvoice.co/resources",
+      "https://quickvoice.co/company/about-us",
+      "https://quickvoice.co/company/careers",
+      "https://quickvoice.co/company/contact",
+      "https://quickvoice.co/industries",
+      "https://quickvoice.co/industries/automotive",
+      "https://quickvoice.co/industries/e-commerce",
+      "https://quickvoice.co/industries/education",
+      "https://quickvoice.co/industries/financial-services",
+      "https://quickvoice.co/industries/healthcare",
+      "https://quickvoice.co/industries/hr-recruiting",
+      "https://quickvoice.co/industries/logistics",
+      "https://quickvoice.co/industries/manufacturing-engineering",
+      "https://quickvoice.co/industries/real-estate",
+      "https://quickvoice.co/industries/saas",
+      "https://quickvoice.co/industries/travel-hospitality",
+      "https://quickvoice.co/use-cases",
+      "https://quickvoice.co/use-cases/appointment-scheduling",
+      "https://quickvoice.co/use-cases/customer-support",
+      "https://quickvoice.co/use-cases/operations-automation",
+      "https://quickvoice.co/use-cases/order-status-returns",
+      "https://quickvoice.co/use-cases/reminders-collections",
+      "https://quickvoice.co/use-cases/sales-lead-gen",
+      "https://quickvoice.co/blog",
+      "https://quickvoice.co/case-studies",
+      "https://quickvoice.co/pricing",
+      "https://quickvoice.co/solutions",
+      "https://quickvoice.co/solutions/ai-receptionist",
+      "https://quickvoice.co/solutions/ai-answering-service",
+      "https://quickvoice.co/compliance/hipaa",
+      "https://quickvoice.co/privacy-policy",
+      "https://quickvoice.co/terms-of-service",
+      "https://quickvoice.co/blog/air-ai-alternatives",
+      "https://quickvoice.co/blog/retell-ai-alternatives",
+      "https://quickvoice.co/blog/synthflow-alternatives",
+      "https://quickvoice.co/blog/vapi-alternatives",
+      "https://quickvoice.co/blog/bland-ai-alternatives",
+      "https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026",
+      "https://quickvoice.co/blog/how-to-automate-phone-calls-ai",
+      "https://quickvoice.co/blog/quickvoice-vs-voiceflow",
+      "https://quickvoice.co/blog/what-is-an-ai-voice-agent",
+      "https://quickvoice.co/blog/ai-voice-agent-vs-ivr",
+      "https://quickvoice.co/blog/deploy-ai-voice-agent-no-code",
+      "https://quickvoice.co/blog/ai-after-hours-call-handling",
+      "https://quickvoice.co/blog/ai-billing-payment-calls",
+      "https://quickvoice.co/blog/ai-collection-calls-complete-guide",
+      "https://quickvoice.co/blog/ai-customer-surveys-nps-calls",
+      "https://quickvoice.co/blog/ai-insurance-claims-processing-calls",
+      "https://quickvoice.co/blog/ai-medical-scheduling-voice-agents",
+      "https://quickvoice.co/blog/ai-meeting-scheduler-voice-automation",
+      "https://quickvoice.co/blog/ai-patient-intake-pre-visit-calls",
+      "https://quickvoice.co/blog/ai-phone-answering-service-small-business",
+      "https://quickvoice.co/blog/ai-virtual-assistant-for-business",
+      "https://quickvoice.co/blog/ai-voice-agent-security-data-privacy",
+      "https://quickvoice.co/blog/ai-voice-agent-vs-call-center-bpo",
+      "https://quickvoice.co/blog/ai-voice-agents-accounting-tax-firms",
+      "https://quickvoice.co/blog/ai-voice-agents-beauty-salons-spas",
+      "https://quickvoice.co/blog/ai-voice-agents-dental-practices",
+      "https://quickvoice.co/blog/ai-voice-agents-home-services",
+      "https://quickvoice.co/blog/ai-voice-agents-insurance-companies",
+      "https://quickvoice.co/blog/ai-voice-agents-law-firms",
+      "https://quickvoice.co/blog/ai-voice-agents-property-management",
+      "https://quickvoice.co/blog/ai-voice-agents-restaurants",
+      "https://quickvoice.co/blog/ai-voice-agents-staffing-agencies",
+      "https://quickvoice.co/blog/ai-voice-agents-veterinary-clinics",
+      "https://quickvoice.co/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "https://quickvoice.co/blog/best-online-booking-systems-ai-voice",
+      "https://quickvoice.co/blog/enterprise-ai-voice-platform-guide",
+      "https://quickvoice.co/blog/free-ai-appointment-scheduling-tools",
+      "https://quickvoice.co/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "https://quickvoice.co/blog/inbound-vs-outbound-ai-voice-agents",
+      "https://quickvoice.co/blog/multi-language-ai-voice-agents",
+      "https://quickvoice.co/blog/online-appointment-scheduling-ai-voice",
+      "https://quickvoice.co/blog/ai-appointment-scheduling-guide",
+      "https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs",
+      "https://quickvoice.co/blog/hipaa-compliant-ai-voice-agents",
+      "https://quickvoice.co/blog/ai-voice-agents-real-estate",
+      "https://quickvoice.co/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "https://quickvoice.co/blog/ai-vs-human-agents-cost-comparison",
+      "https://quickvoice.co/blog/automated-appointment-reminders-guide",
+      "https://quickvoice.co/blog/ai-phone-agents-automotive-dealerships",
+      "https://quickvoice.co/blog/what-is-conversational-ai",
+      "https://quickvoice.co/blog/ai-voice-agents-ecommerce",
+      "https://quickvoice.co/blog/ai-voice-agents-b2b-lead-qualification",
+      "https://quickvoice.co/blog/build-ai-voice-agent-small-business",
+      "https://quickvoice.co/blog/ai-voice-agents-financial-services",
+      "https://quickvoice.co/blog/ai-debt-collection-calls",
+      "https://quickvoice.co/blog/roi-replacing-receptionist-ai-voice-agent",
+      "https://quickvoice.co/blog/ai-voice-agents-hr-recruiting",
+      "https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai",
+      "https://quickvoice.co/blog/connect-ai-voice-agent-hubspot",
+      "https://quickvoice.co/blog/ai-voice-agents-logistics",
+      "https://quickvoice.co/blog/10-ai-voice-agent-use-cases-healthcare",
+      "https://quickvoice.co/blog/ai-phone-agents-handle-objections",
+      "https://quickvoice.co/blog/what-is-voice-cloning-ai-agents",
+      "https://quickvoice.co/blog/ai-voice-agents-manufacturing",
+      "https://quickvoice.co/blog/quickvoice-vs-bland-ai"
+    ],
+    "lastmod": {
+      "https://quickvoice.co": null,
+      "https://quickvoice.co/open-source": null,
+      "https://quickvoice.co/resources": null,
+      "https://quickvoice.co/company/about-us": null,
+      "https://quickvoice.co/company/careers": null,
+      "https://quickvoice.co/company/contact": null,
+      "https://quickvoice.co/industries": null,
+      "https://quickvoice.co/industries/automotive": null,
+      "https://quickvoice.co/industries/e-commerce": null,
+      "https://quickvoice.co/industries/education": null,
+      "https://quickvoice.co/industries/financial-services": null,
+      "https://quickvoice.co/industries/healthcare": null,
+      "https://quickvoice.co/industries/hr-recruiting": null,
+      "https://quickvoice.co/industries/logistics": null,
+      "https://quickvoice.co/industries/manufacturing-engineering": null,
+      "https://quickvoice.co/industries/real-estate": null,
+      "https://quickvoice.co/industries/saas": null,
+      "https://quickvoice.co/industries/travel-hospitality": null,
+      "https://quickvoice.co/use-cases": null,
+      "https://quickvoice.co/use-cases/appointment-scheduling": null,
+      "https://quickvoice.co/use-cases/customer-support": null,
+      "https://quickvoice.co/use-cases/operations-automation": null,
+      "https://quickvoice.co/use-cases/order-status-returns": null,
+      "https://quickvoice.co/use-cases/reminders-collections": null,
+      "https://quickvoice.co/use-cases/sales-lead-gen": null,
+      "https://quickvoice.co/blog": null,
+      "https://quickvoice.co/case-studies": null,
+      "https://quickvoice.co/pricing": null,
+      "https://quickvoice.co/solutions": null,
+      "https://quickvoice.co/solutions/ai-receptionist": null,
+      "https://quickvoice.co/solutions/ai-answering-service": null,
+      "https://quickvoice.co/compliance/hipaa": null,
+      "https://quickvoice.co/privacy-policy": null,
+      "https://quickvoice.co/terms-of-service": null,
+      "https://quickvoice.co/blog/air-ai-alternatives": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/retell-ai-alternatives": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/synthflow-alternatives": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/vapi-alternatives": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/bland-ai-alternatives": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/how-to-automate-phone-calls-ai": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/quickvoice-vs-voiceflow": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/what-is-an-ai-voice-agent": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agent-vs-ivr": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/deploy-ai-voice-agent-no-code": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-after-hours-call-handling": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-billing-payment-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-collection-calls-complete-guide": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-customer-surveys-nps-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-insurance-claims-processing-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-medical-scheduling-voice-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-meeting-scheduler-voice-automation": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-patient-intake-pre-visit-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-phone-answering-service-small-business": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-virtual-assistant-for-business": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agent-security-data-privacy": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agent-vs-call-center-bpo": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-accounting-tax-firms": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-beauty-salons-spas": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-dental-practices": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-home-services": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-insurance-companies": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-law-firms": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-property-management": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-restaurants": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-staffing-agencies": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-veterinary-clinics": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-assistant-vs-ai-voice-agent": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/best-online-booking-systems-ai-voice": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/enterprise-ai-voice-platform-guide": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/free-ai-appointment-scheduling-tools": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/how-to-migrate-ivr-to-ai-voice-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/inbound-vs-outbound-ai-voice-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/multi-language-ai-voice-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/online-appointment-scheduling-ai-voice": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-appointment-scheduling-guide": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/hipaa-compliant-ai-voice-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-real-estate": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-outbound-calling-replacing-sdr-cold-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-vs-human-agents-cost-comparison": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/automated-appointment-reminders-guide": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-phone-agents-automotive-dealerships": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/what-is-conversational-ai": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-ecommerce": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-b2b-lead-qualification": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/build-ai-voice-agent-small-business": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-financial-services": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-debt-collection-calls": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/roi-replacing-receptionist-ai-voice-agent": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-hr-recruiting": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/connect-ai-voice-agent-hubspot": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-logistics": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/10-ai-voice-agent-use-cases-healthcare": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-phone-agents-handle-objections": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/what-is-voice-cloning-ai-agents": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/ai-voice-agents-manufacturing": "2026-09-06T00:00:00.000Z",
+      "https://quickvoice.co/blog/quickvoice-vs-bland-ai": "2026-09-06T00:00:00.000Z"
+    }
+  },
+  "bodyInternalLinks": [
+    {
+      "sourceFile": "apps/web/content/blog/ai-after-hours-call-handling.md",
+      "sourceRoute": "/blog/ai-after-hours-call-handling",
+      "sourceAvailable": true,
+      "sourceLineInBody": 69,
+      "href": "/solutions/ai-answering-service",
+      "route": "/solutions/ai-answering-service",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-after-hours-call-handling.md",
+      "sourceRoute": "/blog/ai-after-hours-call-handling",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-after-hours-call-handling.md",
+      "sourceRoute": "/blog/ai-after-hours-call-handling",
+      "sourceAvailable": true,
+      "sourceLineInBody": 81,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-billing-payment-calls.md",
+      "sourceRoute": "/blog/ai-billing-payment-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 62,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-billing-payment-calls.md",
+      "sourceRoute": "/blog/ai-billing-payment-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 68,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-billing-payment-calls.md",
+      "sourceRoute": "/blog/ai-billing-payment-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-collection-calls-complete-guide.md",
+      "sourceRoute": "/blog/ai-collection-calls-complete-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 62,
+      "href": "/blog/ai-billing-payment-calls",
+      "route": "/blog/ai-billing-payment-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-collection-calls-complete-guide.md",
+      "sourceRoute": "/blog/ai-collection-calls-complete-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-customer-surveys-nps-calls.md",
+      "sourceRoute": "/blog/ai-customer-surveys-nps-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-customer-surveys-nps-calls.md",
+      "sourceRoute": "/blog/ai-customer-surveys-nps-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-customer-surveys-nps-calls.md",
+      "sourceRoute": "/blog/ai-customer-surveys-nps-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-insurance-claims-processing-calls.md",
+      "sourceRoute": "/blog/ai-insurance-claims-processing-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 66,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-insurance-claims-processing-calls.md",
+      "sourceRoute": "/blog/ai-insurance-claims-processing-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-medical-scheduling-voice-agents.md",
+      "sourceRoute": "/blog/ai-medical-scheduling-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 30,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-medical-scheduling-voice-agents.md",
+      "sourceRoute": "/blog/ai-medical-scheduling-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 60,
+      "href": "/blog/automated-appointment-reminders-guide",
+      "route": "/blog/automated-appointment-reminders-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-medical-scheduling-voice-agents.md",
+      "sourceRoute": "/blog/ai-medical-scheduling-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 68,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-medical-scheduling-voice-agents.md",
+      "sourceRoute": "/blog/ai-medical-scheduling-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-meeting-scheduler-voice-automation.md",
+      "sourceRoute": "/blog/ai-meeting-scheduler-voice-automation",
+      "sourceAvailable": true,
+      "sourceLineInBody": 8,
+      "href": "/blog/online-appointment-scheduling-ai-voice",
+      "route": "/blog/online-appointment-scheduling-ai-voice",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-meeting-scheduler-voice-automation.md",
+      "sourceRoute": "/blog/ai-meeting-scheduler-voice-automation",
+      "sourceAvailable": true,
+      "sourceLineInBody": 75,
+      "href": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-meeting-scheduler-voice-automation.md",
+      "sourceRoute": "/blog/ai-meeting-scheduler-voice-automation",
+      "sourceAvailable": true,
+      "sourceLineInBody": 85,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-patient-intake-pre-visit-calls.md",
+      "sourceRoute": "/blog/ai-patient-intake-pre-visit-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-patient-intake-pre-visit-calls.md",
+      "sourceRoute": "/blog/ai-patient-intake-pre-visit-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/ai-medical-scheduling-voice-agents",
+      "route": "/blog/ai-medical-scheduling-voice-agents",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-patient-intake-pre-visit-calls.md",
+      "sourceRoute": "/blog/ai-patient-intake-pre-visit-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-phone-answering-service-small-business.md",
+      "sourceRoute": "/blog/ai-phone-answering-service-small-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 22,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-phone-answering-service-small-business.md",
+      "sourceRoute": "/blog/ai-phone-answering-service-small-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 67,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-phone-answering-service-small-business.md",
+      "sourceRoute": "/blog/ai-phone-answering-service-small-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 67,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-virtual-assistant-for-business.md",
+      "sourceRoute": "/blog/ai-virtual-assistant-for-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 8,
+      "href": "/blog/what-is-an-ai-voice-agent",
+      "route": "/blog/what-is-an-ai-voice-agent",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-virtual-assistant-for-business.md",
+      "sourceRoute": "/blog/ai-virtual-assistant-for-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 63,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-virtual-assistant-for-business.md",
+      "sourceRoute": "/blog/ai-virtual-assistant-for-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 65,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-virtual-assistant-for-business.md",
+      "sourceRoute": "/blog/ai-virtual-assistant-for-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 73,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agent-security-data-privacy.md",
+      "sourceRoute": "/blog/ai-voice-agent-security-data-privacy",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agent-security-data-privacy.md",
+      "sourceRoute": "/blog/ai-voice-agent-security-data-privacy",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agent-vs-call-center-bpo.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-call-center-bpo",
+      "sourceAvailable": true,
+      "sourceLineInBody": 35,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agent-vs-call-center-bpo.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-call-center-bpo",
+      "sourceAvailable": true,
+      "sourceLineInBody": 75,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-accounting-tax-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-accounting-tax-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 60,
+      "href": "/blog/ai-virtual-assistant-for-business",
+      "route": "/blog/ai-virtual-assistant-for-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-accounting-tax-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-accounting-tax-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 60,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-accounting-tax-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-accounting-tax-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-beauty-salons-spas.md",
+      "sourceRoute": "/blog/ai-voice-agents-beauty-salons-spas",
+      "sourceAvailable": true,
+      "sourceLineInBody": 55,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-beauty-salons-spas.md",
+      "sourceRoute": "/blog/ai-voice-agents-beauty-salons-spas",
+      "sourceAvailable": true,
+      "sourceLineInBody": 63,
+      "href": "/blog/online-appointment-scheduling-ai-voice",
+      "route": "/blog/online-appointment-scheduling-ai-voice",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-beauty-salons-spas.md",
+      "sourceRoute": "/blog/ai-voice-agents-beauty-salons-spas",
+      "sourceAvailable": true,
+      "sourceLineInBody": 79,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-dental-practices.md",
+      "sourceRoute": "/blog/ai-voice-agents-dental-practices",
+      "sourceAvailable": true,
+      "sourceLineInBody": 56,
+      "href": "/blog/ai-patient-intake-pre-visit-calls",
+      "route": "/blog/ai-patient-intake-pre-visit-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-dental-practices.md",
+      "sourceRoute": "/blog/ai-voice-agents-dental-practices",
+      "sourceAvailable": true,
+      "sourceLineInBody": 72,
+      "href": "/blog/automated-appointment-reminders-guide",
+      "route": "/blog/automated-appointment-reminders-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-dental-practices.md",
+      "sourceRoute": "/blog/ai-voice-agents-dental-practices",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-home-services.md",
+      "sourceRoute": "/blog/ai-voice-agents-home-services",
+      "sourceAvailable": true,
+      "sourceLineInBody": 56,
+      "href": "/blog/ai-after-hours-call-handling",
+      "route": "/blog/ai-after-hours-call-handling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-home-services.md",
+      "sourceRoute": "/blog/ai-voice-agents-home-services",
+      "sourceAvailable": true,
+      "sourceLineInBody": 64,
+      "href": "/blog/ai-billing-payment-calls",
+      "route": "/blog/ai-billing-payment-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-home-services.md",
+      "sourceRoute": "/blog/ai-voice-agents-home-services",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-insurance-companies.md",
+      "sourceRoute": "/blog/ai-voice-agents-insurance-companies",
+      "sourceAvailable": true,
+      "sourceLineInBody": 6,
+      "href": "/blog/ai-insurance-claims-processing-calls",
+      "route": "/blog/ai-insurance-claims-processing-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-insurance-companies.md",
+      "sourceRoute": "/blog/ai-voice-agents-insurance-companies",
+      "sourceAvailable": true,
+      "sourceLineInBody": 52,
+      "href": "/blog/ai-billing-payment-calls",
+      "route": "/blog/ai-billing-payment-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-insurance-companies.md",
+      "sourceRoute": "/blog/ai-voice-agents-insurance-companies",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-law-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-law-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 52,
+      "href": "/blog/ai-meeting-scheduler-voice-automation",
+      "route": "/blog/ai-meeting-scheduler-voice-automation",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-law-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-law-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 60,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-law-firms.md",
+      "sourceRoute": "/blog/ai-voice-agents-law-firms",
+      "sourceAvailable": true,
+      "sourceLineInBody": 68,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-property-management.md",
+      "sourceRoute": "/blog/ai-voice-agents-property-management",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-property-management.md",
+      "sourceRoute": "/blog/ai-voice-agents-property-management",
+      "sourceAvailable": true,
+      "sourceLineInBody": 73,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-restaurants.md",
+      "sourceRoute": "/blog/ai-voice-agents-restaurants",
+      "sourceAvailable": true,
+      "sourceLineInBody": 46,
+      "href": "/blog/ai-billing-payment-calls",
+      "route": "/blog/ai-billing-payment-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-restaurants.md",
+      "sourceRoute": "/blog/ai-voice-agents-restaurants",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-staffing-agencies.md",
+      "sourceRoute": "/blog/ai-voice-agents-staffing-agencies",
+      "sourceAvailable": true,
+      "sourceLineInBody": 66,
+      "href": "/blog/ai-virtual-assistant-for-business",
+      "route": "/blog/ai-virtual-assistant-for-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-staffing-agencies.md",
+      "sourceRoute": "/blog/ai-voice-agents-staffing-agencies",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-veterinary-clinics.md",
+      "sourceRoute": "/blog/ai-voice-agents-veterinary-clinics",
+      "sourceAvailable": true,
+      "sourceLineInBody": 36,
+      "href": "/blog/ai-after-hours-call-handling",
+      "route": "/blog/ai-after-hours-call-handling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-veterinary-clinics.md",
+      "sourceRoute": "/blog/ai-voice-agents-veterinary-clinics",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-agents-veterinary-clinics.md",
+      "sourceRoute": "/blog/ai-voice-agents-veterinary-clinics",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-assistant-vs-ai-voice-agent.md",
+      "sourceRoute": "/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/what-is-an-ai-voice-agent",
+      "route": "/blog/what-is-an-ai-voice-agent",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-assistant-vs-ai-voice-agent.md",
+      "sourceRoute": "/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/ai-virtual-assistant-for-business",
+      "route": "/blog/ai-virtual-assistant-for-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-assistant-vs-ai-voice-agent.md",
+      "sourceRoute": "/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 68,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/ai-voice-assistant-vs-ai-voice-agent.md",
+      "sourceRoute": "/blog/ai-voice-assistant-vs-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/air-ai-alternatives.md",
+      "sourceRoute": "/blog/air-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/air-ai-alternatives.md",
+      "sourceRoute": "/blog/air-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 66,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/air-ai-alternatives.md",
+      "sourceRoute": "/blog/air-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-ai-voice-agent-platforms-2026.md",
+      "sourceRoute": "/blog/best-ai-voice-agent-platforms-2026",
+      "sourceAvailable": true,
+      "sourceLineInBody": 54,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-ai-voice-agent-platforms-2026.md",
+      "sourceRoute": "/blog/best-ai-voice-agent-platforms-2026",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/retell-ai-alternatives",
+      "route": "/blog/retell-ai-alternatives",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-ai-voice-agent-platforms-2026.md",
+      "sourceRoute": "/blog/best-ai-voice-agent-platforms-2026",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/vapi-alternatives",
+      "route": "/blog/vapi-alternatives",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-ai-voice-agent-platforms-2026.md",
+      "sourceRoute": "/blog/best-ai-voice-agent-platforms-2026",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-online-booking-systems-ai-voice.md",
+      "sourceRoute": "/blog/best-online-booking-systems-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/online-appointment-scheduling-ai-voice",
+      "route": "/blog/online-appointment-scheduling-ai-voice",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-online-booking-systems-ai-voice.md",
+      "sourceRoute": "/blog/best-online-booking-systems-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 58,
+      "href": "/blog/ai-meeting-scheduler-voice-automation",
+      "route": "/blog/ai-meeting-scheduler-voice-automation",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-online-booking-systems-ai-voice.md",
+      "sourceRoute": "/blog/best-online-booking-systems-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 58,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-online-booking-systems-ai-voice.md",
+      "sourceRoute": "/blog/best-online-booking-systems-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 80,
+      "href": "/blog/free-ai-appointment-scheduling-tools",
+      "route": "/blog/free-ai-appointment-scheduling-tools",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/best-online-booking-systems-ai-voice.md",
+      "sourceRoute": "/blog/best-online-booking-systems-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 82,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/bland-ai-alternatives.md",
+      "sourceRoute": "/blog/bland-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 54,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/bland-ai-alternatives.md",
+      "sourceRoute": "/blog/bland-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 80,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/enterprise-ai-voice-platform-guide.md",
+      "sourceRoute": "/blog/enterprise-ai-voice-platform-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 39,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/enterprise-ai-voice-platform-guide.md",
+      "sourceRoute": "/blog/enterprise-ai-voice-platform-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/enterprise-ai-voice-platform-guide.md",
+      "sourceRoute": "/blog/enterprise-ai-voice-platform-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 81,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/free-ai-appointment-scheduling-tools.md",
+      "sourceRoute": "/blog/free-ai-appointment-scheduling-tools",
+      "sourceAvailable": true,
+      "sourceLineInBody": 49,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/free-ai-appointment-scheduling-tools.md",
+      "sourceRoute": "/blog/free-ai-appointment-scheduling-tools",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/free-ai-appointment-scheduling-tools.md",
+      "sourceRoute": "/blog/free-ai-appointment-scheduling-tools",
+      "sourceAvailable": true,
+      "sourceLineInBody": 74,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-automate-phone-calls-ai.md",
+      "sourceRoute": "/blog/how-to-automate-phone-calls-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 18,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-automate-phone-calls-ai.md",
+      "sourceRoute": "/blog/how-to-automate-phone-calls-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "route": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-automate-phone-calls-ai.md",
+      "sourceRoute": "/blog/how-to-automate-phone-calls-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 81,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-automate-phone-calls-ai.md",
+      "sourceRoute": "/blog/how-to-automate-phone-calls-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 83,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-migrate-ivr-to-ai-voice-agents.md",
+      "sourceRoute": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 30,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-migrate-ivr-to-ai-voice-agents.md",
+      "sourceRoute": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 48,
+      "href": "/blog/ai-after-hours-call-handling",
+      "route": "/blog/ai-after-hours-call-handling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-migrate-ivr-to-ai-voice-agents.md",
+      "sourceRoute": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 88,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/how-to-migrate-ivr-to-ai-voice-agents.md",
+      "sourceRoute": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 90,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/inbound-vs-outbound-ai-voice-agents.md",
+      "sourceRoute": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 29,
+      "href": "/blog/ai-after-hours-call-handling",
+      "route": "/blog/ai-after-hours-call-handling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/inbound-vs-outbound-ai-voice-agents.md",
+      "sourceRoute": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 51,
+      "href": "/blog/automated-appointment-reminders-guide",
+      "route": "/blog/automated-appointment-reminders-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/inbound-vs-outbound-ai-voice-agents.md",
+      "sourceRoute": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 51,
+      "href": "/blog/ai-customer-surveys-nps-calls",
+      "route": "/blog/ai-customer-surveys-nps-calls",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/inbound-vs-outbound-ai-voice-agents.md",
+      "sourceRoute": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 73,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/inbound-vs-outbound-ai-voice-agents.md",
+      "sourceRoute": "/blog/inbound-vs-outbound-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 83,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/multi-language-ai-voice-agents.md",
+      "sourceRoute": "/blog/multi-language-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 38,
+      "href": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "route": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/multi-language-ai-voice-agents.md",
+      "sourceRoute": "/blog/multi-language-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/multi-language-ai-voice-agents.md",
+      "sourceRoute": "/blog/multi-language-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 80,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/online-appointment-scheduling-ai-voice.md",
+      "sourceRoute": "/blog/online-appointment-scheduling-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 8,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/online-appointment-scheduling-ai-voice.md",
+      "sourceRoute": "/blog/online-appointment-scheduling-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/use-cases/appointment-scheduling",
+      "route": "/use-cases/appointment-scheduling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/online-appointment-scheduling-ai-voice.md",
+      "sourceRoute": "/blog/online-appointment-scheduling-ai-voice",
+      "sourceAvailable": true,
+      "sourceLineInBody": 86,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/quickvoice-vs-voiceflow.md",
+      "sourceRoute": "/blog/quickvoice-vs-voiceflow",
+      "sourceAvailable": true,
+      "sourceLineInBody": 59,
+      "href": "/blog/best-online-booking-systems-ai-voice",
+      "route": "/blog/best-online-booking-systems-ai-voice",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/quickvoice-vs-voiceflow.md",
+      "sourceRoute": "/blog/quickvoice-vs-voiceflow",
+      "sourceAvailable": true,
+      "sourceLineInBody": 67,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/quickvoice-vs-voiceflow.md",
+      "sourceRoute": "/blog/quickvoice-vs-voiceflow",
+      "sourceAvailable": true,
+      "sourceLineInBody": 75,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/retell-ai-alternatives.md",
+      "sourceRoute": "/blog/retell-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 57,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/retell-ai-alternatives.md",
+      "sourceRoute": "/blog/retell-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/retell-ai-alternatives.md",
+      "sourceRoute": "/blog/retell-ai-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/synthflow-alternatives.md",
+      "sourceRoute": "/blog/synthflow-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/synthflow-alternatives.md",
+      "sourceRoute": "/blog/synthflow-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 53,
+      "href": "/blog/best-online-booking-systems-ai-voice",
+      "route": "/blog/best-online-booking-systems-ai-voice",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/synthflow-alternatives.md",
+      "sourceRoute": "/blog/synthflow-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 77,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/vapi-alternatives.md",
+      "sourceRoute": "/blog/vapi-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 57,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/vapi-alternatives.md",
+      "sourceRoute": "/blog/vapi-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/vapi-alternatives.md",
+      "sourceRoute": "/blog/vapi-alternatives",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/solutions/ai-receptionist",
+      "route": "/solutions/ai-receptionist",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/use-cases/appointment-scheduling",
+      "route": "/use-cases/appointment-scheduling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/use-cases/customer-support",
+      "route": "/use-cases/customer-support",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 64,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 76,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 78,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-01-what-is-ai-voice-agent.md",
+      "sourceRoute": "/blog/what-is-an-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 82,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-02-ai-voice-agent-vs-ivr.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-ivr",
+      "sourceAvailable": true,
+      "sourceLineInBody": 16,
+      "href": "/blog/what-is-an-ai-voice-agent",
+      "route": "/blog/what-is-an-ai-voice-agent",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-02-ai-voice-agent-vs-ivr.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-ivr",
+      "sourceAvailable": true,
+      "sourceLineInBody": 63,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-02-ai-voice-agent-vs-ivr.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-ivr",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "route": "/blog/how-to-migrate-ivr-to-ai-voice-agents",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-02-ai-voice-agent-vs-ivr.md",
+      "sourceRoute": "/blog/ai-voice-agent-vs-ivr",
+      "sourceAvailable": true,
+      "sourceLineInBody": 79,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-03-deploy-ai-voice-agent-no-code.md",
+      "sourceRoute": "/blog/deploy-ai-voice-agent-no-code",
+      "sourceAvailable": true,
+      "sourceLineInBody": 46,
+      "href": "/blog/multi-language-ai-voice-agents",
+      "route": "/blog/multi-language-ai-voice-agents",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-03-deploy-ai-voice-agent-no-code.md",
+      "sourceRoute": "/blog/deploy-ai-voice-agent-no-code",
+      "sourceAvailable": true,
+      "sourceLineInBody": 70,
+      "href": "/blog/how-to-automate-phone-calls-ai",
+      "route": "/blog/how-to-automate-phone-calls-ai",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-03-deploy-ai-voice-agent-no-code.md",
+      "sourceRoute": "/blog/deploy-ai-voice-agent-no-code",
+      "sourceAvailable": true,
+      "sourceLineInBody": 86,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-04-ai-appointment-scheduling-guide.md",
+      "sourceRoute": "/blog/ai-appointment-scheduling-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 21,
+      "href": "/blog/free-ai-appointment-scheduling-tools",
+      "route": "/blog/free-ai-appointment-scheduling-tools",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-04-ai-appointment-scheduling-guide.md",
+      "sourceRoute": "/blog/ai-appointment-scheduling-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 69,
+      "href": "/blog/automated-appointment-reminders-guide",
+      "route": "/blog/automated-appointment-reminders-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-04-ai-appointment-scheduling-guide.md",
+      "sourceRoute": "/blog/ai-appointment-scheduling-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 79,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-05-ai-reduce-customer-support-costs.md",
+      "sourceRoute": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-05-ai-reduce-customer-support-costs.md",
+      "sourceRoute": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "sourceAvailable": true,
+      "sourceLineInBody": 85,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-06-hipaa-compliant-ai-voice-agents.md",
+      "sourceRoute": "/blog/hipaa-compliant-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/industries/healthcare",
+      "route": "/industries/healthcare",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-06-hipaa-compliant-ai-voice-agents.md",
+      "sourceRoute": "/blog/hipaa-compliant-ai-voice-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/compliance/hipaa",
+      "route": "/compliance/hipaa",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-07-ai-voice-agents-real-estate.md",
+      "sourceRoute": "/blog/ai-voice-agents-real-estate",
+      "sourceAvailable": true,
+      "sourceLineInBody": 46,
+      "href": "/industries/real-estate",
+      "route": "/industries/real-estate",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-07-ai-voice-agents-real-estate.md",
+      "sourceRoute": "/blog/ai-voice-agents-real-estate",
+      "sourceAvailable": true,
+      "sourceLineInBody": 46,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-08-ai-outbound-calling-replacing-sdr-cold-calls.md",
+      "sourceRoute": "/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 53,
+      "href": "/use-cases/sales-lead-gen",
+      "route": "/use-cases/sales-lead-gen",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-08-ai-outbound-calling-replacing-sdr-cold-calls.md",
+      "sourceRoute": "/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 53,
+      "href": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-09-ai-vs-human-agents-cost-comparison.md",
+      "sourceRoute": "/blog/ai-vs-human-agents-cost-comparison",
+      "sourceAvailable": true,
+      "sourceLineInBody": 51,
+      "href": "/pricing",
+      "route": "/pricing",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-09-ai-vs-human-agents-cost-comparison.md",
+      "sourceRoute": "/blog/ai-vs-human-agents-cost-comparison",
+      "sourceAvailable": true,
+      "sourceLineInBody": 83,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-09-ai-vs-human-agents-cost-comparison.md",
+      "sourceRoute": "/blog/ai-vs-human-agents-cost-comparison",
+      "sourceAvailable": true,
+      "sourceLineInBody": 83,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-10-automated-appointment-reminders-guide.md",
+      "sourceRoute": "/blog/automated-appointment-reminders-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 54,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-10-automated-appointment-reminders-guide.md",
+      "sourceRoute": "/blog/automated-appointment-reminders-guide",
+      "sourceAvailable": true,
+      "sourceLineInBody": 72,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-11-ai-phone-agents-automotive-dealerships.md",
+      "sourceRoute": "/blog/ai-phone-agents-automotive-dealerships",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/industries/automotive",
+      "route": "/industries/automotive",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-11-ai-phone-agents-automotive-dealerships.md",
+      "sourceRoute": "/blog/ai-phone-agents-automotive-dealerships",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/use-cases/appointment-scheduling",
+      "route": "/use-cases/appointment-scheduling",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-12-what-is-conversational-ai.md",
+      "sourceRoute": "/blog/what-is-conversational-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 48,
+      "href": "/solutions/ai-receptionist",
+      "route": "/solutions/ai-receptionist",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-12-what-is-conversational-ai.md",
+      "sourceRoute": "/blog/what-is-conversational-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 48,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-13-ai-voice-agents-ecommerce.md",
+      "sourceRoute": "/blog/ai-voice-agents-ecommerce",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/use-cases/order-status-returns",
+      "route": "/use-cases/order-status-returns",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-13-ai-voice-agents-ecommerce.md",
+      "sourceRoute": "/blog/ai-voice-agents-ecommerce",
+      "sourceAvailable": true,
+      "sourceLineInBody": 50,
+      "href": "/use-cases/customer-support",
+      "route": "/use-cases/customer-support",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-14-ai-lead-qualification-b2b-sales.md",
+      "sourceRoute": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "sourceAvailable": true,
+      "sourceLineInBody": 49,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-14-ai-lead-qualification-b2b-sales.md",
+      "sourceRoute": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "sourceAvailable": true,
+      "sourceLineInBody": 65,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-15-build-ai-voice-agent-small-business.md",
+      "sourceRoute": "/blog/build-ai-voice-agent-small-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 72,
+      "href": "/blog/ai-phone-answering-service-small-business",
+      "route": "/blog/ai-phone-answering-service-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-15-build-ai-voice-agent-small-business.md",
+      "sourceRoute": "/blog/build-ai-voice-agent-small-business",
+      "sourceAvailable": true,
+      "sourceLineInBody": 86,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-16-ai-voice-agents-financial-services.md",
+      "sourceRoute": "/blog/ai-voice-agents-financial-services",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-17-ai-debt-collection-calls.md",
+      "sourceRoute": "/blog/ai-debt-collection-calls",
+      "sourceAvailable": true,
+      "sourceLineInBody": 40,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-18-roi-replacing-receptionist-ai.md",
+      "sourceRoute": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "sourceAvailable": true,
+      "sourceLineInBody": 51,
+      "href": "/solutions/ai-receptionist",
+      "route": "/solutions/ai-receptionist",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-20-elevenlabs-vs-deepgram.md",
+      "sourceRoute": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 71,
+      "href": "/blog/ai-vs-human-agents-cost-comparison",
+      "route": "/blog/ai-vs-human-agents-cost-comparison",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-20-elevenlabs-vs-deepgram.md",
+      "sourceRoute": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 73,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-20-elevenlabs-vs-deepgram.md",
+      "sourceRoute": "/blog/elevenlabs-vs-deepgram-voice-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 75,
+      "href": "/company/contact",
+      "route": "/company/contact",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-21-connect-ai-voice-hubspot.md",
+      "sourceRoute": "/blog/connect-ai-voice-agent-hubspot",
+      "sourceAvailable": true,
+      "sourceLineInBody": 44,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-23-10-healthcare-ai-voice-use-cases.md",
+      "sourceRoute": "/blog/10-ai-voice-agent-use-cases-healthcare",
+      "sourceAvailable": true,
+      "sourceLineInBody": 37,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-24-ai-phone-agents-handle-objections.md",
+      "sourceRoute": "/blog/ai-phone-agents-handle-objections",
+      "sourceAvailable": true,
+      "sourceLineInBody": 35,
+      "href": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-25-what-is-voice-cloning-ai.md",
+      "sourceRoute": "/blog/what-is-voice-cloning-ai-agents",
+      "sourceAvailable": true,
+      "sourceLineInBody": 36,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-26-ai-voice-agents-manufacturing.md",
+      "sourceRoute": "/blog/ai-voice-agents-manufacturing",
+      "sourceAvailable": true,
+      "sourceLineInBody": 40,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-27-quickvoice-vs-bland-ai.md",
+      "sourceRoute": "/blog/quickvoice-vs-bland-ai",
+      "sourceAvailable": true,
+      "sourceLineInBody": 38,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-28-quickvoice-vs-vapi.md",
+      "sourceRoute": "/blog/quickvoice-vs-vapi",
+      "sourceAvailable": false,
+      "sourceLineInBody": 43,
+      "href": "/blog/vapi-alternatives",
+      "route": "/blog/vapi-alternatives",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-29-quickvoice-vs-synthflow.md",
+      "sourceRoute": "/blog/quickvoice-vs-synthflow",
+      "sourceAvailable": false,
+      "sourceLineInBody": 42,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-30-quickvoice-vs-retell-ai.md",
+      "sourceRoute": "/blog/quickvoice-vs-retell-ai",
+      "sourceAvailable": false,
+      "sourceLineInBody": 42,
+      "href": "/blog/retell-ai-alternatives",
+      "route": "/blog/retell-ai-alternatives",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-31-case-study-call-center-cost-reduction.md",
+      "sourceRoute": "/blog/case-study-call-center-cost-reduction-ai-voice",
+      "sourceAvailable": false,
+      "sourceLineInBody": 41,
+      "href": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "route": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-32-state-of-ai-voice-agents-2026.md",
+      "sourceRoute": "/blog/state-of-ai-voice-agents-2026",
+      "sourceAvailable": false,
+      "sourceLineInBody": 37,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-33-15-questions-before-buying-ai-voice-agent.md",
+      "sourceRoute": "/blog/questions-before-buying-ai-voice-agent-platform",
+      "sourceAvailable": false,
+      "sourceLineInBody": 36,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-33-15-questions-before-buying-ai-voice-agent.md",
+      "sourceRoute": "/blog/questions-before-buying-ai-voice-agent-platform",
+      "sourceAvailable": false,
+      "sourceLineInBody": 36,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-34-how-to-write-scripts-for-ai-voice-agents.md",
+      "sourceRoute": "/blog/how-to-write-scripts-for-ai-voice-agents",
+      "sourceAvailable": false,
+      "sourceLineInBody": 47,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-35-ai-voice-agents-travel-hospitality.md",
+      "sourceRoute": "/blog/ai-voice-agents-travel-hospitality",
+      "sourceAvailable": false,
+      "sourceLineInBody": 40,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-36-ai-voice-agents-saas-companies.md",
+      "sourceRoute": "/blog/ai-voice-agents-saas-companies",
+      "sourceAvailable": false,
+      "sourceLineInBody": 43,
+      "href": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-37-what-is-no-code-ai.md",
+      "sourceRoute": "/blog/what-is-no-code-ai",
+      "sourceAvailable": false,
+      "sourceLineInBody": 40,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-38-how-to-automate-order-status-calls.md",
+      "sourceRoute": "/blog/how-to-automate-order-status-calls",
+      "sourceAvailable": false,
+      "sourceLineInBody": 44,
+      "href": "/blog/ai-voice-agents-logistics",
+      "route": "/blog/ai-voice-agents-logistics",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-39-hidden-cost-of-missed-calls.md",
+      "sourceRoute": "/blog/hidden-cost-of-missed-calls-small-business",
+      "sourceAvailable": false,
+      "sourceLineInBody": 44,
+      "href": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "route": "/blog/roi-replacing-receptionist-ai-voice-agent",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-40-ai-voice-agent-implementation-checklist.md",
+      "sourceRoute": "/blog/ai-voice-agent-implementation-checklist",
+      "sourceAvailable": false,
+      "sourceLineInBody": 46,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-40-ai-voice-agent-implementation-checklist.md",
+      "sourceRoute": "/blog/ai-voice-agent-implementation-checklist",
+      "sourceAvailable": false,
+      "sourceLineInBody": 46,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-41-how-ai-voice-agents-improve-first-call-resolution.md",
+      "sourceRoute": "/blog/how-ai-voice-agents-improve-first-call-resolution",
+      "sourceAvailable": false,
+      "sourceLineInBody": 41,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-42-ai-voice-agents-education.md",
+      "sourceRoute": "/blog/ai-voice-agents-education",
+      "sourceAvailable": false,
+      "sourceLineInBody": 42,
+      "href": "/blog/ai-voice-agent-security-data-privacy",
+      "route": "/blog/ai-voice-agent-security-data-privacy",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-43-quickvoice-vs-air-ai.md",
+      "sourceRoute": "/blog/quickvoice-vs-air-ai",
+      "sourceAvailable": false,
+      "sourceLineInBody": 12,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-44-how-to-reduce-no-show-rates.md",
+      "sourceRoute": "/blog/how-to-reduce-no-show-rates",
+      "sourceAvailable": false,
+      "sourceLineInBody": 44,
+      "href": "/blog/automated-appointment-reminders-guide",
+      "route": "/blog/automated-appointment-reminders-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-45-2027-predictions-ai-voice-agents.md",
+      "sourceRoute": "/blog/2027-predictions-ai-voice-agents",
+      "sourceAvailable": false,
+      "sourceLineInBody": 31,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-46-building-ai-first-contact-center.md",
+      "sourceRoute": "/blog/building-ai-first-contact-center",
+      "sourceAvailable": false,
+      "sourceLineInBody": 46,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-47-ai-voice-agents-vs-chatbots.md",
+      "sourceRoute": "/blog/ai-voice-agents-vs-chatbots",
+      "sourceAvailable": false,
+      "sourceLineInBody": 42,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-48-real-estate-ai-follow-up-100-percent-inquiries.md",
+      "sourceRoute": "/blog/real-estate-ai-follow-up-100-percent-inquiries",
+      "sourceAvailable": false,
+      "sourceLineInBody": 42,
+      "href": "/blog/ai-appointment-scheduling-guide",
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-49-how-to-measure-ai-voice-agent-success-10-kpis.md",
+      "sourceRoute": "/blog/how-to-measure-ai-voice-agent-success-kpis",
+      "sourceAvailable": false,
+      "sourceLineInBody": 39,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-50-50-statistics-ai-customer-service-2026.md",
+      "sourceRoute": "/blog/50-statistics-ai-customer-service-2026",
+      "sourceAvailable": false,
+      "sourceLineInBody": 39,
+      "href": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "route": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-51-quickvoice-2026-year-in-review.md",
+      "sourceRoute": "/blog/quickvoice-2026-year-in-review-roadmap-2027",
+      "sourceAvailable": false,
+      "sourceLineInBody": 36,
+      "href": "/blog/build-ai-voice-agent-small-business",
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "fragment": ""
+    },
+    {
+      "sourceFile": "apps/web/content/blog/week-52-ultimate-ai-voice-agent-glossary.md",
+      "sourceRoute": "/blog/ultimate-ai-voice-agent-glossary",
+      "sourceAvailable": false,
+      "sourceLineInBody": 56,
+      "href": "/blog/best-ai-voice-agent-platforms-2026",
+      "route": "/blog/best-ai-voice-agent-platforms-2026",
+      "fragment": ""
+    }
+  ],
+  "brokenBodyInternalLinks": [],
+  "socialImages": [
+    {
+      "route": "/images/analytics-dashboard.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 194311
+    },
+    {
+      "route": "/og-image.png",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 194311
+    },
+    {
+      "route": "/open-source/opengraph-image?71c46da30c5450fe",
+      "status": 200,
+      "contentType": "image/png",
+      "bytes": 76681
+    }
+  ],
+  "failures": [],
+  "deployedRevision": "8bef8acea06593dea6c68c36d34dee03fd0e7599",
+  "deployedRevisionEvidence": "Deployment revision supplied by the coordinating agent after authenticated hosting confirmation; HTTP metadata alone does not prove a Git SHA.",
+  "sourceBuildIdScope": "Local release worktree apps/web/.next/BUILD_ID; this is not an observed production build identifier.",
+  "sourceDirtyPaths": [
+    "M docs/marketing/seo/README.md",
+    " M docs/marketing/seo/distribution-notes.md",
+    " M docs/marketing/seo/distribution-opportunities.csv",
+    " M docs/marketing/seo/inventory.csv",
+    " M docs/marketing/seo/listing-packages.md",
+    "?? docs/marketing/seo/verification-assets/directory-submission-2026-09-06.json",
+    "?? docs/marketing/seo/verification-assets/opensourcealternative-submission-2026-09-06.png"
+  ],
+  "productionObservedBuildId": null,
+  "productionBuildIdNote": "The HTTP audit validates deployed page behavior and metadata; it does not independently map a production build ID to a Git commit.",
+  "semanticReviewLimit": "HTTP checks do not verify privacy or terms operational/legal commitments; those two source-review exceptions remain in trust-review-2026-09-06.md."
+}

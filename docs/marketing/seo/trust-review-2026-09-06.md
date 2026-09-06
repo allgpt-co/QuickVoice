@@ -2,6 +2,8 @@
 
 Scope: the 22 marketing routes and 33 illustrative scenarios in the approved review queue. Reviews cover visible content, metadata, structured data, imported local components and any Markdown loaded by the route. Individual rows below record completed review decisions; this document does not claim that unfinished rows or deployment are complete.
 
+Final rollout update: all routes in this review passed the 2026-09-06 production HTTP check on web revision `8bef8ac`; the [execution report](execution-2026-09-06.md) and [live receipt](verification-assets/production-final-2026-09-06.json) supersede the historical deployment-pending notes below. Privacy and terms owner-confirmation requirements remain unresolved.
+
 ## Evidence used
 
 - [Repository README and setup boundaries](../../../README.md): inspectable application, active-development status and real-call provider prerequisites.

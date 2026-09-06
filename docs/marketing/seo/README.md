@@ -26,15 +26,15 @@ The audience is business owners and operations, support, sales, and property-man
 | [Cost worksheet](cost-estimation.csv) and [instructions](cost-estimation-guide.md) | Editable monthly cost model with formulas and separately identified assumptions. |
 | [Public buyer resources](https://quickvoice.co/resources) | Accessible checklist and instructions, two PDF downloads and the editable CSV; [release verification](buyer-resources-verification-2026-09-06.md). |
 | [Customer-story templates and request drafts](customer-story-templates.md) | Three evidence-dependent story briefs; no customer results have been invented. |
-| [20 distribution opportunities](distribution-opportunities.csv) | Primary-source-verified channels, specific fit, rules, proposed pitch, and unsent status. |
-| [Listing packages](listing-packages.md) | Field-ready OpenSourceAlternative.to and AlternativeTo copy with eligibility limits. |
+| [20 distribution opportunities](distribution-opportunities.csv) | Researched channels, specific fit, rules, proposed pitch, and individual submission/access status. |
+| [Listing packages](listing-packages.md) | OpenSourceAlternative.to submission acknowledgement and prepared AlternativeTo copy with access and eligibility limits. |
 
 ## Operating decisions
 
 - Initial editorial priority: appointment scheduling and answering-service intent, then support costs, lead qualification, property management, implementation, security evaluation, and alternatives. The scheduling article already has substantial observed impressions but low click-through.
 - Publish or revise one selected article per week after its evidence review; pair it with one owned-channel promotional post. Prepared revisions may ship together, but promotion and performance observations remain paced over 12 weeks.
-- Recheck all remaining 78 blog files by Day 60. Review batches of six; each gets a documented decision: retain for review, rewrite with sources, consolidate with a named destination and tested redirect, or archive. Do not mass-index the backlog.
-- Review all 33 scenarios as illustrative content by Day 60. Real customer stories are a separate workstream with source evidence and publication permission. A scenario does not become customer proof by changing its label.
+- The original 78-blog backlog review is complete in 13 batches: 77 substantive rewrites and one documented archive. Use the inventory and batch reports for each decision. The 24 scheduled educational drafts still require a publication-time review before indexing.
+- All 33 scenarios have been reviewed as illustrative content. Real customer stories remain a separate workstream with source evidence and publication permission. A scenario does not become customer proof by changing its label.
 - Research the 20 channels now; approach at most two relevant channels per week only when sending is authorized, prerequisites are satisfied, and the pitch follows their rules. No paid placement or review incentive is budgeted. Publication and a followed backlink are never promised.
 - Hold a weekly 30-minute content/lead-quality review and monthly outcome reviews on Days 30, 60, and 90. Use business enquiries and qualified opportunities alongside visibility; do not optimize solely for raw impressions.
 

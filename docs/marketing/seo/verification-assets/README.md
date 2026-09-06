@@ -1,6 +1,8 @@
 # Verification artifacts
 
-These artifacts were captured in the original QuickVoice workspace on 2026-09-06 and copied here for review. They document earlier local browser and production-build checks, before transfer to the PR branch based on the latest `main`. They are not a record of deployment or a replacement for checks against the final PR revision. The original workspace files were left unchanged.
+Final live rollout evidence is in [production routes](production-final-2026-09-06.json), [deployment](production-deployment-final-2026-09-06.json), [resource hashes](resources-production-final-2026-09-06.json), [sitemap submission and processing](sitemap-final-2026-09-06.json), and [directory acknowledgement](directory-submission-2026-09-06.json). See the [execution record](../execution-2026-09-06.md) for scope and remaining dependencies.
+
+The earlier artifacts in the table below were captured in the original QuickVoice workspace on 2026-09-06 and copied here for review. They document local browser and production-build checks before transfer to the PR branch. Those earlier artifacts are not deployment evidence or a replacement for checks against the final PR revision. The original workspace files were left unchanged.
 
 | Artifact | Provenance and scope |
 | --- | --- |

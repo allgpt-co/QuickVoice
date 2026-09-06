@@ -1,0 +1,42 @@
+{
+  "checkedAt": "2026-09-06T10:39:33.867040+00:00",
+  "directory": "OpenSourceAlternative.to",
+  "submissionRoute": "https://opensourcealternative.to/submit",
+  "submittedOnce": true,
+  "selection": "free waitlist (6+ months)",
+  "paymentMade": false,
+  "emailUpdatesOptIn": false,
+  "fields": {
+    "email": "info@quickvoice.co",
+    "website": "https://quickvoice.co/open-source",
+    "software-name": "QuickVoice",
+    "repository": "allgpt-co/QuickVoice",
+    "alternativeWebsite": "https://www.retellai.com",
+    "alternativeToName": "Retell AI"
+  },
+  "duplicateCheck": {
+    "searchUrl": "https://opensourcealternative.to/?searchTerm=QuickVoice",
+    "beforeSubmissionResult": "Found 0 alternatives; No results found"
+  },
+  "acknowledgementUrl": "https://opensourcealternative.to/project/quickvoice",
+  "acknowledgementHeading": "QuickVoice is under review",
+  "acknowledgementHttpStatus": 200,
+  "status": "awaiting_editor",
+  "publishedListingConfirmed": false,
+  "screenshot": "opensourcealternative-submission-2026-09-06.png",
+  "observationLimit": "Submission response listener had a local URL-global error after the single click; no resubmission was attempted. The redirected browser page and independent GET200 with matching heading confirm under-review acknowledgement.",
+  "alternativeTo": {
+    "status": "blocked_account_access",
+    "submissionAttempted": false,
+    "loginRoute": "https://alternativeto.net/login/",
+    "browserHttpStatus": 403,
+    "browserHeading": "Performing security verification",
+    "verifiedAccountAvailable": false,
+    "rulesSource": "https://alternativeto.net/faq/#add-a-new-application",
+    "rule": "Email verification is required before a new app can be submitted. Public/open beta may qualify; early access/private beta/invite-only/coming-soon apps are excluded.",
+    "maturityNote": "QuickVoice is publicly source-available and pre-stable; pre-stable is not by itself proof of ineligibility. Any submission must truthfully represent publicly runnable status, not rename it to bypass the criteria."
+  },
+  "submissionTimeUtc": null,
+  "submissionTimeNote": "The exact POST timestamp was not retained by the failed response observer; the single submission had completed by the acknowledgement screenshot timestamp.",
+  "acknowledgementCapturedAt": "2026-09-06T10:38:29.718547+00:00"
+}
