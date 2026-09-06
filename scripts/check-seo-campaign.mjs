@@ -31,6 +31,8 @@ const routes = [
   "resources",
   "blog",
   "blog/[slug]",
+  "case-studies",
+  "case-studies/[slug]",
 ];
 const selected = new Set([
   "free-ai-appointment-scheduling-tools",
@@ -88,6 +90,11 @@ try {
   visit(resolve(root, "apps/web/src/app/layout.tsx"));
   for (const industry of ["hr-recruiting", "saas", "automotive"])
     visit(resolve(root, "apps/web/content/industries", `${industry}.md`));
+  const scenariosDirectory = resolve(root, "apps/web/content/case-studies");
+  for (const name of readdirSync(scenariosDirectory).filter((name) =>
+    name.endsWith(".md"),
+  ))
+    visit(join(scenariosDirectory, name));
   const contentDirectory = resolve(root, "apps/web/content/blog");
   const found = new Set();
   for (const name of readdirSync(contentDirectory).filter((name) =>

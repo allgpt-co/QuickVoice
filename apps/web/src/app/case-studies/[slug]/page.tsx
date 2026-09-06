@@ -64,7 +64,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${scenario.useCase} workflow scenario`,
-    description: `An illustrative ${scenario.industry.toLowerCase()} AI phone-agent workflow. Figures and organization details are examples, not verified QuickVoice customer results.`,
+    description: `An illustrative ${scenario.industry.toLowerCase()} AI phone-agent planning worksheet. It does not report customer results or establish an implemented integration.`,
     alternates: {
       canonical: `https://quickvoice.co/case-studies/${scenario.slug}`,
     },
@@ -76,9 +76,15 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       title: `${scenario.industry}: ${scenario.useCase} workflow scenario`,
       description:
         "Illustrative planning content, not a verified customer case study or performance claim.",
-      type: "article",
+      type: "website",
       url: `https://quickvoice.co/case-studies/${scenario.slug}`,
       siteName: "QuickVoice",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${scenario.useCase} workflow scenario`,
+      description:
+        "Illustrative planning content, not a verified customer case study or performance claim.",
     },
   };
 }
