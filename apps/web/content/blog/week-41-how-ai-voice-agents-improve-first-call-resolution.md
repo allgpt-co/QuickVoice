@@ -51,4 +51,4 @@ Review failed cases for stale knowledge, ambiguous identification, insufficient 
 
 QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) supports implementation inspection, but its logs do not automatically establish your FCR definition. Its [MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py) restricts marked write/side-effect tools, so the allowed action path matters to what resolution is possible.
 
-Use the [customer-support cost guide](/blog/ai-reduce-customer-support-costs) to consider operating effort alongside quality. A credible report explains both what improved and what remains unresolved, with enough evidence for another reviewer to reproduce the classification.
+Use the [customer-support cost guide](/blog/ai-voice-agents-reduce-customer-support-costs) to consider operating effort alongside quality. A credible report explains both what improved and what remains unresolved, with enough evidence for another reviewer to reproduce the classification.

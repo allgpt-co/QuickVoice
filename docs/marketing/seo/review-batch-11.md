@@ -41,3 +41,7 @@ Reviewed on 2026-09-06 by Codex (source and repository review). Each complete or
 ## Verification
 
 The six targeted claims audits passed. Original dates and slugs were retained, unsupported statistics/customer outcomes and fabricated feature claims were removed, and sources were opened/read or checked in the corresponding repository implementation. Review records are limited to completed reviews of already published material. Full web checks are recorded in the final batch report.
+
+## Linked-route correction
+
+2026-09-06: The SaaS guide now links to the actual `ai-voice-agents-b2b-lead-qualification` slug. Its original future date and unstamped status are unchanged.
