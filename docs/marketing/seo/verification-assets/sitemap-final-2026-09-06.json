@@ -1,0 +1,39 @@
+{
+  "site": "sc-domain:quickvoice.co",
+  "sitemap": "https://quickvoice.co/sitemap.xml",
+  "deployedRevision": "8bef8acea06593dea6c68c36d34dee03fd0e7599",
+  "verifiedServedUrls": 99,
+  "submissionStatus": 204,
+  "submittedAt": "2026-09-06T10:46:50.545272+00:00",
+  "observedAt": "2026-09-06T10:46:50.773085+00:00",
+  "gsc": {
+    "isPending": true,
+    "lastSubmitted": "2026-09-06T10:46:50.490Z",
+    "lastDownloaded": "2026-09-06T09:18:19.967Z",
+    "errors": "0",
+    "warnings": "0",
+    "contents": [
+      {
+        "type": "web",
+        "submitted": "45",
+        "indexed": "0"
+      }
+    ]
+  },
+  "indexingLimit": "Sitemap acceptance and processing do not prove Google has indexed every URL.",
+  "processingCheck": {
+    "observedAt": "2026-09-06T10:48:16.335782+00:00",
+    "isPending": false,
+    "lastSubmitted": "2026-09-06T10:46:50.490Z",
+    "lastDownloaded": "2026-09-06T10:46:50.846Z",
+    "errors": "0",
+    "warnings": "0",
+    "contents": [
+      {
+        "type": "web",
+        "submitted": "99",
+        "indexed": "0"
+      }
+    ]
+  }
+}

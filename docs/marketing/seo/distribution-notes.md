@@ -1,10 +1,10 @@
 # How to use the distribution research
 
-[The CSV](distribution-opportunities.csv) contains 20 distinct outlets checked against primary publisher/platform pages on 2026-09-06. “Verified” means the outlet and linked public participation route/rules were observed; it does not mean QuickVoice is eligible, an authenticated form was tested, an editor agreed, or a backlink exists. Every row is `researched_not_contacted`.
+[The CSV](distribution-opportunities.csv) contains 20 distinct outlets checked against primary publisher/platform pages on 2026-09-06. “Verified” means the outlet and linked public participation route/rules were observed; it does not mean QuickVoice is eligible, an authenticated form was tested, an editor agreed, or a backlink exists. OpenSourceAlternative.to is now `awaiting_editor` after one authorized free submission; AlternativeTo is `blocked_account_access`. The other 18 opportunities remain `researched_not_contacted`.
 
 These are audience-fit opportunities, not a list of links to buy. The relevant destination column identifies the associated resource for internal planning. It does **not** instruct an editor to place that URL where their rules prohibit promotional links. CMSWire, Reworked, HubSpot's agency guidelines and other editorial outlets expect useful expertise; author attribution or contextual links remain their decision.
 
-Before contacting an outlet, check for an existing QuickVoice entry, recheck its current rules, satisfy its stated eligibility, choose a real accountable author/submitter and obtain the already-required authorization to send. No messages, account creation, submissions, payments, review requests or public posts were performed in preparing this package.
+Before contacting an outlet, check for an existing QuickVoice entry, recheck its current rules, satisfy its stated eligibility and use an authorized accountable author or business contact. The user authorized the selected directory submissions; missing account access or evidence remains a separate prerequisite. No outreach occurred during initial preparation. The subsequent OpenSourceAlternative.to submission and its under-review acknowledgement are recorded in the [listing package](listing-packages.md); no payment, account creation, review request or public social post occurred.
 
 ## Specific boundaries discovered
 
