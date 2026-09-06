@@ -151,6 +151,14 @@ function claimLines(file, text) {
           (line, index) => index > 0 && /^(?:---|\.\.\.)$/.test(line),
         )
       : -1;
+  // ReactMarkdown renders raw HTML as visible text. When HTML-like syntax is
+  // present, leave the entire body untouched instead of parsing nested blocks.
+  // URL/email autolinks are not HTML tags.
+  const body = lines
+    .slice(frontmatterEnd >= 0 ? frontmatterEnd + 1 : 0)
+    .join("\n");
+  const hasRawHtml =
+    /<(?:\/?[a-z][a-z0-9-]*(?:[\s/>])|!--|\?|!\[CDATA\[|![A-Z])/i.test(body);
   let fence;
   return lines.map((line, index) => {
     if (index > 0 && index < frontmatterEnd) {
@@ -171,6 +179,8 @@ function claimLines(file, text) {
       }
       return line;
     }
+
+    if (hasRawHtml) return line;
 
     const delimiter = line.match(/^\s{0,3}(`{3,}|~{3,})/);
     if (delimiter) {

@@ -121,6 +121,9 @@ test("URL filtering preserves visible and metadata certification claims", () => 
     ["escaped-link.md", "\\[Example](/hipaa-compliant)\n"],
     ["unclosed-link.md", "[Example](/hipaa-compliant unfinished title\n"],
     ["invalid-title.md", "[Example](/hipaa-compliant unfinished title)\n"],
+    ["html-inline.md", "<pre>[Example](/hipaa-compliant)</pre>\n"],
+    ["html-block.md", "<pre>\n[Example](/hipaa-compliant)\n</pre>\n"],
+    ["html-unclosed.md", "<pre>\n[Example](/hipaa-compliant)\n"],
   ];
   try {
     for (const [name, content] of examples) {
