@@ -5,7 +5,7 @@ import { DEMO_BOOKING_URL } from "@/lib/links";
 export const metadata: Metadata = {
   title: "Privacy Policy",
   description:
-    "QuickVoice Privacy Policy — how we collect, use, and protect your data. Learn about your rights under GDPR, CCPA, and our commitment to data security.",
+    "QuickVoice Privacy Policy: information collection, use, sharing, retention, privacy requests and contact details.",
   alternates: {
     canonical: "https://quickvoice.co/privacy-policy",
   },

@@ -1,0 +1,165 @@
+{
+  "buildId": "ZtdobhVXMkI0RufLq5OJt",
+  "pages": [
+    {
+      "route": "/company/about-us",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 5
+    },
+    {
+      "route": "/company/careers",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 3
+    },
+    {
+      "route": "/compliance/hipaa",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 2
+    },
+    {
+      "route": "/industries/e-commerce",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/education",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/financial-services",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 2
+    },
+    {
+      "route": "/industries/healthcare",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 3
+    },
+    {
+      "route": "/industries/logistics",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/manufacturing-engineering",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 12
+    },
+    {
+      "route": "/industries/travel-hospitality",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/privacy-policy",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 0
+    },
+    {
+      "route": "/solutions",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 7
+    },
+    {
+      "route": "/terms-of-service",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 1
+    },
+    {
+      "route": "/use-cases/operations-automation",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/use-cases/order-status-returns",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/use-cases",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 7
+    },
+    {
+      "route": "/use-cases/reminders-collections",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/hr-recruiting",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/saas",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/industries/automotive",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 6
+    },
+    {
+      "route": "/case-studies",
+      "status": 200,
+      "checks": "pass",
+      "internalLinks": 45
+    }
+  ],
+  "finalTitleChecks": [
+    {
+      "route": "/company/about-us",
+      "title": "About QuickVoice",
+      "status": "pass"
+    },
+    {
+      "route": "/company/careers",
+      "title": "Contributions and careers | QuickVoice",
+      "status": "pass"
+    },
+    {
+      "route": "/industries",
+      "title": "Industry workflow guides | QuickVoice",
+      "status": "pass"
+    },
+    {
+      "route": "/use-cases",
+      "title": "Business phone use cases | QuickVoice",
+      "status": "pass"
+    },
+    {
+      "route": "/solutions",
+      "title": "Phone-agent solutions | QuickVoice",
+      "status": "pass"
+    }
+  ],
+  "finalChangedRoutesRechecked": 18
+}

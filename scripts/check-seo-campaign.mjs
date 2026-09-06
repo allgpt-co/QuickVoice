@@ -27,12 +27,30 @@ const routes = [
   "industries/automotive",
   "pricing",
   "company/contact",
+  "company/about-us",
+  "company/careers",
   "open-source",
   "resources",
   "blog",
   "blog/[slug]",
   "case-studies",
   "case-studies/[slug]",
+  "compliance/hipaa",
+  "industries/e-commerce",
+  "industries/education",
+  "industries/financial-services",
+  "industries/healthcare",
+  "industries/logistics",
+  "industries/manufacturing-engineering",
+  "industries",
+  "industries/travel-hospitality",
+  "privacy-policy",
+  "solutions",
+  "terms-of-service",
+  "use-cases/operations-automation",
+  "use-cases/order-status-returns",
+  "use-cases",
+  "use-cases/reminders-collections",
 ];
 const selected = new Set([
   "free-ai-appointment-scheduling-tools",
@@ -88,8 +106,25 @@ try {
   for (const route of routes)
     visit(resolve(root, "apps/web/src/app", route, "page.tsx"));
   visit(resolve(root, "apps/web/src/app/layout.tsx"));
-  for (const industry of ["hr-recruiting", "saas", "automotive"])
+  for (const industry of [
+    "hr-recruiting",
+    "saas",
+    "automotive",
+    "e-commerce",
+    "education",
+    "logistics",
+    "manufacturing-engineering",
+    "travel-hospitality",
+  ])
     visit(resolve(root, "apps/web/content/industries", `${industry}.md`));
+  for (const useCase of [
+    "operations-automation",
+    "order-status-returns",
+    "reminders-collections",
+  ])
+    visit(resolve(root, "apps/web/content/use-cases", `${useCase}.md`));
+  const resourcesPage = resolve(root, "apps/web/src/app/resources/page.tsx");
+  if (existsSync(resourcesPage)) visit(resourcesPage);
   const scenariosDirectory = resolve(root, "apps/web/content/case-studies");
   for (const name of readdirSync(scenariosDirectory).filter((name) =>
     name.endsWith(".md"),

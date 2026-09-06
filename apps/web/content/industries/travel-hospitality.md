@@ -1,93 +1,43 @@
 ---
 slug: travel-hospitality
-title: AI Voice Agents for Travel & Hospitality — The Complete 2026 Guide
-metaTitle: AI Voice Agents for Hotels, Airlines & Travel | QuickVoice
-metaDescription: How hotels, airlines, travel agencies, and tour operators use AI voice agents to automate reservations, cancellations, upsells, and guest services — 24/7, in 100+ languages.
-category: Travel & Hospitality
-tags: [hospitality AI, hotel voice agent, travel automation, reservation AI, guest services automation]
+title: Travel and hospitality phone workflows
+metaTitle: Travel and hospitality phone workflows | QuickVoice
+metaDescription: Plan guest enquiries, reservation requests and disruption callbacks with current booking information, provider review and human escalation.
+category: Travel and hospitality phone workflows
+tags: [workflow planning, implementation requirements]
 canonical: https://quickvoice.co/industries/travel-hospitality
 ---
 
-## The Pressure on Travel & Hospitality Customer Service
+## Purpose
 
-Travel and hospitality businesses operate in a uniquely demanding customer service environment. Guests travel across time zones, problems don't occur during business hours, and expectations for immediate assistance are high. A guest locked out of their room at 2 AM or a traveler whose flight has been cancelled at midnight cannot wait until morning.
+Begin with approved property or trip information and a request for the relevant staff team. Availability, prices, reservations and disruption options depend on the actual booking system and the authority granted to the workflow.
 
-At the same time, hospitality businesses face significant staffing pressures. Front desk turnover at hotels averages 50–70% annually. Call centers for major hotel chains and airlines handle tens of millions of calls per year. The combination of 24/7 demand, high turnover, and scale makes AI voice agents a natural fit.
+## Clarify the guest request
 
----
+Distinguish a general amenity question, a new reservation enquiry and a private booking request. Apply the business-approved identity checks before discussing a guest record.
 
-## Use Cases in Travel & Hospitality
+## Use current information
 
-### Hotels and Resorts
+Implement authorized access to booking details when needed. Explain rate terms and availability only from a current approved source; a quoted option is not a held reservation.
 
-**Reservation Management**
-AI agents handle the full reservation conversation:
-- New bookings with room type selection, dates, and rate confirmation
-- Modification requests (date changes, room upgrades)
-- Cancellation processing with policy-compliant fee handling
-- Confirmation and pre-arrival information delivery
+## Confirm actions and exceptions
 
-**Pre-Arrival Upsells**
-AI agents make outbound calls 48–72 hours before arrival to offer room upgrades, early check-in, dining reservations, and spa packages. Conversion rates for pre-arrival AI upsell calls are 18–25% — significantly higher than email offers.
+Route changes, cancellations and urgent guest issues to the approved process. Announce a completed reservation only after the permitted action returns a verified result. The default live MCP bridge restricts tools marked as writes or side effects. A system change requires a separately implemented permitted action path and a verified destination result; a caller request alone does not enable it.
 
-**In-Stay Guest Services**
-Guests can call the hotel AI agent for:
-- Room service orders
-- Housekeeping requests
-- Amenity inquiries
-- Local recommendations
-- Transportation scheduling
+## Implementation requirements
 
-**Post-Stay Feedback**
-Satisfaction surveys conducted by AI voice agents achieve 3–4x higher response rates than email surveys, generating more actionable guest feedback.
+- A hospitality or travel owner for information, policy exceptions and staff coverage.
+- A tested connection to the relevant booking source with identity and permission controls.
+- Language and accessibility tests using the actual configured speech and model providers.
 
-### Airlines and Airport Services
+Real calls require configured voice, telephony and model providers and a technical owner. The MIT source license does not include provider charges or establish deployment readiness.
 
-**Flight Status and Rebooking**
-When disruptions occur, airlines face massive call volume surges. AI agents provide instant flight status updates and walk through rebooking options — automatically accessing the carrier's real-time inventory.
+## Pilot checks
 
-**Frequent Flyer Account Management**
-Balance inquiries, tier status, award redemption, and seat upgrade requests — all handled by AI without wait times.
+- **The requested room is unavailable:** Offer only verified alternatives or staff follow-up; do not create an availability claim.
+- **A cancellation result is uncertain:** Check the destination before another action and state that confirmation is pending.
+- **A guest needs immediate assistance:** Use the approved staff or emergency route, with a tested fallback if the first contact is unavailable.
 
-**Check-In Assistance**
-Pre-flight check-in reminders, bag fee calculations, and seat selection assistance.
+## Evidence and next steps
 
-### Tour Operators and Travel Agencies
-
-**Itinerary Information**
-Travelers call repeatedly with questions about their booked tours: meeting point, what to pack, weather, dietary requirements. AI handles these calls consistently and accurately.
-
-**Booking and Availability**
-New tour booking inquiries, real-time availability checks, and provisional reservation holding.
-
-**Emergency Assistance**
-Connection to human agents for genuine travel emergencies, with full context passed through.
-
----
-
-## Multilingual Support: The Travel Industry's Core Need
-
-The travel and hospitality industry serves guests from every country on earth. A major hotel in a gateway city may have guests speaking 30+ different languages on any given night. Traditional call centers staff for the top 3–5 languages at best.
-
-QuickVoice supports 100+ languages natively, with automatic language detection. A guest who calls and begins speaking French is automatically served in French. A Japanese-speaking traveler gets Japanese. This is impossible to replicate with human staffing at reasonable cost.
-
----
-
-## ROI for Travel & Hospitality
-
-**Mid-Size Hotel (200 rooms)**
-
-Current inbound call volume: 1,500/month
-Calls automatable by AI: 75% (1,125 calls)
-Current cost: $12 per human-handled call = $18,000/month
-AI cost: $1.50 per AI-handled call = $1,688/month for AI + $4,500/month for remaining human calls
-**Monthly savings: $11,800 | Annual savings: $141,600**
-
-Plus upsell revenue from AI pre-arrival calls:
-- 2,400 pre-arrival calls/year × 22% conversion × $75 average upsell = $39,600 additional revenue
-
-**Total annual benefit: $181,200**
-
----
-
-*QuickVoice powers guest service automation for 100+ hotels and travel businesses. 100+ languages. Free 14-day trial at [console.quickvoice.co/register](https://console.quickvoice.co/register).*
+Read the [repository setup boundaries](https://github.com/allgpt-co/QuickVoice#setup-boundaries) and [live MCP action restrictions](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py). Verify the current deployment and required external systems with your implementation team. No customer results, compliance certification, named business connector, fixed launch timeline or cost saving is asserted.

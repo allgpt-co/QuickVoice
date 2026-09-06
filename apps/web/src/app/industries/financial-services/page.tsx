@@ -18,6 +18,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://quickvoice.co/industries/financial-services",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "QuickVoice for Financial Services Workflows",
+    description:
+      "Evaluate financial-services phone workflows with explicit data, provider, action and compliance review boundaries.",
+    images: ["/og-image.png"],
+  },
   openGraph: {
     title: "QuickVoice for Financial-Services Workflows",
     description:
@@ -45,7 +52,7 @@ const workflows = [
     icon: ClipboardCheck,
     title: "Structured follow-up",
     description:
-      "Capture only approved operational outcomes, write to allowlisted systems, and keep high-impact actions behind explicit authorization.",
+      "Capture only approved operational outcomes. System writes need a separately implemented permitted action path and a verified result; the default live MCP bridge restricts marked write and side-effect tools.",
   },
   {
     icon: BadgeDollarSign,

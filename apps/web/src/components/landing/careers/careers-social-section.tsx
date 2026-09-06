@@ -35,7 +35,7 @@ export function CareersSocialSection() {
           className="flex justify-center space-x-6"
         >
           {[
-            { icon: Linkedin, href: "https://www.linkedin.com/company/quickvoicecompany/" },
+            { icon: Linkedin, href: "https://www.linkedin.com/company/quickvoiceai" },
             { icon: Twitter, href: "https://x.com/QuickVoice_co" },
             { icon: Facebook, href: "https://www.facebook.com/profile.php?id=61578373598223" },
             { icon: Instagram, href: "https://www.instagram.com/quickvoice_co/" },

@@ -19,6 +19,13 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://quickvoice.co/compliance/hipaa",
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "Healthcare Deployment Review | QuickVoice",
+    description:
+      "Review healthcare data, provider agreements and operating controls for the exact deployment. This checklist is not a certification.",
+    images: ["/og-image.png"],
+  },
   openGraph: {
     title: "QuickVoice Healthcare Deployment Review",
     description:
@@ -111,7 +118,7 @@ export default function HealthcareDeploymentReviewPage() {
             Healthcare deployment review
           </p>
           <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-tight sm:text-6xl">
-            HIPAA is a deployment outcome, not a repository badge
+            Review the complete healthcare deployment
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
             QuickVoice makes privacy-sensitive voice infrastructure inspectable.
@@ -252,6 +259,14 @@ export default function HealthcareDeploymentReviewPage() {
             <p className="mt-2 max-w-2xl text-muted-foreground">
               Review the repository, document gaps as issues, and involve the
               right legal and security owners before regulated production use.
+              Consult the{" "}
+              <a
+                href="https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html"
+                className="text-primary underline underline-offset-4"
+              >
+                HHS guidance on HIPAA and cloud computing
+              </a>{" "}
+              when reviewing provider responsibilities and agreements.
             </p>
           </div>
           <Link
