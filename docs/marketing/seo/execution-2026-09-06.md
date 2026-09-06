@@ -23,13 +23,21 @@ The browser emitted exactly one `generate_lead` with `method=contact_form`, `for
 
 Provider acceptance does not establish inbox placement. A search of the connected mailbox found no matching test message; the configured recipient's mailbox is not independently accessible through that connection. Recipient confirmation of arrival and Reply-To is pending. Key-event registration remains pending Analytics edit access.
 
+## Completed backlog review and final integration
+
+The fixed 133-item review queue now has individual decisions: 78 blog entries, 33 illustrative scenarios and 22 marketing routes. The blog work comprises 77 substantive rewrites and one documented archive where the former Air AI comparison could not be supported by current product evidence. Across the complete 90-article source collection, 65 currently published articles have valid content-bound reviews. The 24 scheduled educational drafts retain their dates and require publication-time review before indexing; the one scheduled archive remains unavailable. All original article filenames, slugs and publication dates are preserved.
+
+All 33 scenarios now use specific planning briefs without invented customers, quotations or results; their detail pages retain noindex and stay outside the sitemap. Twenty of the remaining marketing routes passed source review. The privacy and terms routes have completed review decisions with explicit owner-confirmation requirements, detailed in the [trust report](trust-review-2026-09-06.md); they are not marked factually verified.
+
+The final combined source passed 39 root tests, 34 web tests, five reporting tests, web lint, type checks and a production build. The campaign claims check scanned 197 active files, and a separate scan covered all 90 blog sources, including future drafts. Independent review found and corrected Markdown-filtering edge cases; regression cases preserve visible claims in code, escaped links and incomplete links. Full live-route verification belongs to the deployed revision and is recorded separately when complete.
+
 ## External dependencies and scheduled work
 
 - GA read access works. The current OAuth grant lacks `analytics.edit`; `generate_lead` is not registered as a key event. Keep manual page views off until `pageChangesEnabled` can be disabled and the live no-duplicate check completed. Code emission, GA collection, key-event registration and verified business enquiries are separate observations.
 - SalesBlink requires reconnection before the selected opt-in list, consent records, sending identity, company footer and suppressions can be inspected. No sequence has been enrolled or sent. Use resource-request wording only for recipients with that recorded request; the drafts include an alternative opening for broader evaluation opt-ins.
 - LinkedIn publication needs administrative access to [QuickVoice's actual page](https://www.linkedin.com/company/quickvoiceai). The similarly named `quickvoice` page represents another product. No owned post has been published by this work.
 - Directory packages remain prepared. Verify account eligibility, actual submitter identity and the channel's requirements before submitting; no paid placement is selected. AlternativeTo's product-maturity requirement remains a separate eligibility question.
-- Real customer stories require actual customer evidence and publication permission. Illustrative scenarios are not a substitute. The walkthrough script needs a verified synthetic-data test environment and an actual recorded interaction before it can be published as a product demonstration.
+- Real customer stories require actual customer evidence and publication permission. Illustrative scenarios are not a substitute. The walkthrough script needs a verified synthetic-data test environment, an actual recorded interaction, captions and a transcript before publication. The directory package also needs a labeled screenshot from that environment; the existing dashboard image contains phone numbers and unlabeled metrics and is not approved for submission.
 - The 90-day calendar remains a schedule. Day 1 has not been asserted merely because code, reviews and downloads are ready. Weekly observations, customer replies, directory acceptance and Day 30/60/90 outcomes must be logged when they occur.
 
 Repository content decisions and final live checks are recorded at their actual batch/release boundaries. Local and CI checks establish the tested revision's behavior; Google indexing and commercial outcomes remain subsequent observations.
