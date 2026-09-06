@@ -42,6 +42,7 @@ const apiVersion = process.env.API_VERSION || "v1";
 const widgetAssetDir =
   process.env.WIDGET_ASSET_DIR ?? path.resolve(process.cwd(), "../widget/dist");
 
+
 app.get(`/api/${apiVersion}/docs.json`, (_req, res) => {
   res.json(swaggerSpec);
 });
@@ -107,10 +108,16 @@ app.options(
  * =========================
  */
 
-// Security headers
-app.use(helmet());
+// Security headers — disable helmet's cross-origin policies that conflict
+// with our CORS setup (crossOriginResourcePolicy: same-origin blocks the
+// Access-Control-Allow-Origin header from being respected by browsers).
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginOpenerPolicy: false,
+  }),
+);
 
-// CORS
 app.use(
   cors({
     origin: trustedOrigins,
@@ -118,6 +125,32 @@ app.use(
     credentials: true,
   }),
 );
+// ─── CORS ───────────────────────────────────────────────────────────────────
+// Hand-rolled middleware runs first so it isn't blocked by either:
+//  • the cors package's own OPTIONS short-circuit, or
+//  • Better Auth's toNodeHandler intercepting OPTIONS on auth routes.
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && trustedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, PATCH, OPTIONS"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, Cookie"
+    );
+    if (req.method === "OPTIONS") {
+      res.setHeader("Access-Control-Max-Age", "600");
+      res.status(204).end();
+      return;
+    }
+  }
+  next();
+});
 
 // Request logger
 app.use(
@@ -143,7 +176,6 @@ app.post(
  * client API requests get stuck in a pending state.
  * See: https://better-auth.com/docs/integrations/express
  */
-
 // Wallet billing replaces subscription mutations. Legacy list and cancel
 // remain available while existing subscriptions are sunset.
 app.post(

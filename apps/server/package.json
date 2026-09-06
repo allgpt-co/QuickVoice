@@ -8,7 +8,7 @@
   "type": "module",
   "main": "dist/src/index.js",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
+    "dev": "tsx watch --env-file=.env.dev src/index.ts",
     "build": "tsc",
     "lint": "tsc --noEmit --pretty false",
     "start": "node dist/src/index.js",
