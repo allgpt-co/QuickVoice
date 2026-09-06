@@ -6,9 +6,12 @@ import type { Metadata } from "next";
 import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
+import { createGoogleAnalyticsScript } from "@/lib/google-analytics-config.mjs";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+const googleAnalyticsScript = createGoogleAnalyticsScript(
+  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+);
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://quickvoice.co"),
@@ -72,23 +75,12 @@ export default function RootLayout({
           />
         )}
       </head>
-      {GA_MEASUREMENT_ID && (
-        <>
-          <Script
-            src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
-            strategy="afterInteractive"
-          />
-          <Script id="google-analytics" strategy="afterInteractive">
-            {`
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_MEASUREMENT_ID}');
-            `}
-          </Script>
-        </>
-      )}
       <body className={inter.className}>
+        {googleAnalyticsScript && (
+          <Script id="google-analytics" strategy="afterInteractive">
+            {googleAnalyticsScript}
+          </Script>
+        )}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"

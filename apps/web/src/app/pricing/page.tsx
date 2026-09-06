@@ -1,9 +1,6 @@
 import type { Metadata } from "next";
 
-import {
-  PRICING_FAQS,
-  UsagePricing,
-} from "@/components/pricing/usage-pricing";
+import { PRICING_FAQS, UsagePricing } from "@/components/pricing/usage-pricing";
 
 export const metadata: Metadata = {
   title: "Usage-based AI Voice Agent Pricing",
@@ -28,14 +25,6 @@ const pricingSchema = {
   applicationCategory: "BusinessApplication",
   operatingSystem: "Web",
   url: "https://quickvoice.co/pricing",
-  offers: {
-    "@type": "Offer",
-    name: "QuickVoice prepaid usage",
-    price: "0",
-    priceCurrency: "USD",
-    description:
-      "$5 promotional call credit for newly verified users, then prepaid usage-based billing.",
-  },
 };
 
 const faqSchema = {

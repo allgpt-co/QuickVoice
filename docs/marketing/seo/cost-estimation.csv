@@ -1,0 +1,53 @@
+Parameter,Value_or_formula,Units,Assumption_or_instruction
+Monthly call attempts,1000,whole calls/month,EDIT: illustrative volume; include unanswered attempts
+Answered fraction,0.6,fraction 0 to 1,EDIT: illustrative; derive from measured attempts
+Mean connected duration,3,minutes/answered call,EDIT: illustrative; use billable duration including provider rounding
+Billable unanswered duration,0.1,minutes/unanswered attempt,EDIT: illustrative; provider-specific rounding may differ
+Connected telephony rate,0,USD/connected minute,EDIT: UNKNOWN; replace zero with dated carrier quote including applicable fees
+Unanswered telephony rate,0,USD/unanswered billed minute,EDIT: UNKNOWN; do not assume unanswered attempts are free
+Runtime rate,0,USD/connected minute,EDIT: UNKNOWN; LiveKit/runtime charges not already included elsewhere
+STT rate,0,USD/audio minute,EDIT: UNKNOWN; omit only if already included in a bundled rate
+STT audio fraction,1,audio minutes/connected minute,EDIT: illustrative audio billed relative to connected time
+LLM tokens per connected minute,400,tokens/connected minute,EDIT: illustrative; use provider usage across input/output/cache as applicable
+LLM blended token rate,0,USD/million tokens,EDIT: UNKNOWN; derive weighted rate from actual model and token mix
+TTS characters per connected minute,700,characters/connected minute,EDIT: illustrative; use billed synthesis volume
+TTS rate,0,USD/million characters,EDIT: UNKNOWN; convert if provider bills another unit
+Phone number count,1,whole numbers,EDIT: illustrative number inventory
+Monthly number rental,0,USD/number/month,EDIT: UNKNOWN; include recurring carrier number fees
+Infrastructure fixed cost,0,USD/month,EDIT: UNKNOWN; compute database queues hosting and monitoring not metered above
+Storage and logging cost,0,USD/month,EDIT: UNKNOWN; recordings transcripts object storage egress and backups
+Answered calls needing human follow-up,0.3,fraction 0 to 1,EDIT: illustrative; denominator is answered calls only
+Mean human follow-up duration,4,minutes/follow-up,EDIT: illustrative; add unanswered-call follow-up under other costs if applicable
+Loaded human labor rate,30,USD/hour,EDIT: illustrative labor assumption; not a market quote
+Monthly quality-review time,4,hours/month,EDIT: illustrative; charged at loaded human labor rate
+Initial engineering effort,20,hours one-time,EDIT: illustrative implementation effort; not a deployment-time promise
+Engineering labor rate,75,USD/hour,EDIT: illustrative internal or supplier rate
+Implementation amortization period,12,months,EDIT: positive whole number; planning allocation not billing terms
+Contingency fraction,0.15,fraction >= 0,EDIT: illustrative reserve applied to modeled monthly total
+Software license charge,0,USD/month,MIT source license has no license fee; this is not a zero-cost running service
+Other monthly costs,0,USD/month,EDIT: UNKNOWN; minimum commitments taxes missed-call follow-up retries integration support training
+Provider quotes confirmed,0,boolean 0 or 1,Set 1 only when every applicable supplier cost has a dated source; keep quote references in notes
+Business inputs confirmed,0,boolean 0 or 1,Set 1 only after replacing illustrative operating and labor inputs with approved values
+Connected calls,=B2*B3,calls/month,CALCULATED
+Unanswered attempts,=B2-B31,calls/month,CALCULATED
+Connected minutes,=B31*B4,minutes/month,CALCULATED
+Unanswered billed minutes,=B32*B5,minutes/month,CALCULATED
+Telephony variable cost,=B33*B6+B34*B7,USD/month,CALCULATED
+Runtime cost,=B33*B8,USD/month,CALCULATED
+STT cost,=B33*B9*B10,USD/month,CALCULATED
+LLM cost,=B33*B11*B12/1000000,USD/month,CALCULATED
+TTS cost,=B33*B13*B14/1000000,USD/month,CALCULATED
+Phone rental cost,=B15*B16,USD/month,CALCULATED
+Human follow-up cost,=B31*B19*B20/60*B21,USD/month,CALCULATED
+Quality-review cost,=B22*B21,USD/month,CALCULATED
+Amortized implementation,"=IF(B25>0,B23*B24/B25,0)",USD/month,CALCULATED; invalid amortization is flagged below
+Monthly subtotal,=SUM(B35:B43)+B17+B18+B27+B28,USD/month,CALCULATED; provider minimums not automatically modeled
+Monthly contingency,=B44*B26,USD/month,CALCULATED reserve; not supplier cost
+Modeled monthly total,=B44+B45,USD/month,CALCULATED illustrative until input checks pass
+Modeled cost per attempted call,"=IF(B2>0,B46/B2,0)",USD/attempted call,CALCULATED; denominator includes unanswered attempts
+Modeled cost per answered call,"=IF(B31>0,B46/B31,0)",USD/answered call,CALCULATED; no answered calls yields zero placeholder and invalid status
+One-time implementation cash cost,=B23*B24,USD one-time,CALCULATED; do not add again to amortized monthly comparisons
+Input validation,"=IF(AND(COUNT(B2:B30)=29,MIN(B2:B30)>=0,B2>0,MOD(B2,1)=0,B3>0,B3<=1,MOD(B15,1)=0,B19<=1,B25>0,MOD(B25,1)=0,B29=1,B30=1),""CONFIRMED INPUTS - REVIEW EXCLUSIONS"",""ILLUSTRATIVE OR INVALID - NOT A QUOTE"")",status,CALCULATED; attempts phone numbers and amortization months must be whole numbers; confirmation does not verify evidence
+Baseline monthly comparable cost,0,USD/month,EDIT: UNKNOWN; same workload service level cost scope and period
+Modeled difference vs baseline,"=IF(AND(B50=""CONFIRMED INPUTS - REVIEW EXCLUSIONS"",B51>0),B51-B46,"""")",USD/month,CALCULATED; positive means lower modeled cost; negative means higher; not measured savings
+Modeled difference percent,"=IF(AND(B50=""CONFIRMED INPUTS - REVIEW EXCLUSIONS"",B51>0),(B51-B46)/B51,"""")",fraction,CALCULATED; format as percent; not ROI or revenue

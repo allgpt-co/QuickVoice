@@ -9,6 +9,7 @@ import Earth from '@/components/ui/globe';
 import { SparklesCore } from '@/components/ui/sparkles';
 import { Label } from '@/components/ui/label';
 import { Check, Loader2 } from 'lucide-react';
+import { trackContactLead } from '@/lib/analytics';
 
 type ContactField = 'name' | 'email' | 'message';
 type ContactErrors = Partial<Record<ContactField, string>>;
@@ -97,17 +98,18 @@ export default function ContactUs1() {
       });
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.ok !== true) {
         throw new Error(data.error || 'Unable to process your request at this time');
       }
 
+      trackContactLead('homepage');
       setName('');
       setEmail('');
       setMessage('');
       setErrors({});
       setIsSubmitted(true);
       setSuccessMessage(
-        data.message || 'Thanks. A QuickVoice specialist will follow up within one business day.',
+        data.message || 'Thank you. Your inquiry was delivered to the QuickVoice team.',
       );
 
       if (successTimerRef.current) clearTimeout(successTimerRef.current);

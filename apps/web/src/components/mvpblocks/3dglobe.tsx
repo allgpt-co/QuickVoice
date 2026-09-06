@@ -27,17 +27,17 @@ export default function Globe3D() {
       <div className="relative z-10 container mx-auto max-w-2xl px-4 text-center md:max-w-4xl md:px-6 lg:max-w-7xl">
         <div>
           <span className="mb-6 mt-10 inline-block rounded-full border px-3 py-1 text-xs border-primary/60 text-primary/80 dark:border-primary/30 dark:text-primary">
-            OPEN-SOURCE PHONE AGENTS
+            AI PHONE AGENTS FOR BUSINESS
           </span>
           <h1 className="mx-auto mb-6 max-w-4xl text-4xl font-light md:text-5xl lg:text-7xl text-foreground">
-            Build AI phone agents on infrastructure you can{" "}
-            <span className="text-primary">inspect and run</span>
+            Give your business calls{" "}
+            <span className="text-primary">a clear next step</span>
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground md:text-xl">
-            The self-hostable alternative to closed voice-agent platforms:
-            console, API, LiveKit worker, telephony integrations, knowledge
-            bases, campaigns, call logs, and billing paths in one repo.
+            Explore reception, appointment requests, customer support, and sales
+            follow-up with AI phone agents. Run a focused pilot on a
+            self-hostable platform your implementation team can inspect.
           </p>
 
           <div className="mb-10 flex flex-col items-center justify-center gap-4 sm:mb-0 sm:flex-row">
@@ -66,6 +66,11 @@ export default function Globe3D() {
             </a>
           </div>
         </div>
+        <p className="mx-auto mt-6 max-w-2xl text-sm text-muted-foreground">
+          Real calls require provider accounts, configuration, and a technical
+          operator. External booking and business systems need tested
+          connections.
+        </p>
         <motion.div
           className="relative"
           initial={{ opacity: 0 }}
@@ -80,7 +85,7 @@ export default function Globe3D() {
               width={800}
               height={800}
               sizes="(max-width: 768px) 100vw, 800px"
-              loading="lazy"
+              loading="eager"
             />
           </div>
           <div className="relative z-10 mx-auto max-w-5xl rounded-2xl shadow-[0_0_50px_rgba(var(--primary-rgb),0.2)]">

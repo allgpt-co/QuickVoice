@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import dynamic from "next/dynamic";
 
 // Above-fold: server-rendered immediately (SSR)
@@ -29,6 +30,27 @@ const ContactSection = dynamic(() =>
     default: m.ContactSection,
   })),
 );
+
+export const metadata: Metadata = {
+  title: "AI Phone Agents for Business Calls",
+  description:
+    "Explore AI phone agents for reception, appointment requests, customer support, and sales follow-up on QuickVoice's self-hostable platform.",
+  alternates: { canonical: "https://quickvoice.co" },
+  openGraph: {
+    title: "AI Phone Agents for Business Calls | QuickVoice",
+    description:
+      "Plan a focused business calling workflow with clear implementation and human follow-up requirements.",
+    url: "https://quickvoice.co",
+    images: [{ url: "/og-image.png", width: 1200, height: 630 }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI Phone Agents for Business Calls",
+    description:
+      "Evaluate reception, scheduling, support, and sales workflows with QuickVoice.",
+    images: ["/og-image.png"],
+  },
+};
 
 const homepageSchema = [
   {
@@ -65,35 +87,12 @@ const homepageSchema = [
     },
     description:
       "Open-source, self-hostable AI phone-agent infrastructure for teams that want to run, inspect, and extend the voice-agent stack.",
-    foundingDate: "2020",
-    founder: { "@type": "Person", name: "Rahul Agarwal" },
-    address: [
-      {
-        "@type": "PostalAddress",
-        streetAddress: "4000 Innovation Drive, 3rd Floor",
-        addressLocality: "Ottawa",
-        addressRegion: "Ontario",
-        postalCode: "K2K 3K1",
-        addressCountry: "CA",
-      },
-      {
-        "@type": "PostalAddress",
-        streetAddress: "104 West 40th Street, Suite 1800",
-        addressLocality: "New York",
-        addressRegion: "NY",
-        postalCode: "10018",
-        addressCountry: "US",
-      },
-    ],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "customer service",
       url: "https://quickvoice.co/company/contact",
     },
-    sameAs: [
-      "https://www.linkedin.com/company/quickvoice",
-      "https://twitter.com/quickvoice",
-    ],
+    sameAs: ["https://github.com/allgpt-co/QuickVoice"],
   },
   {
     "@context": "https://schema.org",

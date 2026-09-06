@@ -73,8 +73,8 @@ export function ContactUsWhySection() {
             transition={{ duration: 0.6, delay: 0.4 }}
             className="text-lg leading-8 text-muted-foreground max-w-3xl mx-auto"
           >
-            Discover how our award-winning voice AI platform can transform your
-            business operations and customer experience.
+            Discuss a specific calling workflow, the systems it needs, and the
+            responsibilities your team will take on during an evaluation.
           </motion.p>
         </div>
 

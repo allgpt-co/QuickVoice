@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { computeContentHash, isValidEvidenceReview, parseContentDate } from "./blog-review.mjs";
 
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
 const PUBLIC_DIR = path.join(process.cwd(), "public");
@@ -10,6 +11,15 @@ export interface BlogPost {
   slug: string;
   title: string;
   date: string;
+  updatedAt?: string;
+  evidenceReview?: {
+    status: "reviewed";
+    reviewedAt: string;
+    reviewer: string;
+    sources: string[];
+    contentHash: string;
+  };
+  contentHash: string;
   draft: boolean;
   published: boolean;
   status?: string;
@@ -45,6 +55,9 @@ function parseFile(filename: string): BlogPost | null {
       slug: data.slug as string,
       title: data.title as string,
       date: data.date as string,
+      updatedAt: data.updatedAt as string | undefined,
+      evidenceReview: data.evidenceReview as BlogPost["evidenceReview"],
+      contentHash: computeContentHash(data, content),
       draft: data.draft === true,
       published: data.published !== false,
       status: data.status as string | undefined,
@@ -53,7 +66,7 @@ function parseFile(filename: string): BlogPost | null {
       tags: (data.tags as string[]) || [],
       metaTitle: (data.metaTitle as string) || (data.title as string),
       metaDescription: data.metaDescription as string,
-      canonical: data.canonical as string,
+      canonical: `https://quickvoice.co/blog/${data.slug}`,
       ogImage: resolveOgImage(data.ogImage),
       readTime: (data.readTime as string) || "5 min",
       authorBio: (data.authorBio as string) || "",
@@ -74,11 +87,28 @@ export function isPublishedPost(
   { includeFuture = false, now = new Date() }: BlogQueryOptions = {},
 ): boolean {
   if (post.draft || !post.published || post.status === "draft") return false;
-  if (includeFuture) return true;
+  const publishedAt = parseContentDate(post.date);
+  if (!publishedAt) return false;
+  return includeFuture || publishedAt <= now;
+}
 
-  const publishedAt = new Date(post.date).getTime();
-  if (Number.isNaN(publishedAt)) return false;
-  return publishedAt <= now.getTime();
+export function isIndexablePost(post: BlogPost, { now = new Date() }: Pick<BlogQueryOptions, "now"> = {}): boolean {
+  if (!isPublishedPost(post, { now }) || !isValidEvidenceReview(post.evidenceReview, post.contentHash, now)) return false;
+  if (post.updatedAt !== undefined) {
+    const updatedAt = parseContentDate(post.updatedAt);
+    const reviewedAt = parseContentDate(post.evidenceReview?.reviewedAt);
+    if (!updatedAt || !reviewedAt || updatedAt > now || updatedAt < new Date(post.date) || updatedAt > reviewedAt) return false;
+  }
+  return true;
+}
+
+export function getPostModifiedDate(post: BlogPost, now = new Date()): string {
+  const updatedAt = parseContentDate(post.updatedAt);
+  return updatedAt && updatedAt <= now && updatedAt >= new Date(post.date) ? post.updatedAt! : post.date;
+}
+
+export function getIndexablePosts(options: Pick<BlogQueryOptions, "now"> = {}): BlogPost[] {
+  return getAllPosts(options).filter((post) => isIndexablePost(post, options));
 }
 
 export function getAllPosts(options: BlogQueryOptions = {}): BlogPost[] {
@@ -120,7 +150,7 @@ export function getAllCategories(): string[] {
 export function getRelatedPosts(currentSlug: string, limit = 3): BlogPost[] {
   const current = getPostBySlug(currentSlug);
   if (!current) return [];
-  const all = getAllPosts().filter((p) => p.slug !== currentSlug);
+  const all = getIndexablePosts().filter((p) => p.slug !== currentSlug);
   const sameCategory = all.filter((p) => p.category === current.category);
   const others = all.filter((p) => p.category !== current.category);
   return [...sameCategory, ...others].slice(0, limit);

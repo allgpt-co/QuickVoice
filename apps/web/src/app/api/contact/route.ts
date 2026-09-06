@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const CONTACT_EMAIL = "info@quickvoice.co";
-const CONTACT_WEBHOOK_URL = process.env.CONTACT_WEBHOOK_URL;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_PATTERN = /^[+]?[1-9][\d\s().-]{3,24}$/;
 
@@ -72,25 +70,12 @@ function parseSubmission(body: unknown):
   };
 }
 
-async function forwardSubmission(submission: ContactSubmission) {
-  if (!CONTACT_WEBHOOK_URL) {
-    console.info("QuickVoice contact submission", {
-      emailDomain: submission.email.split("@")[1],
-      companyProvided: Boolean(submission.company),
-      phoneProvided: Boolean(submission.phone),
-      lookingFor: submission.lookingFor,
-      messageLength: submission.message.length,
-      source: submission.source,
-      submittedAt: submission.submittedAt,
-      destination: CONTACT_EMAIL,
-    });
-    return;
-  }
-
-  const response = await fetch(CONTACT_WEBHOOK_URL, {
+async function forwardSubmission(submission: ContactSubmission, webhookUrl: string) {
+  const response = await fetch(webhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(submission),
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!response.ok) {
@@ -115,14 +100,22 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
 
+  const webhookUrl = process.env.CONTACT_WEBHOOK_URL?.trim();
+  if (!webhookUrl) {
+    return NextResponse.json(
+      { error: "Contact delivery is temporarily unavailable. Please email info@quickvoice.co directly." },
+      { status: 503 },
+    );
+  }
+
   try {
-    await forwardSubmission(parsed.submission);
+    await forwardSubmission(parsed.submission, webhookUrl);
   } catch (error) {
     console.error("Contact submission delivery failed", error);
     return NextResponse.json(
       {
         error:
-          "We received your request but could not notify the team. Please email info@quickvoice.co directly.",
+          "We could not deliver your request. Please email info@quickvoice.co directly.",
       },
       { status: 502 },
     );
@@ -130,6 +123,6 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
-    message: "Thanks. A QuickVoice specialist will follow up within one business day.",
+    message: "Thank you. Your inquiry was delivered to the QuickVoice team.",
   });
 }

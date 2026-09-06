@@ -216,8 +216,12 @@ Implemented concrete `apps/web` fixes for the highest actionable audit items: si
 ## Deferred Or Unresolved
 - Broad positioning/compliance/customer-count claims remain deferred because they require product/legal/source-of-truth decisions and evidence not available in code.
 - Full CTA/pricing unification across all pricing and marketing surfaces remains partially unresolved; this pass fixed the audited broken/inert examples and signup route issue only.
-- IA density, full-height browse heroes, visual system/glow consistency, loading routes, sitemap/schema dates, and empty-state coverage remain unresolved larger follow-up items.
+- IA density, full-height browse heroes, visual system/glow consistency, loading routes, and empty-state coverage remain unresolved larger follow-up items. The sitemap/schema-date follow-up was implemented and locally verified on 2026-09-06; deployment remains pending (see below).
 - Rendered QA found an existing React hydration mismatch in homepage partner-logo SVG paths inside `PartnersSection`; it was not introduced or fixed in this pass.
+
+### SEO follow-up — 2026-09-06
+
+The [SEO verification report](docs/marketing/seo/verification-2026-09-06.md) records the implemented sitemap, article dates/review controls, canonical redirect, campaign content, and contact-conversion corrections. The production build and local rendered checks pass; this does not record a production deployment. Illustrative case-study Article dates are superseded by the existing noindex scenario policy, rather than restored as customer evidence. The homepage no longer renders the old partner-logo section. Contact success now requires confirmed webhook delivery, superseding the earlier valid-payload-only 200 observation below.
 
 ## Files Changed
 - `apps/web/next.config.ts`

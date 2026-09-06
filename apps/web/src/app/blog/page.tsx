@@ -1,4 +1,4 @@
-import { getAllPosts, type BlogPost } from "@/lib/blog";
+import { getAllPosts, isIndexablePost, type BlogPost } from "@/lib/blog";
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
@@ -13,6 +13,8 @@ import {
   Building2,
   Search,
 } from "lucide-react";
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Blog — AI Voice Agent Guides & Insights",
@@ -94,6 +96,7 @@ function formatDate(dateStr: string) {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "UTC",
     });
   } catch {
     return dateStr;
@@ -133,7 +136,13 @@ export default async function BlogIndexPage({
 }: BlogIndexPageProps) {
   const params = searchParams ? await searchParams : {};
   const query = normalizeSearchQuery(params.q);
-  const allPosts = getAllPosts();
+  const publishedPosts = getAllPosts();
+  const now = new Date();
+  const allPosts = publishedPosts.filter((post) => isIndexablePost(post, { now }));
+  const archivedPosts = publishedPosts.filter((post) => !isIndexablePost(post, { now }));
+  const filteredArchive = query
+    ? archivedPosts.filter((post) => post.title.toLowerCase().includes(query.toLowerCase()))
+    : archivedPosts;
   const filteredPosts = query
     ? allPosts.filter((post) => postMatchesQuery(post, query))
     : allPosts;
@@ -145,7 +154,7 @@ export default async function BlogIndexPage({
     "@type": "CollectionPage",
     name: "QuickVoice Blog — AI Voice Agent Insights, Guides & Industry News",
     description:
-      "Expert articles on AI voice agents, no-code deployment, industry playbooks, ROI analysis, and the latest in conversational AI.",
+      "Editorial articles on AI voice agents, business workflows, deployment choices, and evaluation.",
     url: "https://quickvoice.co/blog",
     publisher: {
       "@type": "Organization",
@@ -189,7 +198,7 @@ export default async function BlogIndexPage({
           <div className="text-center max-w-3xl mx-auto">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm text-primary mb-6">
               <BookOpen className="h-3.5 w-3.5" />
-              <span>{allPosts.length} expert articles and growing</span>
+              <span>{allPosts.length} reviewed guides</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-5 leading-tight">
               AI Voice Agent Insights,
@@ -197,9 +206,8 @@ export default async function BlogIndexPage({
               <span className="text-primary">Guides & Playbooks</span>
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Deep-dive articles on deploying AI voice agents, industry ROI
-              data, comparison guides, and practical how-tos — written by
-              practitioners, for business operators.
+              Practical guides to AI phone workflows, deployment choices,
+              cost planning, and vendor evaluation for business teams.
             </p>
           </div>
         </div>
@@ -243,7 +251,7 @@ export default async function BlogIndexPage({
           {query && (
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Showing {filteredPosts.length}{" "}
-              {filteredPosts.length === 1 ? "article" : "articles"} for &quot;
+              {filteredPosts.length === 1 ? "reviewed guide" : "reviewed guides"} for &quot;
               {query}&quot;.
             </p>
           )}
@@ -253,7 +261,7 @@ export default async function BlogIndexPage({
         {featured && (
           <section className="mb-16">
             <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-6">
-              Latest Article
+              Latest Reviewed Guide
             </h2>
             <Link href={`/blog/${featured.slug}`} className="group block">
               <div className="rounded-2xl border border-border bg-card hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 overflow-hidden">
@@ -304,7 +312,7 @@ export default async function BlogIndexPage({
                         {query ? filteredPosts.length : allPosts.length}
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {query ? "matching articles" : "articles published"}
+                        {query ? "matching reviewed guides" : "reviewed guides"}
                       </div>
                       <div className="flex flex-wrap gap-2 justify-center mt-4">
                         {featured.tags.slice(0, 3).map((tag) => (
@@ -327,11 +335,11 @@ export default async function BlogIndexPage({
         {filteredPosts.length === 0 && (
           <section className="mb-16 rounded-2xl border border-border bg-card p-10 text-center">
             <h2 className="text-xl font-bold text-foreground">
-              No articles found
+              No reviewed guides found
             </h2>
             <p className="mx-auto mt-2 max-w-xl text-sm text-muted-foreground">
               Try a broader keyword or clear the search to browse every
-              published QuickVoice guide.
+              reviewed QuickVoice guide.
             </p>
           </section>
         )}
@@ -412,6 +420,28 @@ export default async function BlogIndexPage({
             </section>
           );
         })}
+
+        {filteredArchive.length > 0 && (
+          <details className="mb-12 rounded-xl border border-border p-6">
+            <summary className="cursor-pointer font-semibold text-foreground">
+              Legacy archive — awaiting evidence review ({filteredArchive.length})
+            </summary>
+            <p className="mt-3 text-sm text-muted-foreground">
+              These earlier articles remain available for reference. Their claims
+              have not passed the current evidence review and should be verified
+              before use.
+            </p>
+            <ul className="mt-4 space-y-3">
+              {filteredArchive.map((post) => (
+                <li key={post.slug}>
+                  <Link href={`/blog/${post.slug}`} className="text-sm text-primary underline underline-offset-4">
+                    {post.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
 
         {/* Bottom CTA */}
         <section className="mt-8 rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-blue-600/5 p-10 text-center">

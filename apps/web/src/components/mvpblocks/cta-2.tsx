@@ -17,11 +17,12 @@ export default function CTA2() {
 
       <div className="relative z-10">
         <h2 className="mb-3 text-3xl font-bold text-white sm:text-4xl md:mb-4 md:text-5xl">
-          Build On A Stack You Can Inspect
+          Plan your first business calling workflow
         </h2>
         <p className="mb-6 max-w-md text-base text-white sm:text-lg md:mb-8">
-          Start from the open-source repo, evaluate the local path, and talk
-          through the right self-hosted or managed setup for real phone calls.
+          Bring your call types, business systems, and follow-up process.
+          Identify a focused pilot, its implementation requirements, and the
+          outcomes your team will measure.
         </p>
 
         <div className="flex flex-col gap-4 sm:flex-row sm:gap-6">
