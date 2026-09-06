@@ -239,7 +239,7 @@ If QuickVoice helps you evaluate open voice-agent infrastructure, a GitHub star 
 
 [Star QuickVoice on GitHub](https://github.com/allgpt-co/QuickVoice)
 
-[![QuickVoice Star History](https://api.star-history.com/svg?repos=allgpt-co/QuickVoice&type=Date)](https://www.star-history.com/#allgpt-co/QuickVoice&Date)
+[![QuickVoice Star History](https://star-history.dera.page/svg?repos=allgpt-co/QuickVoice&type=Date)](https://star-history.dera.page/#allgpt-co/QuickVoice&Date)
 
 ## Community
 
