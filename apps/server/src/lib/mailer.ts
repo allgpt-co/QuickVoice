@@ -1,4 +1,10 @@
 import nodemailer from "nodemailer";
+import {
+  contactEmailAddressSchema,
+  type ContactSubmission,
+} from "../modules/contact/contact.schema.js";
+
+export const CONTACT_DELIVERY_TIMEOUT_MS = 8_000;
 
 type AuthEmailType = "verifyEmail" | "resetPassword";
 
@@ -20,7 +26,9 @@ function requireEnv(name: string) {
 function getZeptoMailToken() {
   const token = process.env.ZEPTOMAIL_TOKEN;
   if (!token) {
-    throw new Error("Missing required email environment variable: ZEPTOMAIL_TOKEN");
+    throw new Error(
+      "Missing required email environment variable: ZEPTOMAIL_TOKEN",
+    );
   }
   const trimmedToken = token.trim();
   if (/^zoho-enczapikey\s+/i.test(trimmedToken)) {
@@ -30,7 +38,8 @@ function getZeptoMailToken() {
 }
 
 function getZeptoMailEndpoint() {
-  const rawUrl = process.env.ZEPTOMAIL_URL || process.env.SMTP_HOST || "api.zeptomail.com";
+  const rawUrl =
+    process.env.ZEPTOMAIL_URL || process.env.SMTP_HOST || "api.zeptomail.com";
 
   const urlWithProtocol = /^https?:\/\//i.test(rawUrl)
     ? rawUrl
@@ -65,7 +74,7 @@ function getSmtpPort() {
   return port;
 }
 
-function getSmtpTransport() {
+function getSmtpTransport(timeoutMs?: number) {
   const port = getSmtpPort();
   return nodemailer.createTransport({
     host: requireEnv("SMTP_HOST"),
@@ -75,7 +84,38 @@ function getSmtpTransport() {
       user: requireEnv("SMTP_USERNAME"),
       pass: requireEnv("SMTP_PASSWORD"),
     },
+    ...(timeoutMs
+      ? {
+          connectionTimeout: timeoutMs,
+          greetingTimeout: timeoutMs,
+          socketTimeout: timeoutMs,
+          dnsTimeout: timeoutMs,
+        }
+      : {}),
   });
+}
+
+async function withDeliveryTimeout<T>(
+  send: (signal?: AbortSignal) => Promise<T>,
+  timeoutMs?: number,
+  close?: () => void,
+): Promise<T> {
+  if (!timeoutMs) return send();
+
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      reject(new Error("Email provider timed out; delivery status is unknown"));
+      controller.abort();
+      close?.();
+    }, timeoutMs);
+  });
+  try {
+    return await Promise.race([send(controller.signal), deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 function escapeHtml(value: string) {
@@ -92,7 +132,8 @@ function contentFor(type: AuthEmailType): EmailContent {
     return {
       subject: "Verify your QuickVoice email",
       heading: "Verify your email",
-      intro: "Confirm your email address to finish setting up your QuickVoice account.",
+      intro:
+        "Confirm your email address to finish setting up your QuickVoice account.",
       action: "Verify email",
     };
   }
@@ -171,8 +212,7 @@ export async function sendNumberBillingNotice(args: {
   priceUsd: string;
 }) {
   const billingUrl = `${(
-    process.env.CONSOLE_URL?.split(",")[0]?.trim() ||
-    "http://localhost:3000"
+    process.env.CONSOLE_URL?.split(",")[0]?.trim() || "http://localhost:3000"
   ).replace(/\/+$/, "")}/settings/billing`;
   const date = args.chargeDate.toISOString().slice(0, 10);
   const subject = "Your QuickVoice number moves to prepaid billing in 7 days";
@@ -196,6 +236,39 @@ export async function sendNumberBillingNotice(args: {
   });
 }
 
+export async function sendContactSubmission(submission: ContactSubmission) {
+  const recipient = contactEmailAddressSchema.parse(
+    process.env.CONTACT_RECIPIENT_EMAIL?.trim() || "info@quickvoice.co",
+  );
+  const replyTo = contactEmailAddressSchema.parse(submission.email);
+  const fields: Array<[string, string]> = [
+    ["Name", submission.name],
+    ["Email", replyTo],
+    ["Company", submission.company || "Not provided"],
+    ["Phone", submission.phone || "Not provided"],
+    ["Looking for", submission.lookingFor],
+    ["Submitted at", submission.submittedAt],
+    ["Source", submission.source],
+    ["Message", submission.message],
+  ];
+  const text = fields
+    .map(([label, value]) => `${label}: ${value}`)
+    .join("\n\n");
+  const html = `<!doctype html><html><body><h1>New website enquiry</h1>${fields.map(([label, value]) => `<h2>${escapeHtml(label)}</h2><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${escapeHtml(value)}</pre>`).join("")}</body></html>`;
+
+  return sendComposedEmail({
+    email: recipient,
+    fullName: "QuickVoice team",
+    subject: "New QuickVoice website enquiry",
+    text,
+    html,
+    replyTo,
+    timeoutMs: CONTACT_DELIVERY_TIMEOUT_MS,
+    requireRecipientAcceptance: true,
+    failureLabel: "website contact",
+  });
+}
+
 async function sendComposedEmail(args: {
   email: string;
   fullName: string;
@@ -203,6 +276,9 @@ async function sendComposedEmail(args: {
   text: string;
   html: string;
   failureLabel: string;
+  replyTo?: string;
+  timeoutMs?: number;
+  requireRecipientAcceptance?: boolean;
 }) {
   const fromEmail = requireEnv("FROM_EMAIL");
   const fromName = "Console|Quickvoice";
@@ -223,25 +299,30 @@ async function sendComposedEmail(args: {
     subject: args.subject,
     textbody: args.text,
     htmlbody: args.html,
+    ...(args.replyTo ? { reply_to: [{ address: args.replyTo }] } : {}),
   };
 
   if (process.env.ZEPTOMAIL_TOKEN) {
     try {
-      const response = await fetch(getZeptoMailEndpoint(), {
-        method: "POST",
-        headers: {
-          Authorization: getZeptoMailToken(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-      const body = await response.text();
+      await withDeliveryTimeout(async (signal) => {
+        const response = await fetch(getZeptoMailEndpoint(), {
+          method: "POST",
+          headers: {
+            Authorization: getZeptoMailToken(),
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+          ...(signal ? { signal } : {}),
+        });
+        const body = await response.text();
 
-      if (!response.ok) {
-        throw new Error(
-          `ZeptoMail responded with ${response.status} ${response.statusText}: ${body}`,
-        );
-      }
+        if (!response.ok) {
+          throw new Error(
+            `ZeptoMail responded with ${response.status} ${response.statusText}: ${body}`,
+          );
+        }
+        return response;
+      }, args.timeoutMs);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(
@@ -252,21 +333,38 @@ async function sendComposedEmail(args: {
   }
 
   try {
-    await getSmtpTransport().sendMail({
-      from: {
-        address: fromEmail,
-        name: fromName,
-      },
-      to: [
-        {
-          address: args.email,
-          name: args.fullName,
-        },
-      ],
-      subject: args.subject,
-      text: args.text,
-      html: args.html,
-    });
+    const transport = getSmtpTransport(args.timeoutMs);
+    const result = await withDeliveryTimeout(
+      () =>
+        transport.sendMail({
+          from: {
+            address: fromEmail,
+            name: fromName,
+          },
+          to: [
+            {
+              address: args.email,
+              name: args.fullName,
+            },
+          ],
+          subject: args.subject,
+          text: args.text,
+          html: args.html,
+          ...(args.replyTo ? { replyTo: { address: args.replyTo } } : {}),
+        }),
+      args.timeoutMs,
+      () => transport.close(),
+    );
+    if (
+      args.requireRecipientAcceptance &&
+      !result.accepted?.some(
+        (value) =>
+          (typeof value === "string" ? value : value.address).toLowerCase() ===
+          args.email.toLowerCase(),
+      )
+    ) {
+      throw new Error("SMTP did not acknowledge the contact recipient");
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     throw new Error(

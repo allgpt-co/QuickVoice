@@ -20,6 +20,7 @@ import { inngestFunctions } from "./inngest/index.js";
 import apiRouter from "./router.js";
 import { getReadiness } from "./modules/system/readiness.service.js";
 import systemRuntimeRouter from "./modules/system/runtime.route.js";
+import contactRouter from "./modules/contact/contact.route.js";
 import { publicWidgetOriginAllowed } from "./modules/widgets/widget.service.js";
 import "./workers/kb.worker.js";
 import "./workers/outbound-batch.worker.js";
@@ -162,6 +163,10 @@ app.use(`/api/${apiVersion}/system`, systemRuntimeRouter);
 // Rate limit before JSON parsing so oversized or abusive request bodies are
 // throttled before the server spends work parsing them.
 app.use(rateLimitMiddleware);
+
+// Authenticate contact forwarding before its bounded JSON parser. Keep this
+// separate from session auth and mount it under the configured API version.
+app.use(`/api/${apiVersion}`, contactRouter);
 
 // Body parser (after Better Auth handler)
 app.use(express.json());
