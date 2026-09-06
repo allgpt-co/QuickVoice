@@ -118,7 +118,7 @@ export default function Image() {
             letterSpacing: "2px",
           }}
         >
-          OPEN SOURCE / AGPL-3.0-ONLY
+          OPEN SOURCE / MIT
         </div>
       </div>
 
@@ -145,7 +145,7 @@ export default function Image() {
             letterSpacing: "-4.5px",
           }}
         >
-          Own the voice-agent stack you operate.
+          Source you can inspect. Workflows you define.
         </div>
         <div
           style={{

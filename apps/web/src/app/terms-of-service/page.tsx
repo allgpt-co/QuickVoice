@@ -38,11 +38,11 @@ const TERMS_SECTIONS = [
 
 export default function TermsOfServicePage() {
   return (
-    <main className="bg-background text-foreground">
-      <div className="mx-auto max-w-4xl px-6 py-20 sm:py-28">
+    <div className="bg-background text-foreground">
+      <div className="site-container page-section !max-w-3xl">
         {/* Header */}
-        <header className="mb-16">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+        <header className="mb-10">
+          <h1 className="page-title">
             Terms of Service
           </h1>
           <p className="mt-4 text-muted-foreground">
@@ -50,22 +50,22 @@ export default function TermsOfServicePage() {
           </p>
         </header>
 
-        <section className="mb-12 rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <section className="mb-12 surface-card p-5">
           <p className="text-sm font-semibold text-foreground">On this page</p>
           <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-            {TERMS_SECTIONS.map((item) => (
-              <span key={item} className="rounded-lg bg-muted/50 px-3 py-2">
+            {TERMS_SECTIONS.map((item, index) => (
+              <a key={item} href={`#terms-section-${[1, 2, 3, 4, 5, 15][index]}`} className="rounded-lg bg-muted/50 px-3 py-2 font-medium hover:text-primary">
                 {item}
-              </span>
+              </a>
             ))}
           </div>
         </section>
 
         {/* Content */}
-        <div className="space-y-12 text-base leading-7">
+        <div className="reading-content space-y-12">
           {/* 1. Acceptance of Terms */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-1" className="text-2xl font-semibold tracking-tight">
               1. Acceptance of Terms
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -89,7 +89,7 @@ export default function TermsOfServicePage() {
 
           {/* 2. Description of Services */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-2" className="text-2xl font-semibold tracking-tight">
               2. Description of Services
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -125,7 +125,7 @@ export default function TermsOfServicePage() {
 
           {/* 3. Account Registration and Security */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-3" className="text-2xl font-semibold tracking-tight">
               3. Account Registration and Security
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -172,7 +172,7 @@ export default function TermsOfServicePage() {
 
           {/* 4. Prepaid Wallet, Usage Charges, and Phone Numbers */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-4" className="text-2xl font-semibold tracking-tight">
               4. Prepaid Wallet, Usage Charges, and Phone Numbers
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -279,7 +279,7 @@ export default function TermsOfServicePage() {
 
           {/* 5. Acceptable Use Policy */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-5" className="text-2xl font-semibold tracking-tight">
               5. Acceptable Use Policy
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -346,7 +346,7 @@ export default function TermsOfServicePage() {
 
           {/* 6. Intellectual Property */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-6" className="text-2xl font-semibold tracking-tight">
               6. Intellectual Property
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -385,7 +385,7 @@ export default function TermsOfServicePage() {
 
           {/* 7. Data Privacy */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-7" className="text-2xl font-semibold tracking-tight">
               7. Data Privacy
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -430,7 +430,7 @@ export default function TermsOfServicePage() {
 
           {/* 8. Service Availability and SLA */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-8" className="text-2xl font-semibold tracking-tight">
               8. Service Availability and SLA
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -478,7 +478,7 @@ export default function TermsOfServicePage() {
 
           {/* 9. Limitation of Liability */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-9" className="text-2xl font-semibold tracking-tight">
               9. Limitation of Liability
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -530,7 +530,7 @@ export default function TermsOfServicePage() {
 
           {/* 10. Indemnification */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-10" className="text-2xl font-semibold tracking-tight">
               10. Indemnification
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -568,7 +568,7 @@ export default function TermsOfServicePage() {
 
           {/* 11. Termination */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-11" className="text-2xl font-semibold tracking-tight">
               11. Termination
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -628,7 +628,7 @@ export default function TermsOfServicePage() {
 
           {/* 12. Governing Law and Dispute Resolution */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-12" className="text-2xl font-semibold tracking-tight">
               12. Governing Law and Dispute Resolution
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -664,7 +664,7 @@ export default function TermsOfServicePage() {
 
           {/* 13. Changes to Terms */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-13" className="text-2xl font-semibold tracking-tight">
               13. Changes to Terms
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -698,7 +698,7 @@ export default function TermsOfServicePage() {
 
           {/* 14. General Provisions */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-14" className="text-2xl font-semibold tracking-tight">
               14. General Provisions
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -741,7 +741,7 @@ export default function TermsOfServicePage() {
 
           {/* 15. Contact Information */}
           <section>
-            <h2 className="text-2xl font-semibold tracking-tight">
+            <h2 id="terms-section-15" className="text-2xl font-semibold tracking-tight">
               15. Contact Information
             </h2>
             <div className="mt-4 space-y-4 text-muted-foreground">
@@ -775,8 +775,8 @@ export default function TermsOfServicePage() {
         </div>
       </div>
 
-      <section className="border-t border-border bg-muted/30 py-12">
-        <div className="mx-auto max-w-4xl px-6 text-center">
+      <section className="page-section border-t border-border bg-muted/25">
+        <div className="site-container !max-w-3xl">
           <h2 className="text-2xl font-semibold tracking-tight">
             Want to review terms before rollout?
           </h2>
@@ -786,12 +786,13 @@ export default function TermsOfServicePage() {
           </p>
           <Link
             href={DEMO_BOOKING_URL}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90"
+            data-analytics-location="terms-of-service_footer"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
           >
             Book a Demo
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

@@ -7,13 +7,9 @@ import {
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Building2,
-  FlaskConical,
-  Tag,
-} from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CONTACT_URL, DEMO_BOOKING_URL } from "@/lib/links";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -93,46 +89,31 @@ export default async function WorkflowScenarioPage({ params }: Props) {
   const { slug } = await params;
   const scenario = getCaseStudyBySlug(slug);
   if (!scenario) notFound();
-
   const related = getRelatedCaseStudies(slug, 3);
 
   return (
-    <main className="min-h-screen bg-background">
-      <div className="border-b border-border bg-background/90 pt-20 backdrop-blur">
-        <div className="mx-auto flex max-w-5xl items-center px-4 py-4">
-          <Link
-            href="/case-studies"
-            className="inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-primary"
-          >
-            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            Workflow scenarios
-          </Link>
-        </div>
-      </div>
-
-      <div className="mx-auto max-w-5xl px-4 py-12 sm:py-16">
-        <header>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-primary/25 bg-primary/10 px-3 py-1 font-mono text-xs uppercase tracking-[0.14em] text-primary">
-              <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
-              Illustrative scenario
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3 py-1 text-xs text-muted-foreground">
-              <Building2 className="h-3.5 w-3.5" aria-hidden="true" />
-              {scenario.industry}
-            </span>
-          </div>
-
-          <h1 className="mt-6 max-w-4xl text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
-            {scenario.useCase}
-          </h1>
-          <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">
+    <div className="bg-background text-foreground">
+      <section className="page-section border-b border-border">
+        <div className="site-container">
+          <nav aria-label="Breadcrumb">
+            <Link
+              href="/case-studies"
+              className="inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
+            >
+              <ArrowLeft className="size-4" aria-hidden="true" /> Workflow
+              scenarios
+            </Link>
+          </nav>
+          <p className="eyebrow mt-8">
+            {scenario.industry} · Illustrative scenario
+          </p>
+          <h1 className="page-title mt-4 max-w-4xl">{scenario.useCase}</h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
             A planning scenario for exploring call flow, data access, human
             handoffs, safeguards, and evaluation criteria in{" "}
             {scenario.industry.toLowerCase()}.
           </p>
-
-          <div className="mt-8">
+          <div className="mt-8 max-w-3xl">
             <EvidenceStatusNotice title="Do not cite this page as customer evidence">
               <p>
                 This route is an illustrative planning aid, not a customer case
@@ -143,105 +124,130 @@ export default async function WorkflowScenarioPage({ params }: Props) {
               </p>
             </EvidenceStatusNotice>
           </div>
-
           {scenario.tags.length > 0 && (
-            <div className="mt-6 flex flex-wrap items-center gap-2">
-              <Tag
-                className="h-4 w-4 text-muted-foreground"
-                aria-hidden="true"
-              />
+            <ul
+              aria-label="Scenario topics"
+              className="mt-6 flex flex-wrap gap-2"
+            >
               {scenario.tags.map((tag) => (
-                <span
+                <li
                   key={tag}
-                  className="rounded-full border border-border bg-muted px-2.5 py-1 text-xs text-muted-foreground"
+                  className="rounded-md border border-border bg-muted/40 px-3 py-1 text-xs text-muted-foreground"
                 >
                   {tag}
-                </span>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </header>
+        </div>
+      </section>
 
-        <section className="mt-12 border-t border-border pt-10">
-          <p className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
-            Evaluation worksheet
-          </p>
-          <h2 className="mt-3 max-w-3xl text-3xl font-semibold tracking-tight text-foreground">
-            Turn the scenario into a testable workflow
-          </h2>
-          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-            Use these review areas to write requirements for a synthetic-data
-            prototype. Do not infer an integration, deployment result, or
-            production readiness from this scenario.
-          </p>
-          <div className="mt-8 grid border border-border sm:grid-cols-2">
-            {evaluationAreas.map((area, index) => (
-              <article
-                key={area.index}
-                className={`min-h-56 p-6 sm:p-8 ${
-                  index > 0 ? "border-t border-border sm:border-t-0" : ""
-                } ${index % 2 === 1 ? "sm:border-l sm:border-border" : ""} ${
-                  index > 1 ? "sm:border-t sm:border-border" : ""
-                }`}
-              >
-                <span className="font-mono text-sm font-semibold text-primary">
+      <section className="page-section">
+        <div className="site-container grid gap-8 lg:grid-cols-[0.7fr_1.3fr]">
+          <div>
+            <p className="eyebrow">Evaluation worksheet</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Turn the scenario into a testable workflow.
+            </h2>
+            <p className="mt-4 leading-7 text-muted-foreground">
+              Use these review areas to write requirements for a synthetic-data
+              prototype. Do not infer an integration, deployment result, or
+              production readiness from this scenario.
+            </p>
+            <Link
+              href="/resources"
+              className="mt-5 inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
+            >
+              Get implementation planning resources{" "}
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Link>
+          </div>
+          <ol className="space-y-4">
+            {evaluationAreas.map((area) => (
+              <li key={area.index} className="surface-card flex gap-5 p-6">
+                <span
+                  aria-hidden="true"
+                  className="text-sm font-semibold text-primary"
+                >
                   {area.index}
                 </span>
-                <h3 className="mt-10 text-lg font-semibold text-foreground">
-                  {area.title}
-                </h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {area.description}
-                </p>
-              </article>
+                <div>
+                  <h3 className="text-lg font-semibold">{area.title}</h3>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    {area.description}
+                  </p>
+                </div>
+              </li>
             ))}
-          </div>
-        </section>
+          </ol>
+        </div>
+      </section>
 
-        <section className="mt-16 rounded-2xl border border-primary/25 bg-primary/5 p-8">
-          <p className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
-            Build from evidence
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-foreground">
-            Inspect the code-backed product surface
+      <section className="page-section border-y border-border bg-muted/25">
+        <div className="site-container">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Review the requirements for your own workflow.
           </h2>
-          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-            Review what is implemented in the repository, what can run locally,
-            and which external credentials are required for real calls.
+          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+            Discuss the call flow with the team, or{" "}
+            <Link
+              href="/open-source"
+              className="text-primary underline underline-offset-4"
+            >
+              inspect the source and provider requirements
+            </Link>{" "}
+            before planning a prototype.
           </p>
-          <Link
-            href="/open-source"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
-          >
-            Explore the open-source stack
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </section>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <a
+                href={DEMO_BOOKING_URL}
+                data-analytics-location="scenario_footer"
+              >
+                Book a demo <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link
+                href={CONTACT_URL}
+                data-analytics-location="scenario_footer"
+              >
+                Contact the team
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
-        {related.length > 0 && (
-          <section className="mt-16 border-t border-border pt-10">
-            <h2 className="text-xl font-semibold text-foreground">
+      {related.length > 0 && (
+        <section className="page-section">
+          <div className="site-container">
+            <h2 className="text-2xl font-semibold tracking-tight">
               Related planning scenarios
             </h2>
-            <div className="mt-5 grid gap-4 sm:grid-cols-3">
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {related.map((item) => (
                 <Link
                   key={item.slug}
                   href={`/case-studies/${item.slug}`}
-                  className="rounded-xl border border-border bg-card p-5 transition hover:border-primary/50"
+                  className="surface-card p-6 transition-colors hover:border-primary"
                 >
-                  <span className="font-mono text-xs uppercase tracking-[0.14em] text-primary">
+                  <span className="text-xs font-medium uppercase tracking-wider text-primary">
                     {item.industry}
                   </span>
-                  <span className="mt-3 block font-medium text-foreground">
+                  <span className="mt-3 block font-semibold">
                     {item.useCase}
+                  </span>
+                  <span className="mt-4 inline-flex items-center gap-2 text-sm font-medium text-primary">
+                    Review scenario{" "}
+                    <ArrowRight className="size-4" aria-hidden="true" />
                   </span>
                 </Link>
               ))}
             </div>
-          </section>
-        )}
-      </div>
-    </main>
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

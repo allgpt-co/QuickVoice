@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { rankRelatedPosts } from "./blog-discovery.mjs";
 import { computeContentHash, isValidEvidenceReview, parseContentDate } from "./blog-review.mjs";
 
 const BLOG_DIR = path.join(process.cwd(), "content/blog");
@@ -151,7 +152,5 @@ export function getRelatedPosts(currentSlug: string, limit = 3): BlogPost[] {
   const current = getPostBySlug(currentSlug);
   if (!current) return [];
   const all = getIndexablePosts().filter((p) => p.slug !== currentSlug);
-  const sameCategory = all.filter((p) => p.category === current.category);
-  const others = all.filter((p) => p.category !== current.category);
-  return [...sameCategory, ...others].slice(0, limit);
+  return rankRelatedPosts(current, all, limit);
 }

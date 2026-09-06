@@ -7,10 +7,15 @@ import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
 import { GoogleAnalytics } from "@/components/google-analytics";
-import { createGoogleAnalyticsScript, manualPageviewsEnabled } from "@/lib/google-analytics-config.mjs";
+import {
+  createGoogleAnalyticsScript,
+  manualPageviewsEnabled,
+} from "@/lib/google-analytics-config.mjs";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
-const manualPageviews = manualPageviewsEnabled(process.env.NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS);
+const manualPageviews = manualPageviewsEnabled(
+  process.env.NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS,
+);
 const googleAnalyticsScript = createGoogleAnalyticsScript(
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
   manualPageviews,
@@ -90,13 +95,15 @@ export default function RootLayout({
         )}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-indigo-600 focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"
         >
           Skip to main content
         </a>
         <Navbar />
         <CtaAnalytics />
-        <div id="main-content">{children}</div>
+        <main id="main-content" tabIndex={-1}>
+          {children}
+        </main>
         <Footer />
       </body>
     </html>

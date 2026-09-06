@@ -5,17 +5,19 @@ import { PRICING_FAQS, UsagePricing } from "@/components/pricing/usage-pricing";
 export const metadata: Metadata = {
   title: "Usage-based AI Voice Agent Pricing",
   description:
-    "Start with $5 in free call credit. Pay measured AI and telephony costs plus a $0.01 connected-minute platform fee; phone numbers start at $2 per 30 days.",
+    "Understand measured AI and telephony costs plus a $0.01 connected-minute platform fee. Phone numbers start at $2 per 30 days; signup credits are subject to eligibility.",
   alternates: {
     canonical: "https://quickvoice.co/pricing",
   },
   openGraph: {
     title: "Usage-based AI Voice Agent Pricing",
     description:
-      "A prepaid wallet for measured AI, telephony, and connected-time usage, with $5 in signup call credit.",
+      "A prepaid wallet for measured AI, telephony, and connected-time usage. Review the cost formula, number rental, and conditional signup credit.",
     type: "website",
     url: "https://quickvoice.co/pricing",
-    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
+    images: [
+      { url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 },
+    ],
   },
 };
 

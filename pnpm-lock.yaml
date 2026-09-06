@@ -481,6 +481,9 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
+      remark-parse:
+        specifier: 11.0.0
+        version: 11.0.0
       sass:
         specifier: ^1.98.0
         version: 1.98.0
@@ -490,6 +493,9 @@ importers:
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
+      unified:
+        specifier: 11.0.5
+        version: 11.0.5
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*

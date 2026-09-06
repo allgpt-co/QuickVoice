@@ -60,7 +60,9 @@ test("blog publishing excludes scheduled posts from public lists and slugs", () 
   const futurePosts = readdirSync(BLOG_ROOT)
     .filter((filename) => filename.endsWith(".md"))
     .filter((filename) => {
-      const date = markdownFrontmatterDate(readFileSync(join(BLOG_ROOT, filename), "utf8"));
+      const date = markdownFrontmatterDate(
+        readFileSync(join(BLOG_ROOT, filename), "utf8"),
+      );
       return date ? Date.parse(date) > TODAY : false;
     });
 
@@ -80,10 +82,14 @@ test("referenced local image and manifest assets exist", () => {
 
   for (const file of files) {
     const source = readFileSync(file, "utf8");
-    for (const match of source.matchAll(/["'](\/(?:images|blog\/images)\/[^"']+)["']/g)) {
+    for (const match of source.matchAll(
+      /["'](\/(?:images|blog\/images)\/[^"']+)["']/g,
+    )) {
       imageRefs.add(match[1]);
     }
-    for (const match of source.matchAll(/["'](\/(?:og-image\.png|icon\.png|apple-icon\.png))["']/g)) {
+    for (const match of source.matchAll(
+      /["'](\/(?:og-image\.png|icon\.png|apple-icon\.png))["']/g,
+    )) {
       imageRefs.add(match[1]);
     }
   }
@@ -111,7 +117,9 @@ test("pricing, FAQ, and HIPAA copy use aligned public claims", () => {
   );
   assert.doesNotMatch(homepage, /up to 100 minutes of calls/);
   assert.doesNotMatch(faq, /up to 100 minutes of calls/);
-  assert.match(pricingCopy, /\$5 promotional call credit/);
+  assert.match(pricingCopy, /promotion is enabled/);
+  assert.match(pricingCopy, /one-time \$5 call credit/);
+  assert.match(pricingCopy, /first owned organization/);
   assert.match(pricingCopy, /\$0\.01 \/ connected minute/);
   assert.match(pricingCopy, /From \$2 \/ 30 days/);
   assert.doesNotMatch(
@@ -143,24 +151,26 @@ test("terms describe the prepaid wallet, metered charges, and number-loss lifecy
   assert.doesNotMatch(terms, /end of your current billing period/);
 });
 
-test("desktop nav, FAQ accordions, and landmarks are keyboard-accessible", () => {
+test("navigation supports explicit disclosure, modal dismissal, and a shared main landmark", () => {
   const header = read("src/components/mvpblocks/header-1.tsx");
-  const faq = read("src/components/mvpblocks/faq-2.tsx");
+  const faq = read("src/components/landing/business-home.tsx");
   const layout = read("src/app/layout.tsx");
   const home = read("src/app/page.tsx");
 
   assert.doesNotMatch(header, /href:\s*"#"/);
-  assert.match(header, /onFocus/);
   assert.match(header, /onKeyDown/);
   assert.match(header, /aria-expanded/);
   assert.match(header, /aria-controls/);
-
-  assert.match(faq, /aria-expanded/);
-  assert.match(faq, /aria-controls/);
-
-  assert.equal((layout.match(/<main/g) ?? []).length, 0);
-  assert.match(layout, /<div id=["']main-content["']/);
-  assert.doesNotMatch(home, /<main[^>]+id=["']main-content["']/);
+  assert.match(header, /<dialog/);
+  assert.match(header, /showModal\(\)/);
+  assert.match(header, /onClose/);
+  assert.match(header, /Escape/);
+  assert.match(faq, /<details/);
+  assert.match(faq, /<summary/);
+  assert.match(home, /buyerFaqs\.map/);
+  assert.equal((layout.match(/<main/g) ?? []).length, 1);
+  assert.match(layout, /<main id=["']main-content["'] tabIndex=\{-1\}/);
+  assert.doesNotMatch(home, /<main/);
 });
 
 test("inert careers buttons are removed and blog SearchAction has search handling", () => {
@@ -187,7 +197,10 @@ test("inert careers buttons are removed and blog SearchAction has search handlin
 });
 
 test("global layout does not preload homepage-only dashboard art", () => {
-  assert.doesNotMatch(read("src/app/layout.tsx"), /rel=["']preload["'][^>]+\/dashboard\.png/);
+  assert.doesNotMatch(
+    read("src/app/layout.tsx"),
+    /rel=["']preload["'][^>]+\/dashboard\.png/,
+  );
   assert.match(read("src/components/mvpblocks/3dglobe.tsx"), /priority/);
 });
 
@@ -228,35 +241,34 @@ test("legacy /register conversion paths resolve to the external console signup",
   }
 });
 
-test("homepage contact form posts through the app contact route with accessible status", () => {
+test("public contact surfaces share the delivered-enquiry form", () => {
   const homepageContact = read("src/components/mvpblocks/contact-us-1.tsx");
-
-  assert.match(homepageContact, /fetch\(["']\/api\/contact["']/);
-  assert.doesNotMatch(homepageContact, /mailto:/);
-  assert.doesNotMatch(homepageContact, /window\.open/);
-  assert.match(homepageContact, /aria-live=["']polite["']/);
-  assert.match(homepageContact, /role=["']alert["']/);
-  assert.match(homepageContact, /role=["']status["']/);
-  assert.match(homepageContact, /aria-invalid/);
-  assert.match(homepageContact, /aria-describedby/);
-});
-
-test("dedicated contact form associates validation errors with fields", () => {
-  const contactPageForm = read(
+  const contactPage = read(
     "src/components/landing/contact-us/contact-us-form-section.tsx",
   );
+  const sharedForm = read("src/components/contact-form.tsx");
 
-  for (const field of ["name", "email", "phone", "lookingFor", "message"]) {
-    assert.match(contactPageForm, new RegExp(`id=["']${field}-error["']`));
-    assert.match(
-      contactPageForm,
-      new RegExp(`aria-describedby=\\{errors\\.${field}\\s*\\?\\s*["']${field}-error["']`),
-    );
-    assert.match(
-      contactPageForm,
-      new RegExp(`aria-invalid=\\{Boolean\\(errors\\.${field}\\)\\}`),
-    );
-  }
+  assert.match(homepageContact, /<ContactForm location="homepage"/);
+  assert.match(contactPage, /<ContactForm location="contact_page"/);
+  assert.match(sharedForm, /fetch\("\/api\/contact"/);
+  assert.match(sharedForm, /aria-live="polite"/);
+  assert.match(sharedForm, /role="alert"/);
+  assert.match(sharedForm, /role="status"/);
+  assert.match(sharedForm, /aria-invalid/);
+  assert.match(sharedForm, /aria-describedby/);
+  assert.doesNotMatch(sharedForm, /setTimeout/);
+});
+
+test("contact page offers direct booking and usable email and phone alternatives", () => {
+  const contactPage = read(
+    "src/components/landing/contact-us/contact-us-form-section.tsx",
+  );
+  const hero = read(
+    "src/components/landing/contact-us/contact-us-hero-section.tsx",
+  );
+  assert.match(hero, /href=\{DEMO_BOOKING_URL\}/);
+  assert.match(contactPage, /href="mailto:info@quickvoice\.co"/);
+  assert.match(contactPage, /href="tel:\+12184525998"/);
 });
 
 test("known sales and education card affordances are real links, not inert buttons", () => {

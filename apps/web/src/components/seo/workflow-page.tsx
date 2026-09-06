@@ -1,8 +1,9 @@
+import { Button } from "@/components/ui/button";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import type { WorkflowPageContent } from "@/data/workflow-pages";
-import { CONTACT_URL, GITHUB_DOCS_URL } from "@/lib/links";
+import { CONTACT_URL, DEMO_BOOKING_URL, GITHUB_DOCS_URL } from "@/lib/links";
 
 export function workflowMetadata(page: WorkflowPageContent): Metadata {
   const title = `${page.label} for business`;
@@ -58,44 +59,50 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
     },
   ];
   return (
-    <main className="min-h-screen bg-background text-foreground">
+    <div>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(schema).replace(/</g, "\\u003c"),
         }}
       />
-      <section className="relative overflow-hidden border-b border-border bg-gradient-to-b from-primary/10 to-background px-4 pb-20 pt-32 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <Link
-            href="/"
-            className="text-sm text-muted-foreground hover:text-primary"
+      <section className="page-section border-b border-border bg-secondary/60">
+        <div className="site-container">
+          <nav
+            aria-label="Breadcrumb"
+            className="text-sm text-muted-foreground"
           >
-            QuickVoice / {page.label}
-          </Link>
-          <p className="mb-5 mt-10 text-sm font-semibold uppercase tracking-widest text-primary">
-            {page.label}
-          </p>
-          <h1 className="max-w-4xl text-4xl font-semibold tracking-tight sm:text-5xl lg:text-6xl">
-            {page.title}
-          </h1>
+            <ol className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link
+                  href="/"
+                  className="inline-flex min-h-11 items-center hover:text-primary"
+                >
+                  QuickVoice
+                </Link>
+              </li>
+              <li aria-hidden="true">/</li>
+              <li aria-current="page">{page.label}</li>
+            </ol>
+          </nav>
+          <p className="eyebrow mb-5 mt-6">{page.label}</p>
+          <h1 className="page-title max-w-4xl">{page.title}</h1>
           <p className="mt-7 max-w-3xl text-lg leading-8 text-muted-foreground">
             {page.introduction}
           </p>
           <div className="mt-9 flex flex-wrap gap-4">
             <Link
-              href={CONTACT_URL}
+              href={DEMO_BOOKING_URL}
               data-analytics-location={page.path}
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground"
+              className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90"
             >
-              Discuss your workflow{" "}
-              <ArrowRight className="size-4" aria-hidden="true" />
+              Book a demo <ArrowRight className="size-4" aria-hidden="true" />
             </Link>
             <Link
               href="#evaluation"
-              className="rounded-full border border-border px-6 py-3 font-medium hover:border-primary"
+              className="inline-flex min-h-12 items-center rounded-[10px] border border-border bg-card px-6 py-3 font-semibold hover:bg-muted"
             >
-              See the evaluation checklist
+              Explore the pilot checklist
             </Link>
           </div>
           <p className="mt-6 text-sm text-muted-foreground">
@@ -105,7 +112,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
         </div>
       </section>
       <section
-        className="mx-auto max-w-6xl px-4 py-20 sm:px-6"
+        className="site-container page-section"
         aria-labelledby="workflow-heading"
       >
         <h2 id="workflow-heading" className="text-3xl font-semibold">
@@ -113,10 +120,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
         </h2>
         <div className="mt-9 grid gap-6 md:grid-cols-3">
           {page.steps.map((step, index) => (
-            <article
-              key={step.title}
-              className="rounded-2xl border border-border bg-card p-7"
-            >
+            <article key={step.title} className="surface-card">
               <p className="text-sm font-semibold text-primary">0{index + 1}</p>
               <h3 className="mt-5 text-xl font-semibold">{step.title}</h3>
               <p className="mt-4 leading-7 text-muted-foreground">
@@ -126,8 +130,8 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           ))}
         </div>
       </section>
-      <section className="border-y border-border bg-muted/30 px-4 py-16 sm:px-6">
-        <div className="mx-auto grid max-w-6xl gap-10 md:grid-cols-2">
+      <section className="page-section border-y border-border bg-secondary/60">
+        <div className="site-container grid gap-10 md:grid-cols-2">
           <div>
             <h2 className="text-3xl font-semibold">What your team needs</h2>
             <p className="mt-5 leading-7 text-muted-foreground">
@@ -155,10 +159,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           </ul>
         </div>
       </section>
-      <section
-        id="evaluation"
-        className="mx-auto max-w-6xl scroll-mt-24 px-4 py-20 sm:px-6"
-      >
+      <section id="evaluation" className="site-container page-section">
         <h2 className="text-3xl font-semibold">
           Test exceptions before the pilot
         </h2>
@@ -167,8 +168,13 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           owner. The examples below are evaluation criteria, not reported
           customer results.
         </p>
-        <div className="mt-8 overflow-x-auto rounded-xl border border-border">
-          <table className="w-full text-left">
+        <div
+          className="mt-8 overflow-x-auto rounded-2xl border border-border"
+          role="region"
+          aria-label={`${page.label} evaluation table`}
+          tabIndex={0}
+        >
+          <table className="w-full min-w-[560px] text-left text-base">
             <caption className="sr-only">
               {page.label} evaluation scenarios
             </caption>
@@ -208,7 +214,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           .
         </p>
       </section>
-      <section className="mx-auto max-w-4xl px-4 pb-20 sm:px-6">
+      <section className="site-container max-w-3xl pb-12 md:pb-18">
         <h2 className="text-3xl font-semibold">Questions to resolve</h2>
         <dl className="mt-8 divide-y divide-border">
           {page.faqs.map((faq) => (
@@ -221,8 +227,8 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           ))}
         </dl>
       </section>
-      <section className="border-t border-border bg-muted/30 px-4 py-16 sm:px-6">
-        <div className="mx-auto max-w-6xl">
+      <section className="page-section border-t border-border bg-secondary/60">
+        <div className="site-container">
           <h2 className="text-3xl font-semibold">Explore the buyer guides</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {page.guides.map((guide) => (
@@ -247,7 +253,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           </a>
         </div>
       </section>
-      <section className="mx-auto max-w-4xl px-4 py-20 text-center sm:px-6">
+      <section className="site-container page-section max-w-3xl text-center">
         <h2 className="text-3xl font-semibold">
           Start with one measurable workflow
         </h2>
@@ -256,15 +262,31 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
           requirements. Identify a practical pilot and the work required to run
           it.
         </p>
+        <div className="mt-8 flex flex-wrap justify-center gap-3">
+          <Button asChild size="lg">
+            <a
+              href={DEMO_BOOKING_URL}
+              data-analytics-location={`${page.path}_footer`}
+            >
+              Book a demo <ArrowRight aria-hidden="true" />
+            </a>
+          </Button>
+          <Button asChild variant="outline" size="lg">
+            <Link
+              href={CONTACT_URL}
+              data-analytics-location={`${page.path}_footer`}
+            >
+              Contact the team
+            </Link>
+          </Button>
+        </div>
         <Link
-          href={CONTACT_URL}
-          data-analytics-location={`${page.path}_footer`}
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground"
+          href="/resources"
+          className="mt-6 inline-flex min-h-11 items-center text-sm text-primary underline underline-offset-4"
         >
-          Discuss your pilot{" "}
-          <ArrowRight className="size-4" aria-hidden="true" />
+          Download the pilot planning resources
         </Link>
       </section>
-    </main>
+    </div>
   );
 }
