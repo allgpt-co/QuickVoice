@@ -41,10 +41,7 @@ Reviewed on 2026-09-06 by Codex (source and repository review). Each complete or
 ## Verification
 
 The six targeted claims audits passed. Original dates and slugs were retained, unsupported statistics/customer outcomes and fabricated feature claims were removed, and sources were opened/read or checked in the corresponding repository implementation. Review records are limited to completed reviews of already published material. Full web checks are recorded in the final batch report.
-<<<<<<< HEAD
-=======
 
 ## Linked-route correction
 
 2026-09-06: The objection-handling guide now links to the actual `ai-voice-agents-b2b-lead-qualification` slug. Its content-bound review was reissued with the same three substantive sources after the passing targeted audit.
->>>>>>> 5049530 (docs(seo): correct reviewed guide cross-links)
