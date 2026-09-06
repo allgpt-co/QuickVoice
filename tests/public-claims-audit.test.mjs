@@ -116,6 +116,11 @@ test("URL filtering preserves visible and metadata certification claims", () => 
     ["component.tsx", 'export const text = "QuickVoice is HIPAA compliant";\n'],
     ["code.md", "```md\n[Example](/hipaa-compliant)\n```\n"],
     ["inline-code.md", "`[Example](/hipaa-compliant)`\n"],
+    ["indented-code.md", "    [Example](/hipaa-compliant)\n"],
+    ["tab-code.md", "\t[Example](/hipaa-compliant)\n"],
+    ["escaped-link.md", "\\[Example](/hipaa-compliant)\n"],
+    ["unclosed-link.md", "[Example](/hipaa-compliant unfinished title\n"],
+    ["invalid-title.md", "[Example](/hipaa-compliant unfinished title)\n"],
   ];
   try {
     for (const [name, content] of examples) {

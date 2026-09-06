@@ -183,11 +183,17 @@ function claimLines(file, text) {
       return line;
     }
     if (fence) return line;
-    // Be conservative around inline code: its link-like text is visible.
-    if (line.includes("`")) return line;
+    // Link-like text in code, escaped syntax, and block quotes may be visible.
+    // Keep these ambiguous cases in the scan instead of guessing at rendering.
+    if (
+      line.includes("`") ||
+      line.includes("\\") ||
+      /^(?: {4}| {0,3}\t| {0,3}>)/.test(line)
+    )
+      return line;
     return line.replace(
-      /(\[[^\]\n]*\]\()(?:https?:\/\/|\/)[^\s)\n]+(?=\s|\))/g,
-      "$1",
+      /(\[[^\]\n]*\]\()((?:https?:\/\/|\/)[^\s()\n]+)((?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*\))/g,
+      "$1$3",
     );
   });
 }
