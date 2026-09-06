@@ -1,208 +1,110 @@
 ---
-title: "ElevenLabs vs Deepgram: Which Voice AI Powers the Best Agents?"
-slug: "elevenlabs-vs-deepgram-voice-ai"
-date: "2026-07-13"
-author: "Rahul Agarwal"
-category: "AI Voice Agent Education"
-tags: ["deepgram voice agent", "elevenlabs voice agent", "best voice ai", "speech to text ai", "text to speech ai"]
-metaTitle: "ElevenLabs vs Deepgram: Which Powers the Best AI Voice Agents? | QuickVoice"
-metaDescription: "ElevenLabs leads on text-to-speech quality. Deepgram leads on speech-to-text accuracy and latency. Here's when to use each — and how QuickVoice combines both."
-canonical: "https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai"
-ogImage: "/blog/images/elevenlabs-vs-deepgram-og.png"
-readTime: "8 min"
+title: 'ElevenLabs vs Deepgram: How to Evaluate Speech for Business Calls'
+slug: elevenlabs-vs-deepgram-voice-ai
+date: '2026-07-13'
+updatedAt: '2026-09-06'
+author: Rahul Agarwal
+category: AI Voice Agent Education
+tags:
+  - elevenlabs vs deepgram
+  - business voice agents
+  - speech recognition
+  - voice agent evaluation
+metaTitle: ElevenLabs vs Deepgram for Business Voice Agents
+metaDescription: >-
+  Compare speech recognition and speech generation for real business calls. Test
+  names, interruptions, response time, provider costs, and implementation fit.
+canonical: 'https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai'
+ogImage: /og-image.png
+readTime: 6 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-09-06T09:20:36.913Z'
+  reviewer: Codex (primary-source and repository review)
+  sources:
+    - 'https://elevenlabs.io/docs/overview/capabilities/speech-to-text'
+    - 'https://elevenlabs.io/docs/overview/capabilities/text-to-speech'
+    - 'https://developers.deepgram.com/docs/models-languages-overview'
+    - 'https://developers.deepgram.com/docs/tts-models'
+    - >-
+      https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/voice_provider_adapters.py
+    - >-
+      https://github.com/allgpt-co/QuickVoice/blob/main/apps/console/src/lib/data/voices.ts
+    - 'https://github.com/allgpt-co/QuickVoice#setup-boundaries'
+  contentHash: 9047e28253ea7ac0c06685dbe1bb4ea227d30ef5ff9ac6988d5afc199aabfa95
 ---
 
-# ElevenLabs vs Deepgram: Which Voice AI Powers the Best Agents?
+# ElevenLabs vs Deepgram: How to Evaluate Speech for Business Calls
 
-Building or evaluating an AI voice agent inevitably leads to this question: which voice AI providers actually produce the best results?
+ElevenLabs and Deepgram both offer speech recognition and speech generation. A useful comparison starts with the part of your calling workflow you need to improve: understanding the caller, producing a clear reply, or managing the complete conversation.
 
-The comparison is often framed as "ElevenLabs vs Deepgram" — but these two companies solve different problems in the voice AI stack. Understanding what each one does, and where each excels, is essential for building (or choosing) an AI voice agent that sounds genuinely human and performs reliably.
+For a receptionist or support workflow, a pleasant voice matters. So do correct names, understandable appointment times, interruptions, and what happens when the system is uncertain. Select the combination that performs well on your own representative calls.
 
----
+The product documentation and QuickVoice implementation references in this guide were reviewed on September 6, 2026. This is an evaluation framework, not an independent performance benchmark.
 
-## The Voice AI Pipeline: Two Very Different Jobs
+## Compare the same part of the workflow
 
-An AI voice agent uses two distinct voice AI components:
+**Speech to text**, or STT, turns incoming audio into text. **Text to speech**, or TTS, turns a written reply into audio. An agent also needs conversation logic, business information, and a connection to the caller.
 
-**Speech-to-Text (STT):** Converts the caller's spoken words into text that the AI can process. This is what Deepgram primarily does.
+| Layer                     | ElevenLabs documentation                                                                                                              | Deepgram documentation                                                                        | Buyer question                                                          |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Understanding speech      | [Speech-to-text capabilities](https://elevenlabs.io/docs/overview/capabilities/speech-to-text), including realtime transcription      | [Speech models and languages](https://developers.deepgram.com/docs/models-languages-overview) | Does the selected model understand the callers and fields we need?      |
+| Speaking a reply          | [Text-to-speech capabilities](https://elevenlabs.io/docs/overview/capabilities/text-to-speech) with different model and voice options | [TTS voices and languages](https://developers.deepgram.com/docs/tts-models)                   | Are names, numbers, and instructions easy to understand over the phone? |
+| Complete business outcome | Requires review of the chosen agent product or implementation                                                                         | Requires review of the chosen agent product or implementation                                 | Does the workflow reach the correct next step and handle failure?       |
 
-**Text-to-Speech (TTS):** Converts the AI's text responses into spoken audio that the caller hears. This is what ElevenLabs primarily does.
+A comparison of one company's recognition model with another company's generated voice does not establish an overall winner. Nor does a feature listed in a provider's documentation prove that a particular voice-agent platform exposes it.
 
-These are not competing technologies — they are complementary. The best AI voice agents typically use best-in-class solutions for each component.
+## Begin with the errors that matter to your business
 
----
+Write down what a successful call must preserve. For appointment intake, that might be the caller's name, contact details, requested service, and preferred time. For support, it might be the correct product and a clear description of the problem.
 
-## Deepgram: The Speech-to-Text Leader
+Then separate errors by consequence. A missed filler word may not change the outcome. An incorrect address or misunderstood cancellation request can.
 
-Deepgram is the leading real-time STT platform for production voice applications. Its differentiation from alternatives (Google STT, Amazon Transcribe, Whisper) is in three areas:
+Use synthetic examples first. Include:
 
-### 1. Real-Time Latency
-Deepgram's streaming transcription achieves under 200ms latency — meaning the AI receives the transcribed text within 200 milliseconds of the caller finishing speaking. This sub-200ms latency is essential for maintaining natural conversation flow.
+- Names and local place names your team expects to hear.
+- Letters, email addresses, reference numbers, and corrected digits.
+- Quiet speech, pauses, background noise, and interruptions.
+- The languages and accents in the proposed workflow.
+- A request the agent should decline or send to a person.
 
-Comparison:
-| Provider | Streaming Latency | Best For |
-|----------|------------------|---------|
-| Deepgram | < 200ms | Real-time voice agents |
-| Google STT | 200–400ms | Good balance |
-| Amazon Transcribe | 300–500ms | Batch processing |
-| OpenAI Whisper | 500ms–2s (API) | High accuracy, not real-time |
+Record what the agent understood and the resulting business decision. A readable transcript alone is not enough if the wrong detail reaches the next step.
 
-### 2. Accuracy in Noisy Environments
-Deepgram's models are trained specifically for telephony audio — which includes background noise, compression artifacts, and varied call quality. Word error rate (WER) comparisons:
+## Test the voice through the actual calling path
 
-| Provider | WER (Clean Audio) | WER (Noisy/Phone) |
-|----------|------------------|--------------------|
-| Deepgram Nova-3 | 4.2% | 7.8% |
-| Google STT | 5.1% | 10.4% |
-| Amazon Transcribe | 5.8% | 11.6% |
-| OpenAI Whisper | 3.8% | 12.3% |
+A clean audio sample can help shortlist voices, but it does not reproduce your complete phone experience. Repeat the evaluation through the intended carrier, runtime, and agent configuration.
 
-Deepgram maintains its accuracy advantage most dramatically in real-world phone call conditions — exactly where AI voice agents operate.
+Ask listeners to check whether they can understand the business name, a time window, a reference number, and a short instruction without repetition. Include a correction: the caller interrupts with a different date or says that the number was wrong.
 
-### 3. Custom Vocabulary
-Industry-specific terminology (medical codes, product names, proper nouns) routinely confuses general-purpose STT. Deepgram allows custom vocabulary injection — adding your specific terms to the recognition model — dramatically improving accuracy for domain-specific applications.
+Keep the test script and settings consistent across candidates. Change one major component at a time where practical. If you change the voice, recognition model, prompt, and telephone path together, it becomes difficult to explain why the outcome changed.
 
-For healthcare AI agents: "Metformin," "HbA1c," "copay," "prior auth" — all recognized correctly with custom vocabulary.
-For automotive AI agents: Vehicle make/model names, VIN format recognition, service terminology.
+Do not treat a provider's component-latency figure as your complete response time. Measure from the caller finishing a turn to the start of the useful reply, and separately inspect delays caused by business-system lookups.
 
-### 4. Speaker Identification
-For applications with multiple speakers (conference calls, multi-party scenarios), Deepgram's speaker diarization accurately identifies who is speaking.
+## Use a decision sheet with observable outcomes
 
----
+| Check                 | What to record                                                                 |
+| --------------------- | ------------------------------------------------------------------------------ |
+| Required details      | Correct fields divided by fields checked; list consequential errors separately |
+| Conversation recovery | Whether corrections and interruptions changed the next reply appropriately     |
+| Response time         | Typical and slower observed turns, with the test conditions                    |
+| Spoken clarity        | Which names, numbers, or instructions listeners needed repeated                |
+| Uncertain requests    | Whether the agent asked a useful question or offered the approved fallback     |
+| Cost                  | Actual usage units, dated rates, and the rest of the calling stack             |
 
-## ElevenLabs: The Text-to-Speech Leader
+These are suggested evaluation measures. They are not reported QuickVoice results or promised acceptance thresholds. Your workflow owner should decide which failures stop a rollout.
 
-ElevenLabs produces the most human-sounding AI voices available in 2026. Its differentiation is in naturalness, emotional range, and voice cloning capability.
+## What QuickVoice currently exposes
 
-### 1. Voice Naturalness
-The fundamental metric: can you tell it's AI? In blind listening tests, ElevenLabs voices have the lowest detection rates of any TTS provider:
+QuickVoice's [voice provider adapters](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/voice_provider_adapters.py) include Deepgram recognition and both Deepgram and ElevenLabs speech-generation paths. Its [console voice catalog](https://github.com/allgpt-co/QuickVoice/blob/main/apps/console/src/lib/data/voices.ts) lists model and voice choices.
 
-| Provider | % Identified as AI (blind test) |
-|----------|--------------------------------|
-| ElevenLabs Multilingual v2 | 12% |
-| ElevenLabs v1 | 18% |
-| Google WaveNet | 31% |
-| Amazon Polly Neural | 38% |
-| Microsoft Azure Neural | 35% |
+This does not mean every current model from either provider is available in QuickVoice. Check the actual deployed catalog, selected language, credentials, and runtime path. Changing a provider is an implementation choice that needs testing, not a guarantee of uninterrupted behavior.
 
-ElevenLabs voices are distinguished by:
-- Natural breathing patterns between sentences
-- Appropriate emotional inflection based on content
-- Realistic pacing variations (not robotically consistent)
-- "Thinking" sounds and natural speech disfluencies (configurable)
+QuickVoice is self-hostable software under active development. The [repository setup boundaries](https://github.com/allgpt-co/QuickVoice#setup-boundaries) describe the provider accounts and technical configuration required for real calls.
 
-### 2. Emotional Range
-ElevenLabs supports emotion prompting — generating speech that sounds genuinely empathetic, enthusiastic, calm, or concerned based on context. An AI agent delivering bad news sounds appropriately different from one confirming a successful booking.
+## Compare the complete cost and data path
 
-### 3. Voice Cloning
-ElevenLabs Voice Clone allows creating a custom voice from as little as 1 minute of audio. For businesses that want their AI agent to sound like a specific person (a founder's voice, a specific brand representative), voice cloning creates that continuity.
+For either candidate, record the model, rate date, billable units, minimums, and any concurrency or plan restrictions relevant to your deployment. Include telephony, runtime, language-model usage, storage, engineering, and human follow-up. See the [business cost comparison](/blog/ai-vs-human-agents-cost-comparison) for a consistent method.
 
-**Note on consent:** Voice cloning of any real person's voice requires their explicit consent. ElevenLabs enforces this through voice verification requirements.
+Map which services process audio and conversation text, what is stored, and which agreements and controls your organization requires. A voice choice does not establish the privacy characteristics of the whole deployment; use the [call-data review checklist](/blog/ai-voice-agent-security-data-privacy).
 
-### 4. Language Quality
-ElevenLabs supports 29 languages with native-quality accents — not just translated speech but genuinely natural-sounding voices in each language.
-
----
-
-## The Combined Architecture: How QuickVoice Uses Both
-
-QuickVoice uses both Deepgram and ElevenLabs as core infrastructure components, combining their respective strengths:
-
-**Deepgram handles:** Real-time transcription of caller speech → feeds to the LLM for intent processing
-
-**ElevenLabs handles:** Converting the AI's text responses to natural-sounding audio → delivered to the caller
-
-The full pipeline:
-```
-Caller speaks → Deepgram STT (< 200ms) → LLM processes (200–400ms) → ElevenLabs TTS (100–200ms) → Caller hears response
-Total end-to-end: 500–800ms — natural conversation pace
-```
-
-This integration also means QuickVoice customers benefit from both companies' continuous improvement — as Deepgram releases more accurate models and ElevenLabs releases more natural voices, QuickVoice can update its infrastructure without customer disruption.
-
----
-
-## When to Prioritize Each
-
-### Prioritize Deepgram Quality When:
-- Callers frequently have accents, dialects, or heavy background noise
-- Your domain has specialized vocabulary (medical, legal, technical)
-- You need multiple speakers to be identified separately
-- Real-time feedback on transcription quality is needed for QA
-
-### Prioritize ElevenLabs Quality When:
-- The agent's voice is a core part of the brand experience
-- You're serving premium customers where audio quality is a trust signal
-- You need emotional range (healthcare, counseling-adjacent applications)
-- You need a specific custom voice (brand consistency)
-- Language quality in non-English languages is important
-
----
-
-## Alternatives Worth Considering
-
-### STT Alternatives to Deepgram
-
-**OpenAI Whisper (via API):**
-- Highest accuracy for clean audio
-- Latency too high for real-time conversation (typically 500ms–2s)
-- Best for: Post-call transcription, quality review — not real-time agents
-
-**Google Speech-to-Text:**
-- Good accuracy, reasonable latency
-- Strong Google ecosystem integration
-- Lower performance in noisy telephony conditions vs. Deepgram
-
-**AssemblyAI:**
-- Strong accuracy, good features (speaker diarization, content moderation)
-- Latency slightly higher than Deepgram
-- Good for: Async transcription workflows
-
-### TTS Alternatives to ElevenLabs
-
-**Google Text-to-Speech (WaveNet / Neural):**
-- Good quality, significantly lower cost
-- Less natural-sounding than ElevenLabs
-- Strong language coverage (220+ voices)
-- Best for: High-volume, cost-sensitive deployments where naturalness is secondary
-
-**Amazon Polly:**
-- Wide deployment, AWS integration
-- Neural voices are good, not best-in-class
-- Best for: AWS-native architectures, cost optimization
-
-**Microsoft Azure Neural TTS:**
-- Strong quality, competitive pricing
-- Good for Microsoft/Azure ecosystem integrations
-
-**Murf AI:**
-- Strong studio-quality voices for content production
-- Not designed for real-time conversational use
-
----
-
-## The Bottom Line
-
-For AI voice agents:
-- **Best STT:** Deepgram (Nova-3 model) — best latency + accuracy combination for telephony
-- **Best TTS:** ElevenLabs — highest naturalness, best emotional range
-- **Best combined stack:** Deepgram + ElevenLabs + Claude/GPT-4 for LLM — delivers human-indistinguishable conversation quality
-
-This is exactly the architecture QuickVoice is built on. When you deploy a QuickVoice agent, your callers benefit from best-in-class components at each stage of the voice pipeline — without needing to research, integrate, and maintain each component yourself.
-
----
-
-## Frequently Asked Questions
-
-**Can I choose which STT and TTS providers QuickVoice uses?**
-QuickVoice is built on Deepgram + ElevenLabs as defaults because these deliver the best user experience. Enterprise customers with specific integration requirements (e.g., an existing Google Cloud contract) can discuss custom arrangements.
-
-**Is there a cost difference between using ElevenLabs vs. cheaper TTS?**
-Yes — ElevenLabs is more expensive per character than alternatives like Google Polly. QuickVoice absorbs this infrastructure cost into the platform subscription pricing, so customers pay a flat per-minute rate regardless.
-
-**How often do new voice models become available?**
-Both Deepgram and ElevenLabs release significant model updates several times per year. QuickVoice integrates major improvements within weeks of release. Enterprise customers can request access to preview models.
-
----
-
-**Experience the difference that best-in-class voice AI makes.** [Start your free QuickVoice trial](https://quickvoice.co) and hear the difference between a truly natural AI voice agent and the alternatives.
+The decision should name a tested configuration, its limits, and the person who will maintain it. To evaluate QuickVoice for your calls, [discuss the workflow and speech requirements](/company/contact) with examples of the details your team needs to understand reliably.
