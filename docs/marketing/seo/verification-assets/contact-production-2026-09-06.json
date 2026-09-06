@@ -1,0 +1,38 @@
+{
+  "marker": "QV-SEO-20260906-1003",
+  "started_at": "2026-09-06T10:03:55.792Z",
+  "acknowledged_at": "2026-09-06T10:03:59.451Z",
+  "web_commit": "28c30d1231549bed43a893aa71ee1f9fcb21e4ed",
+  "api_image": "sha-7a21a2e26a2ec0267f839a239c30b23cc00848fe",
+  "path": "/resources CTA -> /company/contact -> /api/contact",
+  "http_status": 200,
+  "response_ok": true,
+  "visible_success": true,
+  "provider_acceptance": true,
+  "inbox_receipt": "pending recipient confirmation; connected Gmail search returned no matching message",
+  "generate_lead_emissions": 1,
+  "event_parameters": {
+    "method": "contact_form",
+    "form_location": "contact_page",
+    "page_path": "/company/contact"
+  },
+  "ga_realtime_first_observation": {
+    "active_users": 1,
+    "stream": "15188028920",
+    "events": [
+      "first_visit",
+      "page_view",
+      "session_start"
+    ]
+  },
+  "notes": [
+    "One synthetic test submission only. No second email sent.",
+    "No source-medium or lead attribution outcome asserted from this QA event.",
+    "No personal contact fields or Google client identifiers included."
+  ],
+  "google_generate_lead_collection_status": 204,
+  "ga_realtime_followup": {
+    "observed_at": "2026-09-06T10:07:25.637273+00:00",
+    "rows": []
+  }
+}

@@ -33,6 +33,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://quickvoice.co/compliance/hipaa",
     siteName: "QuickVoice",
+    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
   },
 };
 

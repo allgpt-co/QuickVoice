@@ -53,4 +53,4 @@ QuickVoice's [MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/app
 
 Use synthetic accounts to test duplicate events, an account switch, a resolved issue, withdrawn permission, and an unavailable support system. Track verified requests delivered, unanswered questions, repeat contacts, and staff correction effort. Keep sales outcomes separate from support success and avoid attributing every later upgrade to the call.
 
-QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) makes the implementation inspectable but still requires provider credentials and operational ownership. The [lead qualification guide](/blog/ai-lead-qualification-b2b-sales) addresses a different workflow; use it only when the person has actually requested an appropriate sales conversation.
+QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) makes the implementation inspectable but still requires provider credentials and operational ownership. The [lead qualification guide](/blog/ai-voice-agents-b2b-lead-qualification) addresses a different workflow; use it only when the person has actually requested an appropriate sales conversation.

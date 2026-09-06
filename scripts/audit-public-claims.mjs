@@ -139,11 +139,80 @@ function excerpt(value) {
   return value.replace(/\s+/g, " ").trim().slice(0, 240);
 }
 
+function claimLines(file, text) {
+  const lines = text.split(/\r?\n/);
+  if (![".md", ".mdx"].includes(extname(file).toLowerCase())) return lines;
+
+  // Retained URL identities are not prose. Keep every other metadata field,
+  // link label/title, and the original line positions available to the audit.
+  const frontmatterEnd =
+    lines[0] === "---"
+      ? lines.findIndex(
+          (line, index) => index > 0 && /^(?:---|\.\.\.)$/.test(line),
+        )
+      : -1;
+  // ReactMarkdown renders raw HTML as visible text. When HTML-like syntax is
+  // present, leave the entire body untouched instead of parsing nested blocks.
+  // URL/email autolinks are not HTML tags.
+  const body = lines
+    .slice(frontmatterEnd >= 0 ? frontmatterEnd + 1 : 0)
+    .join("\n");
+  const hasRawHtml =
+    /<(?:\/?[a-z][a-z0-9-]*(?:[\s/>])|!--|\?|!\[CDATA\[|![A-Z])/i.test(body);
+  let fence;
+  return lines.map((line, index) => {
+    if (index > 0 && index < frontmatterEnd) {
+      const field = line.match(
+        /^(slug|canonical):[ \t]*(?:"([^"]*)"|'([^']*)'|([^ \t#]+))[ \t]*$/,
+      );
+      if (field) {
+        const value = field[2] ?? field[3] ?? field[4];
+        if (field[1] === "slug" && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value))
+          return "";
+        if (field[1] === "canonical") {
+          try {
+            if (/^https?:$/.test(new URL(value).protocol)) return "";
+          } catch {
+            /* Malformed metadata remains subject to the prose audit. */
+          }
+        }
+      }
+      return line;
+    }
+
+    if (hasRawHtml) return line;
+
+    const delimiter = line.match(/^\s{0,3}(`{3,}|~{3,})/);
+    if (delimiter) {
+      if (!fence) fence = delimiter[1];
+      else if (
+        delimiter[1][0] === fence[0] &&
+        delimiter[1].length >= fence.length
+      )
+        fence = undefined;
+      return line;
+    }
+    if (fence) return line;
+    // Link-like text in code, escaped syntax, and block quotes may be visible.
+    // Keep these ambiguous cases in the scan instead of guessing at rendering.
+    if (
+      line.includes("`") ||
+      line.includes("\\") ||
+      /^(?: {4}| {0,3}\t| {0,3}>)/.test(line)
+    )
+      return line;
+    return line.replace(
+      /(\[[^\]\n]*\]\()((?:https?:\/\/|\/)[^\s()\n]+)((?:[ \t]+(?:"[^"\n]*"|'[^'\n]*'|\([^()\n]*\)))?[ \t]*\))/g,
+      "$1$3",
+    );
+  });
+}
+
 function auditFile(file) {
   const text = readFileSync(file, "utf8");
-  const lines = text.split(/\r?\n/);
+  const lines = claimLines(file, text);
   const findings = [];
-  for (const [index, line] of lines.entries()) {
+  for (const [index, line] of text.split(/\r?\n/).entries()) {
     if (line.includes(ALLOW_MARKER)) {
       findings.push({
         rule: "UNSUPPORTED_EXCEPTION",

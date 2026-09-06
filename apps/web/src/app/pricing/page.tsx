@@ -15,6 +15,7 @@ export const metadata: Metadata = {
       "A prepaid wallet for measured AI, telephony, and connected-time usage, with $5 in signup call credit.",
     type: "website",
     url: "https://quickvoice.co/pricing",
+    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
   },
 };
 

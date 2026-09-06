@@ -1,0 +1,123 @@
+{
+  "scope": "Local production build; not a deployment check",
+  "buildId": "o9dM5oyzilRlb5zyBOE1d",
+  "articles": [
+    {
+      "route": "/blog/hipaa-compliant-ai-voice-agents",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/hipaa-compliant-ai-voice-agents",
+      "robots": "index, follow",
+      "originalDate": "2026-04-06",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-real-estate",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agents-real-estate",
+      "robots": "index, follow",
+      "originalDate": "2026-04-13",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    },
+    {
+      "route": "/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+      "robots": "index, follow",
+      "originalDate": "2026-04-20",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    },
+    {
+      "route": "/blog/ai-phone-agents-automotive-dealerships",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/ai-phone-agents-automotive-dealerships",
+      "robots": "index, follow",
+      "originalDate": "2026-05-11",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    },
+    {
+      "route": "/blog/what-is-conversational-ai",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/what-is-conversational-ai",
+      "robots": "index, follow",
+      "originalDate": "2026-05-18",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    },
+    {
+      "route": "/blog/ai-voice-agents-ecommerce",
+      "status": 200,
+      "h1": 1,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agents-ecommerce",
+      "robots": "index, follow",
+      "originalDate": "2026-05-25",
+      "dateModified": "2026-09-06",
+      "sitemapLastmod": "2026-09-06T00:00:00.000Z",
+      "blogPosting": true
+    }
+  ],
+  "internalLinks": [
+    {
+      "route": "/blog/ai-appointment-scheduling-guide",
+      "status": 200
+    },
+    {
+      "route": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "status": 200
+    },
+    {
+      "route": "/blog/build-ai-voice-agent-small-business",
+      "status": 200
+    },
+    {
+      "route": "/compliance/hipaa",
+      "status": 200
+    },
+    {
+      "route": "/industries/automotive",
+      "status": 200
+    },
+    {
+      "route": "/industries/healthcare",
+      "status": 200
+    },
+    {
+      "route": "/industries/real-estate",
+      "status": 200
+    },
+    {
+      "route": "/solutions/ai-receptionist",
+      "status": 200
+    },
+    {
+      "route": "/use-cases/appointment-scheduling",
+      "status": 200
+    },
+    {
+      "route": "/use-cases/customer-support",
+      "status": 200
+    },
+    {
+      "route": "/use-cases/order-status-returns",
+      "status": 200
+    },
+    {
+      "route": "/use-cases/sales-lead-gen",
+      "status": 200
+    }
+  ],
+  "sitemapEntries": 81
+}

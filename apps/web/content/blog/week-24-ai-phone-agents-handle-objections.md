@@ -18,14 +18,14 @@ ogImage: /og-image.png
 readTime: 3 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T09:42:04.696Z'
+  reviewedAt: '2026-09-06T10:13:56.087Z'
   reviewer: Codex (source and repository review)
   sources:
     - 'https://docs.fcc.gov/public/attachments/FCC-24-17A1.pdf'
     - 'https://github.com/allgpt-co/QuickVoice'
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
-  contentHash: 9004c0d6b65205388791c1d0e50c5d98666b20073e704d829570eaed651366bc
+  contentHash: 3a391cc527ed2150e55e29d50bd551a2c3db7b5b49d5148150c4be2a8ee73061
 ---
 
 # AI Phone Objection Handling: Respectful Responses and Stop Rules
@@ -61,4 +61,4 @@ Write test conversations that change direction: the caller initially asks a ques
 
 Score these tests separately for factual accuracy, recognition of refusal, verified delivery of requested follow-up, and exception handling. Do not use call length or continued conversation as a proxy for success. Review a representative sample of completed and failed calls, including ones that ended quickly.
 
-QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) provides infrastructure that a team can configure and inspect. Prompt wording alone does not implement suppression across every dialer or CRM. The [MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py) also restricts marked write/side-effect tools, so any follow-up action needs an allowed, tested path. The [lead qualification guide](/blog/ai-lead-qualification-b2b-sales) can help define the limited information worth collecting before a human sales conversation.
+QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) provides infrastructure that a team can configure and inspect. Prompt wording alone does not implement suppression across every dialer or CRM. The [MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py) also restricts marked write/side-effect tools, so any follow-up action needs an allowed, tested path. The [lead qualification guide](/blog/ai-voice-agents-b2b-lead-qualification) can help define the limited information worth collecting before a human sales conversation.
