@@ -12,4 +12,4 @@ These artifacts were captured in the original QuickVoice workspace on 2026-09-06
 
 The two PNGs, HTTP smoke JSON and GA browser JSON are exact copies of their source artifacts. Only the two unnecessary contact fields were removed from the performance JSON. No raw account reports, credentials, tokens, cookie/client identifiers or local CLI logs are packaged here. Local-only report locations and their key findings remain in the [live measurement report](../live-measurement-check-2026-09-06.md).
 
-Use the [publishing workflow](../publishing-workflow.md) to verify the deployed result. Production rollout, real Analytics collection and `generate_lead` key-event registration remain pending; the connected Analytics token has read-only scope.
+Use the [publishing workflow](../publishing-workflow.md) to verify a deployed result and the [current execution report](../execution-2026-09-06.md) for later production observations. These historical artifacts do not establish that later releases are deployed. The connected Analytics token has read-only scope; `generate_lead` key-event registration remains a separate administrative dependency.

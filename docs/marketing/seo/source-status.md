@@ -1,6 +1,6 @@
 # Source, status, and dependency tracker
 
-Prepared 2026-09-06. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence. No external action is recorded as completed here.
+Prepared 2026-09-06. The [dated execution report](execution-2026-09-06.md) now records authorized releases and external observations and supersedes the preparation-time status table below. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
 
 ## Governing sources
 
@@ -15,7 +15,9 @@ Prepared 2026-09-06. Status vocabulary: **locally verified** = implementation pa
 
 ## Work and ownership
 
-**Live recheck, 2026-09-06:** Search Console is active and the homepage is indexed. GA4's property exists, but its tag is absent from the tested live pages; the latest recorded activity is August 11. Restore and verify the production build's Analytics configuration before treating measurement as live. The new `generate_lead` event is also not registered as a key event. See the [live measurement check](live-measurement-check-2026-09-06.md). The subsequent authorized code repair now supplies the verified ID on QuickVoice’s own domains; deploying it is pending because the connected Coolify endpoint is unreachable.
+**Updated 2026-09-06:** Search Console is active; the authorized sitemap submission has been processed without reported errors or warnings. The deployed website now loads the verified GA4 tag. `generate_lead` key-event registration and manual page-view activation still require the missing Analytics edit access. The current hosting API is accessible, and the contact backend has been deployed. See the [execution report](execution-2026-09-06.md) for web rollout and delivery evidence; the earlier [live measurement check](live-measurement-check-2026-09-06.md) is historical diagnosis.
+
+The following table preserves the state **at preparation**, before the later implementation batches. Use the execution report and individual inventory decisions for current status.
 
 | Work | Status at preparation | Owner role | Completion evidence / next action |
 | --- | --- | --- | --- |

@@ -1,0 +1,27 @@
+{
+  "observed_at": "2026-09-06T09:59:51.981619+00:00",
+  "web_commit": "28c30d1231549bed43a893aa71ee1f9fcb21e4ed",
+  "downloads": [
+    {
+      "file": "phone-agent-checklist.pdf",
+      "status": 200,
+      "mime": "application/pdf",
+      "bytes": 6376,
+      "reviewed_hash_match": true
+    },
+    {
+      "file": "cost-estimation-guide.pdf",
+      "status": 200,
+      "mime": "application/pdf",
+      "bytes": 5742,
+      "reviewed_hash_match": true
+    },
+    {
+      "file": "cost-estimation.csv",
+      "status": 200,
+      "mime": "text/csv",
+      "bytes": 5471,
+      "reviewed_hash_match": true
+    }
+  ]
+}

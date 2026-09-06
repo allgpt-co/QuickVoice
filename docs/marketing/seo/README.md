@@ -1,12 +1,12 @@
 # QuickVoice: 90-day SEO and buyer education program
 
-Prepared 2026-09-06. This package completes the preparation work; future publication, outreach, customer interviews, and measurement remain scheduled work. Nothing in this folder has been sent to a third party.
+Prepared 2026-09-06; implementation and release work is now recorded in the [dated execution report](execution-2026-09-06.md). That report supersedes preparation-time deployment statements. Future publication, outreach, customer interviews and recurring measurement remain scheduled until their actual execution is recorded.
 
 The audience is business owners and operations, support, sales, and property-management leaders evaluating phone workflows, together with their technical evaluators. Business content should explain the workflow, economics, fallback, and implementation responsibilities. Technical visitors can inspect the MIT-licensed source and provider requirements at `/open-source`.
 
 ## Start here
 
-1. Use [source-status.md](source-status.md) to distinguish source plans, completed preparation, implementation verification, and external dependencies.
+1. Read the [current execution report](execution-2026-09-06.md), then use [source-status.md](source-status.md) for the governing plans and historical preparation state.
 2. Use [inventory.csv](inventory.csv) for the complete source census: 90 blog files, 33 illustrative scenarios, and 34 static marketing routes, including the new buyer-resource page. Source titles are identifiers, not approved claims. Update individual review rows only after verifying the final content and rendered metadata. Dynamic blog/scenario routes are represented by their content rows, not counted again as route templates. The [remaining-review queue](review-queue.csv) fixes the original 78-blog, 33-scenario and 22-route backlog and preserves original publication dates; completed decisions belong in the inventory and batch reports.
 3. Use [keyword-map.csv](keyword-map.csv) to connect the initial 12 revised articles to commercial pages. These are intent hypotheses; no invented search-volume or difficulty scores are supplied.
 4. Run [calendar-90-days.csv](calendar-90-days.csv). Day 1 is the actual campaign start after the revised destinations are deployed and checked. Enter that date and named owners in your operating tracker; calendar days have not elapsed merely because the materials exist.
@@ -17,6 +17,7 @@ The audience is business owners and operations, support, sales, and property-man
 | Asset | Use |
 | --- | --- |
 | [Publishing workflow](publishing-workflow.md) | Review and stamp exact content, run the campaign checks, and verify deployment, indexing and lead measurement. |
+| [Reporting procedure](reporting-operations.md) and [28-day baseline](baseline-2026-09-06.md) | Capture dated read-only snapshots with consistent filters and explicit coverage limitations. |
 | [Verification evidence](verification-assets/README.md) | Review historical local UI/HTTP/Analytics checks, their provenance and limits; consult PR checks for the current revision. |
 | [12 promotional drafts](promotional-drafts.md) | One owned-channel post per initial article, with its intended buyer and destination. |
 | [Three nurture emails](nurture-drafts.md) | An opt-in evaluation sequence, not a purchased-list campaign. |

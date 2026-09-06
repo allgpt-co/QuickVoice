@@ -23,6 +23,13 @@ export const metadata: Metadata = {
     url: "https://quickvoice.co/resources",
     images: [{ url: "/og-image.png", width: 1200, height: 630 }],
   },
+  twitter: {
+    card: "summary_large_image",
+    title: "AI phone-agent buyer resources",
+    description:
+      "Practical worksheets for evaluating one phone-agent workflow.",
+    images: ["/og-image.png"],
+  },
 };
 
 const readResource = (name: string) =>
