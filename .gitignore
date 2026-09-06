@@ -26,6 +26,7 @@ coverage
 .ui_ux_fix_runs/
 .viral_launch_runs/
 .video_tutorial_runs/
+/output/seo/
 
 # Turbo
 .turbo
