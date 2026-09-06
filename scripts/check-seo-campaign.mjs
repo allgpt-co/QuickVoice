@@ -28,6 +28,7 @@ const routes = [
   "pricing",
   "company/contact",
   "open-source",
+  "resources",
   "blog",
   "blog/[slug]",
 ];

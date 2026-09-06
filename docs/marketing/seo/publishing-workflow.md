@@ -60,3 +60,15 @@ Blog pages, the blog hub and sitemap currently declare `revalidate = 3600`. This
 The implemented success event is `generate_lead`. Both contact forms call it only after an HTTP-success response with `data.ok === true`; errors and a CTA click are not leads. Its properties are `method=contact_form`, `form_location` (`homepage` or `contact_page`) and `page_path`; submitted contact fields are not included. The web app now defaults to the verified `G-SZFBG11VRP` only on `quickvoice.co` and `www.quickvoice.co`. With a blank or absent setting, localhost, preview domains, and other self-hosted domains send no default Analytics traffic. Set `NEXT_PUBLIC_GA_MEASUREMENT_ID` to a valid `G-` ID to override it on any host, or `off` to disable it. These settings require a rebuild. Verify the actual deployed tag and that a consent-appropriate, authorized test appears in GA. Record failed/successful-path checks without creating unsolicited real enquiries.
 
 **Pending external administration:** confirm and, if missing, mark `generate_lead` as a key event in GA4 property `543950329` through an appropriately authorized property administrator. The available OAuth token is read-only, so this setup has not been performed. Code emission and key-event registration are separate. Google's [event-marking instructions](https://support.google.com/analytics/answer/13128484?hl=en) explain the UI; the [Admin API creation method](https://developers.google.com/analytics/devguides/config/admin/v1/rest/v1alpha/properties.keyEvents/create) requires `analytics.edit`. Record the actual registration date and first observed key event; marking does not rewrite historical reports.
+
+## 6. Regenerate buyer downloads after a source change
+
+The public `/resources` page reads the generated Markdown copies and serves the checklist PDF, editable CSV, and instruction PDF. Their reviewed sources remain in this folder. After changing the checklist, worksheet, instructions, or generator:
+
+```sh
+python3 -m pip install reportlab
+python3 scripts/build-seo-resources.py
+pnpm --filter web test
+```
+
+The generator creates PDFs in `output/pdf/` and copies the public files to `apps/web/public/resources/`. Commit the generated public files and manifest with the source change. The web test compares source, generator, and download hashes so a later source edit cannot silently leave an old download. Render and visually review both PDFs before release; check all download links on the live resource page afterward. The CSV intentionally contains formulas; retain their original rows and import it with formula interpretation.

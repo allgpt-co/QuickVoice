@@ -27,6 +27,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    {
+      url: `${baseUrl}/resources`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
 
     // Company pages
     {
