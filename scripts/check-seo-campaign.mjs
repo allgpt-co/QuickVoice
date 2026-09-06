@@ -22,6 +22,9 @@ const routes = [
   "use-cases/customer-support",
   "use-cases/sales-lead-gen",
   "industries/real-estate",
+  "industries/hr-recruiting",
+  "industries/saas",
+  "industries/automotive",
   "pricing",
   "company/contact",
   "open-source",
@@ -82,6 +85,8 @@ try {
   for (const route of routes)
     visit(resolve(root, "apps/web/src/app", route, "page.tsx"));
   visit(resolve(root, "apps/web/src/app/layout.tsx"));
+  for (const industry of ["hr-recruiting", "saas", "automotive"])
+    visit(resolve(root, "apps/web/content/industries", `${industry}.md`));
   const contentDirectory = resolve(root, "apps/web/content/blog");
   const found = new Set();
   for (const name of readdirSync(contentDirectory).filter((name) =>

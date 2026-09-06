@@ -1,140 +1,59 @@
 ---
 slug: automotive
-title: AI Voice Agents for Automotive Dealers & Service Centers — 2026 Guide
-metaTitle: AI Voice Agents for Automotive | Scheduling & Lead Qualification | QuickVoice
-metaDescription: How automotive dealerships and service centers use AI voice agents to automate test drive scheduling, service appointments, lead qualification, and customer follow-ups — cutting response times by 60%.
-category: Automotive
-tags: [automotive AI, dealership automation, service appointment scheduling, lead qualification, DMS integration]
+title: "Automotive phone workflows"
+metaTitle: "Automotive phone workflows | QuickVoice"
+metaDescription: "Plan dealership phone intake for service enquiries, test-drive requests and staff callbacks, with verified vehicle information and scheduling boundaries."
 canonical: https://quickvoice.co/industries/automotive
 ---
 
-## Why Automotive Dealerships Are Racing to Deploy AI Voice Agents
+Define which calls belong with service, sales or the parts desk. QuickVoice can support a configured intake workflow using approved information; dealership records, appointment systems and follow-up actions need an implementation owner and a verified connection.
 
-The modern automotive dealership runs on phone calls. A typical franchise dealer receives 400–600 inbound calls per month across sales, service, and parts departments. BDC (Business Development Center) agents spend their entire day on the phone — qualifying sales leads, scheduling service appointments, confirming appointments, handling trade-in inquiries, and following up on sold customers.
+## Plan the workflow
 
-The problem: BDC staffing is challenging, expensive, and inconsistent. The average BDC agent at a franchise dealer earns $35,000–$50,000 per year, with turnover rates of 30–40% annually. Training a new BDC agent takes 4–6 weeks. During high-volume periods (end of month, new model launches), the BDC becomes a bottleneck.
+### Clarify the reason for calling
 
-AI voice agents are purpose-built for the automotive BDC workflow. They handle high-volume, rule-based calls with perfect consistency — and they scale infinitely without additional cost.
+Distinguish a service request, test-drive enquiry and a vehicle question. Collect only the details your team needs and route safety concerns to the approved staff process.
 
----
+### Check the relevant source
 
-## Key Automotive Applications for AI Voice Agents
+Vehicle stock, repair status and service availability should come from an authorized, current source. A caller's phone number alone does not establish identity or permission to disclose a record.
 
-### Service Department: Appointment Scheduling
+### Confirm the outcome
 
-Service is the heartbeat of dealership profitability. A well-run service department generates 40–50% of a dealership's gross profit. Yet service scheduling is overwhelmingly manual — customers call, a service advisor or BDC agent picks up, a scheduling conversation happens, an appointment is booked.
+Record a preferred time as a request until the dealership system confirms it. Booking needs a separately implemented permitted action path; the default live MCP bridge restricts marked write and side-effect tools.
 
-AI voice agents transform this:
-- Integrate directly with your DMS (CDK, Reynolds & Reynolds, Tekion, DealerSocket)
-- Recognize the caller by their phone number (matched to CRM/DMS records)
-- Pull vehicle history, last service date, and upcoming recalls
-- Recommend services due based on mileage and service history
-- Book the appointment with the right advisor and timeslot
-- Send confirmation by SMS and email
-- Call to confirm 24 hours before (and reschedule if needed)
+## Implementation requirements
 
-Results: Service departments deploying AI scheduling see 25–35% fewer no-shows and 15–20% higher service absorption because more appointments are completed successfully.
+- A dealership owner for approved service/sales information and escalation contacts.
+- A tested dealer-system or scheduling API connection with scoped credentials, if needed.
+- An outreach owner for eligibility, timing, consent and requests to stop follow-up.
 
-### Sales BDC: Test Drive Scheduling
+## Evaluate before routing customer calls
 
-New vehicle inquiries from AutoTrader, Cars.com, Edmunds, and the dealer website require immediate follow-up. Studies by AutoTrader show that leads contacted within 5 minutes are 10x more likely to convert than leads contacted after 30 minutes.
+### Vehicle availability has changed
 
-AI voice agents call every lead within 90 seconds:
-- Confirm interest in the specific vehicle
-- Ask key qualifying questions (financing vs. cash, trade-in, timeline)
-- Schedule a test drive
-- Prepare the sales team with a full qualification summary before the appointment
+Use a current authorized source or arrange a salesperson's callback; do not promise a vehicle is in stock.
 
-This shifts BDC agents from inbound call handling to high-value consultative conversations with the warmest leads.
+### A booking request times out
 
-### Service Reminders and Recall Notifications
+Check the destination before any retry, avoid duplicate reservations and clearly state when confirmation is pending.
 
-Vehicle maintenance intervals and safety recalls are time-sensitive but resource-intensive to communicate. AI agents run automated outreach campaigns:
-- "Your 2023 Toyota Camry is due for its 30,000-mile service. Would you like to schedule an appointment?"
-- Recall notifications with scheduling capability built in
-- Oil change reminders tied to DMS service history data
+### Caller asks for a trade-in value or finance approval
 
-These proactive campaigns drive incremental service revenue with zero additional staffing.
+Route to the responsible staff member without inventing an appraisal, rate or approval.
 
-### Post-Sale and CSI Follow-Up
+## Questions to resolve
 
-Customer Satisfaction Index (CSI) scores from J.D. Power directly affect manufacturer dealer incentives and bonuses. Post-sale and post-service follow-up calls are essential for catching issues before they become negative reviews or official complaints.
+### Is my dealership-management system supported?
 
-AI agents conduct structured CSI follow-up calls:
-- Sales delivery follow-up: "Hi, I wanted to check in on your new Ford F-150 — how is everything going? Do you have any questions I can help with?"
-- Service follow-up: "Was everything taken care of to your satisfaction? Was our team helpful and professional?"
-- Alert real managers when a customer expresses dissatisfaction (not after the survey, before)
+Verify its available APIs, permissions and allowed actions with your implementation team. This page does not promise a prebuilt connector to a named vendor.
 
-Dealers using proactive AI follow-up consistently score 15–20 points higher on J.D. Power and OEM dealer surveys.
+### How should a dealership judge a pilot?
 
-### Lease Renewal and Finance Retention
+Track accurate request capture, confirmed appointments, duplicate actions, staff follow-up and total operating cost. Use your own baseline; no sales, no-show or cost improvement is promised.
 
-For customers approaching the end of a lease or loan, timely outreach determines whether they return to your dealership or walk into a competitor's showroom.
+## Implementation evidence
 
-AI agents conduct equity mining outreach:
-- "I noticed your lease on your 2022 Honda Accord is coming up in 3 months. I wanted to reach out because we have some programs that might work really well for you right now — do you have a few minutes?"
-- Qualify interest in new vehicle options
-- Schedule an appointment with the finance office
+QuickVoice's [repository and setup boundaries](https://github.com/allgpt-co/QuickVoice#setup-boundaries) describe the application and required providers. Its [live MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py) restricts tools marked as writes or side effects. Confirm the version and configuration used for your pilot.
 
-Dealers who automate lease-end outreach with AI agents see 25–40% higher lease loyalty rates compared to manual or email-only outreach.
-
----
-
-## DMS and CRM Integration
-
-AI voice agents for automotive are most powerful when connected to your core dealership systems:
-
-**DMS (Dealer Management Systems):**
-- CDK Global
-- Reynolds & Reynolds
-- Tekion
-- DealerSocket
-- Dealerware
-- Automate / PBS Systems
-
-**CRM:**
-- VinSolutions
-- Elead / CDK CRM
-- DealerSocket CRM
-- DriveCentric
-- HubSpot (for independent dealers)
-
-**Digital Retailing / Lead Sources:**
-- AutoTrader
-- Cars.com
-- Edmunds
-- TrueCar
-- OEM digital retail platforms
-
-When the AI agent pulls a caller's record from the DMS, it can reference their specific vehicle (by VIN), service history, loyalty status, and open recalls — creating a personalized experience that builds trust.
-
----
-
-## ROI Model for a Franchise Dealership
-
-| Function | Current Cost | With AI | Savings |
-|----------|-------------|---------|---------|
-| BDC staffing (3 FTEs) | $135,000/yr | $30,000/yr (1 FTE + AI) | $105,000 |
-| Service no-show revenue loss | $180,000/yr | $117,000/yr (35% reduction) | $63,000 |
-| Incremental service from reminders | $0 | $95,000 (est.) | +$95,000 |
-| Lease loyalty improvement (25% better) | — | ~$200,000 in retained gross | +$200,000 |
-| **Total Annual Impact** | | | **$463,000+** |
-
-QuickVoice plan cost for a dealership: ~$1,500–$3,000/month. **ROI: 13–25x.**
-
----
-
-## Common Objections from Dealer Principals
-
-**"My customers want to talk to a real person."**
-For test drive scheduling and service appointments, customers overwhelmingly prefer instant response over waiting for a human to be available. The AI connects within 90 seconds — a human BDC agent might call back in 2–4 hours. Speed wins.
-
-**"What about complex trade-in and financing conversations?"**
-AI handles the first-stage qualification. Complex conversations (price negotiation, financing structure, trade appraisals) are always handled by humans. AI's job is to make those human conversations happen — promptly and with full context.
-
-**"Our DMS is CDK — can you integrate with that?"**
-Yes. QuickVoice has pre-built integrations for CDK, Reynolds & Reynolds, Tekion, and DealerSocket. Setup typically takes 2–3 days.
-
----
-
-*QuickVoice serves 400+ automotive dealerships. First AI agent live in under 30 minutes. Free 14-day trial at [console.quickvoice.co/register](https://console.quickvoice.co/register).*
+These are evaluation patterns, not a report of customer results. Review [current pricing and cost boundaries](https://quickvoice.co/pricing) and [discuss the intended workflow](https://quickvoice.co/company/contact).
