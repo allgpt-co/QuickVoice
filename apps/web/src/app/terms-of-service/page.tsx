@@ -16,12 +16,14 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://quickvoice.co/terms-of-service",
     siteName: "QuickVoice",
+    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary",
     title: "Terms of Service | QuickVoice",
     description:
       "QuickVoice Terms of Service — usage terms, acceptable use, and your rights.",
+    images: ["https://quickvoice.co/og-image.png"],
   },
 };
 

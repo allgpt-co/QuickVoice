@@ -30,6 +30,7 @@ export const metadata: Metadata = {
     url: "https://quickvoice.co/industries/healthcare",
     siteName: "QuickVoice",
     type: "website",
+    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
   },
 };
 
