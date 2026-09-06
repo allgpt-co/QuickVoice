@@ -1,16 +1,19 @@
 import { Inter } from "next/font/google";
-import Script from "next/script";
+import { Suspense } from "react";
 import "./globals.css";
 
 import type { Metadata } from "next";
 import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
-import { createGoogleAnalyticsScript } from "@/lib/google-analytics-config.mjs";
+import { GoogleAnalytics } from "@/components/google-analytics";
+import { createGoogleAnalyticsScript, manualPageviewsEnabled } from "@/lib/google-analytics-config.mjs";
 const inter = Inter({ subsets: ["latin"], display: "swap" });
 
+const manualPageviews = manualPageviewsEnabled(process.env.NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS);
 const googleAnalyticsScript = createGoogleAnalyticsScript(
   process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+  manualPageviews,
 );
 
 export const metadata: Metadata = {
@@ -77,9 +80,13 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         {googleAnalyticsScript && (
-          <Script id="google-analytics" strategy="afterInteractive">
-            {googleAnalyticsScript}
-          </Script>
+          <Suspense fallback={null}>
+            <GoogleAnalytics
+              script={googleAnalyticsScript}
+              configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
+              manualPageviews={manualPageviews}
+            />
+          </Suspense>
         )}
         <a
           href="#main-content"
