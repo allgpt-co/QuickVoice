@@ -62,6 +62,7 @@ const serviceLinks = [
   { text: "Use Cases", href: data.services.useCases },
   { text: "Pricing", href: "/pricing" },
   { text: "Blog", href: "/blog" },
+  { text: "Buyer Resources", href: "/resources" },
   { text: "Workflow Scenarios", href: "/case-studies" },
 ];
 

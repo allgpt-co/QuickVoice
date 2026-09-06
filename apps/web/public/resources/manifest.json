@@ -1,0 +1,17 @@
+{
+  "sources": {
+    "docs/marketing/seo/buyer-implementation-checklist.md": "190fca728cd1a43d132003f689060b70ff60ad01d6de1ed376a1b4f0c7e8361a",
+    "docs/marketing/seo/cost-estimation-guide.md": "f6187f6eb8f29423fa72bb34d165e13bcf4a7b994754110fecc3b877a3b7b6a8",
+    "docs/marketing/seo/cost-estimation.csv": "aacfae945d37f2b365c8d6e8057fb77abecaba00c44d46094ce8006da1bb9595"
+  },
+  "generator": {
+    "scripts/build-seo-resources.py": "9e0700f3f6b28a8af81e94bfd34810ce1bca014c9654424371bfea38d415e777"
+  },
+  "downloads": {
+    "buyer-implementation-checklist.md": "190fca728cd1a43d132003f689060b70ff60ad01d6de1ed376a1b4f0c7e8361a",
+    "cost-estimation-guide.md": "f6187f6eb8f29423fa72bb34d165e13bcf4a7b994754110fecc3b877a3b7b6a8",
+    "cost-estimation-guide.pdf": "a7e34d97a06a371100fa136ba908a388edfd7ec8902d9196cc02f47129927676",
+    "cost-estimation.csv": "aacfae945d37f2b365c8d6e8057fb77abecaba00c44d46094ce8006da1bb9595",
+    "phone-agent-checklist.pdf": "5b334c2d6e572d5c12e57bb654e20489796eae41d501997337bfb90be4f133ee"
+  }
+}

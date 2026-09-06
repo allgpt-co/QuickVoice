@@ -7,7 +7,7 @@ The audience is business owners and operations, support, sales, and property-man
 ## Start here
 
 1. Use [source-status.md](source-status.md) to distinguish source plans, completed preparation, implementation verification, and external dependencies.
-2. Use [inventory.csv](inventory.csv) for the complete source census: 90 blog files, 33 illustrative scenarios, and 33 static marketing routes. Source titles are identifiers, not approved claims. Update individual review rows only after verifying the final content and rendered metadata. Dynamic blog/scenario routes are represented by their content rows, not counted again as route templates.
+2. Use [inventory.csv](inventory.csv) for the complete source census: 90 blog files, 33 illustrative scenarios, and 34 static marketing routes, including the new buyer-resource page. Source titles are identifiers, not approved claims. Update individual review rows only after verifying the final content and rendered metadata. Dynamic blog/scenario routes are represented by their content rows, not counted again as route templates. The [remaining-review queue](review-queue.csv) fixes the original 78-blog, 33-scenario and 22-route backlog and preserves original publication dates; completed decisions belong in the inventory and batch reports.
 3. Use [keyword-map.csv](keyword-map.csv) to connect the initial 12 revised articles to commercial pages. These are intent hypotheses; no invented search-volume or difficulty scores are supplied.
 4. Run [calendar-90-days.csv](calendar-90-days.csv). Day 1 is the actual campaign start after the revised destinations are deployed and checked. Enter that date and named owners in your operating tracker; calendar days have not elapsed merely because the materials exist.
 5. Use the drafts and worksheets below as the working assets. Keep the calendar's execution status separate from the draft's preparation status.
@@ -23,6 +23,7 @@ The audience is business owners and operations, support, sales, and property-man
 | [Walkthrough script](walkthrough-script.md) | Record a factual synthetic-data product evaluation with visible prerequisites. |
 | [Buyer implementation checklist](buyer-implementation-checklist.md) | Define and test one workflow before deciding whether to expand. |
 | [Cost worksheet](cost-estimation.csv) and [instructions](cost-estimation-guide.md) | Editable monthly cost model with formulas and separately identified assumptions. |
+| [Public buyer resources](https://quickvoice.co/resources) | Accessible checklist and instructions, two PDF downloads and the editable CSV; [release verification](buyer-resources-verification-2026-09-06.md). |
 | [Customer-story templates and request drafts](customer-story-templates.md) | Three evidence-dependent story briefs; no customer results have been invented. |
 | [20 distribution opportunities](distribution-opportunities.csv) | Primary-source-verified channels, specific fit, rules, proposed pitch, and unsent status. |
 | [Listing packages](listing-packages.md) | Field-ready OpenSourceAlternative.to and AlternativeTo copy with eligibility limits. |

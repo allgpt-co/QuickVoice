@@ -10,7 +10,11 @@ Hi [first name],
 
 Thanks for requesting the evaluation checklist. It starts with one practical decision: which call type should the agent handle, and what must happen for that call to count as successful?
 
-The checklist is attached. Before selecting a tool, write down the approved answers, the destination for the outcome and the person responsible when the workflow cannot finish.
+Download the checklist here:
+https://quickvoice.co/resources/phone-agent-checklist.pdf
+
+Before selecting a tool, write down the approved answers, the destination for the outcome and the person responsible when the workflow cannot finish. You can also read the checklist on the resource page:
+https://quickvoice.co/resources#checklist
 
 For a scheduling example, the guide is here:
 https://quickvoice.co/blog/ai-appointment-scheduling-guide
@@ -22,7 +26,7 @@ https://quickvoice.co/company/contact
 QuickVoice
 [Actual company footer and unsubscribe link]
 
-Operator note: attach `buyer-implementation-checklist.md` in the recipient-appropriate format before using this draft. If no attachment is available, replace that sentence with an accurate resource link. No attachment is claimed as sent here.
+Operator note: verify the deployed PDF and resource page before activation. Use the opening resource-request sentence only for a cohort with that recorded request; for general evaluation-guidance opt-ins, use "Here is a checklist to help you evaluate one phone-agent workflow."
 
 ## Email 2 — four days after Email 1, if still opted in
 
@@ -32,7 +36,13 @@ Hi [first name],
 
 A cost comparison is easier to trust when it includes provider charges, unanswered attempts, human follow-up, quality review and implementation time. The lowest advertised per-minute figure may not describe your full workflow.
 
-Use your own call volumes and supplier quotes in the attached worksheet. Its example inputs are illustrative; they are not QuickVoice prices or promised savings. A like-for-like baseline should cover the same call types and service expectations.
+Use your own call volumes and supplier quotes in this editable worksheet:
+https://quickvoice.co/resources/cost-estimation.csv
+
+Read the instructions before editing:
+https://quickvoice.co/resources#costs
+
+Its example inputs are illustrative; they are not QuickVoice prices or promised savings. A like-for-like baseline should cover the same call types and service expectations.
 
 This guide explains the cost categories:
 https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs
@@ -44,7 +54,7 @@ https://quickvoice.co/pricing
 QuickVoice
 [Actual company footer and unsubscribe link]
 
-Operator note: attach `cost-estimation.csv` and `cost-estimation-guide.md` before sending; otherwise replace “attached worksheet” with an accurate reference to the available resource. Do not publish the default worksheet output as an estimate for this recipient.
+Operator note: verify both deployed resource links before activation. Do not publish the default worksheet output as an estimate for this recipient.
 
 ## Email 3 — ten days after Email 1, if still opted in
 
