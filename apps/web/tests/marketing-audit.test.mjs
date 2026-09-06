@@ -118,7 +118,8 @@ test("pricing, FAQ, and HIPAA copy use aligned public claims", () => {
     pricingCopy,
     /Starter \(\$49\/mo\)|15 browser-only minutes|included minutes/,
   );
-  assert.match(hipaa, /HIPAA is a deployment outcome, not a repository badge/);
+  assert.match(hipaa, /Healthcare deployment review/);
+  assert.match(hipaa, /www\.hhs\.gov\/hipaa\/for-professionals/);
   assert.match(
     hipaa,
     /open-source repository does not by itself establish HIPAA/,

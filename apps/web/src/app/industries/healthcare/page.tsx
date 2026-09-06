@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   description:
     "Evaluate self-hostable AI phone-agent workflows for healthcare scheduling, reminders, routing, and follow-up with explicit provider and compliance boundaries.",
   alternates: { canonical: "https://quickvoice.co/industries/healthcare" },
+  twitter: {
+    card: "summary_large_image",
+    title: "QuickVoice for Healthcare Workflows",
+    description:
+      "Evaluate healthcare administrative phone workflows with explicit data, provider, action and compliance review boundaries.",
+    images: ["/og-image.png"],
+  },
   openGraph: {
     title: "QuickVoice for Healthcare Workflows",
     description:
@@ -37,13 +44,13 @@ const workflows = [
     icon: CalendarClock,
     title: "Scheduling workflows",
     description:
-      "Connect an approved scheduling source, constrain which appointment actions are allowed, and preserve a human handoff for exceptions.",
+      "Implement authorized scheduling access and a permitted booking action; a requested time is not a confirmed appointment. The default live MCP bridge restricts marked write and side-effect tools. Preserve a staff fallback.",
   },
   {
     icon: BellRing,
     title: "Reminders and follow-up",
     description:
-      "Run consent-aware reminder flows with identity checks, minimal disclosure, opt-out handling, and documented escalation paths.",
+      "Design reminder flows with verified contact eligibility, identity checks, minimal disclosure, an implemented stop process and documented staff escalation.",
   },
   {
     icon: ClipboardList,
@@ -135,7 +142,7 @@ export default function HealthcarePage() {
           <p className="mt-5 max-w-3xl leading-7 text-muted-foreground">
             These are implementation patterns, not claims of native EHR
             integrations, clinical decision support, automatic compliance, or
-            guaranteed outcomes.
+            measured outcomes.
           </p>
 
           <div className="mt-10 grid gap-5 sm:grid-cols-2">
