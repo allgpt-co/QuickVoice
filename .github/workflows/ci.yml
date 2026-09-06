@@ -96,7 +96,7 @@ jobs:
         run: node --test apps/console/tests/*.test.mjs
 
   web:
-    name: Web Lint, Types, Build
+    name: Web Lint, Types, Build, Tests
     runs-on: ubuntu-latest
     timeout-minutes: 40
     steps:
@@ -121,6 +121,12 @@ jobs:
 
       - name: Typecheck web
         run: pnpm --filter web check-types
+
+      - name: Run web tests
+        run: pnpm --filter web test
+
+      - name: Audit SEO campaign evidence
+        run: pnpm claims:audit:seo
 
       - name: Build web
         run: pnpm --filter web build

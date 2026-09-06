@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.quickvoice.co" }],
+        destination: "https://quickvoice.co/:path*",
+        permanent: true,
+      },
+      {
         source: "/register",
         destination: `${consoleUrl}/register`,
         permanent: false,

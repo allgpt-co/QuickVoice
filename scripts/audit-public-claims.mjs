@@ -7,6 +7,7 @@ const ROOT = process.cwd();
 const TARGETS = ["apps/web/src", "apps/web/content", "apps/web/public"];
 const EXTENSIONS = new Set([
   ".js",
+  ".mjs",
   ".jsx",
   ".md",
   ".mdx",
@@ -142,17 +143,24 @@ function auditFile(file) {
   const text = readFileSync(file, "utf8");
   const lines = text.split(/\r?\n/);
   const findings = [];
+  for (const [index, line] of lines.entries()) {
+    if (line.includes(ALLOW_MARKER)) {
+      findings.push({
+        rule: "UNSUPPORTED_EXCEPTION",
+        description: "Suppression markers cannot establish an approved claim",
+        file: relative(ROOT, file).replaceAll("\\", "/"),
+        line: index + 1,
+        excerpt: excerpt(line),
+      });
+    }
+  }
 
   for (let index = 0; index < lines.length; index += 1) {
     const window = lines.slice(index, index + 3).join(" ");
     const context = lines
       .slice(Math.max(0, index - 2), Math.min(lines.length, index + 5))
       .join(" ");
-    if (
-      !window.trim() ||
-      context.includes(ALLOW_MARKER) ||
-      SAFE_CONTEXT.test(context)
-    ) {
+    if (!window.trim() || SAFE_CONTEXT.test(context)) {
       continue;
     }
 
@@ -237,7 +245,7 @@ if (asJson) {
     );
   }
   process.stdout.write(
-    `\nResolve each claim with public evidence or rewrite it. Use "${ALLOW_MARKER} CLAIM-ID" only after the evidence registry contains an approved entry.\n`,
+    `\nResolve each claim with public evidence or rewrite it. Suppression markers are rejected; rewrite the claim and record sources in the editorial review.\n`,
   );
 }
 

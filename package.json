@@ -15,7 +15,7 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{js,mjs,json,md,ts,tsx}\"",
     "check-types": "turbo run check-types",
-    "test": "node --test tests/*.test.mjs && node --test apps/console/tests/*.test.mjs && pnpm --filter server test",
+    "test": "node --test tests/*.test.mjs && node --test apps/console/tests/*.test.mjs && pnpm --filter web test && pnpm --filter server test",
     "test:dev-orchestration": "node --test tests/dev-orchestration.test.mjs",
     "check:tasks": "node scripts/verify-turbo-tasks.mjs",
     "check:configs": "pnpm --filter @repo/eslint-config lint && pnpm --filter @repo/typescript-config lint",
@@ -24,6 +24,7 @@
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
     "audit:deps": "node scripts/security-audit.mjs",
     "claims:audit": "node scripts/audit-public-claims.mjs",
+    "claims:audit:seo": "node scripts/check-seo-campaign.mjs",
     "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
   },
   "devDependencies": {

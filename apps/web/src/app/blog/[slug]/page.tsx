@@ -1,4 +1,4 @@
-import { getPostBySlug, getAllSlugs, getRelatedPosts } from "@/lib/blog";
+import { getPostBySlug, getAllSlugs, getRelatedPosts, isIndexablePost, getPostModifiedDate } from "@/lib/blog";
 import MarkdownRenderer from "@/components/blog/MarkdownRenderer";
 import { EvidenceStatusNotice } from "@/components/evidence-status-notice";
 import type { Metadata } from "next";
@@ -23,6 +23,9 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+export const revalidate = 3600;
+export const dynamic = "force-static";
+
 export async function generateStaticParams() {
   const slugs = getAllSlugs();
   return slugs.map((slug) => ({ slug }));
@@ -33,11 +36,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = getPostBySlug(slug);
   if (!post) return { title: "Post not found" };
   return {
-    title: post.metaTitle || post.title,
+    title: { absolute: post.metaTitle || post.title },
     description: post.metaDescription,
     alternates: { canonical: post.canonical },
     robots: {
-      index: false,
+      index: isIndexablePost(post),
       follow: true,
     },
     openGraph: {
@@ -45,6 +48,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       description: post.metaDescription,
       type: "article",
       publishedTime: post.date,
+      modifiedTime: getPostModifiedDate(post),
       authors: [post.author],
       tags: post.tags,
       url: `https://quickvoice.co/blog/${slug}`,
@@ -117,6 +121,7 @@ function formatDate(dateStr: string) {
       year: "numeric",
       month: "long",
       day: "numeric",
+      timeZone: "UTC",
     });
   } catch {
     return dateStr;
@@ -130,6 +135,8 @@ export default async function BlogPostPage({ params }: Props) {
 
   const relatedPosts = getRelatedPosts(slug, 3);
   const meta = CATEGORY_META[post.category] || defaultMeta();
+  const indexable = isIndexablePost(post);
+  const modifiedDate = getPostModifiedDate(post);
 
   const articleSchema = {
     "@context": "https://schema.org",
@@ -150,14 +157,12 @@ export default async function BlogPostPage({ params }: Props) {
       },
     },
     datePublished: post.date,
-    dateModified: post.date,
+    dateModified: modifiedDate,
     mainEntityOfPage: {
       "@type": "WebPage",
       "@id": `https://quickvoice.co/blog/${post.slug}`,
     },
-    image: post.ogImage
-      ? `https://quickvoice.co${post.ogImage}`
-      : "https://quickvoice.co/og-image.png",
+    image: new URL(post.ogImage || "/og-image.png", "https://quickvoice.co").href,
     url: `https://quickvoice.co/blog/${post.slug}`,
     keywords: post.tags.join(", "),
   };
@@ -192,7 +197,7 @@ export default async function BlogPostPage({ params }: Props) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify([articleSchema, breadcrumbSchema]),
+          __html: JSON.stringify(indexable ? [articleSchema, breadcrumbSchema] : [breadcrumbSchema]).replace(/</g, "\\u003c"),
         }}
       />
       {/* Top bar */}
@@ -220,7 +225,7 @@ export default async function BlogPostPage({ params }: Props) {
       <div className="mx-auto max-w-7xl px-4 pt-10 pb-24">
         <div className="grid lg:grid-cols-[1fr_300px] gap-12 items-start">
           {/* Main content */}
-          <article>
+          <article className="min-w-0">
             {/* Back link */}
             <Link
               href="/blog"
@@ -255,6 +260,9 @@ export default async function BlogPostPage({ params }: Props) {
                   <Calendar className="h-4 w-4" />
                   {formatDate(post.date)}
                 </span>
+                {modifiedDate !== post.date && (
+                  <span>Updated {formatDate(modifiedDate)}</span>
+                )}
                 <span className="flex items-center gap-1.5">
                   <Clock className="h-4 w-4" />
                   {post.readTime} read
@@ -277,7 +285,7 @@ export default async function BlogPostPage({ params }: Props) {
               )}
             </header>
 
-            <div className="mb-10">
+            {!indexable && <div className="mb-10">
               <EvidenceStatusNotice title="Editorial content under evidence review">
                 <p>
                   This article may contain third-party statistics, illustrative
@@ -287,7 +295,7 @@ export default async function BlogPostPage({ params }: Props) {
                   a buying, compliance, launch, or implementation decision.
                 </p>
               </EvidenceStatusNotice>
-            </div>
+            </div>}
 
             {/* Article body */}
             <div className="min-w-0">

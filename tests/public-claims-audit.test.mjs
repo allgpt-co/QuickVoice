@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { join, relative } from "node:path";
 import { test } from "node:test";
 
 const repositoryRoot = fileURLToPath(new URL("../", import.meta.url));
@@ -33,4 +35,32 @@ test("public claims audit rejects targets outside the repository", () => {
 
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Target must stay inside the repository/);
+});
+
+test("an unregistered suppression marker cannot hide an unsupported claim", () => {
+  const directory = mkdtempSync(join(repositoryRoot, ".claims-audit-test-"));
+  try {
+    const file = join(directory, "claim.md");
+    writeFileSync(
+      file,
+      "<!-- claims-audit: allow MADE-UP -->\nQuickVoice: no setup, guaranteed results.\n",
+    );
+    const result = runAudit([
+      "--json",
+      "--target",
+      relative(repositoryRoot, file),
+    ]);
+    assert.equal(result.status, 1);
+    const report = JSON.parse(result.stdout);
+    assert.ok(
+      report.findings.some(
+        (finding) => finding.rule === "UNSUPPORTED_EXCEPTION",
+      ),
+    );
+    assert.ok(
+      report.findings.some((finding) => finding.rule === "ABSOLUTE_OUTCOME"),
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
 });

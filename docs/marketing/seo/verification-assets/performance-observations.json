@@ -1,0 +1,86 @@
+{
+  "observedAt": "2026-09-06T07:37:00Z",
+  "environment": {
+    "baseUrl": "http://127.0.0.1:3108",
+    "build": "Next.js production build",
+    "browser": "Installed Playwright Chromium 1237, headless",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "networkThrottling": "none",
+    "cpuThrottling": "none",
+    "cache": "reused browser context; cache not cleared between routes",
+    "externalHttpRequests": "blocked by browser routing, including analytics"
+  },
+  "methodology": {
+    "navigation": "PerformanceNavigationTiming measured from navigation start",
+    "lcp": "Last largest-contentful-paint observer entry in the initial viewport",
+    "cls": "Maximum layout-shift session window, excluding recent-input shifts; gaps below 1 second and window up to 5 seconds",
+    "capture": "Foreground page; waited 1500 ms after load before reading observers",
+    "sampleCount": "One reported observation per route. Workflow and article foreground captures replaced initial background-tab captures with unavailable LCP.",
+    "limitations": "Local, unthrottled, short-window observations only. These are not field Core Web Vitals, a statistical benchmark, or a production performance guarantee."
+  },
+  "pages": [
+    {
+      "path": "/",
+      "ttfbMs": 7.3,
+      "domContentLoadedMs": 148.8,
+      "loadMs": 232.7,
+      "lcpMs": 156,
+      "observedCls": 0,
+      "observationWindowMs": 1742.1,
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false
+    },
+    {
+      "path": "/use-cases/appointment-scheduling",
+      "ttfbMs": 4.1,
+      "domContentLoadedMs": 54.7,
+      "loadMs": 222.7,
+      "lcpMs": 132,
+      "observedCls": 0,
+      "observationWindowMs": 1728.6,
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false
+    },
+    {
+      "path": "/blog/free-ai-appointment-scheduling-tools",
+      "ttfbMs": 7.8,
+      "domContentLoadedMs": 69,
+      "loadMs": 133.8,
+      "lcpMs": 132,
+      "observedCls": 0,
+      "observationWindowMs": 1639.8,
+      "viewportWidth": 390,
+      "documentWidth": 390,
+      "horizontalOverflow": false
+    }
+  ],
+  "contactQa": {
+    "path": "/company/contact",
+    "formattedPhoneAccepted": true,
+    "phoneValidationError": null,
+    "api": "Browser-intercepted HTTP 200 response; no outbound message delivered",
+    "successMessage": "Thank you. Your inquiry was delivered to the QuickVoice team.",
+    "analytics": {
+      "capture": "window.gtag spy; no event sent to Google Analytics",
+      "generateLeadCount": 1,
+      "event": [
+        "event",
+        "generate_lead",
+        {
+          "method": "contact_form",
+          "form_location": "contact_page",
+          "page_path": "/company/contact"
+        }
+      ],
+      "containsNameEmailOrPhone": false
+    },
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "horizontalOverflow": false
+  }
+}

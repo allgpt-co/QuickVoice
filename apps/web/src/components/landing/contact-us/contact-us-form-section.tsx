@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Phone, Mail, Building2, Loader2, Check } from "lucide-react";
+import { trackContactLead } from "@/lib/analytics";
 
 const contactInfo = {
   email: "info@quickvoice.co",
@@ -69,10 +70,8 @@ export function ContactUsFormSection() {
       newErrors.message = "Message must be at least 10 characters";
     }
 
-    if (
-      formData.phone &&
-      !/^[+]?[1-9][\d]{0,15}$/.test(formData.phone.replace(/\s/g, ""))
-    ) {
+    const phone = formData.phone.trim();
+    if (phone && !/^[+]?[1-9][\d\s().-]{3,24}$/.test(phone)) {
       newErrors.phone = "Please enter a valid phone number";
     }
 
@@ -103,10 +102,11 @@ export function ContactUsFormSection() {
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.ok !== true) {
         throw new Error(data.error || "Unable to process your request at this time");
       }
 
+      trackContactLead("contact_page");
       // Clear form data
       setFormData({
         name: "",
@@ -142,7 +142,7 @@ export function ContactUsFormSection() {
   };
 
   return (
-    <section className="bg-background px-4 py-16 sm:px-6 lg:px-8">
+    <section className="overflow-hidden bg-background px-4 py-16 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:items-start">
           {/* Form */}
@@ -161,8 +161,8 @@ export function ContactUsFormSection() {
                 Let&apos;s Start Your Journey
               </h2>
               <p className="text-sm text-muted-foreground sm:text-base">
-                Ready to transform your business? Fill out the form below and our experts will
-                get back to you within 24 hours.
+                Tell us about your workflow so our team can help you evaluate
+                the requirements and next steps.
               </p>
             </div>
 
@@ -350,7 +350,7 @@ export function ContactUsFormSection() {
 
                 {isSubmitted && (
                   <div role="status" className="rounded-lg border border-green-300 bg-green-50 p-3 text-sm text-green-700 dark:border-green-800 dark:bg-green-950/20 dark:text-green-400">
-                    Thank you! Your inquiry has been received. A voice AI specialist will respond within one business day. Check your email for confirmation.
+                    Thank you. Your inquiry was delivered to the QuickVoice team.
                   </div>
                 )}
               </div>
@@ -432,7 +432,7 @@ export function ContactUsFormSection() {
                       {contactInfo.phone}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Mon–Fri · 9 AM – 6 PM EST • Immediate response
+                      Discuss your calling workflow with our team.
                     </p>
                   </div>
                 </div>
@@ -457,7 +457,7 @@ export function ContactUsFormSection() {
                       {contactInfo.email}
                     </p>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      We&apos;ll respond within 24 hours • Detailed Support.
+                      Contact our team about your requirements.
                     </p>
                   </div>
                 </div>

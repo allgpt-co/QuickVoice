@@ -1,0 +1,81 @@
+{
+  "checkedAt": "2026-09-06T08:08:56.925522+00:00",
+  "buildId": "mcQelttorQ6fTc10wwncU",
+  "buildConfiguration": {
+    "NEXT_PUBLIC_GA_MEASUREMENT_ID": "blank, to exercise verified fallback"
+  },
+  "environment": {
+    "server": "http://127.0.0.1:3108",
+    "browser": "Headless installed Playwright Chromium",
+    "canonicalHostSimulation": "Browser kept https://quickvoice.co as its origin; its requests were fulfilled from local production server",
+    "googleTag": "Intercepted and fulfilled with inert mock JavaScript",
+    "allOtherExternalRequests": "Blocked"
+  },
+  "defaultHomepage": {
+    "hostname": "quickvoice.co",
+    "tagUrl": "https://www.googletagmanager.com/gtag/js?id=G-SZFBG11VRP",
+    "tagCount": 1,
+    "mockTagLoads": 1,
+    "commands": [
+      "js",
+      "config"
+    ],
+    "configCount": 1,
+    "configTarget": "G-SZFBG11VRP"
+  },
+  "clientNavigation": {
+    "from": "/blog",
+    "to": "/solutions",
+    "navigationMethod": "Main navigation Solutions link",
+    "before": {
+      "tagCount": 1,
+      "configCount": 1,
+      "configTargets": [
+        "G-SZFBG11VRP"
+      ]
+    },
+    "after": {
+      "tagCount": 1,
+      "configCount": 1
+    },
+    "duplicateInitialization": false
+  },
+  "localhost": {
+    "hostname": "127.0.0.1",
+    "path": "/blog",
+    "bootstrapPresent": true,
+    "tagCount": 0,
+    "gtagType": "undefined",
+    "dataLayerCount": 0,
+    "googleResourceCount": 0
+  },
+  "consolidatedRunNetwork": {
+    "mockedTagRequests": [
+      "https://www.googletagmanager.com/gtag/js?id=G-SZFBG11VRP"
+    ],
+    "collectionRequests": 0,
+    "realGoogleTagFetches": 0,
+    "realGoogleCollectionRequests": 0
+  },
+  "independentSourceReview": {
+    "result": "passed",
+    "exactDefaultHostGuard": [
+      "quickvoice.co",
+      "www.quickvoice.co"
+    ],
+    "validExplicitOverride": "Uses configured GA4 ID on any host",
+    "offSwitch": "Returns no bootstrap",
+    "duplicateGuard": "Existing quickvoice-google-tag element stops duplicate initialization"
+  },
+  "limitations": [
+    "This verifies the local production build, not a deployed update.",
+    "Google JavaScript was mocked; actual GA processing, page-view receipt and enhanced-measurement navigation behavior were not tested.",
+    "An earlier multi-command browser follow-up stalled; the complete navigation/local-host assertions passed in a fresh consolidated run. The optional www browser navigation timed out and is excluded from browser conclusions; its guard was reviewed in source."
+  ],
+  "scope": {
+    "formsSubmitted": false,
+    "leadEventsTriggered": false,
+    "sourceOrConfigurationChangedByQa": false,
+    "cookiesClientIdsOrCollectPayloadsRecorded": false
+  }
+}

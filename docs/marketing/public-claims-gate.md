@@ -22,7 +22,7 @@ Do not publish these as QuickVoice facts without an approved registry entry and 
 The following are suitable when they match the current code and documentation:
 
 - repository contents and routes that a reviewer can inspect;
-- the AGPL-3.0 license and its high-level obligations, with a non-legal-advice note;
+- the MIT license, quoting its actual terms and preserving required notices;
 - local-development commands and their documented prerequisites;
 - provider requirements for LiveKit, Twilio or Telnyx, speech, models, storage, OAuth, billing, and email;
 - architecture and data-path descriptions tied to named source files;
@@ -72,7 +72,7 @@ repeated. It rejects missing paths and paths outside the repository.
 
 The audit intentionally exits non-zero while potential unsupported claims remain. It is a launch-readiness gate, not a guarantee that all surviving copy is correct.
 
-An approved exception may add `claims-audit: allow CLAIM-ID` beside the exact claim only after the evidence registry contains that claim ID. Broad file-level suppressions are not allowed.
+The automated audit rejects `claims-audit: allow` markers. A marker is not evidence, and this repository has no implemented exception registry. Rewrite flagged copy and record the actual sources and reviewer in the article evidence review. Passing the scan is a preliminary check; factual review is still required.
 
 ## Launch Decision
 

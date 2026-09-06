@@ -1,0 +1,477 @@
+{
+  "sitemap_count": 45,
+  "pages": [
+    {
+      "path": "/",
+      "status": 200,
+      "canonical": "https://quickvoice.co",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebSite",
+        "Organization",
+        "WebApplication",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/open-source",
+      "status": 200,
+      "canonical": "https://quickvoice.co/open-source",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "SoftwareSourceCode"
+      ]
+    },
+    {
+      "path": "/company/about-us",
+      "status": 200,
+      "canonical": "https://quickvoice.co/company/about-us",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "Organization"
+      ]
+    },
+    {
+      "path": "/company/careers",
+      "status": 200,
+      "canonical": "https://quickvoice.co/company/careers",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "Organization"
+      ]
+    },
+    {
+      "path": "/company/contact",
+      "status": 200,
+      "canonical": "https://quickvoice.co/company/contact",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "ContactPage"
+      ]
+    },
+    {
+      "path": "/industries",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage"
+      ]
+    },
+    {
+      "path": "/industries/automotive",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/automotive",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/e-commerce",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/e-commerce",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/education",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/education",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/financial-services",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/financial-services",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/industries/healthcare",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/healthcare",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage"
+      ]
+    },
+    {
+      "path": "/industries/hr-recruiting",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/hr-recruiting",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/logistics",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/logistics",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/manufacturing-engineering",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/manufacturing-engineering",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/real-estate",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/real-estate",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/saas",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/saas",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/industries/travel-hospitality",
+      "status": 200,
+      "canonical": "https://quickvoice.co/industries/travel-hospitality",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/use-cases",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebPage"
+      ]
+    },
+    {
+      "path": "/use-cases/appointment-scheduling",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/appointment-scheduling",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/use-cases/customer-support",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/customer-support",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/use-cases/operations-automation",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/operations-automation",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/use-cases/order-status-returns",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/order-status-returns",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/use-cases/reminders-collections",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/reminders-collections",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/use-cases/sales-lead-gen",
+      "status": 200,
+      "canonical": "https://quickvoice.co/use-cases/sales-lead-gen",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/blog",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "CollectionPage",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/case-studies",
+      "status": 200,
+      "canonical": "https://quickvoice.co/case-studies",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/pricing",
+      "status": 200,
+      "canonical": "https://quickvoice.co/pricing",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "WebApplication",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/solutions",
+      "status": 200,
+      "canonical": "https://quickvoice.co/solutions",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/solutions/ai-receptionist",
+      "status": 200,
+      "canonical": "https://quickvoice.co/solutions/ai-receptionist",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/solutions/ai-answering-service",
+      "status": 200,
+      "canonical": "https://quickvoice.co/solutions/ai-answering-service",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BreadcrumbList",
+        "FAQPage"
+      ]
+    },
+    {
+      "path": "/compliance/hipaa",
+      "status": 200,
+      "canonical": "https://quickvoice.co/compliance/hipaa",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/privacy-policy",
+      "status": 200,
+      "canonical": "https://quickvoice.co/privacy-policy",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/terms-of-service",
+      "status": 200,
+      "canonical": "https://quickvoice.co/terms-of-service",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": []
+    },
+    {
+      "path": "/blog/retell-ai-alternatives",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/retell-ai-alternatives",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/vapi-alternatives",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/vapi-alternatives",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/best-ai-voice-agent-platforms-2026",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-phone-answering-service-small-business",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-phone-answering-service-small-business",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-voice-agent-security-data-privacy",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agent-security-data-privacy",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-voice-agents-property-management",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agents-property-management",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/free-ai-appointment-scheduling-tools",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/free-ai-appointment-scheduling-tools",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-appointment-scheduling-guide",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-appointment-scheduling-guide",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-voice-agents-reduce-customer-support-costs",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/automated-appointment-reminders-guide",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/automated-appointment-reminders-guide",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/ai-voice-agents-b2b-lead-qualification",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/ai-voice-agents-b2b-lead-qualification",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    },
+    {
+      "path": "/blog/build-ai-voice-agent-small-business",
+      "status": 200,
+      "canonical": "https://quickvoice.co/blog/build-ai-voice-agent-small-business",
+      "robots": "index, follow",
+      "h1": 1,
+      "schema": [
+        "BlogPosting",
+        "BreadcrumbList"
+      ]
+    }
+  ],
+  "legacy_and_scenarios_noindex": true,
+  "future_404": true,
+  "www_308_preserves_path_and_query": true
+}

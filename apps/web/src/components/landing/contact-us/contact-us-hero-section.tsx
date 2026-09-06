@@ -1,7 +1,15 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Phone, MessageSquare, Headphones, Sparkles, Globe, Zap, Mail } from "lucide-react";
+import {
+  Phone,
+  MessageSquare,
+  Headphones,
+  Sparkles,
+  Globe,
+  Zap,
+  Mail,
+} from "lucide-react";
 
 const floatingIcons = [
   { Icon: Phone, delay: 0, x: "10%", y: "20%" },
@@ -18,7 +26,7 @@ const floatingIcons = [
 
 export function ContactUsHeroSection() {
   return (
-    <section className="relative w-full overflow-hidden min-h-screen pt-32 pb-20 font-light antialiased md:pt-24 md:pb-24 bg-background flex items-center">
+    <section className="relative w-full overflow-hidden pt-32 pb-12 font-light antialiased md:pt-24 md:pb-12 bg-background flex items-center">
       <div className="absolute inset-0 overflow-hidden">
         {/* Background Gradients - Similar to industries page */}
         <div
@@ -100,13 +108,9 @@ export function ContactUsHeroSection() {
               transition={{ duration: 0.6, delay: 0.2 }}
               className="mx-auto max-w-3xl text-base leading-8 text-muted-foreground sm:text-lg md:text-xl"
             >
-              Join industry leaders using QuickVoice to automate customer interactions,
-              boost sales by 40%, and deliver exceptional experiences with our
-              <span className="font-semibold text-foreground">
-                {" "}
-                enterprise-grade voice AI platform
-              </span>
-              .
+              Tell us which calls you want to handle, which business systems
+              need to connect, and how your team follows up today. We can
+              discuss the implementation work and a practical evaluation.
             </motion.p>
 
             <motion.div
@@ -128,9 +132,9 @@ export function ContactUsHeroSection() {
             className="mx-auto grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3"
           >
             {[
-              { label: "Active Businesses", value: "10,000+" },
-              { label: "Uptime SLA", value: "99.9%" },
-              { label: "Languages", value: "50+" },
+              { label: "Start with", value: "One workflow" },
+              { label: "Plan for", value: "Human follow-up" },
+              { label: "Evaluate", value: "Your own calls" },
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
