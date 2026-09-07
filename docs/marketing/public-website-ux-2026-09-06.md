@@ -1,6 +1,6 @@
 # Public website UX implementation and verification
 
-Date: 2026-09-06. Source baseline: `4243b0b03388ad3ed845f24ac6a7f23a1a4b7ea5`.
+Implementation: 2026-09-06. Final verification: 2026-09-07 UTC. Source baseline: `4243b0b03388ad3ed845f24ac6a7f23a1a4b7ea5`.
 
 ## Scope and decisions
 
@@ -33,9 +33,9 @@ No content Markdown, publication dates, review fingerprints, downloadable resour
 ## Verification
 
 - Web lint, type checking and optimized production build passed.
-- All 52 web tests and 39 root tests passed. New behavioral coverage exercises contact validation/delivery, CTA origin matching, topic/pagination metadata, heading transformations and fragment links.
+- All 52 web tests and 40 root tests passed. New behavioral coverage exercises contact validation/delivery, CTA origin matching, topic/pagination metadata, heading transformations and fragment links.
 - Claims audit passed across 186 reachable public-content files. Dependency audit passed with the repository's existing suppressions unchanged.
-- Full source-derived crawl verified the expected statuses for 157 routes: 65 published/reviewed articles, 25 unavailable articles, 33 illustrative scenario details and 34 static routes. The 99-URL sitemap matched exactly. All 10,009 rendered internal-link occurrences and 195 Markdown-link occurrences resolved; 47 FAQ schema questions/answers were visibly present.
+- Full source-derived crawl verified the expected statuses for 157 routes: 66 published articles (65 reviewed/indexable), 24 unavailable articles, 33 illustrative scenario details and 34 static routes. The 99-URL sitemap matched exactly. All 10,076 rendered internal-link occurrences and 195 Markdown-link occurrences resolved; 47 FAQ schema questions/answers were visibly present.
 - All 65 reviewed articles passed a DOM audit: correct single H1, no duplicate opening title, 838 matching contents links, unique IDs, and preserved publication dates, canonicals and indexability.
 - Core homepage/workflow/regulated-page checks covered 320, 390, 768, 1024, 1440 and 1920 CSS pixels. Secondary-page checks covered twelve routes at 320/390/1440 light and 390 dark, plus desktop dark and keyboard interactions. Checked pages had no page-level horizontal overflow and one main/H1.
 - Read-only checklist inputs have accessible names derived from their own task text, including nested tasks. Primary button hover states use a solid darker blue; legal links retain full text contrast on hover.
@@ -63,4 +63,10 @@ Local evidence is stored under the isolated checkout's `output/playwright/`, `ou
 
 ## Existing framework limitation
 
-Unavailable dynamic blog URLs return HTTP 404 and noindex, but Next.js initially sends its error shell; the custom recovery page appears after hydration. The same behavior was confirmed on the unchanged production site, including an unknown blog slug. Generic unknown routes render their recovery page in the initial HTML. The strict crawler retains 50 initial-main/H1 findings across 25 unavailable articles, while their status, indexing and hydrated recovery checks pass. This release preserves publication timing and ISR behavior; it does not freeze future routes or alter framework routing to mask that existing limitation.
+Unavailable dynamic blog URLs return HTTP 404 and noindex, but Next.js initially sends its error shell; the custom recovery page appears after hydration. The same behavior was confirmed on the unchanged production site, including an unknown blog slug. Generic unknown routes render their recovery page in the initial HTML. The strict crawler retains 48 initial-main/H1 findings across 24 unavailable articles, while their status, indexing and hydrated recovery checks pass. This release preserves publication timing and ISR behavior; it does not freeze future routes or alter framework routing to mask that existing limitation.
+
+## CI date-boundary correction
+
+The UTC date changed during verification. The root configuration test had compared a date-only security exception expiry with the current timestamp, while the existing dependency auditor treats the expiry date as inclusive. The test now invokes the auditor's own suppression-only check with today's UTC date. A boundary regression verifies acceptance on the expiry date and rejection the following day. No security exception date, audit severity, package version or audit enforcement rule was changed.
+
+The date transition also made one previously scheduled, unreviewed guide readable under the unchanged publication rules. It remains noindex and outside the sitemap. Final verification therefore has 66 readable articles, 65 reviewed/indexable articles and 24 unavailable articles; the sitemap still has 99 URLs.

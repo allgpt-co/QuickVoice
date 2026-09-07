@@ -72,11 +72,17 @@ test("security audit fails on any advisory without a blanket suppression baselin
     assert.ok(suppression.module, "suppression must have a module");
     assert.ok(suppression.reason, "suppression must have a reason");
     assert.ok(suppression.expires, "suppression must have an expiration date");
-    // Ensure expiration date is in the future
+    // Calendar validity is checked here; expiry policy belongs to the auditor.
     const expires = new Date(suppression.expires);
     assert.ok(!isNaN(expires.getTime()), "expires must be a valid date");
-    assert.ok(expires > new Date(), "suppression must not be expired");
   }
+  // Use the same inclusive UTC-date policy as the actual dependency gate.
+  const validation = spawnSync(process.execPath, ["scripts/security-audit.mjs", "--check-suppressions-only"], {
+    cwd: fileURLToPath(new URL("../", import.meta.url)),
+    encoding: "utf8",
+    env: { ...process.env, SECURITY_AUDIT_TODAY: new Date().toISOString().slice(0, 10) },
+  });
+  assert.equal(validation.status, 0, validation.stderr || validation.stdout);
 });
 
 test("repository and workspace packages declare the MIT license", async () => {

@@ -107,3 +107,20 @@ test("security audit rejects unknown severity levels instead of silently using h
   assert.equal(result.status, 2);
   assert.match(result.stderr, /Invalid --audit-level "severe"/);
 });
+
+test("suppression expiration includes its UTC calendar day and rejects the next day", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "quickvoice-audit-"));
+  await writeFakePnpm(dir);
+  const suppressionsFile = await writeSuppressions(dir, [{
+    id: "GHSA-date-boundary",
+    module: "example-package",
+    reason: "Fixture for the existing inclusive UTC expiry policy.",
+    expires: "2026-09-07",
+  }]);
+  const args = ["--check-suppressions-only", "--suppressions-file", suppressionsFile];
+  const onExpiry = runSecurityAudit(args, { SECURITY_AUDIT_TODAY: "2026-09-07" }, dir);
+  assert.equal(onExpiry.status, 0, onExpiry.stderr);
+  const afterExpiry = runSecurityAudit(args, { SECURITY_AUDIT_TODAY: "2026-09-08" }, dir);
+  assert.notEqual(afterExpiry.status, 0);
+  assert.match(afterExpiry.stderr, /expired dependency audit suppressions/i);
+});
