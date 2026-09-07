@@ -121,7 +121,7 @@ export default function HealthcarePage() {
             <Link
               href={DEMO_BOOKING_URL}
               data-analytics-location="industry_hero"
-              className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary-hover"
             >
               Book a demo
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
@@ -214,7 +214,7 @@ export default function HealthcarePage() {
           <Link
             href={DEMO_BOOKING_URL}
             data-analytics-location="industry_footer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary-hover"
           >
             Book a demo
             <ArrowRight className="h-4 w-4" aria-hidden="true" />

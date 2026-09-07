@@ -335,7 +335,7 @@ export function ContactForm({
         <button
           type="submit"
           disabled={status === "submitting"}
-          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-70"
+          className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-70"
         >
           {status === "submitting" ? "Sending…" : "Send enquiry"}
           <ArrowRight className="h-4 w-4" aria-hidden="true" />

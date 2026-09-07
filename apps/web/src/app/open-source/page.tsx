@@ -272,6 +272,7 @@ export default function OpenSourcePage() {
                 <QuickstartCopyButton commands={QUICKSTART_COMMANDS} />
               </div>
               <pre
+                role="region"
                 tabIndex={0}
                 aria-label="Local quickstart commands"
                 className="overflow-x-auto py-6 font-mono text-sm leading-8 text-slate-100"

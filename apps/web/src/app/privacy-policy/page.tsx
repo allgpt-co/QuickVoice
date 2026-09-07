@@ -80,7 +80,7 @@ export default function PrivacyPolicyPage() {
                 information when you visit our website at{" "}
                 <a
                   href="https://quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   quickvoice.co
                 </a>{" "}
@@ -423,7 +423,7 @@ export default function PrivacyPolicyPage() {
                 To exercise any of the above rights, please contact us at{" "}
                 <a
                   href="mailto:support@quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   support@quickvoice.co
                 </a>
@@ -498,7 +498,7 @@ export default function PrivacyPolicyPage() {
                 information, please contact us at{" "}
                 <a
                   href="mailto:support@quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   support@quickvoice.co
                 </a>
@@ -553,7 +553,7 @@ export default function PrivacyPolicyPage() {
                   Email:{" "}
                   <a
                     href="mailto:support@quickvoice.co"
-                    className="text-primary underline underline-offset-4 hover:text-primary/80"
+                    className="text-primary underline underline-offset-4"
                   >
                     support@quickvoice.co
                   </a>
@@ -602,7 +602,7 @@ export default function PrivacyPolicyPage() {
           <Link
             href={DEMO_BOOKING_URL}
             data-analytics-location="privacy-policy_footer"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Book a Demo
           </Link>

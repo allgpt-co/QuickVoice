@@ -94,7 +94,7 @@ export function WorkflowPage({ page }: { page: WorkflowPageContent }) {
             <Link
               href={DEMO_BOOKING_URL}
               data-analytics-location={page.path}
-              className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary/90"
+              className="inline-flex min-h-12 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-semibold text-primary-foreground hover:bg-primary-hover"
             >
               Book a demo <ArrowRight className="size-4" aria-hidden="true" />
             </Link>

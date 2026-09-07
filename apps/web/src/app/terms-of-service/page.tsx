@@ -787,7 +787,7 @@ export default function TermsOfServicePage() {
           <Link
             href={DEMO_BOOKING_URL}
             data-analytics-location="terms-of-service_footer"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Book a Demo
           </Link>
