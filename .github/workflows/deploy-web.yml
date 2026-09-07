@@ -1,0 +1,50 @@
+name: Deploy QuickVoice Website
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  checks: read
+
+concurrency:
+  group: quickvoice-web-production
+  cancel-in-progress: false
+
+jobs:
+  deploy-web:
+    if: github.repository == 'allgpt-co/QuickVoice' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Confirm this run still targets current main
+        shell: bash
+        run: |
+          set -euo pipefail
+          current_main=$(git ls-remote origin refs/heads/main | cut -f1)
+          test "$current_main" = "$GITHUB_SHA"
+      - name: Require successful quality and security checks for this commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api "repos/allgpt-co/QuickVoice/commits/$GITHUB_SHA/check-runs?per_page=100" \
+            --jq '.check_runs' > "$RUNNER_TEMP/web-release-checks.json"
+          jq -e '
+            . as $checks |
+            ["Quality Summary", "Dependency Security Audit"] |
+            all(. as $name |
+              [$checks[] | select(.name == $name)] |
+              sort_by(.started_at) | last |
+              .status == "completed" and .conclusion == "success")
+          ' "$RUNNER_TEMP/web-release-checks.json"
+      - name: Deploy and verify the marketing application
+        env:
+          COOLIFY_API_URL: ${{ vars.COOLIFY_API_URL }}
+          COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+        run: node .github/scripts/deploy-web.mjs
