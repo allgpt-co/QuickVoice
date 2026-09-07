@@ -2,14 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import {
-  ArrowDownToLine,
-  ArrowRight,
-  ClipboardCheck,
-  Calculator,
-} from "lucide-react";
+import { ArrowDownToLine, ArrowRight, ClipboardCheck, Calculator } from "lucide-react";
+import MarkdownRenderer from "@/components/blog/MarkdownRenderer";
+import { CONTACT_URL, DEMO_BOOKING_URL } from "@/lib/links";
 
 export const metadata: Metadata = {
   title: "AI phone-agent buyer resources",
@@ -32,162 +27,81 @@ export const metadata: Metadata = {
   },
 };
 
-const readResource = (name: string) =>
-  readFileSync(join(process.cwd(), "public/resources", name), "utf8").replace(
-    /^# .+\n/,
-    "",
-  );
-
-function ResourceText({ file }: { file: string }) {
-  return (
-    <div className="prose prose-slate mt-8 max-w-none dark:prose-invert prose-headings:scroll-mt-24 prose-a:text-primary">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          a: ({ href, children }) => (
-            <a
-              href={href?.startsWith("https://") ? href : `/resources/${href}`}
-            >
-              {children}
-            </a>
-          ),
-          table: ({ children }) => (
-            <div className="overflow-x-auto">
-              <table>{children}</table>
-            </div>
-          ),
-        }}
-      >
-        {readResource(file)}
-      </ReactMarkdown>
-    </div>
-  );
+function ResourceText({ file, idPrefix }: { file: string; idPrefix: string }) {
+  const content = readFileSync(join(process.cwd(), "public/resources", file), "utf8");
+  const title = content.match(/^# (.+)\r?\n/)?.[1] ?? "";
+  return <MarkdownRenderer content={content} title={title} idPrefix={idPrefix} resourceLinks />;
 }
 
 export default function ResourcesPage() {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <section className="border-b border-border bg-gradient-to-b from-primary/10 to-background px-4 pb-16 pt-32 sm:px-6">
-        <div className="mx-auto max-w-5xl">
-          <p className="text-sm font-semibold uppercase tracking-widest text-primary">
-            Buyer resources
-          </p>
-          <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">
-            A clearer decision before your first phone-agent pilot
-          </h1>
-          <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
-            Start with one call type, a defined outcome, and a named human
-            fallback. Use these working documents with your business owner and
-            technical evaluator to decide what to test and what it will cost.
-          </p>
-          <p className="mt-4 text-sm text-muted-foreground">
-            Open downloads. No signup required. These are evaluation aids; the
-            worksheet inputs are illustrative and must be replaced with your own
-            evidence.
-          </p>
+    <div className="bg-background text-foreground">
+      <section className="page-section border-b border-border">
+        <div className="site-container">
+          <p className="eyebrow">Buyer resources</p>
+          <h1 className="page-title mt-4 max-w-3xl">Useful tools for your first phone-agent pilot.</h1>
+          <p className="mt-5 max-w-2xl text-lg leading-8 text-muted-foreground">Define one workflow, test its handoffs, and estimate its full operating cost with your business owner and technical evaluator.</p>
+          <p className="mt-4 text-sm text-muted-foreground">Open downloads. No signup required.</p>
+
+          <div className="mt-9 grid gap-5 md:grid-cols-2">
+            <article className="surface-card flex flex-col p-6 sm:p-8">
+              <ClipboardCheck className="size-6 text-primary" aria-hidden="true" />
+              <h2 className="mt-5 text-2xl font-semibold tracking-tight">Implementation checklist</h2>
+              <p className="mt-3 flex-1 leading-7 text-muted-foreground">Agree on the call type, allowed actions, human fallback, and evidence you need before expanding.</p>
+              <a href="/resources/phone-agent-checklist.pdf" download className="mt-6 inline-flex items-center justify-center gap-2 self-start rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground"><ArrowDownToLine className="size-4" aria-hidden="true" />Download checklist (PDF)</a>
+              <a href="#checklist" className="mt-4 text-sm font-semibold text-primary underline underline-offset-4">Read the checklist on this page</a>
+            </article>
+            <article className="surface-card flex flex-col p-6 sm:p-8">
+              <Calculator className="size-6 text-primary" aria-hidden="true" />
+              <h2 className="mt-5 text-2xl font-semibold tracking-tight">Cost worksheet</h2>
+              <p className="mt-3 flex-1 leading-7 text-muted-foreground">Include providers, unsuccessful attempts, implementation, and human follow-up. Replace the illustrative inputs with your own quotes and observations.</p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <a href="/resources/cost-estimation.csv" download className="inline-flex items-center gap-2 rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground"><ArrowDownToLine className="size-4" aria-hidden="true" />Download worksheet (CSV)</a>
+                <a href="/resources/cost-estimation-guide.pdf" download className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-semibold"><ArrowDownToLine className="size-4" aria-hidden="true" />Instructions (PDF)</a>
+              </div>
+              <a href="#costs" className="mt-4 text-sm font-semibold text-primary underline underline-offset-4">Read the worksheet instructions</a>
+            </article>
+          </div>
         </div>
       </section>
-      <div className="mx-auto max-w-5xl space-y-14 px-4 py-14 sm:px-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          <a
-            href="#checklist"
-            className="rounded-2xl border border-border p-7 transition hover:border-primary"
-          >
-            <ClipboardCheck
-              className="size-7 text-primary"
-              aria-hidden="true"
-            />
-            <h2 className="mt-5 text-2xl font-semibold">
-              Implementation checklist
-            </h2>
-            <p className="mt-3 leading-7 text-muted-foreground">
-              Define the job, check dependencies, plan caller handling, and test
-              ten realistic outcomes.
-            </p>
-            <span className="mt-5 inline-flex items-center gap-2 font-medium text-primary">
-              Read and download{" "}
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </span>
-          </a>
-          <a
-            href="#costs"
-            className="rounded-2xl border border-border p-7 transition hover:border-primary"
-          >
-            <Calculator className="size-7 text-primary" aria-hidden="true" />
-            <h2 className="mt-5 text-2xl font-semibold">Cost worksheet</h2>
-            <p className="mt-3 leading-7 text-muted-foreground">
-              Include provider costs, human follow-up, quality review,
-              infrastructure, and implementation.
-            </p>
-            <span className="mt-5 inline-flex items-center gap-2 font-medium text-primary">
-              Read and download{" "}
-              <ArrowRight className="size-4" aria-hidden="true" />
-            </span>
-          </a>
-        </div>
-        <section
-          id="checklist"
-          className="min-w-0 scroll-mt-24 rounded-2xl border border-border p-5 sm:p-8"
-        >
-          <h2 className="text-3xl font-semibold">
-            AI phone-agent implementation checklist
-          </h2>
-          <a
-            href="/resources/phone-agent-checklist.pdf"
-            download
-            className="mt-5 inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 font-medium text-primary-foreground"
-          >
-            <ArrowDownToLine className="size-4" aria-hidden="true" />
-            Download checklist (PDF)
-          </a>
-          <ResourceText file="buyer-implementation-checklist.md" />
+
+      <div className="site-container py-12 sm:py-16">
+        <section id="checklist" className="scroll-mt-28 border-b border-border pb-10" aria-labelledby="checklist-heading">
+          <h2 id="checklist-heading" className="text-2xl font-semibold tracking-tight">Use the checklist to define a decision.</h2>
+          <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">Start with one call type, a defined outcome, and a named human fallback. Record what the pilot must demonstrate and which requests it should leave with your team.</p>
+          <details className="mt-6 border-border sm:rounded-xl sm:border sm:p-6">
+            <summary className="cursor-pointer font-semibold">Read the full implementation checklist</summary>
+            <div className="mt-6"><ResourceText file="buyer-implementation-checklist.md" idPrefix="checklist" /></div>
+          </details>
         </section>
-        <section
-          id="costs"
-          className="min-w-0 scroll-mt-24 rounded-2xl border border-border p-5 sm:p-8"
-        >
-          <h2 className="text-3xl font-semibold">
-            Build a cost estimate with your own inputs
-          </h2>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <a
-              href="/resources/cost-estimation.csv"
-              download
-              className="inline-flex items-center gap-2 rounded-full bg-primary px-5 py-3 font-medium text-primary-foreground"
-            >
-              <ArrowDownToLine className="size-4" aria-hidden="true" />
-              Download worksheet (CSV)
-            </a>
-            <a
-              href="/resources/cost-estimation-guide.pdf"
-              download
-              className="inline-flex items-center gap-2 rounded-full border border-border px-5 py-3 font-medium"
-            >
-              <ArrowDownToLine className="size-4" aria-hidden="true" />
-              Download instructions (PDF)
-            </a>
+        <section id="costs" className="scroll-mt-28 py-10" aria-labelledby="costs-heading">
+          <h2 id="costs-heading" className="text-2xl font-semibold tracking-tight">Make the worksheet your own.</h2>
+          <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">The CSV contains spreadsheet formulas. Its sample values are illustrative, and zero supplier rates mean unknown, not free. Read the instructions, replace the inputs, and keep the validation flags unconfirmed until you have supporting evidence.</p>
+          <details className="mt-6 border-border sm:rounded-xl sm:border sm:p-6">
+            <summary className="cursor-pointer font-semibold">Read the full cost worksheet instructions</summary>
+            <div className="mt-6"><ResourceText file="cost-estimation-guide.md" idPrefix="costs" /></div>
+          </details>
+        </section>
+        <section className="mt-4 rounded-xl border border-border bg-muted/30 p-6 sm:p-8">
+          <p className="eyebrow">Keep exploring</p>
+          <h2 className="mt-3 text-2xl font-semibold tracking-tight">Match the tools to your workflow.</h2>
+          <div className="mt-6 flex flex-wrap gap-x-7 gap-y-4">
+            <Link href="/use-cases/appointment-scheduling" className="inline-flex items-center gap-2 font-semibold text-primary">Appointment requests <ArrowRight aria-hidden="true" className="size-4" /></Link>
+            <Link href="/use-cases/customer-support" className="inline-flex items-center gap-2 font-semibold text-primary">Customer support <ArrowRight aria-hidden="true" className="size-4" /></Link>
+            <Link href="/open-source" className="inline-flex items-center gap-2 font-semibold text-primary">Technical evaluation <ArrowRight aria-hidden="true" className="size-4" /></Link>
           </div>
-          <ResourceText file="cost-estimation-guide.md" />
-        </section>
-        <section className="rounded-2xl bg-primary/5 p-7 sm:p-9">
-          <h2 className="text-2xl font-semibold">
-            Work through one workflow with us
-          </h2>
-          <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">
-            Bring your call type, approximate volume, destination systems, and
-            the decision you need to make. Keep caller records and sensitive
-            information out of the initial enquiry.
-          </p>
-          <Link
-            href="/company/contact"
-            data-analytics-location="resources"
-            className="mt-5 inline-flex items-center gap-2 font-medium text-primary"
-          >
-            Discuss your evaluation{" "}
-            <ArrowRight className="size-4" aria-hidden="true" />
-          </Link>
         </section>
       </div>
-    </main>
+
+      <section className="border-t border-border bg-muted/40 py-12 sm:py-16">
+        <div className="site-container flex flex-col items-start justify-between gap-8 md:flex-row md:items-center">
+          <div><h2 className="text-2xl font-semibold tracking-tight">Work through one workflow with us.</h2><p className="mt-3 max-w-xl leading-7 text-muted-foreground">Bring your call type, approximate volume, destination systems, and the decision you need to make. Keep caller records and sensitive information out of the initial enquiry.</p></div>
+          <div className="flex flex-wrap gap-3">
+            <Link href={DEMO_BOOKING_URL} data-analytics-location="resources" className="inline-flex items-center rounded-lg bg-primary px-5 py-3 font-semibold text-primary-foreground">Book a demo</Link>
+            <Link href={CONTACT_URL} data-analytics-location="resources" className="inline-flex items-center rounded-lg border border-border px-5 py-3 font-semibold">Contact the team</Link>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

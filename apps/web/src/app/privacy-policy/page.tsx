@@ -37,11 +37,11 @@ const PRIVACY_SECTIONS = [
 
 export default function PrivacyPolicyPage() {
   return (
-    <main className="bg-background text-foreground">
+    <div className="bg-background text-foreground">
       {/* Hero */}
-      <section className="border-b border-border/40 bg-muted/30 py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl px-6">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+      <section className="page-section border-b border-border bg-muted/25">
+        <div className="site-container !max-w-3xl">
+          <h1 className="page-title">
             Privacy Policy
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
@@ -51,16 +51,16 @@ export default function PrivacyPolicyPage() {
       </section>
 
       <section className="border-b border-border bg-background py-6">
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="rounded-2xl border border-border bg-card p-5 shadow-sm">
+        <div className="site-container !max-w-3xl">
+          <div className="surface-card p-5">
             <p className="text-sm font-semibold text-foreground">
               On this page
             </p>
             <div className="mt-3 grid gap-2 text-sm text-muted-foreground sm:grid-cols-2">
-              {PRIVACY_SECTIONS.map((item) => (
-                <span key={item} className="rounded-lg bg-muted/50 px-3 py-2">
+              {PRIVACY_SECTIONS.map((item, index) => (
+                <a key={item} href={`#privacy-section-${[1, 2, 3, 4, 5, 11][index]}`} className="rounded-lg bg-muted/50 px-3 py-2 font-medium hover:text-primary">
                   {item}
-                </span>
+                </a>
               ))}
             </div>
           </div>
@@ -68,9 +68,9 @@ export default function PrivacyPolicyPage() {
       </section>
 
       {/* Content */}
-      <section className="py-16 sm:py-20">
-        <div className="mx-auto max-w-4xl px-6">
-          <div className="prose prose-neutral dark:prose-invert max-w-none space-y-12">
+      <section className="page-section">
+        <div className="site-container !max-w-3xl">
+          <div className="reading-content space-y-12">
             {/* Introduction */}
             <div>
               <p className="text-lg leading-relaxed text-muted-foreground">
@@ -80,7 +80,7 @@ export default function PrivacyPolicyPage() {
                 information when you visit our website at{" "}
                 <a
                   href="https://quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   quickvoice.co
                 </a>{" "}
@@ -94,7 +94,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 1. Information We Collect */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-1" className="text-2xl font-semibold tracking-tight">
                 1. Information We Collect
               </h2>
 
@@ -199,7 +199,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 2. How We Use Your Information */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-2" className="text-2xl font-semibold tracking-tight">
                 2. How We Use Your Information
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -241,7 +241,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 3. Data Sharing and Third Parties */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-3" className="text-2xl font-semibold tracking-tight">
                 3. Data Sharing and Third Parties
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -303,7 +303,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 4. Data Retention */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-4" className="text-2xl font-semibold tracking-tight">
                 4. Data Retention
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -331,7 +331,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 5. Your Rights */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-5" className="text-2xl font-semibold tracking-tight">
                 5. Your Rights
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -423,7 +423,7 @@ export default function PrivacyPolicyPage() {
                 To exercise any of the above rights, please contact us at{" "}
                 <a
                   href="mailto:support@quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   support@quickvoice.co
                 </a>
@@ -436,7 +436,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 6. Security Measures */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-6" className="text-2xl font-semibold tracking-tight">
                 6. Security Measures
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -468,7 +468,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 7. International Data Transfers */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-7" className="text-2xl font-semibold tracking-tight">
                 7. International Data Transfers
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -485,7 +485,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 8. Children's Privacy */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-8" className="text-2xl font-semibold tracking-tight">
                 8. Children&apos;s Privacy
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -498,7 +498,7 @@ export default function PrivacyPolicyPage() {
                 information, please contact us at{" "}
                 <a
                   href="mailto:support@quickvoice.co"
-                  className="text-primary underline underline-offset-4 hover:text-primary/80"
+                  className="text-primary underline underline-offset-4"
                 >
                   support@quickvoice.co
                 </a>
@@ -508,7 +508,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 9. Third-Party Links */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-9" className="text-2xl font-semibold tracking-tight">
                 9. Third-Party Links
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -523,7 +523,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 10. Changes to This Privacy Policy */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-10" className="text-2xl font-semibold tracking-tight">
                 10. Changes to This Privacy Policy
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -540,7 +540,7 @@ export default function PrivacyPolicyPage() {
 
             {/* 11. Contact Us */}
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight">
+              <h2 id="privacy-section-11" className="text-2xl font-semibold tracking-tight">
                 11. Contact Us
               </h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
@@ -553,7 +553,7 @@ export default function PrivacyPolicyPage() {
                   Email:{" "}
                   <a
                     href="mailto:support@quickvoice.co"
-                    className="text-primary underline underline-offset-4 hover:text-primary/80"
+                    className="text-primary underline underline-offset-4"
                   >
                     support@quickvoice.co
                   </a>
@@ -590,8 +590,8 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-muted/30 py-12">
-        <div className="mx-auto max-w-4xl px-6 text-center">
+      <section className="page-section border-t border-border bg-muted/25">
+        <div className="site-container !max-w-3xl">
           <h2 className="text-2xl font-semibold tracking-tight">
             Have privacy or security questions before you deploy?
           </h2>
@@ -601,12 +601,13 @@ export default function PrivacyPolicyPage() {
           </p>
           <Link
             href={DEMO_BOOKING_URL}
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-primary/90"
+            data-analytics-location="privacy-policy_footer"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary-hover"
           >
             Book a Demo
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

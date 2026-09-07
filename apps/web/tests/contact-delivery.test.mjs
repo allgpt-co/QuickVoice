@@ -192,3 +192,73 @@ test("lead analytics sends only fixed form context and remains optional", (t) =>
   };
   assert.equal(trackContactLead("homepage"), false);
 });
+
+test("contact API rejects oversized or invalid fields before forwarding and keeps normalized valid values", async (t) => {
+  const previous = process.env.CONTACT_WEBHOOK_URL;
+  t.after(() =>
+    previous === undefined
+      ? delete process.env.CONTACT_WEBHOOK_URL
+      : (process.env.CONTACT_WEBHOOK_URL = previous),
+  );
+  process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
+  const fetch = t.mock.method(
+    globalThis,
+    "fetch",
+    async () => new Response(null, { status: 204 }),
+  );
+  for (const [field, value] of [
+    ["name", "n".repeat(121)],
+    ["message", "m".repeat(5001)],
+    ["company", "c".repeat(161)],
+    ["lookingFor", "l".repeat(121)],
+    ["phone", {}],
+  ]) {
+    const response = await POST(request({ ...payload, [field]: value }));
+    assert.equal(response.status, 400);
+    assert.ok((await response.json()).fieldErrors[field]);
+  }
+  assert.equal(fetch.mock.callCount(), 0);
+  const response = await POST(
+    request({
+      ...payload,
+      email: " TEST@EXAMPLE.COM ",
+      phone: " +1 (218) 452-5998 ",
+      message: "m".repeat(5000),
+    }),
+  );
+  assert.equal(response.status, 200);
+  const forwarded = JSON.parse(fetch.mock.calls[0].arguments[1].body);
+  assert.equal(forwarded.email, "test@example.com");
+  assert.equal(forwarded.phone, "+1 (218) 452-5998");
+  assert.equal(forwarded.message.length, 5000);
+});
+
+test("contact response waits for delivery acknowledgement without retrying", async (t) => {
+  const previous = process.env.CONTACT_WEBHOOK_URL;
+  t.after(() =>
+    previous === undefined
+      ? delete process.env.CONTACT_WEBHOOK_URL
+      : (process.env.CONTACT_WEBHOOK_URL = previous),
+  );
+  process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
+  let acknowledge;
+  const fetch = t.mock.method(
+    globalThis,
+    "fetch",
+    () =>
+      new Promise((resolve) => {
+        acknowledge = resolve;
+      }),
+  );
+  let returned = false;
+  const pending = POST(request()).then((result) => {
+    returned = true;
+    return result;
+  });
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(returned, false);
+  assert.equal(fetch.mock.callCount(), 1);
+  acknowledge(new Response(null, { status: 204 }));
+  assert.equal((await pending).status, 200);
+  assert.equal(fetch.mock.callCount(), 1);
+});

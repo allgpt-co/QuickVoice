@@ -2,7 +2,9 @@ import { EvidenceStatusNotice } from "@/components/evidence-status-notice";
 import { getAllCaseStudies, getAllIndustries } from "@/lib/case-studies";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Building2, FlaskConical } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { CONTACT_URL, DEMO_BOOKING_URL } from "@/lib/links";
 
 export const metadata: Metadata = {
   title: "AI Phone-Agent Workflow Scenarios",
@@ -16,7 +18,9 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://quickvoice.co/case-studies",
     siteName: "QuickVoice",
-    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
+    images: [
+      { url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 },
+    ],
   },
 };
 
@@ -34,29 +38,26 @@ const INDUSTRY_PATHS: Record<string, string> = {
   SaaS: "saas",
 };
 
+const industryId = (industry: string) =>
+  industry.toLowerCase().replace(/[\s&]+/g, "-");
+
 export default function CaseStudiesIndexPage() {
   const allScenarios = getAllCaseStudies();
   const industries = getAllIndustries();
 
   return (
-    <main className="min-h-screen bg-background">
-      <section className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-4 pb-16 pt-32">
-        <div className="mx-auto max-w-5xl">
-          <div className="max-w-3xl">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/10 px-4 py-1.5 text-sm text-primary">
-              <FlaskConical className="h-4 w-4" aria-hidden="true" />
-              Workflow planning library
-            </div>
-            <h1 className="text-4xl font-semibold tracking-tight text-foreground sm:text-6xl">
-              Explore what an AI phone agent could automate
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              Use these scenarios to map call flows, data dependencies, human
-              handoffs, and evaluation criteria before building an agent.
-            </p>
-          </div>
-
-          <div className="mt-10">
+    <div className="bg-background text-foreground">
+      <section className="page-section border-b border-border">
+        <div className="site-container">
+          <p className="eyebrow">Workflow planning library</p>
+          <h1 className="page-title mt-4 max-w-4xl">
+            Explore a call workflow before building it.
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+            Use these scenarios to map call flows, data dependencies, human
+            handoffs, and evaluation criteria before building an agent.
+          </p>
+          <div className="mt-8 max-w-3xl">
             <EvidenceStatusNotice title="Illustrative content — not customer proof">
               <p>
                 The scenarios in this library are planning examples.
@@ -67,65 +68,77 @@ export default function CaseStudiesIndexPage() {
               </p>
             </EvidenceStatusNotice>
           </div>
+          <nav aria-label="Browse scenarios by industry" className="mt-8">
+            <p className="mb-3 text-sm font-semibold">Jump to an industry</p>
+            <ul className="flex flex-wrap gap-2">
+              {industries.map((industry) => (
+                <li key={industry}>
+                  <a
+                    href={`#${industryId(industry)}`}
+                    className="inline-flex min-h-11 items-center rounded-lg border border-border px-3 py-2 text-sm transition-colors hover:border-primary hover:text-primary"
+                  >
+                    {industry}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-4 py-16">
+      <div className="site-container page-section space-y-14">
         {industries.map((industry) => {
           const scenarios = allScenarios.filter(
             (scenario) => scenario.industry === industry,
           );
-
           return (
             <section
               key={industry}
-              className="mb-14"
-              id={industry.toLowerCase().replace(/[\s&]+/g, "-")}
+              id={industryId(industry)}
+              aria-labelledby={`${industryId(industry)}-title`}
             >
-              <div className="mb-6 flex flex-wrap items-end justify-between gap-4 border-b border-border pb-4">
+              <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
                 <div>
-                  <div className="flex items-center gap-2 text-primary">
-                    <Building2 className="h-4 w-4" aria-hidden="true" />
-                    <span className="font-mono text-xs uppercase tracking-[0.18em]">
-                      {scenarios.length} planning{" "}
-                      {scenarios.length === 1 ? "scenario" : "scenarios"}
-                    </span>
-                  </div>
-                  <h2 className="mt-2 text-2xl font-semibold text-foreground">
+                  <p className="eyebrow">
+                    {scenarios.length} planning scenarios
+                  </p>
+                  <h2
+                    id={`${industryId(industry)}-title`}
+                    className="mt-2 text-2xl font-semibold tracking-tight"
+                  >
                     {industry}
                   </h2>
                 </div>
                 {INDUSTRY_PATHS[industry] && (
                   <Link
                     href={`/industries/${INDUSTRY_PATHS[industry]}`}
-                    className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary"
+                    className="inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
                   >
-                    Industry overview
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    Industry guide{" "}
+                    <ArrowRight className="size-4" aria-hidden="true" />
                   </Link>
                 )}
               </div>
-
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {scenarios.map((scenario) => (
                   <Link
                     key={scenario.slug}
                     href={`/case-studies/${scenario.slug}`}
-                    className="group flex min-h-48 flex-col rounded-xl border border-border bg-card p-6 transition hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+                    className="surface-card group flex flex-col p-6 transition-colors hover:border-primary"
                   >
-                    <span className="font-mono text-xs uppercase tracking-[0.16em] text-primary">
+                    <span className="text-xs font-medium uppercase tracking-wider text-primary">
                       Illustrative scenario
                     </span>
-                    <h3 className="mt-4 text-lg font-semibold text-foreground transition-colors group-hover:text-primary">
+                    <h3 className="mt-4 text-lg font-semibold">
                       {scenario.useCase}
                     </h3>
                     <p className="mt-3 text-sm leading-6 text-muted-foreground">
                       Review an example workflow, assumptions, handoffs, and
                       measurement plan for a team in {industry}.
                     </p>
-                    <span className="mt-auto inline-flex items-center gap-1 pt-6 text-sm font-medium text-primary">
-                      Review scenario
-                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <span className="mt-auto inline-flex items-center gap-2 pt-5 text-sm font-medium text-primary">
+                      Review scenario{" "}
+                      <ArrowRight className="size-4" aria-hidden="true" />
                     </span>
                   </Link>
                 ))}
@@ -133,28 +146,45 @@ export default function CaseStudiesIndexPage() {
             </section>
           );
         })}
-
-        <section className="rounded-2xl border border-primary/25 bg-primary/5 p-8 sm:p-10">
-          <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
-            Verify the implementation
-          </p>
-          <h2 className="mt-3 text-2xl font-semibold text-foreground">
-            Inspect what QuickVoice actually ships
-          </h2>
-          <p className="mt-3 max-w-2xl leading-7 text-muted-foreground">
-            The open-source page separates code-backed capabilities from
-            provider credentials, deployment decisions, and unverified
-            commercial claims.
-          </p>
-          <Link
-            href="/open-source"
-            className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
-          >
-            Explore the open-source stack
-            <ArrowRight className="h-4 w-4" aria-hidden="true" />
-          </Link>
-        </section>
       </div>
-    </main>
+
+      <section className="page-section border-t border-border bg-muted/25">
+        <div className="site-container">
+          <p className="eyebrow">From a scenario to your requirements</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+            Talk through the workflow your team needs.
+          </h2>
+          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+            Bring your call flow, data requirements, and handoff questions to a
+            demo. For technical details,{" "}
+            <Link
+              href="/open-source"
+              className="text-primary underline underline-offset-4"
+            >
+              inspect the open-source stack
+            </Link>
+            .
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <a
+                href={DEMO_BOOKING_URL}
+                data-analytics-location="scenarios_footer"
+              >
+                Book a demo <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link
+                href={CONTACT_URL}
+                data-analytics-location="scenarios_footer"
+              >
+                Contact the team
+              </Link>
+            </Button>
+          </div>
+        </div>
+      </section>
+    </div>
   );
 }

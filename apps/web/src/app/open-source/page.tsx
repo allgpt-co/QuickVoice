@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, ExternalLink, GitFork } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Code2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   OpenSourcePageView,
   QuickstartCopyButton,
 } from "@/components/open-source/open-source-interactions";
 import {
+  CONTACT_URL,
+  DEMO_BOOKING_URL,
+  REGISTER_URL,
   GITHUB_CONTRIBUTING_URL,
   GITHUB_DISCUSSIONS_URL,
   GITHUB_DOCS_URL,
@@ -127,7 +131,7 @@ const openSourceSchema = {
 export const metadata: Metadata = {
   title: "Open-Source AI Phone Agent Stack",
   description:
-    "Inspect, run, and extend QuickVoice: an AGPL-licensed AI phone-agent stack with a console, Express API, LiveKit worker, telephony integrations, and local development tooling.",
+    "Inspect, run, and extend QuickVoice: an MIT-licensed AI phone-agent stack with a console, Express API, LiveKit worker, telephony integrations, and local development tooling.",
   alternates: {
     canonical: "/open-source",
   },
@@ -137,42 +141,16 @@ export const metadata: Metadata = {
     title: "QuickVoice Open Source",
     description:
       "Inspect, run, and extend the QuickVoice AI phone-agent stack.",
+    images: ["/og-image.png"],
   },
   twitter: {
     card: "summary_large_image",
     title: "QuickVoice Open Source",
     description:
       "Inspect, run, and extend the QuickVoice AI phone-agent stack.",
+    images: ["/og-image.png"],
   },
 };
-
-function ExternalAction({
-  href,
-  children,
-  location,
-  dominant = false,
-}: {
-  href: string;
-  children: React.ReactNode;
-  location: string;
-  dominant?: boolean;
-}) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      data-analytics-location={location}
-      className={
-        dominant
-          ? "inline-flex min-h-12 items-center justify-center gap-2 bg-primary px-5 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          : "inline-flex min-h-12 items-center justify-center gap-2 border border-border bg-background px-5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
-      }
-    >
-      {children}
-    </a>
-  );
-}
 
 export default function OpenSourcePage() {
   return (
@@ -184,353 +162,291 @@ export default function OpenSourcePage() {
           __html: JSON.stringify(openSourceSchema).replace(/</g, "\\u003c"),
         }}
       />
-
-      <main className="min-h-screen overflow-hidden bg-background pt-16 text-foreground">
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-7xl border-x border-border">
-            <div className="grid lg:grid-cols-12">
-              <div className="border-b border-border px-6 py-16 sm:px-10 sm:py-20 lg:col-span-8 lg:border-r lg:border-b-0 lg:px-14 lg:py-24">
-                <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  AGPL-3.0-only · Source available on GitHub
-                </p>
-                <h1 className="mt-7 max-w-4xl text-balance text-5xl font-semibold tracking-[-0.055em] sm:text-6xl lg:text-7xl">
-                  Own the voice-agent stack you operate.
-                </h1>
-                <p className="mt-7 max-w-2xl text-pretty text-lg leading-8 text-muted-foreground">
-                  QuickVoice puts the product website, customer console, Express
-                  API, LiveKit-powered voice runtime, telephony integrations,
-                  and local development tooling in one inspectable repository.
-                </p>
-                <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-                  <ExternalAction
-                    href={GITHUB_REPO_URL}
-                    location="oss_hero"
-                    dominant
-                  >
-                    <GitFork aria-hidden="true" className="size-4" />
-                    View source on GitHub
-                    <ArrowUpRight aria-hidden="true" className="size-4" />
-                  </ExternalAction>
-                  <ExternalAction href={GITHUB_DOCS_URL} location="oss_hero">
-                    Read the documentation
-                    <ArrowUpRight aria-hidden="true" className="size-4" />
-                  </ExternalAction>
-                </div>
+      <div className="bg-background text-foreground">
+        <section className="page-section border-b border-border">
+          <div className="site-container grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
+            <div>
+              <p className="eyebrow">MIT licensed · Open source</p>
+              <h1 className="page-title mt-4">
+                Your voice workflow. Source you can inspect.
+              </h1>
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
+                QuickVoice brings a customer console, API, voice runtime, and
+                development tooling into one repository. Review the
+                implementation before deciding how to operate it.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Button asChild size="lg">
+                  <a href={DEMO_BOOKING_URL} data-analytics-location="oss_hero">
+                    Book a demo <ArrowRight aria-hidden="true" />
+                  </a>
+                </Button>
+                <Button asChild variant="outline" size="lg">
+                  <a href={GITHUB_REPO_URL} data-analytics-location="oss_hero">
+                    <Code2 aria-hidden="true" /> View source on GitHub
+                  </a>
+                </Button>
               </div>
-
-              <aside className="grid bg-muted/35 lg:col-span-4">
+              <a
+                href={GITHUB_DOCS_URL}
+                data-analytics-location="oss_hero"
+                className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary underline underline-offset-4"
+              >
+                Read the documentation{" "}
+                <ArrowUpRight aria-hidden="true" className="size-4" />
+              </a>
+            </div>
+            <aside
+              className="surface-card p-6 sm:p-8"
+              aria-label="Deployment at a glance"
+            >
+              <p className="eyebrow">At a glance</p>
+              <dl className="mt-5 divide-y divide-border">
                 {[
-                  [
-                    "Source",
-                    "TypeScript and Python monorepo with local orchestration.",
-                  ],
-                  [
-                    "Runtime",
-                    "LiveKit workers connect configured speech, model, and telephony providers.",
-                  ],
-                  [
-                    "Boundary",
-                    "Real calls require operator-supplied LiveKit and carrier credentials.",
-                  ],
-                  ["License", "GNU Affero General Public License v3.0."],
-                ].map(([label, value], index) => (
-                  <div
-                    key={label}
-                    className={`grid grid-cols-[5rem_1fr] gap-5 px-6 py-6 sm:px-10 lg:px-8 ${
-                      index > 0 ? "border-t border-border" : ""
-                    }`}
-                  >
-                    <span className="font-mono text-[0.68rem] font-semibold uppercase tracking-[0.14em] text-primary">
-                      {label}
-                    </span>
-                    <p className="text-sm leading-6 text-foreground/80">
-                      {value}
-                    </p>
+                  ["Source", "TypeScript and Python"],
+                  ["Voice runtime", "LiveKit workers and configured providers"],
+                  ["License", "MIT"],
+                  ["Project status", "Under active development"],
+                ].map(([label, value]) => (
+                  <div key={label} className="py-4">
+                    <dt className="text-sm text-muted-foreground">{label}</dt>
+                    <dd className="mt-1 font-medium">{value}</dd>
                   </div>
                 ))}
-              </aside>
-            </div>
+              </dl>
+            </aside>
           </div>
         </section>
 
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-7xl border-x border-border">
-            <div className="grid border-b border-border lg:grid-cols-12">
-              <div className="px-6 py-10 sm:px-10 lg:col-span-4 lg:border-r lg:px-14">
-                <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Repository map
-                </p>
-              </div>
-              <div className="px-6 pb-10 sm:px-10 lg:col-span-8 lg:px-14 lg:py-10">
-                <h2 className="max-w-3xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                  Four surfaces, one operational path.
-                </h2>
-                <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
-                  The repository keeps the user-facing applications, control
-                  plane, and voice runtime close enough to inspect their
-                  boundaries together.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid sm:grid-cols-2 lg:grid-cols-4">
-              {architectureComponents.map((component, index) => (
-                <article
-                  key={component.path}
-                  className={`min-h-72 p-6 sm:p-8 ${
-                    index > 0 ? "border-t border-border sm:border-t-0" : ""
-                  } ${index % 2 === 1 ? "sm:border-l sm:border-border" : ""} ${
-                    index > 1
-                      ? "sm:border-t sm:border-border lg:border-t-0"
-                      : ""
-                  } ${index > 0 ? "lg:border-l lg:border-border" : ""}`}
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <span className="font-mono text-3xl font-medium text-primary">
-                      {component.index}
-                    </span>
-                    <code className="border border-border bg-muted px-2 py-1 font-mono text-[0.68rem] text-muted-foreground">
-                      {component.path}
-                    </code>
-                  </div>
-                  <h3 className="mt-16 text-xl font-semibold tracking-tight">
-                    {component.title}
-                  </h3>
+        <section className="page-section">
+          <div className="site-container">
+            <p className="eyebrow">Repository map</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Follow the path from configuration to call.
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {architectureComponents.map((item) => (
+                <article key={item.path} className="surface-card p-6">
+                  <code className="text-xs text-primary">{item.path}</code>
+                  <h3 className="mt-5 text-xl font-semibold">{item.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                    {component.description}
+                    {item.description}
                   </p>
                 </article>
               ))}
             </div>
-
-            <div className="flex flex-col border-t border-border bg-muted/30 px-6 py-5 sm:px-10 lg:flex-row lg:items-center lg:px-14">
-              {[
-                "Browser",
-                "Console and API",
-                "LiveKit worker",
-                "Twilio or Telnyx",
-              ].map((step, index, steps) => (
-                <div
-                  key={step}
-                  className="flex flex-1 items-center gap-3 py-2 lg:py-0"
-                >
-                  <span className="font-mono text-xs font-medium uppercase tracking-[0.1em] text-foreground/75">
-                    {step}
-                  </span>
-                  {index < steps.length - 1 && (
-                    <ArrowRight
-                      aria-hidden="true"
-                      className="ml-auto size-4 text-primary"
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
-        <section className="border-b border-border">
-          <div className="mx-auto grid max-w-7xl border-x border-border lg:grid-cols-12">
-            <div className="border-b border-border px-6 py-14 sm:px-10 lg:col-span-5 lg:border-r lg:border-b-0 lg:px-14 lg:py-20">
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                Local quickstart
-              </p>
-              <h2 className="mt-5 text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                Inspect the complete development surface.
+        <section className="page-section border-y border-border bg-muted/25">
+          <div className="site-container grid gap-8 lg:grid-cols-2 lg:items-start">
+            <div>
+              <p className="eyebrow">Local quickstart</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+                Start with a development environment.
               </h2>
-              <p className="mt-5 leading-7 text-muted-foreground">
+              <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
                 With Docker, Docker Compose, Go Task, Node.js, and Python 3
-                available, the repository task runner prepares development
-                environment files, dependencies, databases, migrations, and
-                local services.
+                available, the task runner prepares development environment
+                files, dependencies, databases, migrations, and local services.
+              </p>
+              <p className="mt-4 max-w-xl leading-7 text-muted-foreground">
+                Real calls still require your configured voice, model, and
+                carrier providers. Review the full setup notes before running
+                the commands.
               </p>
               <a
                 href={`${GITHUB_REPO_URL}#quick-start`}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-primary hover:underline"
+                data-analytics-location="oss_quickstart"
+                className="mt-6 inline-flex items-center gap-2 font-medium text-primary underline underline-offset-4"
               >
-                Read the full setup notes
+                Read the setup notes{" "}
                 <ArrowUpRight aria-hidden="true" className="size-4" />
               </a>
             </div>
-
-            <div className="bg-slate-950 px-6 py-14 text-white sm:px-10 lg:col-span-7 lg:px-14 lg:py-20">
-              <div className="flex items-center justify-between gap-4 border-b border-white/20 pb-4">
-                <span className="font-mono text-xs uppercase tracking-[0.14em] text-blue-300">
+            <div className="min-w-0 rounded-2xl border border-slate-700 bg-slate-950 p-5 text-white sm:p-7">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-700 pb-4">
+                <span className="font-mono text-xs text-blue-300">
                   Terminal
                 </span>
                 <QuickstartCopyButton commands={QUICKSTART_COMMANDS} />
               </div>
-              <pre className="overflow-x-auto py-8 font-mono text-sm leading-8 text-slate-100">
+              <pre
+                role="region"
+                tabIndex={0}
+                aria-label="Local quickstart commands"
+                className="overflow-x-auto py-6 font-mono text-sm leading-8 text-slate-100"
+              >
                 <code>{QUICKSTART_COMMANDS}</code>
               </pre>
-              <div className="grid border-t border-white/20 pt-6 text-sm sm:grid-cols-2">
+              <dl className="grid gap-4 border-t border-slate-700 pt-5 text-xs sm:grid-cols-2">
                 {[
                   ["Console", "http://localhost:3000"],
                   ["Website", "http://localhost:3001"],
                   ["API docs", "http://localhost:5000/api/v1/docs"],
                   ["AI health", "http://localhost:5555/health"],
                 ].map(([label, value]) => (
-                  <div
-                    key={label}
-                    className="grid grid-cols-[5rem_1fr] gap-3 py-2"
-                  >
-                    <span className="text-slate-400">{label}</span>
-                    <code className="break-all font-mono text-xs text-white">
+                  <div key={label}>
+                    <dt className="text-slate-300">{label}</dt>
+                    <dd className="mt-1 break-all font-mono text-white">
                       {value}
-                    </code>
+                    </dd>
                   </div>
                 ))}
-              </div>
+              </dl>
             </div>
           </div>
         </section>
 
-        <section className="border-b border-border">
-          <div className="mx-auto max-w-7xl border-x border-border">
-            <div className="grid border-b border-border lg:grid-cols-12">
-              <div className="px-6 py-10 sm:px-10 lg:col-span-4 lg:border-r lg:px-14">
-                <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Credential boundaries
-                </p>
-              </div>
-              <div className="px-6 pb-10 sm:px-10 lg:col-span-8 lg:px-14 lg:py-10">
-                <h2 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                  The source is open. Provider accounts remain yours.
-                </h2>
-              </div>
+        <section className="page-section">
+          <div className="site-container">
+            <p className="eyebrow">Deployment requirements</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Connect the services your workflow needs.
+            </h2>
+            <div className="mt-8 grid gap-4 md:grid-cols-2">
+              {credentialBoundaries.map((item) => (
+                <article key={item.surface} className="surface-card p-6">
+                  <h3 className="text-lg font-semibold">{item.surface}</h3>
+                  <p className="mt-2 text-sm font-medium text-primary">
+                    {item.credentials}
+                  </p>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                    {item.boundary}
+                  </p>
+                </article>
+              ))}
             </div>
-
-            <div className="hidden grid-cols-[0.85fr_1.15fr_2fr] border-b border-border bg-muted/35 px-8 py-3 font-mono text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground md:grid lg:px-14">
-              <span>Surface</span>
-              <span>Required credentials</span>
-              <span>Operational boundary</span>
-            </div>
-            {credentialBoundaries.map((boundary) => (
-              <article
-                key={boundary.surface}
-                className="grid gap-4 border-b border-border px-6 py-7 last:border-b-0 sm:px-10 md:grid-cols-[0.85fr_1.15fr_2fr] md:gap-8 lg:px-14"
-              >
-                <h3 className="font-semibold">{boundary.surface}</h3>
-                <p className="text-sm leading-6 text-foreground/80">
-                  {boundary.credentials}
-                </p>
-                <p className="text-sm leading-6 text-muted-foreground">
-                  {boundary.boundary}
-                </p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="border-b border-border">
-          <div className="mx-auto grid max-w-7xl border-x border-border lg:grid-cols-12">
-            <div className="border-b border-border px-6 py-14 sm:px-10 lg:col-span-7 lg:border-r lg:border-b-0 lg:px-14 lg:py-20">
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                License and responsibility
+            <aside className="mt-6 rounded-xl border border-border bg-muted/40 p-6">
+              <h3 className="font-semibold">
+                Define permitted actions before testing
+              </h3>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+                The default live-call MCP bridge restricts tools marked as
+                writes or side effects. Booking, refunds, and other system
+                changes need a separately implemented permitted action path and
+                a verified result from the destination system.
               </p>
-              <h2 className="mt-5 max-w-3xl text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                Built to be studied, changed, and operated in public.
-              </h2>
-              <p className="mt-6 max-w-2xl leading-7 text-muted-foreground">
-                QuickVoice is licensed under the GNU Affero General Public
-                License v3.0. You can use, study, modify, and distribute the
-                code subject to its terms. Modified network deployments can
-                carry corresponding-source obligations, so read the full license
-                for the conditions that apply to your use.
-              </p>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-                This summary is not legal advice. The repository makes technical
-                paths inspectable; it does not by itself certify a deployment or
-                replace security, operations, provider-agreement, compliance, or
-                legal review.
-              </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <ExternalAction
-                  href={GITHUB_LICENSE_URL}
-                  location="oss_license"
-                >
-                  Read the license
-                  <ExternalLink aria-hidden="true" className="size-4" />
-                </ExternalAction>
-                <ExternalAction
-                  href={GITHUB_SECURITY_URL}
-                  location="oss_license"
-                >
-                  Security policy
-                  <ExternalLink aria-hidden="true" className="size-4" />
-                </ExternalAction>
-              </div>
-            </div>
-            <aside className="bg-primary px-6 py-14 text-primary-foreground sm:px-10 lg:col-span-5 lg:px-14 lg:py-20">
-              <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] opacity-75">
-                Evaluate before production
-              </p>
-              <p className="mt-7 text-2xl font-semibold leading-9 tracking-[-0.025em]">
-                Review authentication, secrets, storage, call data, recordings,
-                transcripts, retention, and provider agreements for your own
-                deployment.
-              </p>
-              <Link
-                href="/privacy-policy"
-                className="mt-10 inline-flex items-center gap-2 border-b border-current pb-1 text-sm font-semibold"
-              >
-                Read the site privacy policy
-                <ArrowRight aria-hidden="true" className="size-4" />
-              </Link>
             </aside>
           </div>
         </section>
 
-        <section>
-          <div className="mx-auto max-w-7xl border-x border-border">
-            <div className="grid border-b border-border lg:grid-cols-12">
-              <div className="px-6 py-10 sm:px-10 lg:col-span-4 lg:border-r lg:px-14">
-                <p className="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-primary">
-                  Build in public
-                </p>
-              </div>
-              <div className="px-6 pb-10 sm:px-10 lg:col-span-8 lg:px-14 lg:py-10">
-                <h2 className="text-3xl font-semibold tracking-[-0.035em] sm:text-4xl">
-                  Start with the source. Continue with the community.
-                </h2>
+        <section className="page-section border-y border-border bg-muted/25">
+          <div className="site-container grid gap-8 lg:grid-cols-2">
+            <div>
+              <p className="eyebrow">License</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+                MIT licensed, with terms you can read.
+              </h2>
+              <p className="mt-4 leading-7 text-muted-foreground">
+                The MIT license permits use, modification, distribution, and
+                commercial use, subject to retaining the copyright and
+                permission notice. The software is supplied without warranty.
+                Read the repository license for the full terms.
+              </p>
+              <a
+                href={GITHUB_LICENSE_URL}
+                data-analytics-location="oss_license"
+                className="mt-5 inline-flex items-center gap-2 font-medium text-primary underline underline-offset-4"
+              >
+                Read the MIT license{" "}
+                <ArrowUpRight aria-hidden="true" className="size-4" />
+              </a>
+            </div>
+            <div className="surface-card p-6 sm:p-8">
+              <h3 className="text-xl font-semibold">
+                Review your deployment before production.
+              </h3>
+              <p className="mt-4 leading-7 text-muted-foreground">
+                Review authentication, secrets, storage, call data, recordings,
+                transcripts, retention, and provider agreements for your
+                environment. Source access does not certify a deployment or
+                replace operational and compliance review.
+              </p>
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm font-medium text-primary">
+                <a
+                  href={GITHUB_SECURITY_URL}
+                  data-analytics-location="oss_license"
+                  className="underline underline-offset-4"
+                >
+                  Security policy
+                </a>
+                <Link
+                  href="/privacy-policy"
+                  className="underline underline-offset-4"
+                >
+                  Site privacy policy
+                </Link>
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3">
-              {contributorLinks.map((item, index) => (
+          </div>
+        </section>
+
+        <section className="page-section">
+          <div className="site-container">
+            <p className="eyebrow">For builders</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Explore, contribute, and follow the project.
+            </h2>
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {contributorLinks.map((item) => (
                 <a
                   key={item.label}
                   href={item.href}
-                  target="_blank"
-                  rel="noreferrer"
                   data-analytics-location="oss_contributor_grid"
-                  className={`group min-h-52 p-6 transition-colors hover:bg-muted sm:p-8 ${
-                    index > 0 ? "border-t border-border sm:border-t-0" : ""
-                  } ${index % 2 === 1 ? "sm:border-l sm:border-border" : ""} ${
-                    index > 1 ? "sm:border-t sm:border-border" : ""
-                  } ${index % 3 !== 0 ? "lg:border-l lg:border-border" : ""} ${
-                    index > 2 ? "lg:border-t lg:border-border" : "lg:border-t-0"
-                  }`}
+                  className="surface-card group p-6 transition-colors hover:border-primary"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-semibold uppercase tracking-[0.12em] text-primary">
-                      {item.label}
-                    </span>
+                  <span className="flex items-center justify-between gap-4 text-lg font-semibold">
+                    {item.label}
                     <ArrowUpRight
                       aria-hidden="true"
-                      className="size-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                      className="size-4 text-primary"
                     />
-                  </div>
-                  <p className="mt-16 max-w-xs text-sm leading-6 text-muted-foreground">
+                  </span>
+                  <p className="mt-3 text-sm leading-6 text-muted-foreground">
                     {item.detail}
                   </p>
                 </a>
               ))}
             </div>
+            <p className="mt-6 text-sm text-muted-foreground">
+              Prefer the hosted console?{" "}
+              <Link
+                href={REGISTER_URL}
+                data-analytics-location="oss_technical"
+                className="font-medium text-primary underline underline-offset-4"
+              >
+                Create an account
+              </Link>{" "}
+              and review your available wallet credit before testing.
+            </p>
           </div>
         </section>
-      </main>
+
+        <section className="page-section border-t border-border bg-muted/25">
+          <div className="site-container">
+            <h2 className="text-3xl font-semibold tracking-tight">
+              Connect the source to your business workflow.
+            </h2>
+            <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+              Bring your call requirements and technical questions to a demo, or
+              send the team a written enquiry.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <a href={DEMO_BOOKING_URL} data-analytics-location="oss_footer">
+                  Book a demo <ArrowRight aria-hidden="true" />
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href={CONTACT_URL} data-analytics-location="oss_footer">
+                  Contact the team
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+      </div>
     </>
   );
 }

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
 import { computeContentHash, isValidEvidenceReview, parseContentDate } from "../src/lib/blog-review.mjs";
@@ -11,7 +11,17 @@ function loadTypeScript(url, overrides = {}) {
   const output = ts.transpileModule(source, { fileName: url.pathname, compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const compiledModule = { exports: {} };
   const fileRequire = createRequire(url);
-  new Function("require", "module", "exports", output)((name) => overrides[name] ?? fileRequire(name), compiledModule, compiledModule.exports);
+  const resolveModule = (name) => {
+    if (name in overrides) return overrides[name];
+    if (name.startsWith("@/")) {
+      const target = new URL("../src/" + name.slice(2), import.meta.url);
+      if (name.endsWith(".mjs")) return fileRequire(target.pathname);
+      const extension = existsSync(new URL(target.href + ".ts")) ? ".ts" : ".tsx";
+      return loadTypeScript(new URL(target.href + extension), overrides);
+    }
+    return fileRequire(name);
+  };
+  new Function("require", "module", "exports", output)(resolveModule, compiledModule, compiledModule.exports);
   return compiledModule.exports;
 }
 const { isPublishedPost, isIndexablePost, getPostModifiedDate } = loadTypeScript(new URL("../src/lib/blog.ts", import.meta.url));

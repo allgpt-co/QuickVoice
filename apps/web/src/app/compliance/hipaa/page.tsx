@@ -33,7 +33,9 @@ export const metadata: Metadata = {
     type: "website",
     url: "https://quickvoice.co/compliance/hipaa",
     siteName: "QuickVoice",
-    images: [{ url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 }],
+    images: [
+      { url: "https://quickvoice.co/og-image.png", width: 1200, height: 630 },
+    ],
   },
 };
 
@@ -112,13 +114,13 @@ const responsibilityRows = [
 
 export default function HealthcareDeploymentReviewPage() {
   return (
-    <main className="bg-background text-foreground">
-      <section className="border-b border-border bg-gradient-to-br from-primary/10 via-background to-background px-6 pb-16 pt-32 sm:pb-20">
-        <div className="mx-auto max-w-5xl">
+    <div>
+      <section className="page-section border-b border-border bg-secondary/60">
+        <div className="site-container">
           <p className="font-mono text-xs uppercase tracking-[0.2em] text-primary">
             Healthcare deployment review
           </p>
-          <h1 className="mt-5 max-w-4xl text-4xl font-semibold tracking-tight sm:text-6xl">
+          <h1 className="mt-5 max-w-4xl page-title">
             Review the complete healthcare deployment
           </h1>
           <p className="mt-6 max-w-3xl text-lg leading-8 text-muted-foreground">
@@ -144,14 +146,14 @@ export default function HealthcareDeploymentReviewPage() {
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
               href="/open-source"
-              className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+              className="inline-flex items-center justify-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary-hover"
             >
               Inspect the open-source stack
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
               href="/company/contact"
-              className="inline-flex items-center justify-center rounded-full border border-border bg-background px-6 py-3 font-medium transition hover:bg-muted"
+              className="inline-flex items-center justify-center rounded-[10px] border border-border bg-background px-6 py-3 font-medium transition hover:bg-muted"
             >
               Discuss a deployment review
             </Link>
@@ -159,8 +161,8 @@ export default function HealthcareDeploymentReviewPage() {
         </div>
       </section>
 
-      <section className="px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-5xl">
+      <section className="page-section">
+        <div className="site-container">
           <div className="max-w-3xl">
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
               Review the system, not a slogan
@@ -172,16 +174,13 @@ export default function HealthcareDeploymentReviewPage() {
 
           <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {reviewAreas.map((item) => (
-              <article
-                key={item.title}
-                className="rounded-xl border border-border bg-card p-6"
-              >
+              <article key={item.title} className="surface-card">
                 <item.icon
                   className="h-6 w-6 text-primary"
                   aria-hidden="true"
                 />
                 <h3 className="mt-5 text-lg font-semibold">{item.title}</h3>
-                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                <p className="mt-3 text-base leading-7 text-muted-foreground">
                   {item.description}
                 </p>
               </article>
@@ -190,8 +189,8 @@ export default function HealthcareDeploymentReviewPage() {
         </div>
       </section>
 
-      <section className="border-y border-border bg-muted/30 px-6 py-16 sm:py-24">
-        <div className="mx-auto max-w-5xl">
+      <section className="border-y border-border bg-secondary/60 page-section">
+        <div className="site-container">
           <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
             Shared responsibility
           </p>
@@ -214,8 +213,8 @@ export default function HealthcareDeploymentReviewPage() {
         </div>
       </section>
 
-      <section className="px-6 py-16 sm:py-24">
-        <div className="mx-auto grid max-w-5xl gap-12 lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="page-section">
+        <div className="site-container grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.18em] text-primary">
               Production gate
@@ -251,8 +250,8 @@ export default function HealthcareDeploymentReviewPage() {
         </div>
       </section>
 
-      <section className="border-t border-border bg-primary/5 px-6 py-16">
-        <div className="mx-auto flex max-w-5xl flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
+      <section className="border-t border-border bg-primary/5 page-section">
+        <div className="site-container flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center">
           <div>
             <h2 className="text-2xl font-semibold">
               Start with source-level evidence
@@ -272,13 +271,13 @@ export default function HealthcareDeploymentReviewPage() {
           </div>
           <Link
             href="https://github.com/allgpt-co/QuickVoice"
-            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary/90"
+            className="inline-flex shrink-0 items-center gap-2 rounded-[10px] bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:bg-primary-hover"
           >
             View source on GitHub
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </Link>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

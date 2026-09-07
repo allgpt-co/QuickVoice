@@ -1,237 +1,123 @@
-"use client";
-
-import {
-  Facebook,
-  Instagram,
-  Linkedin,
-  Mail,
-  MapPin,
-  Phone,
-  Twitter,
-} from "lucide-react";
 import Link from "next/link";
-import Logo1 from "../logo1";
+import Logo from "@/components/logo";
 import {
   GITHUB_DOCS_URL,
-  GITHUB_ISSUES_URL,
-  GITHUB_RELEASES_URL,
   GITHUB_REPO_URL,
+  GITHUB_RELEASES_URL,
+  GITHUB_LICENSE_URL,
 } from "@/lib/links";
 
-const data = {
-  facebookLink: "https://www.facebook.com/profile.php?id=61578373598223",
-  instaLink: "https://www.instagram.com/quickvoice_co/",
-  twitterLink: "https://x.com/QuickVoice_co",
-  linkedinLink: "https://www.linkedin.com/company/quickvoiceai",
-  services: {
-    industries: "/industries",
-    useCases: "/use-cases",
+const groups = [
+  {
+    title: "Explore",
+    links: [
+      ["Solutions", "/solutions"],
+      ["Industries", "/industries"],
+      ["All workflows", "/use-cases"],
+      ["Pricing", "/pricing"],
+    ],
   },
-  about: {
-    aboutUs: "/company/about-us",
-    contactUs: "/company/contact",
-    careers: "/company/careers",
+  {
+    title: "Learn",
+    links: [
+      ["Buyer resources", "/resources"],
+      ["Guides", "/blog"],
+      ["Workflow examples", "/case-studies"],
+      ["Deployment review", "/compliance/hipaa"],
+    ],
   },
-  contact: {
-    email: "info@quickvoice.co",
-    phone: "+1 2184525998",
-    address: "Delaware, United States",
+  {
+    title: "Build",
+    links: [
+      ["Open Source", "/open-source"],
+      ["GitHub", GITHUB_REPO_URL],
+      ["Repository docs", GITHUB_DOCS_URL],
+      ["Releases", GITHUB_RELEASES_URL],
+    ],
   },
-  company: {
-    name: "QuickVoice",
-    description:
-      "Open-source, self-hostable infrastructure for building and operating AI phone agents.",
-    logo: "/logo.webp",
+  {
+    title: "Company",
+    links: [
+      ["About", "/company/about-us"],
+      ["Contact the team", "/company/contact"],
+      ["Careers", "/company/careers"],
+      ["LinkedIn", "https://www.linkedin.com/company/quickvoiceai"],
+    ],
   },
-};
-
-const socialLinks = [
-  { icon: Facebook, label: "Facebook", href: data.facebookLink },
-  { icon: Instagram, label: "Instagram", href: data.instaLink },
-  { icon: Twitter, label: "X (Twitter)", href: data.twitterLink },
-  { icon: Linkedin, label: "LinkedIn", href: data.linkedinLink },
-];
-
-const aboutLinks = [
-  { text: "About Us", href: data.about.aboutUs },
-  { text: "Contact Us", href: data.about.contactUs },
-  { text: "Careers", href: data.about.careers },
-  { text: "Privacy Policy", href: "/privacy-policy" },
-  { text: "Terms of Service", href: "/terms-of-service" },
-];
-
-const serviceLinks = [
-  { text: "Industries", href: data.services.industries },
-  { text: "Use Cases", href: data.services.useCases },
-  { text: "Pricing", href: "/pricing" },
-  { text: "Blog", href: "/blog" },
-  { text: "Buyer Resources", href: "/resources" },
-  { text: "Workflow Scenarios", href: "/case-studies" },
-];
-
-const projectLinks = [
-  { text: "Open Source", href: "/open-source" },
-  { text: "GitHub", href: GITHUB_REPO_URL },
-  { text: "Documentation", href: GITHUB_DOCS_URL },
-  { text: "Issues", href: GITHUB_ISSUES_URL },
-  { text: "Releases", href: GITHUB_RELEASES_URL },
-];
-
-const contactInfo = [
-  { icon: Mail, text: data.contact.email },
-  { icon: Phone, text: data.contact.phone },
-  { icon: MapPin, text: data.contact.address, isAddress: true },
 ];
 
 export default function Footer4Col() {
   return (
-    <footer className="bg-secondary dark:bg-secondary/20 mt-16 w-full place-self-end rounded-t-xl">
-      <div className="mx-auto max-w-screen-xl px-4 pt-16 pb-6 sm:px-6 lg:px-8 lg:pt-24">
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+    <footer className="border-t border-border bg-secondary">
+      <div className="site-container pb-8 pt-14">
+        <div className="grid gap-12 lg:grid-cols-[1.2fr_2fr]">
           <div>
-            <div className="text-primary flex justify-center items-center gap-2 sm:justify-start">
-              <Logo1 />
-            </div>
-
-            <p className="text-foreground/50 mt-6 max-w-md text-center leading-relaxed sm:max-w-xs sm:text-left">
-              {data.company.description}
+            <Link
+              href="/"
+              aria-label="QuickVoice home"
+              className="inline-flex min-h-11 items-center gap-2.5"
+            >
+              <Logo className="size-8 text-primary" />
+              <span className="text-xl font-bold tracking-tight">
+                QuickVoice
+              </span>
+            </Link>
+            <p className="mt-4 max-w-xs text-base leading-7 text-muted-foreground">
+              AI phone agents for business calls. Open source, with room to make
+              them your own.
             </p>
-
-            <ul className="mt-8 flex items-center justify-center gap-6 sm:justify-start md:gap-8">
-              {socialLinks.map(({ icon: Icon, label, href }) => (
-                <li key={label} className="flex items-center">
-                  <Link
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={href}
-                    className="flex items-center justify-center text-primary hover:text-primary/80 transition"
-                  >
-                    <span className="sr-only">{label}</span>
-                    <Icon className="size-6" />
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <address className="mt-5 flex flex-col items-start text-sm not-italic text-muted-foreground">
+              <a
+                className="py-2 hover:underline"
+                href="mailto:info@quickvoice.co"
+              >
+                info@quickvoice.co
+              </a>
+              <a className="py-2 hover:underline" href="tel:+12184525998">
+                +1 218 452 5998
+              </a>
+              <span className="py-2">Delaware, United States</span>
+            </address>
           </div>
-
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:col-span-2 lg:grid-cols-4">
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">About Us</p>
-              <ul className="mt-8 space-y-4 text-sm">
-                {aboutLinks.map(({ text, href }) => (
-                  <li key={text}>
-                    <Link
-                      className="text-secondary-foreground/70 transition-colors hover:text-foreground"
-                      href={href}
-                    >
-                      {text}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Solutions</p>
-              <ul className="mt-8 space-y-4 text-sm">
-                {serviceLinks.map(({ text, href }) => (
-                  <li key={text}>
-                    <Link
-                      className="text-secondary-foreground/70 transition-colors hover:text-foreground"
-                      href={href}
-                    >
-                      {text}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Open Source</p>
-              <ul className="mt-8 space-y-4 text-sm">
-                {projectLinks.map(({ text, href }) => (
-                  <li key={text}>
-                    {href.startsWith("http") ? (
-                      <a
-                        className="text-secondary-foreground/70 transition-colors hover:text-foreground"
-                        href={href}
-                        target="_blank"
-                        rel="noreferrer"
-                        data-analytics-location="footer"
-                      >
-                        {text}
-                      </a>
-                    ) : (
+          <div className="grid grid-cols-2 gap-x-6 gap-y-8 sm:grid-cols-4">
+            {groups.map((group) => (
+              <nav key={group.title} aria-label={`Footer ${group.title}`}>
+                <h2 className="text-sm font-semibold">{group.title}</h2>
+                <ul className="mt-4 space-y-1">
+                  {group.links.map(([label, href]) => (
+                    <li key={label}>
                       <Link
-                        className="text-secondary-foreground/70 transition-colors hover:text-foreground"
-                        href={href}
+                        href={href!}
+                        data-analytics-location="footer"
+                        className="inline-flex min-h-11 items-center py-2 text-sm text-muted-foreground hover:text-foreground hover:underline"
                       >
-                        {text}
+                        {label}
                       </Link>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="text-center sm:text-left">
-              <p className="text-lg font-medium">Contact Us</p>
-              <ul className="mt-8 space-y-4 text-sm">
-                {contactInfo.map(({ icon: Icon, text, isAddress }) => {
-                  const isEmail = text.includes("@");
-                  const isPhone = text.includes("+") || /^\d/.test(text);
-                  const href = isEmail
-                    ? `mailto:${text}`
-                    : isPhone
-                      ? `tel:${text}`
-                      : "#";
-
-                  return (
-                    <li key={text}>
-                      {isEmail || isPhone ? (
-                        <Link
-                          className="flex items-center justify-center gap-1.5 sm:justify-start"
-                          href={href}
-                        >
-                          <Icon className="text-primary size-5 shrink-0 shadow-sm" />
-                          {isAddress ? (
-                            <address className="text-secondary-foreground/70 -mt-0.5 flex-1 not-italic transition">
-                              {text}
-                            </address>
-                          ) : (
-                            <span className="text-secondary-foreground/70 flex-1 transition">
-                              {text}
-                            </span>
-                          )}
-                        </Link>
-                      ) : (
-                        <div className="flex items-center justify-center gap-1.5 sm:justify-start">
-                          <Icon className="text-primary size-5 shrink-0 shadow-sm" />
-                          {isAddress ? (
-                            <address className="text-secondary-foreground/70 -mt-0.5 flex-1 not-italic transition">
-                              {text}
-                            </address>
-                          ) : (
-                            <span className="text-secondary-foreground/70 flex-1 transition">
-                              {text}
-                            </span>
-                          )}
-                        </div>
-                      )}
                     </li>
-                  );
-                })}
-              </ul>
-            </div>
+                  ))}
+                </ul>
+              </nav>
+            ))}
           </div>
         </div>
-
-        <div className="mt-12 border-t pt-6">
-          <p className="text-center text-sm text-secondary-foreground/70">
-            &copy; {new Date().getFullYear()} QuickVoice contributors. MIT
-            licensed.
+        <div className="mt-10 flex flex-col gap-4 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} QuickVoice contributors.{" "}
+            <a
+              href={GITHUB_LICENSE_URL}
+              className="underline underline-offset-4"
+            >
+              MIT licensed.
+            </a>
           </p>
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Link className="py-2 hover:underline" href="/privacy-policy">
+              Privacy policy
+            </Link>
+            <Link className="py-2 hover:underline" href="/terms-of-service">
+              Terms of service
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

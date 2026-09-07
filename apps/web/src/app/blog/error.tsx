@@ -1,35 +1,39 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function BlogError({
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, []);
+
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-      <h1 className="text-3xl font-bold text-foreground mb-4">
-        Unable to load blog content
-      </h1>
-      <p className="text-muted-foreground mb-8 max-w-md">
-        We had trouble loading this page. Please try again.
-      </p>
-      <div className="flex gap-4">
-        <button
-          onClick={reset}
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Try again
-        </button>
-        <Link
-          href="/blog"
-          className="rounded-full border border-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          Back to blog
-        </Link>
+    <section className="page-section">
+      <div className="site-container flex min-h-[50vh] flex-col items-start justify-center">
+        <p className="eyebrow">Page unavailable</p>
+        <h1 ref={heading} tabIndex={-1} className="page-title mt-4 max-w-3xl">
+          Unable to load blog content
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
+          Try loading the page again, or return to the blog library.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button size="lg" type="button" onClick={unstable_retry}>
+            Try again
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/blog">Back to blog</Link>
+          </Button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }

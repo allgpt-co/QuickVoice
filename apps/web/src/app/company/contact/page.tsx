@@ -2,14 +2,13 @@ import { Metadata } from "next";
 import {
   ContactUsHeroSection,
   ContactUsFormSection,
-  ContactUsWhySection,
   ContactUsFaqSection,
 } from "@/components/landing/contact-us";
 
 export const metadata: Metadata = {
-  title: "Contact QuickVoice — Get a Demo or Support",
+  title: "Contact QuickVoice — Book a Demo or Send an Enquiry",
   description:
-    "Contact QuickVoice for a demo, pricing, or support. Reach our team to learn how AI voice agents can automate your business calls.",
+    "Book a QuickVoice demo or contact the team about pricing, implementation, and support for your calling workflow.",
   keywords:
     "contact QuickVoice, voice technology support, AI voice agents contact, business consultation, voice automation support",
   authors: [{ name: "QuickVoice Team" }],
@@ -17,9 +16,9 @@ export const metadata: Metadata = {
   publisher: "QuickVoice",
   robots: "index, follow",
   openGraph: {
-    title: "Contact Us",
+    title: "Contact QuickVoice",
     description:
-      "Get in touch with QuickVoice to explore how voice agents can transform your business. Contact our team today for more information.",
+      "Book a demo or send the QuickVoice team an enquiry about your calling workflow.",
     type: "website",
     url: "https://quickvoice.co/company/contact",
     siteName: "QuickVoice",
@@ -34,9 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "Contact Us",
+    title: "Contact QuickVoice",
     description:
-      "Get in touch with QuickVoice to explore how voice agents can transform your business. Contact our team today for more information.",
+      "Book a demo or send the QuickVoice team an enquiry about your calling workflow.",
     images: ["/images/analytics-dashboard.png"],
   },
   alternates: {
@@ -50,13 +49,12 @@ export default function ContactUsPage() {
     "@type": "ContactPage",
     name: "Contact Us - QuickVoice",
     description:
-      "Get in touch with QuickVoice to explore how voice agents can transform your business",
+      "Book a demo or contact the QuickVoice team about your calling workflow.",
     url: "https://quickvoice.co/company/contact",
     mainEntity: {
       "@type": "Organization",
       name: "QuickVoice",
-      description:
-        "AI-powered voice automation provider empowering businesses with intelligent voice agents",
+      description: "Voice agent software for business calling workflows",
       url: "https://quickvoice.co",
       logo: "https://quickvoice.co/logo.svg",
       contactPoint: {
@@ -75,7 +73,6 @@ export default function ContactUsPage() {
       />
       <ContactUsHeroSection />
       <ContactUsFormSection />
-      <ContactUsWhySection />
       <ContactUsFaqSection />
     </div>
   );

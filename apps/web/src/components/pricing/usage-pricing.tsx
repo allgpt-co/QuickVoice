@@ -1,55 +1,59 @@
 import {
+  ArrowRight,
   Bot,
-  Check,
+  ChevronDown,
   CreditCard,
-  Gift,
   Phone,
-  RefreshCw,
   WalletCards,
 } from "lucide-react";
 import Link from "next/link";
 
-import { CONTACT_URL, REGISTER_URL } from "@/lib/links";
+import { Button } from "@/components/ui/button";
+import { CONTACT_URL, DEMO_BOOKING_URL, REGISTER_URL } from "@/lib/links";
 
 const COST_COMPONENTS = [
   {
     icon: Bot,
     title: "AI model usage",
-    price: "Market cost + 20%",
+    price: "Provider market cost + 20%",
     description:
-      "STT, TTS, and LLM selections determine spend. Usage is metered from the providers' actual units instead of a blended flat rate.",
+      "Speech-to-text, text-to-speech, and language models are metered in their actual provider units.",
   },
   {
     icon: Phone,
     title: "Telephony",
     price: "Provider cost + 20%",
     description:
-      "Inbound and outbound carrier charges follow the selected provider, destination, and provider rounding rules.",
+      "Carrier charges vary by provider, destination, call direction, and rounding rules.",
   },
   {
     icon: WalletCards,
-    title: "QuickVoice platform",
+    title: "Platform fee",
     price: "$0.01 / connected minute",
     description:
-      "The platform fee is prorated per second, so a partial connected minute is charged only for the connected time used.",
+      "Charged for connected time and prorated per second, including partial minutes.",
   },
   {
     icon: CreditCard,
     title: "Phone numbers",
     price: "From $2 / 30 days",
     description:
-      "Rental is the greater of $2 or provider rent plus 20%. Numbers renew from paid wallet credit, never promotional credit.",
+      "Each rental is the greater of $2 or provider rent plus 20%. Rental and renewal use paid credit.",
   },
 ] as const;
 
 export const PRICING_FAQS = [
+  {
+    q: "How should we budget for self-hosting?",
+    a: "The MIT software license and the cost of operating it are separate. A self-hosted deployment needs its own hosting, AI and telephony providers, phone numbers, implementation, monitoring, and human follow-up. The hosted wallet formula on this page describes QuickVoice-hosted usage; review your own provider agreements and operating costs when self-hosting.",
+  },
   {
     q: "Do I need a monthly subscription?",
     a: "No. Hosted QuickVoice uses a prepaid wallet. Add credit in $5 increments from $5 to $500 and spend it on measured call usage and phone-number rental.",
   },
   {
     q: "How does the $5 signup credit work?",
-    a: "A newly verified user receives a one-time $5 promotional call credit in their first organization. It does not expire and can be used for browser, widget, inbound, and outbound call usage, but it cannot buy or renew phone numbers.",
+    a: "When the hosted signup promotion is enabled, eligible new users who verify their email can receive a one-time $5 call credit in their first owned organization. Eligibility depends on the promotion start date and prior grants; creating another organization does not grant another credit. Granted credit has no expiry and is for call usage only, not phone-number purchase or renewal.",
   },
   {
     q: "What determines the cost of a call?",
@@ -71,163 +75,219 @@ export const PRICING_FAQS = [
 
 export function UsagePricing() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
-      <section className="relative overflow-hidden px-4 pt-28 pb-20">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,rgba(var(--primary-rgb),0.18),transparent_35%),linear-gradient(135deg,rgba(var(--primary-rgb),0.08),transparent_50%)]" />
-        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
+    <div className="bg-background text-foreground">
+      <section className="page-section border-b border-border">
+        <div className="site-container grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
-            <p className="mb-5 inline-flex rounded-full border border-primary/20 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
-              Usage-based pricing, no plan required
-            </p>
-            <h1 className="max-w-4xl text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              Pay for the voice stack you actually use.
+            <p className="eyebrow">Usage-based pricing</p>
+            <h1 className="page-title mt-4">
+              Understand how call costs add up.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              Choose the speech and language models that fit each agent. QuickVoice
-              meters their usage, carrier costs, and connected time against one
-              prepaid USD wallet.
+              Hosted QuickVoice combines measured AI usage, telephony, and
+              connected time in one prepaid USD wallet. Your model and carrier
+              choices determine the total.
             </p>
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href={REGISTER_URL}
-                className="inline-flex items-center justify-center rounded-lg bg-primary px-7 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90"
-              >
-                Start with $5 call credit
-              </Link>
-              <Link
-                href={CONTACT_URL}
-                className="inline-flex items-center justify-center rounded-lg border border-border bg-background px-7 py-3 text-sm font-semibold shadow-sm transition-colors hover:bg-muted"
-              >
-                Talk to sales
-              </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Button asChild size="lg">
+                <a
+                  href={DEMO_BOOKING_URL}
+                  data-analytics-location="pricing_hero"
+                >
+                  Book a demo <ArrowRight aria-hidden="true" />
+                </a>
+              </Button>
+              <Button asChild size="lg" variant="outline">
+                <Link href={CONTACT_URL} data-analytics-location="pricing_hero">
+                  Ask a pricing question
+                </Link>
+              </Button>
             </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              No card is needed to receive the one-time promotional call credit.
-            </p>
           </div>
-
-          <div className="border border-primary/20 bg-card p-7 shadow-xl shadow-primary/5 sm:p-8">
-            <div className="flex items-center gap-3">
-              <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <Gift className="size-5" />
-              </span>
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">New verified users</p>
-                <p className="text-3xl font-bold">$5 free call credit</p>
+          <aside
+            className="surface-card p-6 sm:p-8"
+            aria-labelledby="pricing-formula"
+          >
+            <p className="eyebrow">How charges add up</p>
+            <h2
+              id="pricing-formula"
+              className="mt-4 text-2xl font-semibold tracking-tight"
+            >
+              One formula. Measured usage.
+            </h2>
+            <dl className="mt-6 divide-y divide-border text-sm">
+              <div className="flex justify-between gap-4 py-3">
+                <dt>AI provider cost</dt>
+                <dd className="font-semibold">× 1.20</dd>
               </div>
-            </div>
-            <ul className="mt-7 space-y-4 text-sm">
-              {[
-                "Works for browser, widget, inbound, and outbound calls",
-                "No expiry in the first organization",
-                "Top up manually or enable threshold-based recharge",
-                "Phone-number rental always uses paid credit",
-              ].map((item) => (
-                <li key={item} className="flex items-start gap-3">
-                  <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+              <div className="flex justify-between gap-4 py-3">
+                <dt>Telephony provider cost</dt>
+                <dd className="font-semibold">× 1.20</dd>
+              </div>
+              <div className="flex justify-between gap-4 py-3">
+                <dt>Connected minutes</dt>
+                <dd className="font-semibold">× $0.01</dd>
+              </div>
+              <div className="flex justify-between gap-4 py-3">
+                <dt>Phone-number rental</dt>
+                <dd className="font-semibold">Separate charge</dd>
+              </div>
+            </dl>
+            <p className="mt-4 text-sm leading-6 text-muted-foreground">
+              No minute bundle or hosted subscription is required. Add paid
+              credit when you need it.
+            </p>
+          </aside>
         </div>
       </section>
 
-      <section className="border-y border-border bg-muted/20 py-20">
-        <div className="mx-auto max-w-7xl px-4">
-          <div className="max-w-3xl">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              The complete cost formula
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight sm:text-4xl">
-              Transparent components instead of minute bundles
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Provider prices vary by model, voice, country, destination, and
-              carrier. Your agent configuration shows an estimate when a current
-              rate is available; the wallet ledger records measured charges.
-            </p>
-          </div>
-
-          <div className="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-            {COST_COMPONENTS.map((component) => (
-              <article key={component.title} className="border bg-background p-6">
-                <component.icon className="size-5 text-primary" />
-                <h3 className="mt-5 text-base font-semibold">{component.title}</h3>
-                <p className="mt-2 text-xl font-bold tracking-tight text-primary">
-                  {component.price}
+      <section className="page-section">
+        <div className="site-container">
+          <p className="eyebrow">What you pay for</p>
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+            Four clear cost components
+          </h2>
+          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+            Rates vary with the models, voices, countries, and carriers you
+            select. The wallet ledger records measured charges.
+          </p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {COST_COMPONENTS.map((item) => (
+              <article key={item.title} className="surface-card p-6">
+                <item.icon className="size-5 text-primary" aria-hidden="true" />
+                <h3 className="mt-5 text-lg font-semibold">{item.title}</h3>
+                <p className="mt-3 text-lg font-semibold text-primary">
+                  {item.price}
                 </p>
                 <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                  {component.description}
+                  {item.description}
                 </p>
               </article>
             ))}
           </div>
+          <div className="mt-6 rounded-xl border border-border bg-muted/40 p-6">
+            <h3 className="font-semibold">An example of the arithmetic</h3>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
+              If measured provider costs were $10 for AI and $5 for telephony
+              over 100 connected minutes, call charges would be $12 + $6 + $1 =
+              $19. These are illustrative inputs, not quoted provider rates;
+              phone-number rental and any applicable tax are additional.
+            </p>
+          </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[0.8fr_1.2fr]">
+      <section className="page-section border-y border-border bg-muted/25">
+        <div className="site-container grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-              Wallet controls
-            </p>
-            <h2 className="mt-3 text-3xl font-bold tracking-tight">
-              Stay funded without buying a subscription.
+            <p className="eyebrow">Wallet controls</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Plan usage, then fund it.
             </h2>
             <p className="mt-4 leading-7 text-muted-foreground">
-              Owners and admins control payment methods and recharge rules. Members
-              can still see the balance and transaction ledger.
+              Owners and admins manage payment methods and recharge rules.
+              Members can view the balance and transaction ledger.
             </p>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="border bg-card p-6">
-              <CreditCard className="size-5 text-primary" />
-              <h3 className="mt-4 font-semibold">Manual top-ups</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Add $5 to $500 in $5 increments. The full amount is credited;
-                QuickVoice absorbs Stripe processing fees and applicable tax is extra.
+            <article className="surface-card p-6">
+              <h3 className="text-lg font-semibold">Manual top-ups</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Add $5 to $500 in $5 increments. The full top-up amount is
+                credited; applicable tax is extra.
               </p>
-            </div>
-            <div className="border bg-card p-6">
-              <RefreshCw className="size-5 text-primary" />
-              <h3 className="mt-4 font-semibold">Automatic recharge</h3>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Opt in after saving a card, then choose a threshold and reload amount.
-                New settings default to a $5 threshold and a $20 recharge.
+            </article>
+            <article className="surface-card p-6">
+              <h3 className="text-lg font-semibold">Optional auto-recharge</h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                Save a payment method, then choose a threshold and recharge
+                amount. Automatic recharge stays off until enabled.
               </p>
-            </div>
+            </article>
+            <article className="surface-card p-6 sm:col-span-2">
+              <h3 className="text-lg font-semibold">
+                Signup credit, when available
+              </h3>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                An enabled hosted promotion can grant eligible verified new
+                users $5 in call credit in their first owned organization. Check
+                your wallet for the grant before testing. Promotional credit
+                cannot buy or renew phone numbers.
+              </p>
+            </article>
           </div>
         </div>
       </section>
 
-      <section className="border-y border-border bg-muted/20 py-20">
-        <div className="mx-auto max-w-3xl px-4">
-          <h2 className="text-center text-3xl font-bold tracking-tight">Pricing FAQs</h2>
-          <dl className="mt-10 divide-y divide-border">
+      <section className="page-section">
+        <div className="site-container grid gap-8 lg:grid-cols-[0.65fr_1.35fr]">
+          <div>
+            <p className="eyebrow">Questions, answered</p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-tight">
+              Pricing details
+            </h2>
+          </div>
+          <div className="divide-y divide-border border-y border-border">
             {PRICING_FAQS.map((faq) => (
-              <div key={faq.q} className="py-6">
-                <dt className="font-semibold">{faq.q}</dt>
-                <dd className="mt-2 leading-7 text-muted-foreground">{faq.a}</dd>
-              </div>
+              <details key={faq.q} className="group py-5">
+                <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-5 text-base font-semibold">
+                  {faq.q}
+                  <ChevronDown
+                    className="size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
+                </summary>
+                <p className="mt-3 max-w-3xl leading-7 text-muted-foreground">
+                  {faq.a}
+                </p>
+              </details>
             ))}
-          </dl>
+          </div>
         </div>
       </section>
 
-      <section className="py-20">
-        <div className="mx-auto max-w-3xl px-4 text-center">
-          <h2 className="text-3xl font-bold tracking-tight">Build your first agent with $5 on us.</h2>
-          <p className="mx-auto mt-4 max-w-xl text-muted-foreground">
-            Configure the models you want, test the complete call path, and add paid
-            credit only when you are ready for more usage or a real phone number.
+      <section className="page-section border-t border-border bg-muted/25">
+        <div className="site-container">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Bring a workflow. Review the costs.
+          </h2>
+          <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">
+            Discuss call volume, provider choices, and the implementation your
+            team needs before planning a pilot.
           </p>
-          <Link
-            href={REGISTER_URL}
-            className="mt-8 inline-flex items-center justify-center rounded-lg bg-primary px-8 py-3 text-sm font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Create a free account
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild size="lg">
+              <a
+                href={DEMO_BOOKING_URL}
+                data-analytics-location="pricing_footer"
+              >
+                Book a demo <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+            <Button asChild size="lg" variant="outline">
+              <Link href={CONTACT_URL} data-analytics-location="pricing_footer">
+                Contact the team
+              </Link>
+            </Button>
+          </div>
+          <p className="mt-6 text-sm text-muted-foreground">
+            Ready to configure it yourself?{" "}
+            <Link
+              href={REGISTER_URL}
+              data-analytics-location="pricing_technical"
+              className="font-medium text-primary underline underline-offset-4"
+            >
+              Create a hosted account
+            </Link>{" "}
+            or{" "}
+            <Link
+              href="/open-source"
+              className="font-medium text-primary underline underline-offset-4"
+            >
+              inspect the source
+            </Link>
+            .
+          </p>
         </div>
       </section>
     </div>

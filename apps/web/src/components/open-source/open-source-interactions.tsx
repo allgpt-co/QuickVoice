@@ -69,7 +69,7 @@ export function QuickstartCopyButton({ commands }: { commands: string }) {
     <button
       type="button"
       onClick={copyCommands}
-      className="inline-flex h-9 items-center gap-2 border border-white/25 bg-white/10 px-3 font-mono text-xs font-medium text-white transition-colors hover:bg-white/20 focus-visible:outline-white"
+      className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-slate-500 bg-slate-800 px-3 font-mono text-xs font-medium text-white transition-colors hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
       aria-live="polite"
     >
       {status === "copied" ? (

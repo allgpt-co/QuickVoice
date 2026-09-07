@@ -1,39 +1,39 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
-export default function Error({
-  error: _error,
-  reset,
+export default function ErrorPage({
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }) {
-  void _error;
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus();
+  }, []);
 
   return (
-    <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-      <h1 className="text-4xl font-bold text-foreground mb-4">
-        Something went wrong
-      </h1>
-      <p className="text-muted-foreground mb-8 max-w-md">
-        We encountered an unexpected error. Please try again or return to the
-        homepage.
-      </p>
-      <div className="flex gap-4">
-        <button
-          onClick={reset}
-          className="rounded-full bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-        >
-          Try again
-        </button>
-        <Link
-          href="/"
-          className="rounded-full border border-border px-6 py-2.5 text-sm font-medium text-foreground transition-colors hover:bg-muted"
-        >
-          Go home
-        </Link>
+    <section className="page-section">
+      <div className="site-container flex min-h-[50vh] flex-col items-start justify-center">
+        <p className="eyebrow">Page unavailable</p>
+        <h1 ref={heading} tabIndex={-1} className="page-title mt-4 max-w-3xl">
+          Something went wrong
+        </h1>
+        <p className="mt-6 max-w-xl text-lg leading-8 text-muted-foreground">
+          We could not load this page. Try again, or return to the homepage.
+        </p>
+        <div className="mt-8 flex flex-wrap gap-3">
+          <Button size="lg" type="button" onClick={unstable_retry}>
+            Try again
+          </Button>
+          <Button asChild size="lg" variant="outline">
+            <Link href="/">Go home</Link>
+          </Button>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
