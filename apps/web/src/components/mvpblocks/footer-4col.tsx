@@ -1,6 +1,9 @@
 import Link from "next/link";
 import Logo from "@/components/logo";
 import {
+  API_REFERENCE_URL,
+  DOCS_URL,
+  MCP_DOCS_URL,
   GITHUB_DOCS_URL,
   GITHUB_REPO_URL,
   GITHUB_RELEASES_URL,
@@ -31,6 +34,9 @@ const groups = [
     links: [
       ["Open Source", "/open-source"],
       ["GitHub", GITHUB_REPO_URL],
+      ["Documentation", DOCS_URL],
+      ["API Reference", API_REFERENCE_URL],
+      ["MCP Server", MCP_DOCS_URL],
       ["Repository docs", GITHUB_DOCS_URL],
       ["Releases", GITHUB_RELEASES_URL],
     ],

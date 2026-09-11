@@ -20,7 +20,7 @@ export default function Header1() {
     const dismiss = (event: PointerEvent) => {
       if (!header.current?.contains(event.target as Node)) setOpenMenu(null);
     };
-    const media = window.matchMedia("(min-width: 1024px)");
+    const media = window.matchMedia("(min-width: 1280px)");
     const resize = () => {
       if (media.matches) dialog.current?.close();
     };
@@ -54,7 +54,7 @@ export default function Header1() {
         </Link>
         <nav
           aria-label="Main navigation"
-          className="hidden items-center gap-1 lg:flex"
+          className="hidden items-center gap-1 xl:flex"
         >
           {navigation.map((item) => {
             const active =
@@ -129,7 +129,7 @@ export default function Header1() {
             );
           })}
         </nav>
-        <div className="hidden items-center gap-3 lg:flex">
+        <div className="hidden items-center gap-3 xl:flex">
           <a
             href={LOGIN_URL}
             data-analytics-location="header"
@@ -147,7 +147,7 @@ export default function Header1() {
           ref={mobileTrigger}
           variant="ghost"
           size="icon"
-          className="lg:hidden"
+          className="xl:hidden"
           aria-label="Open menu"
           aria-haspopup="dialog"
           onClick={() => dialog.current?.showModal()}
