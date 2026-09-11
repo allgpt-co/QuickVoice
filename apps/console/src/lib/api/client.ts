@@ -16,6 +16,7 @@ apiClient.interceptors.response.use(
     const apiErr = toApiError(err);
     if (apiErr.status === 401 && typeof window !== "undefined") {
       if (!window.location.pathname.startsWith("/login")) {
+        // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- This interceptor runs outside React; a full navigation resets stale session state after a 401.
         window.location.href = "/login";
       }
     }
