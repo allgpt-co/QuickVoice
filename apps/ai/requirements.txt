@@ -11,6 +11,7 @@ livekit-plugins-noise-cancellation~=0.2
 python-dotenv~=1.0
 pytz>=2024.1,<2027
 loguru~=0.7
+langfuse>=4,<5
 torch>=2.5,<3
 fastapi>=0.115,<1
 uvicorn[standard]>=0.30,<1
