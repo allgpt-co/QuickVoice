@@ -90,6 +90,14 @@ app.all(endpointPath, async (req, res) => {
     return;
   }
 
+  // This server has no unsolicited notifications. Decline the optional GET
+  // stream instead of leaving it idle until a reverse proxy times out.
+  // Streamable HTTP clients handle 405 here and keep using POST for RPCs.
+  if (req.method === "GET") {
+    res.set("Allow", "POST, DELETE").status(405).end();
+    return;
+  }
+
   try {
     const transport = await transportForRequest(req, res);
     if (!transport) return;
@@ -103,6 +111,6 @@ app.all(endpointPath, async (req, res) => {
   }
 });
 
-app.listen(port, () => {
+export const httpServer = app.listen(port, () => {
   console.log(`QuickVoice MCP server listening on http://0.0.0.0:${port}${endpointPath}`);
 });

@@ -10,7 +10,8 @@
     "start": "node dist/src/index.js",
     "lint": "tsc --noEmit --pretty false",
     "check-types": "tsc --noEmit",
-    "test:mcp": "tsx scripts/smoke-mcp.ts"
+    "test:mcp": "tsx scripts/smoke-mcp.ts",
+    "test:transport": "tsx --test scripts/transport.test.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.29.0",

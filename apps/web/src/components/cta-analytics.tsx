@@ -7,11 +7,14 @@ import {
   matchesAnalyticsDestination,
 } from "@/lib/cta-destinations.mjs";
 import {
+  API_REFERENCE_URL,
   CONTACT_URL,
   DEMO_BOOKING_URL,
+  DOCS_URL,
   GITHUB_DOCS_URL,
   GITHUB_REPO_URL,
   LOGIN_URL,
+  MCP_DOCS_URL,
   REGISTER_URL,
 } from "@/lib/links";
 
@@ -28,6 +31,9 @@ const ACTION_DESTINATIONS: ReadonlyArray<{
 }> = [
   { eventName: "github_repo_click", href: GITHUB_REPO_URL },
   { eventName: "docs_open", href: GITHUB_DOCS_URL },
+  { eventName: "docs_open", href: DOCS_URL },
+  { eventName: "docs_open", href: API_REFERENCE_URL },
+  { eventName: "docs_open", href: MCP_DOCS_URL },
 ];
 
 function getCtaType(rawHref: string): string | null {

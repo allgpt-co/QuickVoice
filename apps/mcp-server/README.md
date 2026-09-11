@@ -60,6 +60,23 @@ The server exposes:
 - One MCP resource template per read-only verified API.
 - One MCP tool per mutation/action verified API.
 
+The optional standalone `GET /mcp` SSE stream returns `405 Method Not Allowed`
+immediately for requests with an API key. This server has no unsolicited server
+notifications; clients continue using Streamable HTTP POST requests, including
+SSE responses to those requests. This avoids an idle background stream timing
+out behind proxies such as Cloudflare. A `405` from this GET probe is expected.
+
+## Transport regression test
+
+```bash
+pnpm --filter quickvoice-mcp-server test:transport
+```
+
+This starts a local server on an available port and checks the API-key requirement,
+SDK client initialization, the optional GET response, tool discovery, catalog
+reads, and session termination. It needs no real API key or upstream API and
+does not execute mutation tools.
+
 ## Smoke test
 
 Start the MCP server, then run:

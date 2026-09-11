@@ -1,6 +1,10 @@
 export const CONTACT_URL = "/company/contact";
 export const DEMO_BOOKING_URL = "https://tidycal.com/team/quickvoice/demo";
 
+export const DOCS_URL = "https://docs.quickvoice.co";
+export const API_REFERENCE_URL = `${DOCS_URL}/api-reference`;
+export const MCP_DOCS_URL = `${DOCS_URL}/mcp`;
+
 export const GITHUB_REPO_URL = "https://github.com/allgpt-co/QuickVoice";
 export const GITHUB_DOCS_URL = `${GITHUB_REPO_URL}/tree/main/docs`;
 export const GITHUB_ISSUES_URL = `${GITHUB_REPO_URL}/issues`;

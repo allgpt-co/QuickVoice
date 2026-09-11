@@ -1,4 +1,10 @@
-import { GITHUB_DOCS_URL, GITHUB_REPO_URL } from "@/lib/links";
+import {
+  API_REFERENCE_URL,
+  DOCS_URL,
+  GITHUB_DOCS_URL,
+  GITHUB_REPO_URL,
+  MCP_DOCS_URL,
+} from "@/lib/links";
 
 export type NavigationItem = {
   label: string;
@@ -89,6 +95,27 @@ export const navigation: NavigationItem[] = [
         label: "Repository documentation",
         href: GITHUB_DOCS_URL,
         description: "Explore setup and implementation",
+      },
+    ],
+  },
+  {
+    label: "Docs",
+    href: DOCS_URL,
+    children: [
+      {
+        label: "Documentation",
+        href: DOCS_URL,
+        description: "Browse guides and product documentation",
+      },
+      {
+        label: "API Reference",
+        href: API_REFERENCE_URL,
+        description: "Explore REST endpoints, authentication, and schemas",
+      },
+      {
+        label: "MCP Server",
+        href: MCP_DOCS_URL,
+        description: "Connect an MCP client to QuickVoice",
       },
     ],
   },
