@@ -19,6 +19,7 @@
     "test:dev-orchestration": "node --test tests/dev-orchestration.test.mjs",
     "check:tasks": "node scripts/verify-turbo-tasks.mjs",
     "check:configs": "pnpm --filter @repo/eslint-config lint && pnpm --filter @repo/typescript-config lint",
+    "docs:links": "node scripts/check-markdown-links.mjs",
     "ci:python": "scripts/ci-python.sh",
     "ci:docker": "scripts/ci-docker-build.sh",
     "ci:local": "pnpm check:tasks && pnpm check:configs && pnpm lint && pnpm check-types && pnpm build && pnpm test && pnpm ci:python && pnpm ci:docker",
