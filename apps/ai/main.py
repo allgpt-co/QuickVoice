@@ -1,4 +1,5 @@
 from dotenv import load_dotenv
+from utils.langfuse import langfuse
 
 from livekit import agents, rtc
 from livekit.agents import (
@@ -441,6 +442,11 @@ class Assistant(Agent):
                 datetime.now(timezone.utc),
             )
 
+            trace.event(
+            name="assistant_output",
+            output="".join(chunks),
+            )
+
     @function_tool
     async def record_call_extracted_data(self, field: str, value: str) -> str:
         """
@@ -615,6 +621,12 @@ async def entrypoint(ctx: JobContext):
         )
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 
+    trace = langfuse.trace(
+    name="quickvoice-session",
+    user_id=call_context.get("caller_number"),
+    input=call_context,
+    )
+
     try:
         await flush_call_log_queue()
     except Exception as error:
@@ -776,6 +788,12 @@ async def entrypoint(ctx: JobContext):
             "[preview] received browser transcript from {}",
             redact_sensitive(getattr(participant, "identity", "")),
         )
+
+        trace.event(
+        name="user_input",
+        input=text,
+        )
+
         session.generate_reply(user_input=text, allow_interruptions=True)
 
     def on_preview_text_stream(reader, participant_identity):
@@ -841,6 +859,7 @@ async def entrypoint(ctx: JobContext):
             await call_finalizer.finalize()
         except Exception as error:
             logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
+        langfuse.flush()
 
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)
