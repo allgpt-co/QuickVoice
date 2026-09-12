@@ -459,7 +459,6 @@ def speak_first_message(session: Any, config: dict[str, Any]):
         return None
     return session.say(first_message, allow_interruptions=False)
 
-
 def parse_preview_user_transcript_packet(
     data: bytes | str,
     *,

@@ -27,6 +27,13 @@ export const auth = betterAuth({
   baseURL: serverBaseUrl,
   basePath: `/api/${process.env.API_VERSION! || "v1"}/auth`,
   trustedOrigins,
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ["google"],
+      requireLocalEmailVerified: false,
+    },
+  },
   advanced: {
     useSecureCookies: isSecureServerUrl,
     crossSubDomainCookies: {

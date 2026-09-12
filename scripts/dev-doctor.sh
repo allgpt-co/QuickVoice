@@ -50,11 +50,30 @@ check_env_templates() {
   done
 }
 
+get_python_bin() {
+  for cmd in python python3 py; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      if "$cmd" -c "import sys; sys.exit(0)" >/dev/null 2>&1; then
+        echo "$cmd"
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
+PYTHON_BIN="$(get_python_bin || true)"
+
 check_port() {
   local port="$1"
   local label="$2"
 
-  if python3 - "$port" <<'PY'
+  if [ -z "$PYTHON_BIN" ]; then
+    warn "Cannot check port $port ($label): no working Python binary found"
+    return
+  fi
+
+  if "$PYTHON_BIN" - "$port" <<'PY'
 import socket
 import sys
 
@@ -73,7 +92,13 @@ PY
 check_redis() {
   local url="${REDIS_URL:-redis://localhost:6379}"
   local port
-  port="$(python3 - "$url" <<'PY'
+
+  if [ -z "$PYTHON_BIN" ]; then
+    warn "Cannot check Redis at $url: no working Python binary found"
+    return
+  fi
+
+  port="$("$PYTHON_BIN" - "$url" <<'PY'
 from urllib.parse import urlparse
 import sys
 
@@ -82,7 +107,7 @@ print(parsed.port or 6379)
 PY
 )"
 
-  if python3 - "$port" <<'PY'
+  if "$PYTHON_BIN" - "$port" <<'PY'
 import socket
 import sys
 
@@ -159,8 +184,8 @@ else
   fail "corepack is required to activate pnpm@9.0.0."
 fi
 
-if command -v python3 >/dev/null 2>&1; then
-  ok "Python is installed: $(python3 --version)"
+if [ -n "$PYTHON_BIN" ]; then
+  ok "Python is installed: $($PYTHON_BIN --version)"
   load_dev_env
   check_port "${SERVER_PORT:-5000}" "server"
   check_port "${CONSOLE_PORT:-3000}" "console"

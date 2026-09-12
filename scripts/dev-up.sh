@@ -3,6 +3,34 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
+# Ensure npm global binaries (like pnpm) are in PATH on Windows Git Bash
+if [ -n "${APPDATA:-}" ] && [ -d "$APPDATA/npm" ]; then
+  export PATH="$PATH:$APPDATA/npm"
+fi
+if [ -d "$HOME/AppData/Roaming/npm" ]; then
+  export PATH="$PATH:$HOME/AppData/Roaming/npm"
+fi
+
+get_python_bin() {
+  for cmd in python python3 py; do
+    if command -v "$cmd" >/dev/null 2>&1; then
+      if "$cmd" -c "import sys; sys.exit(0)" >/dev/null 2>&1; then
+        echo "$cmd"
+        return 0
+      fi
+    fi
+  done
+  echo "python"
+}
+
+PYTHON_BIN="$(get_python_bin)"
+
+# On Windows Git Bash, pnpm is a .cmd shim that exec cannot run directly
+PNPM_CMD="pnpm"
+if [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* ]]; then
+  PNPM_CMD="pnpm.cmd"
+fi
+
 if [ -f "$ROOT/.env.dev" ]; then
   set -a
   # shellcheck disable=SC1091
@@ -41,12 +69,21 @@ prefix_log() {
   sed -u "s/^/[$name] /"
 }
 
-run_in_dir() {
-  local dir="$1"
-  shift
+run_server() {
+  cd "$ROOT/apps/server"
+  export DOTENV_CONFIG_PATH=.env.dev
+  export PORT="$SERVER_PORT"
+  exec "$PNPM_CMD" dev
+}
 
-  cd "$ROOT/$dir"
-  exec "$@"
+run_console() {
+  cd "$ROOT/apps/console"
+  exec "$PNPM_CMD" dev --port "$CONSOLE_PORT"
+}
+
+run_web() {
+  cd "$ROOT/apps/web"
+  exec "$PNPM_CMD" dev --port "$WEB_PORT"
 }
 
 run_ai_api() {
@@ -56,7 +93,11 @@ run_ai_api() {
   . .env.dev
   set +a
   export AI_API_PORT="$AI_API_PORT"
-  exec .venv/bin/python main.py api
+  local py_bin=".venv/Scripts/python.exe"
+  if [ ! -f "$py_bin" ]; then
+    py_bin=".venv/bin/python"
+  fi
+  exec "$py_bin" main.py api
 }
 
 run_ai_worker() {
@@ -65,7 +106,11 @@ run_ai_worker() {
   # shellcheck disable=SC1091
   . .env.dev
   set +a
-  exec .venv/bin/python main.py dev
+  local py_bin=".venv/Scripts/python.exe"
+  if [ ! -f "$py_bin" ]; then
+    py_bin=".venv/bin/python"
+  fi
+  exec "$py_bin" main.py dev
 }
 
 start_background() {
@@ -125,14 +170,17 @@ wait_for_http() {
   (
     local deadline=$((SECONDS + timeout))
     while [ "$SECONDS" -lt "$deadline" ]; do
-      if python3 - "$url" >/dev/null 2>&1 <<'PY'
+      if "$PYTHON_BIN" - "$url" >/dev/null 2>&1 <<'PY'
 from urllib.request import Request, urlopen
+from urllib.error import HTTPError
 import sys
 
 request = Request(sys.argv[1], headers={"User-Agent": "quickvoice-dev-up"})
 try:
-    with urlopen(request, timeout=1) as response:
+    with urlopen(request, timeout=2) as response:
         sys.exit(0 if 200 <= response.status < 500 else 1)
+except HTTPError as err:
+    sys.exit(0 if 200 <= err.code < 500 else 1)
 except Exception:
     sys.exit(1)
 PY
@@ -159,31 +207,31 @@ start_readiness_checks() {
 }
 
 wait_for_service_exit() {
-  local status
+  local status=0
   local exited_pid=""
   local failed_name="a dev service"
 
   set +e
-  if help wait 2>/dev/null | grep -q -- "-p"; then
-    wait -n -p exited_pid "${pids[@]}"
-    status="$?"
-  else
-    wait -n "${pids[@]}"
-    status="$?"
-  fi
+  while true; do
+    for pid in "${pids[@]}"; do
+      if ! kill -0 "$pid" 2>/dev/null; then
+        exited_pid="$pid"
+        wait "$pid" 2>/dev/null
+        status="$?"
+        failed_name="${pid_names[$exited_pid]:-$failed_name}"
+        printf '[fail] %s exited with status %s; stopping QuickVoice dev.\n' "$failed_name" "$status" >&2
+        return "$status"
+      fi
+    done
+    sleep 2
+  done
   set -e
-
-  if [ -n "${exited_pid:-}" ]; then
-    failed_name="${pid_names[$exited_pid]:-$failed_name}"
-  fi
-
-  printf '[fail] %s exited with status %s; stopping QuickVoice dev.\n' "$failed_name" "$status" >&2
-  return "$status"
+  return 0
 }
 
-start_service "server" "apps/server" env DOTENV_CONFIG_PATH=.env.dev PORT="$SERVER_PORT" pnpm dev
-start_service "console" "apps/console" pnpm dev --port "$CONSOLE_PORT"
-start_service "web" "apps/web" pnpm dev --port "$WEB_PORT"
+start_background "server"  "$PNPM_CMD dev (port $SERVER_PORT)"  run_server
+start_background "console" "$PNPM_CMD dev (port $CONSOLE_PORT)" run_console
+start_background "web"     "$PNPM_CMD dev (port $WEB_PORT)"     run_web
 
 if [ "$AI_API_ENABLED" = "true" ]; then
   start_background "ai-api" "python main.py api" run_ai_api

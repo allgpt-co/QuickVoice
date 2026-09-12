@@ -9,7 +9,7 @@ const baseConfig = {
   sttModel: "deepgram/nova-3",
   ttsModel: "deepgram/aura-2",
   use_rag: false,
-  voiceId: "aura-2-asteria-en",
+  voiceId: "EXAVITQu4vr4xnSDxMaL",
   initiation_webhook: null,
   post_call_webhook: null,
   variables: {

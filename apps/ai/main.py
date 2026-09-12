@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-
+from utils.langfuse_setup import setup_langfuse
 from livekit import agents, rtc
 from livekit.agents import (
     AgentSession,
@@ -57,9 +57,10 @@ import subprocess
 import sys
 import threading
 import time
+import json
 
 APP_DIR = Path(__file__).resolve().parent
-load_dotenv(APP_DIR / ".env")
+loaded = load_dotenv(APP_DIR / ".env.dev", override=True)
 
 API_PORT = int(os.getenv("AI_API_PORT", "5555"))
 DEFAULT_SYSTEM_PROMPT = (
@@ -173,7 +174,7 @@ def build_room_options() -> room_io.RoomOptions:
         audio_input=room_io.AudioInputOptions(
             noise_cancellation=noise_cancellation_selector,
         ),
-        text_output=room_io.TextOutputOptions(sync_transcription=False),
+        text_output=room_io.TextOutputOptions(sync_transcription=True),
     )
 
 
@@ -188,7 +189,7 @@ def provider_section(value: str | None):
     if not value or "/" not in value:
         return None
     provider, model = value.split("/", 1)
-    if provider in {"deepgram", "sarvam", "bedrock", "elevenlabs"}:
+    if provider in {"deepgram", "sarvam", "bedrock", "elevenlabs", "openai"}:
         return {"provider": provider, "model": model}
     return None
 
@@ -253,7 +254,6 @@ def build_session_provider_kwargs(config: dict) -> dict:
     voice_config = config.get("voice_config")
     if isinstance(voice_config, dict):
         adapters = build_voice_provider_adapters(voice_config)
-        logger.info("Voice provider adapters: {}", redact_sensitive(adapters.summary))
         return {"stt": adapters.stt, "llm": adapters.llm, "tts": adapters.tts}
 
     return {
@@ -531,6 +531,14 @@ class Assistant(Agent):
 async def entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
+    trace_provider = setup_langfuse(
+        metadata={
+            "langfuse.session.id": ctx.room.name,
+        }
+    )
+
+    logger.info("Langfuse initialized successfully")
+
     await ctx.connect()
     raw_metadata = ctx.job.metadata or ""
     if is_voice_session_metadata(raw_metadata):
@@ -626,6 +634,10 @@ async def entrypoint(ctx: JobContext):
         call_context["provider"] = config["provider"]
 
     try:
+        logger.info(
+            "Voice config:\n{}",
+            json.dumps(config.get("voice_config", {}), indent=2),
+        )
         provider_kwargs = build_session_provider_kwargs(config)
     except ProviderAdapterError as error:
         logger.error("Voice provider adapter error: {}", redact_sensitive(str(error)))
@@ -643,13 +655,20 @@ async def entrypoint(ctx: JobContext):
             }
         ),
     )
-    session = AgentSession(
+
+    async def flush_langfuse():
+        trace_provider.force_flush()
+
+    ctx.add_shutdown_callback(flush_langfuse)
+
+        session = AgentSession(
         **provider_kwargs,
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
         ),
         ivr_detection=config["ivr_navigation_enabled"],
+        preemptive_generation=config.get("preemptive_generation", False),
     )
     shutdown_reason = "session_shutdown"
     billing_termination_started = False
