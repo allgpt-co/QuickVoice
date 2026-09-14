@@ -27,8 +27,9 @@ import {
   InputGroupInput,
 } from "@/src/components/ui/input-group";
 import OAuthButtons from "@/src/components/oauth-buttons";
+import { invitationPath } from "@/src/lib/links";
 
-export function LoginForm() {
+export function LoginForm({ invitationId = "" }: { invitationId?: string } = {}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +53,7 @@ export function LoginForm() {
         fetchOptions: {
           onSuccess: () => {
             toast.success("Login successful");
-            router.push("/dashboard");
+            router.push(invitationId ? invitationPath(invitationId) : "/dashboard");
           },
           onError: (ctx) => {
             const msg = ctx.error.message || "Something went wrong";
@@ -75,7 +76,7 @@ export function LoginForm() {
       <div className="flex  flex-col items-center gap-2 text-center py-2 ">
         <h1 className="text-2xl font-bold ">Welcome back!</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Enter your details to login to your account
+          {invitationId ? "Sign in with the email address that received the invitation." : "Enter your details to login to your account"}
         </p>
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 ">
@@ -122,15 +123,17 @@ export function LoginForm() {
                   Forgot password?
                 </Link>
               </FormLabel>
-              <FormControl>
-                <InputGroup className="h-11">
+              <InputGroup className="h-11">
+                <FormControl>
                   <InputGroupInput
                     placeholder="••••••••"
                     type={showPassword ? "text" : "password"}
                     className="h-11"
                     {...field}
                   />
+                </FormControl>
                   <InputGroupButton
+                    aria-label={showPassword ? "Hide password" : "Show password"}
                     onClick={() => setShowPassword(!showPassword)}
                     className="cursor-pointer mr-2"
                   >
@@ -140,8 +143,7 @@ export function LoginForm() {
                       <EyeIcon className="size-4" />
                     )}
                   </InputGroupButton>
-                </InputGroup>
-              </FormControl>
+              </InputGroup>
               <FormMessage />
             </FormItem>
           )}
@@ -176,10 +178,10 @@ export function LoginForm() {
             Or
           </span>
         </div>
-        <OAuthButtons />
+        <OAuthButtons invitationId={invitationId} />
         <div className="text-center text-sm">
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="underline underline-offset-4">
+          <Link href={invitationPath(invitationId, "/register")} className="underline underline-offset-4">
             Sign up
           </Link>
         </div>

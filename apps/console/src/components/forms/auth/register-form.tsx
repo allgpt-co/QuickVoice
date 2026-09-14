@@ -21,10 +21,10 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { registerSchema } from "@/src/models/auth/registerSchema";
 import { authClient } from "@/src/lib/auth-client";
-import { CONSOLE_URL } from "@/src/lib/links";
+import { CONSOLE_URL, invitationPath } from "@/src/lib/links";
 import OAuthButtons from "../../oauth-buttons";
 
-export function RegisterForm() {
+export function RegisterForm({ invitationId = "" }: { invitationId?: string } = {}) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const form = useForm<z.infer<typeof registerSchema>>({
@@ -43,7 +43,7 @@ export function RegisterForm() {
         email: data.email,
         password: data.password,
         name: data.name,
-        callbackURL: `${CONSOLE_URL ?? window.location.origin}/login`,
+        callbackURL: `${CONSOLE_URL ?? window.location.origin}${invitationId ? invitationPath(invitationId) : "/login"}`,
       });
       if (error) {
         toast.error(error.message || error.statusText || "Something went wrong");
@@ -63,7 +63,7 @@ export function RegisterForm() {
       <div className="flex  flex-col items-center gap-2 text-center py-2 ">
         <h1 className="text-2xl font-bold ">Create an account</h1>
         <p className="text-muted-foreground text-sm text-balance">
-          Enter your details to create an account
+          {invitationId ? "Use the email address that received the invitation. Verify your email to continue." : "Enter your details to create an account"}
         </p>
       </div>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5 ">
@@ -122,14 +122,12 @@ export function RegisterForm() {
                 <FormLabel>Password</FormLabel>
               </div>
               <FormControl>
-                <div className="relative">
-                  <Input
-                    {...field}
-                    type="password"
-                    placeholder="••••••••"
-                    className="h-11 pr-10"
-                  />
-                </div>
+                <Input
+                  {...field}
+                  type="password"
+                  placeholder="••••••••"
+                  className="h-11 pr-10"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -175,10 +173,10 @@ export function RegisterForm() {
             Or
           </span>
         </div>
-        <OAuthButtons />
+        <OAuthButtons invitationId={invitationId} />
         <div className="text-center text-sm">
           Already have an account?{" "}
-          <Link href="/login" className="underline underline-offset-4">
+          <Link href={invitationPath(invitationId, "/login")} className="underline underline-offset-4">
             Login
           </Link>
         </div>

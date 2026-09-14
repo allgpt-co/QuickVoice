@@ -19,7 +19,7 @@ const registerSource = compile(
 );
 
 test("signup verification returns to the console when the auth API is on another origin", async () => {
-  for (const [configuredOrigin, browserOrigin, expectedCallback] of [
+  for (const [configuredOrigin, browserOrigin, expectedCallback, invitationId = ""] of [
     [
       "https://app.quickvoice.co",
       "https://preview.quickvoice.co",
@@ -31,6 +31,7 @@ test("signup verification returns to the console when the auth API is on another
       "https://app.quickvoice.co/login",
     ],
     [undefined, "http://localhost:3000", "http://localhost:3000/login"],
+    ["https://app.quickvoice.co/", "https://preview.quickvoice.co", "https://app.quickvoice.co/accept-invitation?invitationId=invite%26role%3Downer", "invite&role=owner"],
   ]) {
     const links = { exports: {} };
     vm.runInNewContext(linksSource, {
@@ -87,7 +88,7 @@ test("signup verification returns to the console when the auth API is on another
       window: { location: { origin: browserOrigin } },
     });
 
-    component.exports.RegisterForm();
+    component.exports.RegisterForm({ invitationId });
     await submit({
       name: "QA Owner",
       email: "qa@example.com",
@@ -105,5 +106,57 @@ test("signup verification returns to the console when the auth API is on another
       expectedCallback,
     );
     assert.equal(nextPage, "/verify");
+  }
+});
+
+test("invited email and Google sign-in preserve the invitation and use fixed internal paths", async () => {
+  const links = { exports: {} };
+  vm.runInNewContext(linksSource, {
+    exports: links.exports,
+    process: { env: { NEXT_PUBLIC_CONSOLE_URL: "https://app.quickvoice.co/" } },
+  });
+  for (const invitationId of ["", "invite&role=owner", "https://untrusted.example/path"]) {
+    let submit;
+    let nextPage;
+    let socialBody;
+    const elements = [];
+    const noop = () => {};
+    const signIn = {
+      email: async (body) => body.fetchOptions.onSuccess(),
+      social: async (body) => { socialBody = body; },
+    };
+    const mocks = {
+      react: { useState: () => [false, noop] },
+      "react/jsx-runtime": {
+        jsx: (type, props) => { elements.push({ type, props }); return { type, props }; },
+        jsxs: (type, props) => { elements.push({ type, props }); return { type, props }; },
+      },
+      "next/navigation": { useRouter: () => ({ push: (path) => { nextPage = path; } }) },
+      "react-hook-form": { useForm: () => ({ handleSubmit: (handler) => { submit = handler; } }) },
+      "@hookform/resolvers/zod": { zodResolver: noop },
+      sonner: { toast: { success: noop, error: (message) => { throw new Error(message); } } },
+      "@/src/lib/links": links.exports,
+      "@/src/lib/auth-client": { authClient: { signIn }, signIn },
+    };
+    function loadComponent(path) {
+      const component = { exports: {} };
+      vm.runInNewContext(compile(path), {
+        exports: component.exports,
+        require: (name) => mocks[name] ?? {},
+        window: { location: { origin: "https://preview.quickvoice.co" } },
+      });
+      return component.exports;
+    }
+    loadComponent("../src/components/forms/auth/login-form.tsx").LoginForm({ invitationId });
+    await submit({ email: "qa@example.com", password: "test-only-password", remember: false });
+    const destination = invitationId ? `/accept-invitation?invitationId=${encodeURIComponent(invitationId)}` : "/dashboard";
+    assert.equal(nextPage, destination);
+    assert.ok(elements.some(({ props }) => props?.href === links.exports.invitationPath(invitationId, "/register")));
+    elements.length = 0;
+    loadComponent("../src/components/oauth-buttons.tsx").default({ invitationId });
+    await elements.find(({ props }) => props?.onClick).props.onClick();
+    assert.equal(socialBody.callbackURL, `https://app.quickvoice.co${destination}`);
+    assert.equal(socialBody.newUserCallbackURL, `https://app.quickvoice.co${invitationId ? destination : "/orgs"}`);
+    assert.equal(socialBody.errorCallbackURL, `https://app.quickvoice.co${links.exports.invitationPath(invitationId, "/login")}`);
   }
 });

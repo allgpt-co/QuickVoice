@@ -204,6 +204,38 @@ export async function sendEmail(
   });
 }
 
+export async function sendWorkspaceInvitation(args: {
+  invitationId: string;
+  email: string;
+  role: string;
+  workspaceName: string;
+  inviterName: string;
+  expiresAt: Date;
+}) {
+  const consoleOrigin = requireEnv("CONSOLE_URL").split(",")[0]!.trim();
+  const url = new URL("/accept-invitation", consoleOrigin);
+  if (!["http:", "https:"].includes(url.protocol)) {
+    throw new Error("CONSOLE_URL must be an HTTP or HTTPS URL");
+  }
+  url.searchParams.set("invitationId", args.invitationId);
+  const content = {
+    subject: "You’re invited to a QuickVoice workspace",
+    heading: "Join your team on QuickVoice",
+    intro: `${args.inviterName || "A teammate"} invited you to join ${args.workspaceName} as ${args.role}. Sign in or create an account with ${args.email} to review the invitation. This link expires on ${args.expiresAt.toUTCString()}. If you were not expecting this invitation, you can ignore it.`,
+    action: "Review invitation",
+  };
+  return sendComposedEmail({
+    email: args.email,
+    fullName: "",
+    subject: content.subject,
+    text: buildText(content, url.href, ""),
+    html: buildHtml(content, url.href, ""),
+    failureLabel: "workspace invitation",
+    timeoutMs: 8_000,
+    requireRecipientAcceptance: true,
+  });
+}
+
 export async function sendNumberBillingNotice(args: {
   email: string;
   fullName: string;
@@ -363,7 +395,7 @@ async function sendComposedEmail(args: {
           args.email.toLowerCase(),
       )
     ) {
-      throw new Error("SMTP did not acknowledge the contact recipient");
+      throw new Error("SMTP did not acknowledge the email recipient");
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);

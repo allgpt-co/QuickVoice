@@ -1,12 +1,12 @@
 "use client";
 
 import { signIn } from "@/src/lib/auth-client";
-import { CONSOLE_URL } from "@/src/lib/links";
+import { CONSOLE_URL, invitationPath } from "@/src/lib/links";
 import { Button } from "@/src/components/ui/button";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
-export default function OAuthButtons() {
+export default function OAuthButtons({ invitationId = "" }: { invitationId?: string } = {}) {
   const [googleLoading, setGoogleLoading] = useState(false);
   return (
     <div className="">
@@ -22,9 +22,9 @@ export default function OAuthButtons() {
           try {
             await signIn.social({
               provider: "google",
-              callbackURL: `${callbackOrigin}/dashboard`,
-              errorCallbackURL: `${callbackOrigin}/login`,
-              newUserCallbackURL: `${callbackOrigin}/orgs`,
+              callbackURL: invitationId ? `${callbackOrigin}${invitationPath(invitationId)}` : `${callbackOrigin}/dashboard`,
+              errorCallbackURL: `${callbackOrigin}${invitationPath(invitationId, "/login")}`,
+              newUserCallbackURL: invitationId ? `${callbackOrigin}${invitationPath(invitationId)}` : `${callbackOrigin}/orgs`,
             });
           } catch {
             setGoogleLoading(false);

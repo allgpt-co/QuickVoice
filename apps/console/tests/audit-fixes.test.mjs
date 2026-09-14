@@ -193,10 +193,10 @@ test("google oauth redirects back to the canonical console origin", () => {
   assert.match(links, /CONSOLE_URL\s*\?\?/);
   assert.match(links, /callbackOrigin/);
   assert.ok(
-    links.includes("callbackURL: `" + dollar + "{callbackOrigin}/dashboard`"),
+    links.includes(" : `" + dollar + "{callbackOrigin}/dashboard`"),
   );
   assert.ok(
-    links.includes("newUserCallbackURL: `" + dollar + "{callbackOrigin}/orgs`"),
+    links.includes(" : `" + dollar + "{callbackOrigin}/orgs`"),
   );
   assert.doesNotMatch(links, /callbackURL:\s*["'`]\/dashboard["'`]/);
 });
