@@ -113,6 +113,7 @@ test("development env templates exist for every runnable service", async () => {
     }
     if (path === "apps/server/.env.dev.example") {
       assert.match(body, /BETTER_AUTH_URL=http:\/\/localhost:5000/);
+      assert.match(body, /AI_API_URL=http:\/\/localhost:5555/);
       assert.match(body, /TWILIO_ACCOUNT_SID=AC[0-9a-f]{32}/);
       assert.match(body, /REDIS_URL=redis:\/\/localhost:6379/);
       assert.match(body, /quickvoice:quickvoice@localhost:5432/);
@@ -127,6 +128,16 @@ test("development env templates exist for every runnable service", async () => {
       assert.match(body, /NEXT_PUBLIC_CONSOLE_URL=http:\/\/localhost:3000/);
     }
   }
+});
+
+test("server and AI dev templates use the same internal API key", async () => {
+  const server = await text("apps/server/.env.dev.example");
+  const ai = await text("apps/ai/.env.dev.example");
+  const serverKey = server.match(/^INTERNAL_API_KEY=(.+)$/m)?.[1];
+  const aiKey = ai.match(/^INTERNAL_API_KEY=(.+)$/m)?.[1];
+
+  assert.ok(serverKey);
+  assert.equal(serverKey, aiKey);
 });
 
 test("app gitignores allow development env templates to be tracked", async () => {

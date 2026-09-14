@@ -26,3 +26,32 @@ test("worker failures are converted to safe actionable messages", () => {
   assert.equal(unknown.code, "KB_PROCESSING_UNAVAILABLE");
   assert.doesNotMatch(unknown.userMessage, /secret|private-host|postgresql/i);
 });
+
+test("AI HTTP authentication failures identify internal key mismatch", () => {
+  for (const status of [401, 403]) {
+    const failure = safeKbWorkerFailure(
+      new Error(`KB processing failed with HTTP ${status}`),
+    );
+    assert.equal(failure.code, "KB_INTERNAL_AUTH_MISMATCH");
+    assert.match(failure.userMessage, /INTERNAL_API_KEY parity/i);
+  }
+});
+
+test("AI HTTP 503 failures identify service unavailability", () => {
+  const failure = safeKbWorkerFailure(
+    new Error("KB processing failed with HTTP 503"),
+  );
+  assert.equal(failure.code, "KB_AI_SERVICE_UNAVAILABLE");
+});
+
+test("AI connection failures identify an unreachable service", () => {
+  for (const error of [
+    new TypeError("fetch failed"),
+    new Error("connect ECONNREFUSED 127.0.0.1:5555"),
+    new Error("getaddrinfo ENOTFOUND ai"),
+  ]) {
+    const failure = safeKbWorkerFailure(error);
+    assert.equal(failure.code, "KB_AI_SERVICE_UNREACHABLE");
+    assert.match(failure.userMessage, /AI_API_URL/i);
+  }
+});

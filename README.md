@@ -115,6 +115,12 @@ task ai:api
 task ai:worker
 ```
 
+`task up:dev` starts both the server and AI API by default. If you run
+`task server:dev` by itself, start `task ai:api` in another terminal before
+using knowledge-base ingestion. Run `task env:dev` first so
+`AI_API_URL` is configured and `INTERNAL_API_KEY` matches in the generated
+server and AI env files.
+
 Common root commands:
 
 ```sh
