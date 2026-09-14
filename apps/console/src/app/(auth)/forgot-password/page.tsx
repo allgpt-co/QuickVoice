@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Loader2, Mail } from "lucide-react";
@@ -19,9 +20,11 @@ import {
 } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
 import { authClient } from "@/src/lib/auth-client";
+import { CONSOLE_URL, invitationPath } from "@/src/lib/links";
 import { forgotSchema } from "@/src/models/auth/forgotSchema";
 
-export default function ForgotPasswordPage() {
+function ForgotPasswordForm() {
+ const invitationId = useSearchParams().get("invitationId") ?? "";
  const [loading, setLoading] = useState(false);
  const [sent, setSent] = useState(false);
  const form = useForm<z.infer<typeof forgotSchema>>({
@@ -34,11 +37,11 @@ export default function ForgotPasswordPage() {
  try {
  const { error } = await authClient.requestPasswordReset({
  email: values.email,
- redirectTo: `${window.location.origin}/reset-password`,
+ redirectTo: `${CONSOLE_URL ?? window.location.origin}${invitationPath(invitationId, "/reset-password")}`,
  });
  if (error) throw new Error(error.message || "Could not send reset email");
  setSent(true);
- toast.success("Password reset email sent");
+ toast.message("Check your email for next steps");
  } catch (err) {
  toast.error(err instanceof Error ? err.message : "Could not send reset email");
  } finally {
@@ -50,7 +53,7 @@ export default function ForgotPasswordPage() {
  <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
  <div className="w-full max-w-md border bg-card p-6">
  <Button asChild variant="ghost" className="mb-6 px-0">
- <Link href="/login">
+ <Link href={invitationPath(invitationId, "/login")}>
  <ArrowLeft className="size-4" /> Back to login
  </Link>
  </Button>
@@ -65,7 +68,7 @@ export default function ForgotPasswordPage() {
  </div>
  {sent ? (
  <div className="border bg-muted/20 p-4 text-sm text-muted-foreground">
- Check your inbox for a password reset link. It may take a few minutes to arrive.
+ If an account exists for this email, check your inbox and spam folder for password reset instructions. You can also return to sign in.
  </div>
  ) : (
  <Form {...form}>
@@ -105,5 +108,13 @@ export default function ForgotPasswordPage() {
  )}
  </div>
  </div>
+ );
+}
+
+export default function ForgotPasswordPage() {
+ return (
+ <Suspense fallback={<p role="status" className="p-6 text-sm text-muted-foreground">Loading password recovery…</p>}>
+ <ForgotPasswordForm />
+ </Suspense>
  );
 }

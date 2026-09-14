@@ -20,12 +20,14 @@ import {
 } from "@/src/components/ui/form";
 import { Input } from "@/src/components/ui/input";
 import { authClient } from "@/src/lib/auth-client";
+import { invitationPath } from "@/src/lib/links";
 import { resetSchema } from "@/src/models/auth/resetSchema";
 
 function ResetPasswordForm() {
  const router = useRouter();
  const searchParams = useSearchParams();
  const token = searchParams.get("token") ?? "";
+ const invitationId = searchParams.get("invitationId") ?? "";
  const invalidToken = searchParams.get("error") === "INVALID_TOKEN";
  const [loading, setLoading] = useState(false);
  const form = useForm<z.infer<typeof resetSchema>>({
@@ -46,7 +48,7 @@ function ResetPasswordForm() {
  });
  if (error) throw new Error(error.message || "Could not reset password");
  toast.success("Password updated");
- router.push("/login");
+ router.push(invitationPath(invitationId, "/login"));
  } catch (err) {
  toast.error(err instanceof Error ? err.message : "Could not reset password");
  } finally {
@@ -58,7 +60,7 @@ function ResetPasswordForm() {
  <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
  <div className="w-full max-w-md border bg-card p-6">
  <Button asChild variant="ghost" className="mb-6 px-0">
- <Link href="/login">
+ <Link href={invitationPath(invitationId, "/login")}>
  <ArrowLeft className="size-4" /> Back to login
  </Link>
  </Button>
@@ -80,7 +82,7 @@ function ResetPasswordForm() {
  Request a new password reset email to continue.
  </p>
  <Button asChild variant="outline" size="sm" className="mt-4">
- <Link href="/forgot-password">Request a new link</Link>
+ <Link href={invitationPath(invitationId, "/forgot-password")}>Request a new link</Link>
  </Button>
  </div>
  </div>
