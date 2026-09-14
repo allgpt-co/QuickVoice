@@ -9,7 +9,6 @@ import { toast } from "sonner";
 
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
-import { Badge } from "@/src/components/ui/badge";
 import {
  Avatar,
  AvatarFallback,
@@ -93,6 +92,7 @@ interface Organization {
 
 type OrgRoleApi = {
  inviteMember?: (input: {
+ resend?: boolean;
  email: string;
  role: string;
  organizationId: string;
@@ -167,7 +167,7 @@ export default function OrganizationPage() {
  }
 
  return (
- <div className="space-y-6">
+ <div className="space-y-6 pb-24">
  <section className="border bg-card p-6">
  <div className="mb-5 space-y-1">
  <h2 className="text-base font-semibold">Workspace details</h2>
@@ -247,7 +247,7 @@ export default function OrganizationPage() {
  <MembersSection
  orgId={activeOrgId}
  members={org?.members ?? []}
- invitations={org?.invitations ?? []}
+ invitations={(org?.invitations ?? []).filter((invitation) => invitation.status === "pending" && new Date(invitation.expiresAt).getTime() > Date.now())}
  loading={loading}
  refresh={refresh}
  />
@@ -270,6 +270,7 @@ function MembersSection({
 }) {
  const [inviteOpen, setInviteOpen] = useState(false);
  const [inviting, setInviting] = useState(false);
+ const [resendingId, setResendingId] = useState<string | null>(null);
  const [roles, setRoles] = useState(["member", "admin", "owner"]);
  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
  const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
@@ -301,9 +302,10 @@ function MembersSection({
  loadRoles();
  }, [orgId]);
 
- async function onInvite(values: z.infer<typeof inviteSchema>) {
+ async function onInvite(values: z.infer<typeof inviteSchema>, invitationId?: string) {
  if (!orgId) return;
  setInviting(true);
+ setResendingId(invitationId ?? null);
  try {
  const orgApi = authClient.organization as unknown as OrgRoleApi;
  if (!orgApi.inviteMember) throw new Error("Invites are not available");
@@ -311,16 +313,18 @@ function MembersSection({
  email: values.email,
  role: values.role,
  organizationId: orgId,
+ resend: !!invitationId,
  });
  if (error) throw new Error(error.message);
- toast.success(`Invite sent to ${values.email}`);
+ toast.success(`Invitation email sent to ${values.email}`);
  setInviteOpen(false);
  inviteForm.reset();
- await refresh();
  } catch (err) {
  toast.error(err instanceof Error ? err.message : "Could not send invite");
  } finally {
+ await refresh();
  setInviting(false);
+ setResendingId(null);
  }
  }
 
@@ -403,7 +407,7 @@ function MembersSection({
  </DialogHeader>
  <Form {...inviteForm}>
  <form
- onSubmit={inviteForm.handleSubmit(onInvite)}
+ onSubmit={inviteForm.handleSubmit((values) => onInvite(values))}
  className="space-y-5"
  >
  <FormField
@@ -487,7 +491,7 @@ function MembersSection({
  {members.map((m) => (
  <div
  key={m.id}
- className="flex items-center gap-3 py-3 first:pt-0 last:pb-0"
+ className="flex flex-wrap items-center gap-3 py-3 first:pt-0 last:pb-0"
  >
  <Avatar className="size-9">
  {m.user.image ? (
@@ -538,7 +542,7 @@ function MembersSection({
  <div className="mb-3">
  <h3 className="text-sm font-semibold">Pending invites</h3>
  <p className="text-xs text-muted-foreground">
- Review outstanding invitations and cancel stale ones.
+ Resend an invitation email or cancel access before it is accepted.
  </p>
  </div>
  <div className="divide-y">
@@ -553,12 +557,22 @@ function MembersSection({
  {invitation.role} · {invitation.status}
  </p>
  </div>
- <Badge variant="secondary" className="uppercase tracking-wide">
- Pending
- </Badge>
+ <Button
+ variant="outline"
+ size="sm"
+ className="min-h-11 scroll-mb-24"
+ disabled={inviting}
+ aria-label={`Resend invitation to ${invitation.email}`}
+ onClick={() => onInvite({ email: invitation.email, role: invitation.role }, invitation.id)}
+ >
+ {resendingId === invitation.id ? <Loader2 className="motion-safe:animate-spin" /> : <Mail />}
+ Resend
+ </Button>
  <Button
  variant="ghost"
  size="sm"
+ disabled={inviting}
+ className="min-h-11 scroll-mb-24"
  onClick={() => setCancelTarget(invitation)}
  >
  Cancel

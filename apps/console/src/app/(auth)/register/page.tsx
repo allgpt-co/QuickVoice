@@ -1,11 +1,15 @@
-"use client";
 import { RegisterForm } from "@/src/components/forms/auth/register-form";
 import Link from "next/link";
 import LoginBg from "@/src/components/login-bg";
 import Logo1 from "@/src/components/logo1";
 import { LANDING_URL } from "@/src/lib/links";
 
-export default function LoginPage() {
+export default async function RegisterPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ invitationId?: string | string[] }>;
+}) {
+  const { invitationId } = await searchParams;
   
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2 bg-background">
@@ -25,7 +29,7 @@ export default function LoginPage() {
         </div>
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-xs z-10">
-            <RegisterForm />
+            <RegisterForm invitationId={typeof invitationId === "string" ? invitationId : ""} />
           </div>
         </div>
       </div>

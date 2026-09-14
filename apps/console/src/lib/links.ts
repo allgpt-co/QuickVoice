@@ -18,3 +18,8 @@ export const API_VERSION = process.env.NEXT_PUBLIC_API_VERSION ?? "v1";
 
 export const apiPath = (path: string) =>
   `${SERVER_URL}/api/${API_VERSION}${path}`;
+
+export const invitationPath = (
+  invitationId: string,
+  page: "/accept-invitation" | "/login" | "/register" = "/accept-invitation",
+) => invitationId ? `${page}?invitationId=${encodeURIComponent(invitationId)}` : page;

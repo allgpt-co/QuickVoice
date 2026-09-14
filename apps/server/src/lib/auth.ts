@@ -1,4 +1,6 @@
 import { APIError, betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
+import type { Invitation } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -7,7 +9,7 @@ import bcrypt from "bcryptjs";
 
 import prisma from "../config/prisma.js";
 import { stripeClient } from "../config/stripe.js";
-import { sendEmail } from "./mailer.js";
+import { sendEmail, sendWorkspaceInvitation } from "./mailer.js";
 import { ac, roles } from "./permissions.js";
 
 import { plans } from "../../data/plans.js";
@@ -37,6 +39,43 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  hooks: {
+    // Better Auth swallows sendInvitationEmail failures. This hook covers both
+    // creation and resend, and returns a delivery error to the caller.
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/organization/invite-member") return;
+      const invitation = ctx.context.returned as Invitation | undefined;
+      if (!invitation || invitation.status !== "pending") return;
+      try {
+        const [org, inviter] = await Promise.all([
+          ctx.context.adapter.findOne<{ name: string }>({
+            model: "organization",
+            where: [{ field: "id", value: invitation.organizationId }],
+          }),
+          ctx.context.adapter.findOne<{ name: string }>({
+            model: "user",
+            where: [{ field: "id", value: invitation.inviterId }],
+          }),
+        ]);
+        if (!org || !inviter) throw new Error("Invitation context is unavailable");
+        await sendWorkspaceInvitation({
+          invitationId: invitation.id,
+          email: invitation.email,
+          role: invitation.role,
+          workspaceName: org.name,
+          inviterName: inviter.name,
+          expiresAt: invitation.expiresAt,
+        });
+      } catch {
+        console.error("[organization] invitation email delivery failed", {
+          organizationId: invitation.organizationId,
+        });
+        throw new APIError("SERVICE_UNAVAILABLE", {
+          message: "Could not send the invitation email. Retry using Resend in pending invites.",
+        });
+      }
+    }),
+  },
   databaseHooks: {
     user: {
       update: {
@@ -92,6 +131,7 @@ export const auth = betterAuth({
       dynamicAccessControl: {
         enabled: true,
       },
+      requireEmailVerificationOnInvitation: true,
       organizationHooks: {
         afterCreateOrganization: async ({ organization: org, user }) => {
           await ensureBillingAccount(org.id);
