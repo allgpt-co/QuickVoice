@@ -49,8 +49,8 @@ export function RegisterForm({ invitationId = "" }: { invitationId?: string } = 
         toast.error(error.message || error.statusText || "Something went wrong");
         return;
       }
-      toast.success("Account created successfully");
-      router.push("/verify");
+      toast.message("Check your email for next steps");
+      router.push(invitationPath(invitationId, "/verify"));
     } catch {
       toast.error("Unable to reach the server. Please try again.");
     } finally {
@@ -107,7 +107,7 @@ export function RegisterForm({ invitationId = "" }: { invitationId?: string } = 
                 />
               </FormControl>
               <FormDescription className="text-xs text-muted-foreground">
-                We will send a verification link to your email
+                New accounts need email verification before signing in.
               </FormDescription>
               <FormMessage />
             </FormItem>

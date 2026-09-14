@@ -21,5 +21,5 @@ export const apiPath = (path: string) =>
 
 export const invitationPath = (
   invitationId: string,
-  page: "/accept-invitation" | "/login" | "/register" = "/accept-invitation",
+  page: "/accept-invitation" | "/login" | "/register" | "/verify" | "/forgot-password" | "/reset-password" = "/accept-invitation",
 ) => invitationId ? `${page}?invitationId=${encodeURIComponent(invitationId)}` : page;
