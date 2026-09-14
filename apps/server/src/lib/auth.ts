@@ -1,4 +1,5 @@
 import { APIError, betterAuth } from "better-auth";
+import { createAuthMiddleware } from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -37,6 +38,27 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (
+        ctx.path !== "/sign-up/email" ||
+        typeof ctx.body?.email !== "string"
+      ) {
+        return;
+      }
+
+      // Match Better Auth's email normalization before its generic duplicate response.
+      const existingUser = await prisma.user.findUnique({
+        where: { email: ctx.body.email.toLowerCase() },
+        select: { id: true },
+      });
+      if (existingUser) {
+        throw new APIError("BAD_REQUEST", {
+          message: "An account with this email address already exists",
+        });
+      }
+    }),
+  },
   databaseHooks: {
     user: {
       update: {
