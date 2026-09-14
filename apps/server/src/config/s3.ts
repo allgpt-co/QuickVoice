@@ -1,5 +1,6 @@
 import { S3Client, DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { InternalServerError } from "../common/errors/internalServerError.js";
 
 type S3Credentials = {
   accessKeyId: string;
@@ -77,7 +78,9 @@ function readEnv(...keys: string[]): string | undefined {
 
 function getBucket(): string {
   if (!BUCKET) {
-    throw new Error("S3 bucket is not configured. Set S3_BUCKET_NAME or BUCKET_NAME.");
+    throw new InternalServerError(
+      "S3 bucket is not configured. Set S3_BUCKET_NAME or BUCKET_NAME."
+    );
   }
   return BUCKET;
 }

@@ -4,10 +4,10 @@ import { z } from "zod";
 
 import errorMiddleware from "../../src/middleware/error.middleware.js";
 
-test("errorMiddleware hides unexpected 500 error details and returns a consistent shape", () => {
-  const response = {
+function createResponse() {
+  return {
     statusCode: 0,
-    body: null as unknown,
+    body: null as any,
     status(code: number) {
       this.statusCode = code;
       return this;
@@ -17,23 +17,64 @@ test("errorMiddleware hides unexpected 500 error details and returns a consisten
       return this;
     },
   };
+}
 
-  errorMiddleware(
-    new Error("database password leaked in stack detail"),
-    { headers: { "x-request-id": "req_500" } } as any,
-    response as any,
-    (() => undefined) as any
-  );
+test("errorMiddleware hides unexpected 500 error details and returns a consistent shape", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "test";
 
-  assert.equal(response.statusCode, 500);
-  assert.deepEqual(response.body, {
-    success: false,
-    code: "INTERNAL_SERVER_ERROR",
-    message: "Something went wrong try again later",
-    details: null,
-    fieldErrors: {},
-    requestId: "req_500",
-  });
+  try {
+    const response = createResponse();
+
+    errorMiddleware(
+      new Error("database password leaked in stack detail"),
+      { headers: { "x-request-id": "req_500" } } as any,
+      response as any,
+      (() => undefined) as any
+    );
+
+    assert.equal(response.statusCode, 500);
+    assert.deepEqual(response.body, {
+      success: false,
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Something went wrong try again later",
+      details: null,
+      fieldErrors: {},
+      requestId: "req_500",
+    });
+  } finally {
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+  }
+});
+
+test("errorMiddleware exposes unexpected error messages in development", () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+  process.env.NODE_ENV = "development";
+
+  try {
+    const response = createResponse();
+
+    errorMiddleware(
+      new Error("S3 connection failed during local testing"),
+      { headers: { "x-request-id": "req_development_500" } } as any,
+      response as any,
+      (() => undefined) as any
+    );
+
+    assert.equal(response.statusCode, 500);
+    assert.equal(response.body.message, "S3 connection failed during local testing");
+    assert.equal(response.body.code, "INTERNAL_SERVER_ERROR");
+  } finally {
+    if (originalNodeEnv === undefined) {
+      delete process.env.NODE_ENV;
+    } else {
+      process.env.NODE_ENV = originalNodeEnv;
+    }
+  }
 });
 
 test("errorMiddleware returns field-addressable Zod validation errors", () => {
@@ -51,18 +92,7 @@ test("errorMiddleware returns field-addressable Zod validation errors", () => {
   });
   assert.equal(parsed.success, false);
 
-  const response = {
-    statusCode: 0,
-    body: null as any,
-    status(code: number) {
-      this.statusCode = code;
-      return this;
-    },
-    json(body: unknown) {
-      this.body = body;
-      return this;
-    },
-  };
+  const response = createResponse();
 
   errorMiddleware(
     parsed.error,

@@ -9,7 +9,7 @@ const GENERIC_ERROR_MESSAGE = "Something went wrong try again later";
 const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunction) => {
   let statusCode = StatusCodes.INTERNAL_SERVER_ERROR;
   let code = "INTERNAL_SERVER_ERROR";
-  let message = GENERIC_ERROR_MESSAGE;
+  let message = process.env.NODE_ENV === "development" ? err.message : GENERIC_ERROR_MESSAGE;
   let details: unknown = null;
   let fieldErrors: Record<string, string[]> = {};
 
