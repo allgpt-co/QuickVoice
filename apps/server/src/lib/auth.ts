@@ -1,5 +1,9 @@
 import { APIError, betterAuth } from "better-auth";
-import { createAuthMiddleware } from "better-auth/api";
+import {
+  createAuthMiddleware,
+  getSessionFromCtx,
+  isAPIError,
+} from "better-auth/api";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { admin, organization } from "better-auth/plugins";
 import { apiKey } from "@better-auth/api-key";
@@ -13,6 +17,7 @@ import { ac, roles } from "./permissions.js";
 
 import { plans } from "../../data/plans.js";
 import {
+  consoleBaseUrl,
   isSecureServerUrl,
   serverBaseUrl,
   trustedOrigins,
@@ -40,6 +45,31 @@ export const auth = betterAuth({
   }),
   hooks: {
     before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/verify-email") {
+        const callbackURL = ctx.query?.callbackURL;
+        if (
+          callbackURL &&
+          !ctx.context.isTrustedOrigin(callbackURL, {
+            allowRelativePaths: true,
+          })
+        ) {
+          throw new APIError("FORBIDDEN", {
+            code: "INVALID_CALLBACK_URL",
+            message: "Invalid callback URL",
+          });
+        }
+
+        // Email links run on the API origin; relative callbacks belong to the console.
+        const destination = new URL(callbackURL || "/orgs", consoleBaseUrl);
+        destination.searchParams.delete("verified");
+        destination.searchParams.delete("error");
+        return {
+          context: {
+            query: { ...ctx.query, callbackURL: destination.toString() },
+          },
+        };
+      }
+
       if (
         ctx.path !== "/sign-up/email" ||
         typeof ctx.body?.email !== "string"
@@ -57,6 +87,52 @@ export const auth = betterAuth({
           message: "An account with this email address already exists",
         });
       }
+    }),
+    after: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/verify-email") return;
+      const result = ctx.context.returned;
+      const location = ctx.context.responseHeaders?.get("location");
+      const callbackURL = ctx.query?.callbackURL;
+      if (
+        !isAPIError(result) ||
+        result.status !== "FOUND" ||
+        !location ||
+        !callbackURL
+      )
+        return;
+
+      if (location !== callbackURL) {
+        // Better Auth appends errors to the callback, even when it has a fragment.
+        const error = new URLSearchParams(
+          location.slice(callbackURL.length),
+        ).get("error");
+        if (error) {
+          const destination = new URL("/login", consoleBaseUrl);
+          destination.searchParams.set("error", error);
+          throw ctx.redirect(destination.toString());
+        }
+        return;
+      }
+
+      const session = ctx.context.newSession ?? (await getSessionFromCtx(ctx));
+      const destination = new URL(callbackURL);
+      if (destination.origin === new URL(consoleBaseUrl).origin) {
+        if (!session) {
+          // Reused links do not create another session in Better Auth.
+          destination.pathname = "/login";
+        } else if (
+          ["/", "/login", "/verify", "/dashboard"].includes(
+            destination.pathname,
+          )
+        ) {
+          destination.pathname = session.session.activeOrganizationId
+            ? "/dashboard"
+            : "/orgs";
+        }
+      }
+      destination.searchParams.set("verified", "true");
+      // Redirect after Better Auth has verified the token and set the session cookie.
+      throw ctx.redirect(destination.toString());
     }),
   },
   databaseHooks: {
