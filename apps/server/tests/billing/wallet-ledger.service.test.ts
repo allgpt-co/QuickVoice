@@ -113,7 +113,7 @@ test("refund reversals never consume promo, record shortfall debt, and are idemp
   );
 });
 
-test("signup promotion is unique to a user even when requested for another org", async () => {
+test("signup promotion credits only the owner's first workspace", async () => {
   const fake = createBillingDatabase();
   const service = new WalletLedgerService(fake.database);
 
@@ -122,16 +122,49 @@ test("signup promotion is unique to a user even when requested for another org",
     userId: "user_1",
     identityHash: "identity_user_1",
   });
+  await service.ensureBillingAccount("org_2");
+
   const second = await service.grantSignupPromotionalCredit({
     organizationId: "org_2",
     userId: "user_1",
     identityHash: "identity_user_1",
   });
 
+  const firstWorkspace = await service.getBillingSummary("org_1");
+  const secondWorkspace = await service.getBillingSummary("org_2");
+
   assert.equal(first.granted, true);
   assert.equal(second.granted, false);
-  assert.equal(second.account.organizationId, "org_1");
+  assert.equal(firstWorkspace.promotionalBalanceMicros, 5_000_000n);
+  assert.equal(firstWorkspace.availableUsageMicros, 5_000_000n);
+  assert.equal(secondWorkspace.promotionalBalanceMicros, 0n);
+  assert.equal(secondWorkspace.availableUsageMicros, 0n);
   assert.equal(fake.grants.length, 1);
+  assert.equal(fake.transactions.length, 1);
+  assert.equal(fake.transactions[0]!.type, "PROMOTIONAL_GRANT");
+  assert.equal(fake.transactions[0]!.grossAmountMicros, 5_000_000n);
+  assert.equal(fake.transactions[0]!.promotionalBalanceDeltaMicros, 5_000_000n);
+  assert.equal(fake.transactions[0]!.promotionalBalanceAfterMicros, 5_000_000n);
+});
+
+test("signup promotion retries a concurrent uniqueness race", async () => {
+  const uniquenessRace = Object.assign(new Error("unique constraint"), {
+    code: "P2002",
+  });
+  const fake = createBillingDatabase([uniquenessRace]);
+  const service = new WalletLedgerService(fake.database);
+
+  const result = await service.grantSignupPromotionalCredit({
+    organizationId: "org_1",
+    userId: "user_1",
+    identityHash: "identity_user_1",
+  });
+
+  assert.equal(result.granted, true);
+  assert.equal(result.account.promotionalBalanceMicros, 5_000_000n);
+  assert.equal(result.account.availableUsageMicros, 5_000_000n);
+  assert.equal(fake.grants.length, 1);
+  assert.equal(fake.transactions.length, 1);
 });
 
 test("signup promotion is unique to an organization across different owners", async () => {
@@ -298,7 +331,7 @@ test("an expired active idempotent reservation is atomically renewed", async () 
   assert.equal(fake.reservations.length, 1);
 });
 
-function createBillingDatabase() {
+function createBillingDatabase(transactionFailures: unknown[] = []) {
   let id = 0;
   const accounts: BillingAccount[] = [];
   const transactions: BillingTransaction[] = [];
@@ -500,8 +533,11 @@ function createBillingDatabase() {
   };
   const database = {
     ...tx,
-    $transaction: async (callback: (value: typeof tx) => Promise<unknown>) =>
-      callback(tx),
+    $transaction: async (callback: (value: typeof tx) => Promise<unknown>) => {
+      const failure = transactionFailures.shift();
+      if (failure) throw failure;
+      return callback(tx);
+    },
   } as unknown as ConstructorParameters<typeof WalletLedgerService>[0];
 
   return { database, accounts, transactions, reservations, grants };

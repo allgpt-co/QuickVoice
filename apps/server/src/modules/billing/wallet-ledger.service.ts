@@ -1105,6 +1105,7 @@ function isRetryableTransactionError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
   const candidate = error as { code?: unknown; message?: unknown };
   return (
+    candidate.code === "P2002" ||
     candidate.code === "P2034" ||
     (typeof candidate.message === "string" &&
       candidate.message.includes("SQLSTATE 40001"))
