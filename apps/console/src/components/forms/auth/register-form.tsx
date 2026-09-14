@@ -21,6 +21,7 @@ import { z } from "zod";
 import { Loader2 } from "lucide-react";
 import { registerSchema } from "@/src/models/auth/registerSchema";
 import { authClient } from "@/src/lib/auth-client";
+import { CONSOLE_URL } from "@/src/lib/links";
 import OAuthButtons from "../../oauth-buttons";
 
 export function RegisterForm() {
@@ -42,7 +43,7 @@ export function RegisterForm() {
         email: data.email,
         password: data.password,
         name: data.name,
-        callbackURL: "/login",
+        callbackURL: `${CONSOLE_URL ?? window.location.origin}/login`,
       });
       if (error) {
         toast.error(error.message || error.statusText || "Something went wrong");
