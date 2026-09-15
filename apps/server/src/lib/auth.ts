@@ -90,6 +90,13 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    onExistingUserSignUp: () => {
+      // Throw synchronously; Better Auth swallows rejected background promises.
+      throw new APIError("UNPROCESSABLE_ENTITY", {
+        code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL",
+        message: "This email is already registered. Please sign in or reset your password.",
+      });
+    },
     password: {
       hash: async (password) => {
         return await bcrypt.hash(password, 10);

@@ -18,7 +18,7 @@ const registerSource = compile(
   "../src/components/forms/auth/register-form.tsx",
 );
 
-test("signup feedback stays neutral and verification returns to the console", async () => {
+test("signup rejects duplicate emails and new-account verification returns to the console", async () => {
   for (const [configuredOrigin, browserOrigin, expectedCallback, invitationId = "", responseKind = "new"] of [
     [
       "https://app.quickvoice.co",
@@ -67,9 +67,7 @@ test("signup feedback stays neutral and verification returns to the console", as
         toast: {
           success: (message) => notices.push({ type: "success", message }),
           message: (message) => notices.push({ type: "message", message }),
-          error: (error) => {
-            throw new Error(error);
-          },
+          error: (message) => notices.push({ type: "error", message }),
         },
       },
       "@/src/lib/links": links.exports,
@@ -78,7 +76,10 @@ test("signup feedback stays neutral and verification returns to the console", as
           signUp: {
             email: async (body) => {
               signupBody = body;
-              return { data: { token: null, user: { id: responseKind === "duplicate" ? "synthetic-id" : "new-user", email: body.email, emailVerified: false } } };
+              if (responseKind === "duplicate") {
+                return { error: { code: "USER_ALREADY_EXISTS_USE_ANOTHER_EMAIL", message: "This email is already registered. Please sign in or reset your password." } };
+              }
+              return { data: { token: null, user: { id: "new-user", email: body.email, emailVerified: false } } };
             },
           },
         },
@@ -108,8 +109,14 @@ test("signup feedback stays neutral and verification returns to the console", as
         .href,
       expectedCallback,
     );
-    assert.equal(nextPage, links.exports.invitationPath(invitationId, "/verify"));
     assert.equal(notices.length, 1);
+    if (responseKind === "duplicate") {
+      assert.equal(nextPage, undefined, "Duplicate signup must stay on registration");
+      assert.equal(notices[0].type, "error");
+      assert.match(notices[0].message, /already registered.*sign in.*reset your password/i);
+      continue;
+    }
+    assert.equal(nextPage, links.exports.invitationPath(invitationId, "/verify"));
     assert.equal(notices[0].type, "message");
     assert.doesNotMatch(notices[0].message, /created|signed up|successfully|sent/i);
   }
