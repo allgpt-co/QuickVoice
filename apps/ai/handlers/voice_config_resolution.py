@@ -87,10 +87,11 @@ def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str])
     merged = dict(defaults)
     if isinstance(raw, dict):
         merged.update({key: value for key, value in raw.items() if value is not None})
-    else:
+        else:
         legacy_model = client_config.get(f"{name}Model")
         if legacy_model:
             merged["model"] = legacy_model
+
     model = str(merged.get("model") or "").strip()
     if "/" in model:
         prefixed_provider, model = model.split("/", 1)
@@ -105,8 +106,8 @@ def _section(client_config: dict[str, Any], name: str, defaults: dict[str, str])
             )
         merged["provider"] = prefixed_provider.lower()
         merged["model"] = model
-    return merged
 
+    return merged
 
 def _language_sensitive_stt(
     stt_config: dict[str, str],

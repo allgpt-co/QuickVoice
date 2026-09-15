@@ -11,9 +11,8 @@ STATIC_VOICE_CATALOG = {
         "timezone": "UTC",
         "stt": {"provider": "deepgram", "model": "nova-3"},
         "llm": {
-            "provider": "bedrock",
-            "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
-            "fallback_model": "us.amazon.nova-micro-v1:0",
+            "provider": "openai",
+            "model": "gpt-4o-mini",
         },
         "tts": {
             "provider": "deepgram",
@@ -63,6 +62,20 @@ STATIC_VOICE_CATALOG = {
         },
     ],
     "llm_models": [
+        {
+            "provider": "openai",
+            "id": "gpt-4o-mini",
+            "label": "GPT-4o mini",
+            "runtime_model": "gpt-4o-mini",
+            "streaming": True,
+        },
+        {
+            "provider": "openai",
+            "id": "gpt-4o",
+            "label": "GPT-4o",
+            "runtime_model": "gpt-4o",
+            "streaming": True,
+        },
         {
             "provider": "bedrock",
             "id": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
