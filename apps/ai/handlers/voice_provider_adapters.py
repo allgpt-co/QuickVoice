@@ -60,23 +60,44 @@ def _build_stt(config: dict[str, Any], language: str):
 
 
 def _build_llm(config: dict[str, Any]):
-    provider = config["provider"]
+    provider = config.get("provider", "openai")
+    model = config.get("model", "gpt-4o-mini")
+
     if provider == "bedrock":
         aws = _aws_plugin()
         kwargs = {
-            "model": config["model"],
+            "model": model,
             "region": os.getenv("AWS_REGION", "us-east-1"),
         }
         access_key = os.getenv("AWS_ACCESS_KEY_ID")
         secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        if access_key or secret_key:
-            if not access_key:
-                raise ProviderAdapterError("AWS_ACCESS_KEY_ID is required when AWS_SECRET_ACCESS_KEY is set")
-            if not secret_key:
-                raise ProviderAdapterError("AWS_SECRET_ACCESS_KEY is required when AWS_ACCESS_KEY_ID is set")
+        if access_key and secret_key and not access_key.startswith("dev-"):
             kwargs["api_key"] = access_key
             kwargs["api_secret"] = secret_key
-        return aws.LLM(**kwargs)
+            return aws.LLM(**kwargs)
+        from livekit.agents import inference
+        return inference.LLM(
+            model="openai/gpt-4o-mini",
+            api_key=os.getenv("LIVEKIT_API_KEY"),
+            api_secret=os.getenv("LIVEKIT_API_SECRET"),
+        )
+
+    if provider == "openai":
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key and api_key.strip():
+            from livekit.plugins import openai as openai_plugin
+            return openai_plugin.LLM(
+                model=model,
+                api_key=api_key.strip(),
+            )
+        from livekit.agents import inference
+        llm_model = f"openai/{model}" if not model.startswith("openai/") else model
+        return inference.LLM(
+            model=llm_model,
+            api_key=os.getenv("LIVEKIT_API_KEY"),
+            api_secret=os.getenv("LIVEKIT_API_SECRET"),
+        )
+
     raise ProviderAdapterError(f"unsupported LLM provider: {provider}")
 
 
@@ -120,10 +141,11 @@ def _aws_plugin():
 
 def _required_env(name: str) -> str:
     value = os.getenv(name)
+
     if not value:
         raise ProviderAdapterError(f"{name} is required for the selected voice provider")
-    return value
 
+    return value
 
 def _deepgram_language(language: str) -> str:
     return {
