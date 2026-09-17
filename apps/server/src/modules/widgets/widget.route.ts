@@ -12,6 +12,7 @@ import {
   updateAgentWidgetSchema,
 } from "./widget.schema.js";
 import { publicWidgetOriginAllowed } from "./widget.service.js";
+import { setPublicWidgetCorsHeaders } from "./public-widget-cors.js";
 
 const router = Router();
 
@@ -24,14 +25,7 @@ const publicWidgetCors: RequestHandler = async (req, res, next) => {
       (await publicWidgetOriginAllowed(widgetId, origin));
 
     if (allowed && origin) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-      res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, X-Requested-With",
-      );
-      res.setHeader("Access-Control-Max-Age", "600");
+      setPublicWidgetCorsHeaders(res, origin);
     }
 
     if (req.method === "OPTIONS") {
