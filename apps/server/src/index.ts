@@ -22,6 +22,7 @@ import { getReadiness } from "./modules/system/readiness.service.js";
 import systemRuntimeRouter from "./modules/system/runtime.route.js";
 import contactRouter from "./modules/contact/contact.route.js";
 import { publicWidgetOriginAllowed } from "./modules/widgets/widget.service.js";
+import { setPublicWidgetCorsHeaders } from "./modules/widgets/public-widget-cors.js";
 import "./workers/kb.worker.js";
 import "./workers/outbound-batch.worker.js";
 import swaggerUi from "swagger-ui-express";
@@ -71,14 +72,7 @@ const publicWidgetPreflight: RequestHandler<{ widgetId: string }> = async (
       origin,
     );
     if (allowed && origin) {
-      res.setHeader("Access-Control-Allow-Origin", origin);
-      res.setHeader("Vary", "Origin");
-      res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
-      res.setHeader(
-        "Access-Control-Allow-Headers",
-        "Content-Type, X-Requested-With",
-      );
-      res.setHeader("Access-Control-Max-Age", "600");
+      setPublicWidgetCorsHeaders(res, origin);
     }
     res.status(allowed ? 204 : 403).end();
   } catch (error) {
