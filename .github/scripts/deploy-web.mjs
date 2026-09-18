@@ -2,6 +2,7 @@ import { appendFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
 export const WEB_APP_UUID = "76d9ooqtvm1hl9tbzmza3few";
+export const SERVER_APP_UUID = "udefnayjdhyb2ketfxrbvwdq";
 const API_URL = "https://webhook.quickintell.com/api/v1";
 const activeStatuses = new Set(["queued", "in_progress", "building"]);
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -13,6 +14,7 @@ export async function deployWeb({
   expectedCommit,
   flagUpdates = {},
   prerequisitesVerified = false,
+  expectedReceiverCommit,
   fetchImpl = fetch,
   sleep = delay,
   log = console.log,
@@ -33,6 +35,10 @@ export async function deployWeb({
   }
   if (updates.some(([, value]) => value === "enable") && prerequisitesVerified !== true) {
     throw new Error("Verify the compatible receiver / GA history setting before enabling rollout flags.");
+  }
+  if (flagUpdates.CONTACT_ATTRIBUTION_ENABLED === "enable" &&
+      !/^[a-f0-9]{40}$/.test(expectedReceiverCommit ?? "")) {
+    throw new Error("Contact activation requires the full compatible API revision.");
   }
 
   async function request(path, method = "GET", body) {
@@ -115,6 +121,37 @@ export async function deployWeb({
       return rows.filter((row) => row.is_preview === false || row.is_preview === 0);
     };
     let variables = await readFlags();
+    if (flagUpdates.CONTACT_ATTRIBUTION_ENABLED === "enable") {
+      const serverPath = `/applications/${SERVER_APP_UUID}`;
+      const server = await request(serverPath);
+      const history = await request(`/deployments/applications/${SERVER_APP_UUID}?take=10`);
+      const deployments = Array.isArray(history) ? history : history.deployments;
+      if (server.uuid !== SERVER_APP_UUID || server.status !== "running:healthy" ||
+          server.docker_registry_image_tag !== `sha-${expectedReceiverCommit}` ||
+          !String(server.docker_registry_image_name).endsWith("/allgpt-co/quickvoice-server") ||
+          !Array.isArray(deployments) || deployments.length === 0 ||
+          deployments.some((row) => activeStatuses.has(row.status)) ||
+          deployments[0].status !== "finished") {
+        throw new Error("Compatible API revision is not confirmed healthy with a finished deployment.");
+      }
+      const serverVariables = await request(`${serverPath}/envs`);
+      if (!Array.isArray(serverVariables)) throw new Error("Unexpected receiver environment response.");
+      const value = (rows, key) => {
+        const matches = rows.filter((row) => row.key === key &&
+          (row.is_preview === false || row.is_preview === 0) && row.is_runtime);
+        return matches.length === 1 ? String(matches[0].value ?? "").trim() : "";
+      };
+      const webhook = value(variables, "CONTACT_WEBHOOK_URL");
+      const secret = value(variables, "CONTACT_WEBHOOK_SECRET");
+      const version = value(serverVariables, "API_VERSION") || "v1";
+      const endpoints = String(server.fqdn ?? "").split(",")
+        .map((domain) => `${domain.trim().replace(/\/$/, "")}/api/${version}/contact-delivery`);
+      if (!webhook.startsWith("https://") || !endpoints.includes(webhook) ||
+          secret.length < 32 || secret !== value(serverVariables, "CONTACT_WEBHOOK_SECRET")) {
+        throw new Error("Website webhook does not match the verified receiver configuration.");
+      }
+      log(`Verified healthy contact receiver at ${expectedReceiverCommit}; webhook configuration matches.`);
+    }
     for (const [key, action] of updates) {
       const matches = variables.filter((row) => row.key === key);
       if (matches.length > 1) throw new Error(`Ambiguous production flag: ${key}.`);
@@ -245,6 +282,7 @@ if (
         NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS: process.env.MANUAL_PAGEVIEWS_ACTION || "preserve",
       },
       prerequisitesVerified: process.env.ROLLOUT_PREREQUISITES_VERIFIED === "true",
+      expectedReceiverCommit: process.env.COMPATIBLE_API_COMMIT,
     });
     const summary = `Marketing deployment finished: ${result.deploymentUuid}\nCommit: ${result.commit}\nApplication: running:healthy\nPublic URL: https://quickvoice.co\n`;
     console.log(summary);
