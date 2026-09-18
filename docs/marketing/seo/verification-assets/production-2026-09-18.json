@@ -1,0 +1,481 @@
+{
+  "observed_at": "2026-09-18T13:24:56.570816+00:00",
+  "source_release": "https://github.com/allgpt-co/QuickVoice/pull/208",
+  "hosting_revision_verified": false,
+  "hosting_note": "Public content is live; authenticated hosting inspection is blocked by API read permission. Manual workflow made no mutations.",
+  "http_crawl": {
+    "observed_at": "2026-09-18T13:24:56.570816+00:00",
+    "sitemap_count": 101,
+    "unique_count": 101,
+    "blog_count": 67,
+    "failures": [],
+    "routes": [
+      {
+        "url": "https://quickvoice.co",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/open-source",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/resources",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/company/about-us",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/company/careers",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/company/contact",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/automotive",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/e-commerce",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/education",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/financial-services",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/healthcare",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/hr-recruiting",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/logistics",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/manufacturing-engineering",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/real-estate",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/saas",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/industries/travel-hospitality",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/appointment-scheduling",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/customer-support",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/operations-automation",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/order-status-returns",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/reminders-collections",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/use-cases/sales-lead-gen",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/case-studies",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/pricing",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/solutions",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/solutions/ai-receptionist",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/solutions/ai-answering-service",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/compliance/hipaa",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/privacy-policy",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/terms-of-service",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/air-ai-alternatives",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/retell-ai-alternatives",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/synthflow-alternatives",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/vapi-alternatives",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/bland-ai-alternatives",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/how-to-automate-phone-calls-ai",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/quickvoice-vs-voiceflow",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/what-is-an-ai-voice-agent",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agent-vs-ivr",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/deploy-ai-voice-agent-no-code",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-after-hours-call-handling",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-billing-payment-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-collection-calls-complete-guide",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-customer-surveys-nps-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-insurance-claims-processing-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-medical-scheduling-voice-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-meeting-scheduler-voice-automation",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-patient-intake-pre-visit-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-phone-answering-service-small-business",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-virtual-assistant-for-business",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agent-security-data-privacy",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agent-vs-call-center-bpo",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-accounting-tax-firms",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-beauty-salons-spas",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-dental-practices",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-home-services",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-insurance-companies",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-law-firms",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-property-management",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-restaurants",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-staffing-agencies",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-veterinary-clinics",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-assistant-vs-ai-voice-agent",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/best-online-booking-systems-ai-voice",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/enterprise-ai-voice-platform-guide",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/free-ai-appointment-scheduling-tools",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/how-to-migrate-ivr-to-ai-voice-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/inbound-vs-outbound-ai-voice-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/multi-language-ai-voice-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/online-appointment-scheduling-ai-voice",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-appointment-scheduling-guide",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-reduce-customer-support-costs",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/hipaa-compliant-ai-voice-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-real-estate",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-outbound-calling-replacing-sdr-cold-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-vs-human-agents-cost-comparison",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/automated-appointment-reminders-guide",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-phone-agents-automotive-dealerships",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/what-is-conversational-ai",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-ecommerce",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-b2b-lead-qualification",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/build-ai-voice-agent-small-business",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-financial-services",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-debt-collection-calls",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/roi-replacing-receptionist-ai-voice-agent",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-hr-recruiting",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/elevenlabs-vs-deepgram-voice-ai",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/connect-ai-voice-agent-hubspot",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-logistics",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/10-ai-voice-agent-use-cases-healthcare",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-phone-agents-handle-objections",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/what-is-voice-cloning-ai-agents",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/ai-voice-agents-manufacturing",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/quickvoice-vs-bland-ai",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/quickvoice-vs-vapi",
+        "issues": []
+      },
+      {
+        "url": "https://quickvoice.co/blog/quickvoice-vs-synthflow",
+        "issues": []
+      }
+    ]
+  },
+  "redirect_downloads_exclusions": {
+    "www_redirect": {
+      "status": 308,
+      "location": "https://quickvoice.co/blog/quickvoice-vs-synthflow?release_check=1"
+    },
+    "downloads": [
+      {
+        "path": "/resources/phone-agent-checklist.pdf",
+        "status": 200,
+        "content_type": "application/pdf",
+        "bytes": 6376
+      },
+      {
+        "path": "/resources/cost-estimation.csv",
+        "status": 200,
+        "content_type": "text/csv; charset=UTF-8",
+        "bytes": 5471
+      },
+      {
+        "path": "/resources/cost-estimation-guide.pdf",
+        "status": 200,
+        "content_type": "application/pdf",
+        "bytes": 5742
+      }
+    ],
+    "excluded_pages": [
+      {
+        "path": "/blog/quickvoice-vs-retell-ai",
+        "status": 404,
+        "robots": [
+          "noindex",
+          "index, follow"
+        ]
+      },
+      {
+        "path": "/case-studies/automotive-lease-retention-equity-mining",
+        "status": 200,
+        "robots": [
+          "noindex, follow"
+        ]
+      }
+    ]
+  },
+  "browser_checks": {
+    "mobile_viewport": [
+      375,
+      812
+    ],
+    "article_journeys_checked": 9,
+    "all_destinations_and_contact_links_match": true,
+    "horizontal_overflow": false,
+    "desktop_viewport": [
+      1440,
+      900
+    ],
+    "synthflow_desktop_and_mobile_visually_checked": true,
+    "ga_tag_count": 1,
+    "ga_measurement_id": "G-SZFBG11VRP",
+    "automatic_initial_pageview": true,
+    "console_login": "https://app.quickvoice.co/login"
+  },
+  "production_enquiries_sent": 0
+}

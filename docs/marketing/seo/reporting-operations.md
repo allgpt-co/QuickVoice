@@ -10,7 +10,18 @@ python3 scripts/seo-snapshot.py \
   --output "output/seo/$(date -u +%F)/us-seo-$(date -u +%H%M%S).json"
 ```
 
-Choose a new filename for every observation; existing raw or summary files are never overwritten. `--summary` can select a separate Markdown filename. A manual run is not a scheduled job or proof that a future review happened. The growth owner should run it weekly, record the observation/end dates, review the top changed query-page pairs, and reconcile delivered/qualified enquiries with the offline lead scorecard.
+Choose a new filename for every observation; existing raw or summary files are never overwritten. `--summary` can select a separate Markdown filename. A manual run is not a scheduled job or proof that a future review happened. The private weekly workflow below now captures it automatically. The growth owner should record the review date, inspect the top changed query-page pairs, and reconcile delivered/qualified enquiries with the offline lead scorecard.
+
+## Active private schedule — September 18, 2026
+
+The [private reporting workflow](https://github.com/allgpt-co/QuickVoiceMarketing/actions/workflows/seo-report.yml)
+runs Mondays at 14:17 UTC and supports manual dispatch. Its first hosted run
+completed 141 requests without errors, retained private raw artifacts for 90 days,
+and committed a durable private aggregate summary. It refuses collection if its
+repository becomes public and uses an exact reviewed source revision. It uses
+only the existing reporting grant; it does not need Analytics edit access.
+See [completion evidence and remaining activation](completion-2026-09-18.md).
+Automation does not establish a completed human review or reconciled sales results.
 
 ## Dates and reproducible comparisons
 

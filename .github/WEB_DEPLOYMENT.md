@@ -12,7 +12,7 @@ Website** in GitHub Actions on `main`:
 gh workflow run deploy-web.yml --ref main
 ```
 
-The manual workflow uses the existing `COOLIFY_API_URL` repository variable
+The workflow runs on the established self-hosted deployment runners. It uses the existing `COOLIFY_API_URL` repository variable
 (`https://webhook.quickintell.com/api/v1`) and `COOLIFY_API_TOKEN` repository
 secret. It requires completed quality and dependency-security checks for the
 exact current main commit. It does not deploy the backend, console, or docs.
@@ -52,3 +52,12 @@ flag change can require reconciliation even if no deployment was queued.
 
 Disable contact attribution before reverting the receiver. For pageview
 rollback, deploy `manual_pageviews=disable` before restoring GA history tracking.
+
+
+A September 18 run on both hosted and established deployment runners was denied
+with HTTP 403 before any mutation; the latter response explicitly identified API
+permission restriction. The current secret can execute the backend deployment,
+but that does not establish the read/sensitive-read access this verified rollout
+requires. The hosting owner must provide suitable team-scoped access through
+secure GitHub settings. A successful automatic public-content rollout does not
+establish that the manual workflow activated its flags.

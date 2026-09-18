@@ -1,6 +1,6 @@
 # Source, status, and dependency tracker
 
-Prepared 2026-09-06. The [dated execution report](execution-2026-09-06.md) now records authorized releases and external observations and supersedes the preparation-time status table below. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
+Prepared 2026-09-06; current completion status checked 2026-09-18. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
 
 ## Governing sources
 
@@ -22,10 +22,19 @@ overdue Synthflow review, private reporting automation, and measurement
 activation. Its dated observations supersede preparation and candidate statuses
 below only where completion evidence is recorded.
 
-### September 16 current implementation overlay
+| Work | September 18 status | Remaining dependency |
+|---|---|---|
+| Nine article journeys; Vapi and Synthflow reviews; commercial clarity | Merged and publicly verified; all 101 sitemap URLs pass | Google recrawl/indexing is monitored separately. |
+| Contact receipts and source attribution | Code merged; backend release workflow completed; flag activation pending | Coolify explicitly denies API read permission; receiver health/configuration must be verified before activation. |
+| Marked production enquiry, inbox and GA receipt | Pending activation; no September 18 enquiry sent | Hosting access, enabled attribution and destination inbox verification. |
+| GA key event, three event dimensions and manual pageviews | Utilities tested; automatic pageviews remain configured | Existing grant lacks `analytics.edit`; secure administrative access still required. |
+| Private weekly US GSC/GA reporting | Active Mondays 14:17 UTC; first hosted run passed 141 requests | Human review and independently verified sales outcomes remain recurring work. |
+| Future campaign work and customer proof | Scheduled or evidence-dependent | Preserve real evidence, consent and sending boundaries. |
 
-See [implementation-2026-09-16.md](implementation-2026-09-16.md). This overlay
-supersedes the older preparation table only for the rows explicitly described.
+### Historical September 16 implementation overlay
+
+See [implementation-2026-09-16.md](implementation-2026-09-16.md). This table preserves the
+September 16 candidate state; use the completion table above for current status.
 
 | Work | Current status | Next dependency |
 |---|---|---|

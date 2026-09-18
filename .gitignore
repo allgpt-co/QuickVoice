@@ -27,6 +27,8 @@ coverage
 .viral_launch_runs/
 .video_tutorial_runs/
 /output/seo/
+/output/playwright/
+/.playwright-cli/
 
 # Turbo
 .turbo
