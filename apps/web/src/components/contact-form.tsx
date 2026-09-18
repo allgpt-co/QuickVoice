@@ -3,6 +3,7 @@
 import { useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { trackContactLead } from "@/lib/analytics";
+import { captureEnquiryContext } from "@/lib/enquiry-context.mjs";
 import {
   CONTACT_FIELDS,
   CONTACT_LABELS,
@@ -27,6 +28,7 @@ export function ContactForm({
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const inFlight = useRef(false);
+  const submissionId = useRef<string | undefined>(undefined);
   const [fields, setFields] = useState(emptyContactFields);
   const [errors, setErrors] = useState<ContactErrors>({});
   const [status, setStatus] = useState<
@@ -62,10 +64,18 @@ export function ContactForm({
     setStatus("submitting");
     setDeliveryError("");
     try {
+      // Reuse the receipt on manual retries. Do not automatically resend an
+      // ambiguous delivery; the receiving team can reconcile by this identifier.
+      submissionId.current ??= window.crypto?.randomUUID?.();
       const response = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(checked.fields),
+        body: JSON.stringify({
+          ...checked.fields,
+          submissionId: submissionId.current,
+          formLocation: location,
+          attribution: captureEnquiryContext(),
+        }),
       });
       const result = await response.json().catch(() => null);
       if (!response.ok || result?.ok !== true) {
@@ -92,7 +102,7 @@ export function ContactForm({
         );
         setStatus("error");
       } else {
-        trackContactLead(location);
+        trackContactLead(location, submissionId.current);
         setStatus("success");
       }
       requestAnimationFrame(() => statusRef.current?.focus());
@@ -106,6 +116,7 @@ export function ContactForm({
   }
 
   function startAnotherMessage() {
+    submissionId.current = undefined;
     setFields(emptyContactFields());
     setErrors({});
     setDeliveryError("");
@@ -322,7 +333,9 @@ export function ContactForm({
           {fieldError("message")}
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          Please leave out passwords and sensitive customer information. Read
+          Please leave out passwords and sensitive customer information. Basic
+          page and source context may accompany your enquiry; URL query values
+          are excluded from that context. Read
           our{" "}
           <a
             href="/privacy-policy"

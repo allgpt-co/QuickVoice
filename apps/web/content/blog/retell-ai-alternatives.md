@@ -19,8 +19,8 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T07:29:22.752Z'
-  reviewer: Codex (source and repository review)
+  reviewedAt: '2026-09-16T18:15:26.165Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://docs.retellai.com/general/introduction'
     - 'https://docs.retellai.com/deploy/custom-telephony'
@@ -28,7 +28,8 @@ evidenceReview:
     - 'https://docs.vapi.ai/quickstart'
     - 'https://github.com/allgpt-co/QuickVoice'
     - 'https://docs.livekit.io/agents/'
-  contentHash: efb97c882e8cb0547fdcc0fbaf848948d70fafa3090d5a9fdd41ce6cccf8bee0
+    - 'https://quickvoice.co/pricing'
+  contentHash: 9a322adccbdaf735e4699486c70bbbf41ac93ae07cd4443d39482e4553c8f0ff
 ---
 
 # Retell AI Alternatives: How to Compare Vapi, QuickVoice, and LiveKit
@@ -99,5 +100,7 @@ Do not choose it on an unsupported claim of better call quality, lower cost, or 
 ## Make the switch reversible
 
 Pilot on a test route before changing the main business number. Have staff compare results, document gaps, and confirm the fallback path. Keep a clear decision to continue, revise, or return to the current arrangement.
+
+Review [QuickVoice's open-source stack and prerequisites](/open-source) before assigning a migration owner. The [pricing page](/pricing) distinguishes hosted usage from self-hosted operating costs; include your integration effort and parallel-running period instead of assuming that a different platform will be cheaper.
 
 For a wider shortlist, use the [voice-agent platform guide](/blog/best-ai-voice-agent-platforms-2026). To evaluate QuickVoice against a specific Retell workflow, [discuss the requirement you need to change](/company/contact) and bring the existing call flow and acceptance criteria.

@@ -6,6 +6,14 @@ As checked on 2026-09-06, the production stream's enhanced browser-history measu
 
 Roll out in this order:
 
+The measurement utility can inspect the exact stream with
+`python3 scripts/seo-measurement-setup.py --pageviews manual --check`.
+After secure edit access is available, `--pageviews manual --apply` disables only
+browser-history pageviews and reads the setting back. It does not deploy the web
+flag. For rollback, deploy the web flag as false first, then use
+`--pageviews automatic --apply`. The default utility mode still handles only
+lead/dimension registrations; pageview mode does not change those registrations.
+
 1. Keep the build flag absent or `false` while deploying the staged code.
 2. Using GA edit access, disable the stream's browser-history pageviews and verify the saved setting. Keep unrelated enhanced events unchanged. For QuickVoice, confirm the stream uses `G-SZFBG11VRP`.
 3. Set `NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS=true` in the marketing app's **build environment**, then rebuild and deploy. An ID override requires the same GA-side check for that destination.

@@ -4,6 +4,7 @@ import { ArticleContents } from "@/components/blog/ArticleContents";
 import { BlogCard, formatArticleDate } from "@/components/blog/BlogCard";
 import { getEditorialHeadings } from "@/lib/editorial-headings.mjs";
 import { getBlogTopic, blogListingHref } from "@/lib/blog-discovery.mjs";
+import { getBlogJourney } from "@/data/blog-journeys.mjs";
 import { EvidenceStatusNotice } from "@/components/evidence-status-notice";
 import { CONTACT_URL, DEMO_BOOKING_URL } from "@/lib/links";
 import type { Metadata } from "next";
@@ -51,6 +52,7 @@ export default async function BlogPostPage({ params }: Props) {
   const relatedPosts = getRelatedPosts(slug, 3);
   const topic = getBlogTopic(post);
   const indexable = isIndexablePost(post);
+  const journey = indexable ? getBlogJourney(slug) : null;
   const modifiedDate = getPostModifiedDate(post);
   const headings = getEditorialHeadings(post.content, { title: post.title });
   const articleSchema = {
@@ -105,6 +107,14 @@ export default async function BlogPostPage({ params }: Props) {
             {!indexable && <div className="mb-8"><EvidenceStatusNotice title="Editorial content under evidence review"><p>This article has not passed the current publication review. Verify its sources and current product behavior before relying on it for a buying or implementation decision.</p></EvidenceStatusNotice></div>}
             {headings.length > 1 && <details className="mb-8 rounded-xl border border-border p-5 lg:hidden"><summary className="cursor-pointer font-semibold">On this page</summary><div className="mt-4"><ArticleContents headings={headings} /></div></details>}
             <MarkdownRenderer content={post.content} title={post.title} />
+            {journey && <section aria-labelledby="article-next-step" className="mt-10 border-y border-border py-7">
+              <h2 id="article-next-step" className="text-xl font-semibold tracking-tight">{journey.title}</h2>
+              <p className="mt-3 leading-7 text-muted-foreground">{journey.description}</p>
+              <div className="mt-5 flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap">
+                <Link href={journey.href} data-analytics-location="article_journey" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold hover:border-primary hover:text-primary focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{journey.label}<ArrowRight aria-hidden="true" className="size-4 shrink-0" /></Link>
+                <Link href={CONTACT_URL} data-analytics-location="article_journey" className="inline-flex min-h-11 items-center rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">{journey.contactLabel}</Link>
+              </div>
+            </section>}
             <div className="mt-12 border-t border-border pt-6">
               <p className="text-sm font-semibold">{post.author}</p>
               {post.authorBio && <p className="mt-2 text-sm leading-7 text-muted-foreground">{post.authorBio}</p>}

@@ -2,6 +2,21 @@ name: Deploy QuickVoice Website
 
 on:
   workflow_dispatch:
+    inputs:
+      contact_attribution:
+        description: Contact attribution (enable only after compatible API delivery is verified)
+        type: choice
+        default: preserve
+        options: [preserve, enable, disable]
+      manual_pageviews:
+        description: Manual pageviews (enable only after GA browser-history views are disabled)
+        type: choice
+        default: preserve
+        options: [preserve, enable, disable]
+      prerequisites_verified:
+        description: Required for enable actions; prerequisite checks recorded in release evidence
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -47,4 +62,7 @@ jobs:
         env:
           COOLIFY_API_URL: ${{ vars.COOLIFY_API_URL }}
           COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
+          CONTACT_ATTRIBUTION_ACTION: ${{ inputs.contact_attribution }}
+          MANUAL_PAGEVIEWS_ACTION: ${{ inputs.manual_pageviews }}
+          ROLLOUT_PREREQUISITES_VERIFIED: ${{ inputs.prerequisites_verified }}
         run: node .github/scripts/deploy-web.mjs

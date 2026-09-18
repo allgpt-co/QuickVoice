@@ -19,15 +19,16 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T07:29:22.530Z'
-  reviewer: Codex (source and repository review)
+  reviewedAt: '2026-09-16T18:15:25.151Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://calendly.com/pricing'
     - 'https://cal.com/pricing'
     - 'https://support.google.com/calendar/answer/11608416'
     - 'https://github.com/allgpt-co/QuickVoice'
     - 'https://docs.vapi.ai/assistants/examples/appointment-scheduling'
-  contentHash: 0d505493d4732eae6ef206863a6e16e7a6e4810cb34e1a11d588cd4e958c6044
+    - 'https://quickvoice.co/pricing'
+  contentHash: ac42a7841fb4139fa15ad2a7022e0c9cfb42334454f11596206c1a5df307c808
 ---
 
 # Free AI Appointment Scheduling Tools: What Is Actually Free?
@@ -101,5 +102,7 @@ Record the final calendar state, not just the transcript. When a result is uncer
 ## Choose a starting point
 
 Use a booking page when a link is enough. Evaluate a conversation layer when phone requests are a meaningful part of your process and someone can own its operation. Start with intake if calendar writes are not ready.
+
+If phone requests are the gap in your process, review [QuickVoice's appointment-request workflow](/use-cases/appointment-scheduling) and [hosted usage pricing and self-hosting costs](/pricing). A free booking page and a configured phone agent solve different parts of the task; evaluate only the extra work your callers actually need.
 
 The [AI appointment scheduling guide](/blog/ai-appointment-scheduling-guide) explains the workflow in more detail. To evaluate the phone portion, [discuss your scheduling requirements](/company/contact), including your current calendar and the requests that must stay with a person.

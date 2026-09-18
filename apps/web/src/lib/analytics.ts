@@ -31,11 +31,16 @@ export function trackAnalyticsEvent(
   }
 }
 
-/** Count only acknowledged contact delivery; never send submitted form data. */
-export function trackContactLead(formLocation: "homepage" | "contact_page"): boolean {
-  return trackAnalyticsEvent("generate_lead", {
+const recordedEnquiries = new Set<string>();
+
+/** Count only acknowledged contact delivery; the receipt stays out of GA. */
+export function trackContactLead(formLocation: "homepage" | "contact_page", submissionId?: string): boolean {
+  if (submissionId && recordedEnquiries.has(submissionId)) return false;
+  const sent = trackAnalyticsEvent("generate_lead", {
     method: "contact_form",
     form_location: formLocation,
     page_path: typeof window === "undefined" ? undefined : window.location.pathname,
   });
+  if (sent && submissionId) recordedEnquiries.add(submissionId);
+  return sent;
 }

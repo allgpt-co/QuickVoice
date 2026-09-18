@@ -283,6 +283,15 @@ export async function sendContactSubmission(submission: ContactSubmission) {
     ["Source", submission.source],
     ["Message", submission.message],
   ];
+  if (submission.submissionId) fields.push(["Submission ID", submission.submissionId]);
+  if (submission.formLocation) fields.push(["Form location", submission.formLocation]);
+  if (submission.attribution) {
+    fields.push(
+      ["Landing page", submission.attribution.landingPage],
+      ["Observed source / medium", `${submission.attribution.source} / ${submission.attribution.medium}`],
+      ["Attribution note", "Browser-observed context, not verified attribution or country. Reconcile retries by submission ID and prospects in sales records; do not count a message as a qualified lead."],
+    );
+  }
   const text = fields
     .map(([label, value]) => `${label}: ${value}`)
     .join("\n\n");

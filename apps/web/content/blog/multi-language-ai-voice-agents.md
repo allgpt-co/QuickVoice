@@ -20,8 +20,8 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T10:14:27.450Z'
-  reviewer: Codex (primary-source and repository review)
+  reviewedAt: '2026-09-16T18:15:25.744Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://developers.deepgram.com/docs/models-languages-overview'
     - 'https://developers.deepgram.com/docs/multilingual-code-switching'
@@ -32,7 +32,8 @@ evidenceReview:
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/voice_provider_adapters.py
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
-  contentHash: b97c58dcdc12964768b762a86c349ca1deb211b9356597534dcd5de5e64548df
+    - 'https://quickvoice.co/pricing'
+  contentHash: f5f1982a18763d6618d72fd4a47b727aba223dcc28544cbe123802083f75f6b8
 ---
 
 # Multilingual AI Voice Agents: Validate Languages Across the Whole Call
@@ -112,5 +113,7 @@ Use synthetic calls with varied speakers, accents, speaking speeds, interruption
 Have fluent reviewers inspect both the conversation and resulting records. Measure incorrect answers, wrong values, corrections, failed handoffs, and unresolved tasks separately for each tested language and configuration.
 
 Do not average a weak language result into a stronger overall score. Retest affected scenarios when changing a speech model, voice, prompt, or knowledge source.
+
+Apply the language-specific tests to one [customer support phone workflow](/use-cases/customer-support), with approved answers and a staff route for unsupported requests. Review [QuickVoice's implementation prerequisites](/open-source) and [operating-cost categories](/pricing) before selecting a provider configuration; these pages do not establish additional language coverage.
 
 To evaluate a multilingual workflow, [discuss the languages and tasks your callers need](/company/contact) with example terminology, a fluent reviewer, and the required human fallback.

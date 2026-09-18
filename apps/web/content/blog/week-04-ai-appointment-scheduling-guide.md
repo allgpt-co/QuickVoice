@@ -20,15 +20,16 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T07:29:23.181Z'
-  reviewer: Codex (source and repository review)
+  reviewedAt: '2026-09-16T18:15:25.355Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://support.google.com/calendar/answer/11608416'
     - 'https://docs.vapi.ai/assistants/examples/appointment-scheduling'
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
     - 'https://github.com/allgpt-co/QuickVoice#quick-start'
-  contentHash: 58d49615dd403a55ab2e10796395d589145207dceacc18a9e1d938fded44bb62
+    - 'https://quickvoice.co/pricing'
+  contentHash: 825cbccf7852570e7fd9c9ef48fd17925ebdb0c3b0fe47e2c9721960e197b004
 ---
 
 # AI Appointment Scheduling: A Practical Guide for Business Teams
@@ -107,5 +108,7 @@ QuickVoice includes configurable phone agents, knowledge sources, MCP connection
 Its [live-call MCP handler](https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py) restricts tools marked as writes, side effects, or requiring confirmation. Connecting a calendar alone does not enable booking changes. The implementation team must provide a permitted action and approval path before the agent can confirm appointments.
 
 QuickVoice is an actively developed, MIT-licensed project. Its [setup guide](https://github.com/allgpt-co/QuickVoice#quick-start) distinguishes local services from calls that require LiveKit, telephony, and model-provider credentials.
+
+Review [QuickVoice's appointment scheduling workflow](/use-cases/appointment-scheduling) to turn these requirements into a bounded evaluation. Use the [pricing explanation](/pricing) to separate hosted usage from the operating costs your team owns when self-hosting; neither replaces the integration and acceptance work described above.
 
 To assess fit, [discuss your appointment process](/company/contact) with a service list, the calendar your staff uses, and the rules determining when a person must review a request.

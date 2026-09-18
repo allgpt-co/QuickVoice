@@ -11,6 +11,8 @@ export async function deployWeb({
   apiUrl,
   token,
   expectedCommit,
+  flagUpdates = {},
+  prerequisitesVerified = false,
   fetchImpl = fetch,
   sleep = delay,
   log = console.log,
@@ -23,17 +25,28 @@ export async function deployWeb({
   if (!/^[a-f0-9]{40}$/.test(expectedCommit ?? "")) {
     throw new Error("A full expected main commit is required.");
   }
+  const allowedFlags = new Set(["CONTACT_ATTRIBUTION_ENABLED", "NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS"]);
+  const updates = Object.entries(flagUpdates).filter(([, value]) => value !== "preserve");
+  if (Object.keys(flagUpdates).some((key) => !allowedFlags.has(key)) ||
+      updates.some(([, value]) => !["enable", "disable"].includes(value))) {
+    throw new Error("Only the two documented SEO rollout flags can be changed.");
+  }
+  if (updates.some(([, value]) => value === "enable") && prerequisitesVerified !== true) {
+    throw new Error("Verify the compatible receiver / GA history setting before enabling rollout flags.");
+  }
 
-  async function request(path, method = "GET") {
+  async function request(path, method = "GET", body) {
     let response;
     try {
       response = await fetchImpl(`${API_URL}${path}`, {
         method,
         redirect: "error",
         signal: AbortSignal.timeout(30_000),
+        ...(body === undefined ? {} : { body: JSON.stringify(body) }),
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: "application/json",
+          ...(body === undefined ? {} : { "Content-Type": "application/json" }),
           "User-Agent": "Mozilla/5.0 QuickVoice-Web-Deploy",
         },
       });
@@ -83,6 +96,9 @@ export async function deployWeb({
 
   const before = await listDeployments();
   const active = before.filter((row) => activeStatuses.has(row.status));
+  if (updates.length && active.length) {
+    throw new Error("Wait for the active deployment before changing rollout flags.");
+  }
   if (
     active.length > 1 ||
     (active.length === 1 && active[0].commit !== expectedCommit)
@@ -90,6 +106,36 @@ export async function deployWeb({
     throw new Error(
       "Another marketing deployment is active; no additional deployment was requested.",
     );
+  }
+  if (updates.length) {
+    const envPath = `${appPath}/envs`;
+    const readFlags = async () => {
+      const rows = await request(envPath);
+      if (!Array.isArray(rows)) throw new Error("Unexpected environment-variable response.");
+      return rows.filter((row) => row.is_preview === false || row.is_preview === 0);
+    };
+    let variables = await readFlags();
+    for (const [key, action] of updates) {
+      const matches = variables.filter((row) => row.key === key);
+      if (matches.length > 1) throw new Error(`Ambiguous production flag: ${key}.`);
+      const desired = {
+        key, value: action === "enable" ? "true" : "false",
+        is_preview: false, is_literal: true, is_multiline: false,
+        is_buildtime: key.startsWith("NEXT_PUBLIC_"), is_runtime: true,
+      };
+      const matchesDesired = (row) => row?.value === desired.value &&
+        Boolean(row.is_buildtime) === desired.is_buildtime && Boolean(row.is_runtime);
+      if (!matchesDesired(matches[0])) {
+        // A timeout may follow acceptance. Never repeat an uncertain mutation.
+        await request(envPath, matches.length ? "PATCH" : "POST", desired);
+        variables = await readFlags();
+        const verified = variables.filter((row) => row.key === key);
+        if (verified.length !== 1 || !matchesDesired(verified[0])) {
+          throw new Error(`Rollout flag verification failed: ${key}. Inspect settings before retrying.`);
+        }
+      }
+      log(`Verified production rollout flag ${key}=${desired.value}.`);
+    }
   }
   let deploymentUuid = active[0]?.deployment_uuid;
   if (!deploymentUuid) {
@@ -194,6 +240,11 @@ if (
       apiUrl: process.env.COOLIFY_API_URL,
       token: process.env.COOLIFY_API_TOKEN,
       expectedCommit: process.env.GITHUB_SHA,
+      flagUpdates: {
+        CONTACT_ATTRIBUTION_ENABLED: process.env.CONTACT_ATTRIBUTION_ACTION || "preserve",
+        NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS: process.env.MANUAL_PAGEVIEWS_ACTION || "preserve",
+      },
+      prerequisitesVerified: process.env.ROLLOUT_PREREQUISITES_VERIFIED === "true",
     });
     const summary = `Marketing deployment finished: ${result.deploymentUuid}\nCommit: ${result.commit}\nApplication: running:healthy\nPublic URL: https://quickvoice.co\n`;
     console.log(summary);

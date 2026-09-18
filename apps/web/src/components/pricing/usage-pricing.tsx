@@ -178,6 +178,29 @@ export function UsagePricing() {
       </section>
 
       <section className="page-section border-y border-border bg-muted/25">
+        <div className="site-container">
+          <h2 className="text-3xl font-semibold tracking-tight">
+            Compare the full operating cost, not just a minute rate.
+          </h2>
+          <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">
+            The hosted call formula is not a self-hosting quote. A self-hosted
+            evaluation also needs hosting, provider accounts, implementation,
+            monitoring, and human follow-up. Include unsuccessful attempts and
+            escalation work when comparing approaches; do not assume the same
+            cost or completion rate for every workflow.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-x-6 gap-y-4">
+            <Link href="/resources#costs" className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4">
+              Use the cost worksheet and instructions
+            </Link>
+            <Link href="/open-source#ownership-heading" className="inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-4">
+              Review implementation ownership
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="page-section border-y border-border bg-muted/25">
         <div className="site-container grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
           <div>
             <p className="eyebrow">Wallet controls</p>

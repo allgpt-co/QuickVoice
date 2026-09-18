@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import matter from "gray-matter";
+import { getBlogJourney } from "../../data/blog-journeys.mjs";
 import { rankRelatedPosts } from "./blog-discovery.mjs";
 import { computeContentHash, isValidEvidenceReview, parseContentDate } from "./blog-review.mjs";
 
@@ -152,5 +153,5 @@ export function getRelatedPosts(currentSlug: string, limit = 3): BlogPost[] {
   const current = getPostBySlug(currentSlug);
   if (!current) return [];
   const all = getIndexablePosts().filter((p) => p.slug !== currentSlug);
-  return rankRelatedPosts(current, all, limit);
+  return rankRelatedPosts(current, all, limit, getBlogJourney(currentSlug)?.relatedSlugs ?? []);
 }

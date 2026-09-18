@@ -19,15 +19,16 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T07:29:22.972Z'
-  reviewer: Codex (source and repository review)
+  reviewedAt: '2026-09-16T18:15:25.966Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://docs.vapi.ai/quickstart'
     - 'https://docs.vapi.ai/tools'
     - 'https://docs.retellai.com/general/introduction'
     - 'https://github.com/allgpt-co/QuickVoice'
     - 'https://docs.livekit.io/agents/'
-  contentHash: 9c084e0bb5398c9d13e76c849f8252a7fb84bce6cdf619d80f539d95d5c9023b
+    - 'https://quickvoice.co/pricing'
+  contentHash: 71f22767755ffecfbc149d89385e85ec004351416655793218029fc7f90f0e01
 ---
 
 # Vapi Alternatives: Compare Hosted Platforms and Open-Source Voice Agents
@@ -98,5 +99,7 @@ A change can be worthwhile for control or workflow fit even when it does not low
 QuickVoice is an actively developed MIT-licensed project; its repository states that it has not published a stable release. It includes phone-agent configuration, inbound/outbound paths, knowledge sources, MCP connections, and call records.
 
 Real calling requires provider setup, and your team or partner owns deployment and business integrations. Evaluate these responsibilities alongside the benefit of inspecting and extending the application.
+
+For the QuickVoice option, review the [open-source platform and setup prerequisites](/open-source) together with [hosted pricing and self-hosting cost boundaries](/pricing). Use them to assign application, provider, and integration ownership rather than treating source access as a promise of lower cost or a completed migration.
 
 Use the [platform buyer guide](/blog/best-ai-voice-agent-platforms-2026) to document the tradeoffs. To assess a move to QuickVoice, [discuss your current Vapi workflow](/company/contact), the specific requirement you want to change, and the behavior that must remain dependable.

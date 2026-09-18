@@ -178,3 +178,28 @@ test("provider rejection produces one controlled failure, no retry and no leaked
     "Contact email delivery failed",
   ]);
 });
+
+test("optional enquiry context survives delivery for reconciliation without accepting arbitrary metadata", async (t) => {
+  const fetch = t.mock.method(globalThis, "fetch", async () => new Response("{}", { status: 200 }));
+  const context = {
+    ...submission,
+    submissionId: "894c976a-b9cd-487c-9e6d-fc0ce42f9143",
+    formLocation: "contact_page",
+    attribution: { method: "browser_observed", landingPage: "/blog/vapi-alternatives", source: "google", medium: "organic" },
+  };
+  assert.equal((await post(context, secret)).status, 200);
+  const mail = JSON.parse((fetch.mock.calls[0]!.arguments[1] as RequestInit).body as string);
+  assert.match(mail.textbody, /Submission ID: 894c976a-b9cd-487c-9e6d-fc0ce42f9143/);
+  assert.match(mail.textbody, /Landing page: \/blog\/vapi-alternatives/);
+  assert.match(mail.textbody, /google \/ organic/);
+  assert.match(mail.textbody, /not verified attribution or country/);
+  for (const invalid of [
+    { ...context, submissionId: "person@example.com" },
+    { ...context, formLocation: "admin" },
+    { ...context, attribution: { ...context.attribution, landingPage: "/pricing?email=private@example.com" } },
+    { ...context, attribution: { ...context.attribution, referrer: "https://google.com/?q=private" } },
+    { ...context, attribution: { ...context.attribution, medium: "made-up" } },
+    { ...context, attribution: { ...context.attribution, method: "verified" } },
+  ]) assert.equal((await post(invalid, secret)).status, 400);
+  assert.equal(fetch.mock.callCount(), 1);
+});

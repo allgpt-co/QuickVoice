@@ -20,14 +20,15 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T10:14:28.484Z'
-  reviewer: Codex (primary-source and repository review)
+  reviewedAt: '2026-09-16T18:15:25.564Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://www.twilio.com/docs/voice/twiml/gather'
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
     - 'https://github.com/allgpt-co/QuickVoice'
-  contentHash: a7124049649788d8e0ebfc28f68f77cc38c5a459e1b9dc852de1bce833521b44
+    - 'https://quickvoice.co/pricing'
+  contentHash: c82f06b41bd4ac54b36a313413b601fc2aa53e2d06ec96ffe64d70254bf6b41e
 ---
 
 # AI Voice Agent vs IVR: Choose the Right Call-Handling Design
@@ -106,5 +107,7 @@ The [IVR migration guide](/blog/how-to-migrate-ivr-to-ai-voice-agents) covers ro
 The [QuickVoice repository](https://github.com/allgpt-co/QuickVoice) provides an open-source application and calling components that require provider setup and technical operation. It is under active development and has not published a stable release.
 
 Use a controlled number to compare the existing call flow with a scoped QuickVoice implementation. Test corrections, silence, varied speech, missing records, unavailable tools, and requests for a person.
+
+For a reception pilot, review the [AI receptionist workflow](/solutions/ai-receptionist) alongside your current menu and staff handoff. The [pricing explanation](/pricing) separates hosted charges from self-hosted operating costs so the comparison can include both system usage and the work your team will own.
 
 Review correct routing, completed tasks, repeat calls, corrections, and staff work. To plan that comparison, [discuss the call type and current IVR behavior](/company/contact) with the people responsible for its outcome and phone routing.
