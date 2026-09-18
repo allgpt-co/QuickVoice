@@ -441,3 +441,16 @@ test("contact activation fails before mutations for incompatible, unhealthy or u
     assert.equal(context.logs.join('\n').includes(contactSecret), false);
   }
 });
+
+
+test("forbidden diagnostics classify access restrictions without disclosing response details", async () => {
+  for (const [body, expected] of [
+    [{ message: 'IP is not allowed private-token' }, 'API network restriction'],
+    [{ message: 'Token lacks permission private-token' }, 'API permission restriction'],
+    [{ message: 'Forbidden private-token' }, 'API forbidden'],
+  ]) {
+    const context = fixture(() => json(body, 403));
+    await assert.rejects(context.run(), error => error.message.includes(expected) && !error.message.includes('private-token'));
+    assert.equal(context.calls.length, 1);
+  }
+});

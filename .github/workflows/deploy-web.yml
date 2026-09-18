@@ -33,7 +33,8 @@ concurrency:
 jobs:
   deploy-web:
     if: github.repository == 'allgpt-co/QuickVoice' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
+    # Use the same established deployment network as Backend Build and Deploy.
+    runs-on: self-hosted
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4

@@ -60,7 +60,18 @@ export async function deployWeb({
       throw new Error(`Coolify ${method} request did not receive a response.`);
     }
     if (!response.ok) {
-      throw new Error(`Coolify ${method} returned HTTP ${response.status}.`);
+      // Report a bounded classification, never the raw body or environment data.
+      let reason = "";
+      if (response.status === 403) {
+        const contentType = response.headers.get("content-type") ?? "";
+        if (contentType.includes("json")) {
+          const body = await response.json().catch(() => ({}));
+          const message = String(body?.message ?? "").toLowerCase();
+          reason = /ip|allowlist/.test(message) ? " (API network restriction)" :
+            /permission|ability|abilities|scope/.test(message) ? " (API permission restriction)" : " (API forbidden)";
+        } else reason = " (non-JSON access denial)";
+      }
+      throw new Error(`Coolify ${method} returned HTTP ${response.status}${reason}.`);
     }
     try {
       return await response.json();
