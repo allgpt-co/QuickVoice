@@ -105,7 +105,7 @@ completed human review, booking reconciliation, or sales qualification.
 
 1. Supply the hosting read/sensitive-read/write/deploy access through secure GitHub
    settings and an Analytics edit grant with property Editor/Admin access through
-   secure credential settings. The existing reporting grant remains read-only.
+   secure credential settings. The scheduled job keeps the existing Analytics read-only grant.
 2. Run `python3 scripts/seo-measurement-setup.py --check`, then `--apply` and verify
    `generate_lead` plus `cta_type`, `link_location`, and `form_location` exist.
    Inspect manual-pageview preparation with `--pageviews manual --check`; apply
