@@ -330,3 +330,66 @@ test("an unfinished deployment exhausts bounded polling without queueing another
   );
   assert.equal(posts(context).length, 1);
 });
+
+test("rollout controls preserve defaults and reject unknown flags or unverified activation before requests", async () => {
+  const unchanged = fixture();
+  await unchanged.run({ flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "preserve" } });
+  assert.equal(unchanged.calls.some(({ url }) => url.pathname.endsWith("/envs")), false);
+  for (const overrides of [
+    { flagUpdates: { OTHER_SECRET: "enable" }, prerequisitesVerified: true },
+    { flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "true" } },
+    { flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "enable" } },
+  ]) {
+    const context = fixture();
+    await assert.rejects(context.run(overrides));
+    assert.equal(context.calls.length, 0);
+  }
+});
+
+test("rollout writes only named production flags and verifies build/runtime scope before deploying", async () => {
+  const variables = [
+    { key: "PRIVATE_SECRET", value: "never-log-this", is_preview: false },
+    { key: "CONTACT_ATTRIBUTION_ENABLED", value: "false", is_preview: false, is_runtime: true, is_buildtime: false },
+    { key: "NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS", value: "false", is_preview: true },
+  ];
+  const context = fixture(({ url, method, init }) => {
+    if (url.pathname !== applicationPath + "/envs") return;
+    if (method === "GET") return json(variables);
+    const body = JSON.parse(init.body);
+    if (method === "PATCH") Object.assign(variables.find((row) => row.key === body.key && !row.is_preview), body);
+    else variables.push(body);
+    return json({ uuid: "env-id" }, 201);
+  });
+  await context.run({ prerequisitesVerified: true, flagUpdates: {
+    CONTACT_ATTRIBUTION_ENABLED: "enable", NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS: "enable",
+  } });
+  const writes = context.calls.filter(({ url, method }) => url.pathname.endsWith("/envs") && method !== "GET");
+  assert.deepEqual(writes.map(({ method }) => method), ["PATCH", "POST"]);
+  assert.equal(JSON.parse(writes[0].init.body).is_buildtime, false);
+  assert.equal(JSON.parse(writes[1].init.body).is_buildtime, true);
+  assert.equal(variables[0].value, "never-log-this");
+  assert.equal(context.logs.join("\n").includes("never-log-this"), false);
+  assert.equal(variables[2].is_preview, true);
+});
+
+test("rollout changes cannot race an active deployment even at the same revision", async () => {
+  const context = fixture(({ url }) => url.pathname === listPath ? json([deployment({ status: "building" })]) : undefined);
+  await assert.rejects(context.run({ flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "disable" } }), /active deployment/);
+  assert.equal(context.calls.some(({ method }) => method !== "GET"), false);
+});
+
+test("unverified or ambiguous flag writes never deploy or repeat the mutation", async () => {
+  for (const uncertain of [false, true]) {
+    let writes = 0;
+    const context = fixture(({ url, method }) => {
+      if (!url.pathname.endsWith("/envs")) return;
+      if (method === "GET") return json([]);
+      writes++;
+      if (uncertain) throw new Error("private response");
+      return json({ uuid: "env-id" });
+    });
+    await assert.rejects(context.run({ flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "disable" } }));
+    assert.equal(writes, 1);
+    assert.equal(context.calls.some(({ url }) => url.pathname === deployPath), false);
+  }
+});

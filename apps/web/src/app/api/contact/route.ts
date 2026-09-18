@@ -1,4 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "node:crypto";
+import {
+  normalizeEnquiryContext,
+  submissionIdentifier,
+  type EnquiryContext,
+} from "../../../lib/enquiry-context.mjs";
 import {
   validateContactFields,
   type ContactFields,
@@ -9,6 +15,9 @@ export const runtime = "nodejs";
 interface ContactSubmission extends ContactFields {
   source: string;
   submittedAt: string;
+  submissionId?: string;
+  formLocation?: "homepage" | "contact_page";
+  attribution?: EnquiryContext;
 }
 
 async function forwardSubmission(
@@ -65,17 +74,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // The existing API receiver is strict. Opt in only after its compatible
+  // optional-field schema is deployed; default forwarding remains unchanged.
+  const extended = process.env.CONTACT_ATTRIBUTION_ENABLED === "true";
+  const context = body as Record<string, unknown>;
+  const submissionId = extended
+    ? submissionIdentifier(context.submissionId) ?? randomUUID()
+    : undefined;
+  const formLocation = typeof context.formLocation === "string" && ["homepage", "contact_page"].includes(context.formLocation)
+    ? context.formLocation as "homepage" | "contact_page" : undefined;
+
   try {
     await forwardSubmission(
       {
         ...parsed.fields,
         source: "quickvoice-web-contact",
         submittedAt: new Date().toISOString(),
+        ...(extended ? { submissionId, formLocation, attribution: normalizeEnquiryContext(context.attribution) } : {}),
       },
       webhookUrl,
     );
-  } catch (error) {
-    console.error("Contact submission delivery failed", error);
+  } catch {
+    // Do not log submitted personal data, webhook URLs, or provider responses.
+    console.error("Contact submission delivery failed");
     return NextResponse.json(
       {
         error:
@@ -87,6 +108,7 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json({
     ok: true,
+    ...(submissionId ? { submissionId } : {}),
     message: "Thank you. Your inquiry was delivered to the QuickVoice team.",
   });
 }

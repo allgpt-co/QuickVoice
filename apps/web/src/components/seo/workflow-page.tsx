@@ -6,7 +6,7 @@ import type { WorkflowPageContent } from "@/data/workflow-pages";
 import { CONTACT_URL, DEMO_BOOKING_URL, GITHUB_DOCS_URL } from "@/lib/links";
 
 export function workflowMetadata(page: WorkflowPageContent): Metadata {
-  const title = `${page.label} for business`;
+  const title = page.seoTitle ?? `${page.label} for business`;
   const url = `https://quickvoice.co${page.path}`;
   return {
     title,

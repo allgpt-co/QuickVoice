@@ -171,9 +171,10 @@ export default function OpenSourcePage() {
                 Your voice workflow. Source you can inspect.
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-                QuickVoice brings a customer console, API, voice runtime, and
-                development tooling into one repository. Review the
-                implementation before deciding how to operate it.
+                Evaluate an open-source AI phone-agent stack with a customer
+                console, API, voice runtime, and development tooling in one
+                repository. Review the implementation and assign an operating
+                owner before deciding how to run it.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <Button asChild size="lg">
@@ -215,6 +216,52 @@ export default function OpenSourcePage() {
                 ))}
               </dl>
             </aside>
+          </div>
+        </section>
+
+        <section className="page-section border-b border-border" aria-labelledby="ownership-heading">
+          <div className="site-container">
+            <h2 id="ownership-heading" className="text-3xl font-semibold tracking-tight">
+              Decide what your team wants to own.
+            </h2>
+            <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">
+              Source access is useful when your team needs to inspect or change
+              how calls, tools, and data are handled. It does not remove the work
+              of integration, testing, monitoring, or responding to callers.
+            </p>
+            <div className="mt-8 grid gap-5 md:grid-cols-3">
+              <article className="surface-card p-6">
+                <h3 className="text-lg font-semibold">Inspect and configure</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Review agent configuration, knowledge retrieval, the LiveKit
+                  worker, telephony binding, and call records in the repository.
+                  Configure the providers and approved knowledge for your pilot.
+                </p>
+              </article>
+              <article className="surface-card p-6">
+                <h3 className="text-lg font-semibold">Implement and verify</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Define each permitted calendar, CRM, or helpdesk operation.
+                  Test authentication, duplicate requests, failed writes, and
+                  human handoffs against the actual destination system.
+                </p>
+              </article>
+              <article className="surface-card p-6">
+                <h3 className="text-lg font-semibold">Operate and review</h3>
+                <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                  Assign responsibility for hosting, secrets, access, retention,
+                  provider bills, incident response, and staff follow-up. If
+                  nobody can own this work, a managed alternative may fit better.
+                </p>
+              </article>
+            </div>
+            <p className="mt-6 max-w-3xl leading-7 text-muted-foreground">
+              Compare the <Link href="/blog/vapi-alternatives" className="font-medium text-primary underline underline-offset-4">Vapi alternatives</Link>{" "}
+              and <Link href="/blog/retell-ai-alternatives" className="font-medium text-primary underline underline-offset-4">Retell alternatives</Link>{" "}
+              guides, then review <Link href="/pricing" className="font-medium text-primary underline underline-offset-4">hosted pricing and self-hosting costs</Link>{" "}
+              with your technical evaluator. Use the <Link href="/resources" className="font-medium text-primary underline underline-offset-4">pilot checklist and cost worksheet</Link>{" "}
+              to record your assumptions before booking a demo.
+            </p>
           </div>
         </section>
 

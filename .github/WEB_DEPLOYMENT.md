@@ -29,3 +29,22 @@ Inspect Coolify before retrying an ambiguous or unfinished request.
 A successful workflow confirms the deployment and application health. Verify
 the public homepage and changed routes afterward; GitHub merge status alone
 does not establish that a release is live.
+
+## SEO activation controls
+
+The optional `contact_attribution` and `manual_pageviews` inputs accept
+`preserve` (default), `enable`, or `disable`. They change only the corresponding
+production flags, verify their saved value and build/runtime scope, then deploy.
+Enabling requires `prerequisites_verified=true`: record healthy compatible API
+delivery before contact activation, and GA stream history-pageview disablement
+before manual-pageview activation. This is an operator attestation, not an
+automatic check of those external systems. Use the SEO runbooks for verification.
+
+The helper refuses flag changes while any deployment is active, including the
+same revision. It preserves preview and unrelated environment variables and
+never logs raw environment responses. An uncertain environment write is not
+retried; inspect the saved flags before another attempt. A failure after a saved
+flag change can require reconciliation even if no deployment was queued.
+
+Disable contact attribution before reverting the receiver. For pageview
+rollback, deploy `manual_pageviews=disable` before restoring GA history tracking.

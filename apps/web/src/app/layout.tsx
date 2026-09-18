@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
+import { EnquiryAttribution } from "@/components/enquiry-attribution";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import {
   createGoogleAnalyticsScript,
@@ -115,6 +116,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <Navbar />
+        <EnquiryAttribution />
         <CtaAnalytics />
         <main id="main-content" tabIndex={-1}>
           {children}

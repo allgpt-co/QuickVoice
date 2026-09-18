@@ -15,6 +15,31 @@ Prepared 2026-09-06. The [dated execution report](execution-2026-09-06.md) now r
 
 ## Work and ownership
 
+### September 18 completion release
+
+The [completion record](completion-2026-09-18.md) tracks the current release,
+overdue Synthflow review, private reporting automation, and measurement
+activation. Its dated observations supersede preparation and candidate statuses
+below only where completion evidence is recorded.
+
+### September 16 current implementation overlay
+
+See [implementation-2026-09-16.md](implementation-2026-09-16.md). This overlay
+supersedes the older preparation table only for the rows explicitly described.
+
+| Work | Current status | Next dependency |
+|---|---|---|
+| Nine article journeys; reviewed Vapi comparison; commercial clarity | Locally verified, deployment pending | Reviewed release; live metadata/link checks. Candidate sitemap 100 URLs versus current live 99. |
+| Enquiry source/landing context and receipts | Locally implemented; production forwarding disabled by default | Deploy compatible API first, then enable web `CONTACT_ATTRIBUTION_ENABLED`; verify a marked QA enquiry separately. |
+| GA4 `generate_lead` key event and CTA/form dimensions | Utility tested; blocked by edit access | September 16 existing OAuth grant has `analytics.readonly`, not `analytics.edit`; no registrations changed. |
+| US GSC/GA reporting | Live read-only run verified; weekly scheduling not configured | 141 successful requests, final GSC through September 14; operator owns recurring private snapshots. |
+| Confirmed bookings and qualified business outcomes | Offline reconciliation tool tested; actual source records required | Sales supplies verified private records; unknown source gets no organic credit. |
+| DataForSEO demand validation | US/English keyword and SERP research completed during September 15 audit | Directional prioritization only; volume spikes/difficulty zeros are not a reliable ranking or pipeline forecast. |
+| Production GA collection | Tag already present; historical gaps remain | Do not reinstall or claim clean historical conversion rates. New lead flow still needs deployment and end-to-end verification. |
+| Days 1–90 execution, real demonstrations, stories and distribution | Scheduled or evidence-dependent | Use the active growth backlog; record actual owners, dates and source evidence. |
+
+### Historical September 6 release and preparation state
+
 **Updated 2026-09-06:** Search Console is active; the authorized sitemap submission has been processed without reported errors or warnings. The deployed website now loads the verified GA4 tag. `generate_lead` key-event registration and manual page-view activation still require the missing Analytics edit access. The current hosting API is accessible, and the contact backend has been deployed. See the [execution report](execution-2026-09-06.md) for web rollout and delivery evidence; the earlier [live measurement check](live-measurement-check-2026-09-06.md) is historical diagnosis.
 
 The following table preserves the state **at preparation**, before the later implementation batches. Use the execution report and individual inventory decisions for current status.

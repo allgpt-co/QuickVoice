@@ -1,5 +1,59 @@
 # Website contact delivery
 
+## September 16: optional enquiry attribution rollout
+
+The SEO growth branch adds an optional `submissionId` (UUID v4), `formLocation`, and
+`attribution` (`landingPage`, coarse `source`/`medium`, `method: browser_observed`).
+The API validates these fields and includes them in the internal enquiry email.
+The new enquiry/attribution payloads add no contact field, receipt ID, raw
+referrer, or URL query value to the `generate_lead` parameters sent to GA4.
+This does not certify all existing Analytics collection: automatic pageviews and
+the existing manual-pageview coordinator can include query values in page URL
+and referrer fields. Their URL-redaction behavior requires a separate privacy
+audit; this rollout does not change pageview or tracking behavior.
+
+**Deploy the API receiver first.** Only after that version is healthy, set the web
+service's server-only `CONTACT_ATTRIBUTION_ENABLED=true` and deploy/restart web.
+The flag is false by default: the old strict receiver must not suddenly receive
+unknown fields and reject enquiries. An external webhook must explicitly support
+these optional fields before enabling the flag. To roll back, disable the web
+flag before rolling back the API. There is no database migration.
+
+The browser captures the first public landing path and coarse observed source
+for the current document in memory. Internal SPA navigation keeps that context;
+a full reload starts a new observation. No cookies, localStorage, sessionStorage,
+or cross-site visitor ID are introduced. Tagged campaign traffic is unknown, and
+paid click identifiers cannot be classified as organic. Referrer-based organic
+classification is only a browser observation; it does not establish country,
+Google Search Console attribution, or a qualified prospect. Missing context is
+unknown, never silently credited to SEO.
+
+The form holds one submission ID across manual retries and creates a new one for
+"Send another message". Synchronous submit locking prevents concurrent browser
+submissions, and acknowledged lead events are deduplicated in page memory. This
+is **not durable exactly-once email delivery**: a network timeout can follow
+provider acceptance. The receiving team must reconcile repeated submission IDs
+and deduplicate prospects in sales records. Do not add automatic email retries.
+Stable browser receipts require `crypto.randomUUID` in the current document.
+When it is unavailable, the enabled API can issue a receipt for each request,
+but this fallback cannot guarantee a stable receipt across manual retries or
+deduplicate an ambiguous timeout before the response arrives. A full document
+reload also loses browser-held receipt state; reconcile those cases privately.
+The offline lead scorecard consumes opaque sales IDs rather than contact PII;
+see [measurement operations](measurement-operations.md).
+
+Required staging checks: old payload accepted; extended payload accepted after
+API rollout; flag-off forwarding contains only legacy fields; rejected/failed
+forwarding never emits `generate_lead`; one successful submission emits it once;
+new enquiry event parameters exclude receipt IDs, query values and contact data.
+These checks do not assert URL-field redaction for other Analytics events.
+Browser tests intercept analytics,
+session recording, email forwarding, and scheduling; no real lead is required.
+
+The implementation does not emit `demo_booked`, `qualify_lead`, or closed-won
+events from a CTA. Completed bookings and sales acceptance remain source-record
+facts until an authorized integration is implemented and verified.
+
 The web contact handler can send enquiries through the API server's existing ZeptoMail/SMTP mailer. The API accepts only the expected contact fields, authenticates the web server with a dedicated shared secret, and sends to a server-configured single recipient. It does not accept a recipient, subject, sender or arbitrary mail options from the browser.
 
 ## Configuration

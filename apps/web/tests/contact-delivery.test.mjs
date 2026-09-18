@@ -262,3 +262,64 @@ test("contact response waits for delivery acknowledgement without retrying", asy
   assert.equal((await pending).status, 200);
   assert.equal(fetch.mock.callCount(), 1);
 });
+
+test("attribution rollout preserves old receivers until enabled, then forwards bounded context", async (t) => {
+  const previousUrl = process.env.CONTACT_WEBHOOK_URL;
+  const previousFlag = process.env.CONTACT_ATTRIBUTION_ENABLED;
+  t.after(() => {
+    if (previousUrl === undefined) delete process.env.CONTACT_WEBHOOK_URL;
+    else process.env.CONTACT_WEBHOOK_URL = previousUrl;
+    if (previousFlag === undefined) delete process.env.CONTACT_ATTRIBUTION_ENABLED;
+    else process.env.CONTACT_ATTRIBUTION_ENABLED = previousFlag;
+  });
+  process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
+  const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 204 }));
+  const submissionId = "894c976a-b9cd-487c-9e6d-fc0ce42f9143";
+  const extra = {
+    ...payload, submissionId, formLocation: "contact_page",
+    attribution: { method: "browser_observed", landingPage: "/blog/vapi-alternatives?email=private@example.com", source: "google", medium: "organic", email: "private@example.com" },
+  };
+  delete process.env.CONTACT_ATTRIBUTION_ENABLED;
+  let response = await POST(request(extra));
+  assert.equal((await response.json()).submissionId, undefined);
+  let delivered = JSON.parse(fetch.mock.calls[0].arguments[1].body);
+  assert.equal(delivered.attribution, undefined);
+  assert.equal(delivered.submissionId, undefined);
+
+  process.env.CONTACT_ATTRIBUTION_ENABLED = "true";
+  response = await POST(request(extra));
+  assert.equal((await response.json()).submissionId, submissionId);
+  delivered = JSON.parse(fetch.mock.calls[1].arguments[1].body);
+  assert.equal(delivered.submissionId, submissionId);
+  assert.equal(delivered.formLocation, "contact_page");
+  assert.deepEqual(delivered.attribution, { method: "browser_observed", landingPage: "/blog/vapi-alternatives", source: "google", medium: "organic" });
+
+  response = await POST(request({ ...payload, submissionId: "person@example.com", formLocation: "injected" }));
+  assert.match((await response.json()).submissionId, /^[0-9a-f-]{36}$/);
+  assert.equal(JSON.parse(fetch.mock.calls[2].arguments[1].body).formLocation, undefined);
+
+  // Optional malformed metadata must not break an otherwise valid enquiry or
+  // reach the strict receiver as an array/object coerced to an allowed string.
+  for (const formLocation of [["homepage"], { toString: null }, { toString: "contact_page" }, null, 123]) {
+    response = await POST(request({ ...payload, formLocation }));
+    assert.equal(response.status, 200);
+    assert.equal(JSON.parse(fetch.mock.calls.at(-1).arguments[1].body).formLocation, undefined);
+  }
+});
+
+test("a successfully acknowledged submission is counted once per page, without sending its receipt to GA", (t) => {
+  const previousWindow = globalThis.window;
+  t.after(() => {
+    if (previousWindow === undefined) delete globalThis.window;
+    else globalThis.window = previousWindow;
+  });
+  const calls = [];
+  globalThis.window = { location: { pathname: "/company/contact" } };
+  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), false);
+  window.gtag = (...args) => calls.push(args);
+  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), true);
+  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), false);
+  assert.equal(calls.length, 1);
+  assert.equal(JSON.stringify(calls).includes("repeatable-test-receipt"), false);
+  assert.equal(trackContactLead("homepage", "another-test-receipt"), true);
+});

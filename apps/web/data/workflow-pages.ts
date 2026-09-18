@@ -1,6 +1,7 @@
 export interface WorkflowPageContent {
   path: string;
   label: string;
+  seoTitle?: string;
   title: string;
   description: string;
   introduction: string;
@@ -148,7 +149,8 @@ export const workflowPages: Record<string, WorkflowPageContent> = {
   scheduling: {
     path: "/use-cases/appointment-scheduling",
     label: "Appointment scheduling",
-    title: "Make appointment requests easier to handle",
+    seoTitle: "AI Appointment Scheduling for Business",
+    title: "Plan AI appointment scheduling around confirmed outcomes",
     description:
       "Design an AI appointment scheduling workflow with availability checks, explicit booking confirmation, reminders, and human fallback.",
     introduction:
@@ -353,7 +355,8 @@ export const workflowPages: Record<string, WorkflowPageContent> = {
   realEstate: {
     path: "/industries/real-estate",
     label: "Real estate and property management",
-    title: "Organize leasing and tenant call intake",
+    seoTitle: "AI Phone Agents for Property Management",
+    title: "AI phone agents for leasing and tenant requests",
     description:
       "Explore AI phone workflows for leasing questions, viewing requests, and maintenance intake, with staff escalation and property-system requirements.",
     introduction:

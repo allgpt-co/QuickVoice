@@ -92,12 +92,16 @@ export function getBlogListing(posts, params = {}) {
   };
 }
 
-/** Prefer the same buyer topic and shared tags, with stable date/slug tie breaks. */
-export function rankRelatedPosts(current, posts, limit = 3) {
+/** Curated task matches come first, but only from the caller's eligible post set. */
+export function rankRelatedPosts(current, posts, limit = 3, curatedSlugs = []) {
+  if (!Number.isSafeInteger(limit) || limit <= 0) return [];
+  const curatedOrder = new Map([...new Set(curatedSlugs)].map((slug, index) => [slug, index]));
   const currentTags = new Set((current.tags ?? []).map((tag) => tag.toLowerCase()));
   const score = (post) => (getBlogTopic(post).id === getBlogTopic(current).id ? 10 : 0)
     + (post.tags ?? []).filter((tag) => currentTags.has(tag.toLowerCase())).length;
-  return posts.filter((post) => post.slug !== current.slug)
-    .sort((a, b) => score(b) - score(a) || new Date(b.date).getTime() - new Date(a.date).getTime() || a.slug.localeCompare(b.slug))
+  const candidates = [...new Map(posts.filter((post) => post.slug !== current.slug).map((post) => [post.slug, post])).values()];
+  return candidates
+    .sort((a, b) => (curatedOrder.get(a.slug) ?? Infinity) - (curatedOrder.get(b.slug) ?? Infinity)
+      || score(b) - score(a) || new Date(b.date).getTime() - new Date(a.date).getTime() || a.slug.localeCompare(b.slug))
     .slice(0, limit);
 }

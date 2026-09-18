@@ -21,12 +21,13 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-06T07:29:22.127Z'
-  reviewer: Codex (source and repository review)
+  reviewedAt: '2026-09-16T18:15:26.569Z'
+  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
   sources:
     - 'https://docs.livekit.io/agents/logic/external-data/'
     - 'https://github.com/allgpt-co/QuickVoice'
-  contentHash: 8f21fe6159c62582f6755c89d2da3ebddc40ced59c46c3036e53451aec720a84
+    - 'https://quickvoice.co/pricing'
+  contentHash: 9923ca850c710259b53da83495823bf5926d76c6d73d1e03012ff8ff8979a343
 ---
 
 # AI Voice Agents for Property Management: Tenant Calls and Leasing Intake
@@ -99,5 +100,7 @@ During a limited pilot, review usable requests, corrections, repeat contacts, un
 QuickVoice's [repository](https://github.com/allgpt-co/QuickVoice) contains phone-agent configuration, knowledge sources, call records, and MCP connections. These are building blocks for property information and intake workflows.
 
 The project is MIT-licensed and under active development. Your team or implementation partner owns provider configuration, hosting, property-system integration, access controls, and staff follow-up. A preconfigured connection to your property-management software should be demonstrated before it is treated as available.
+
+Use the [real-estate and property-management workflow](/industries/real-estate) to scope leasing enquiries, viewing requests, or maintenance intake. Include the [hosted and self-hosted cost boundaries](/pricing), property-system integration, and the staff queue in the same evaluation; a captured request is not a resolved maintenance job.
 
 To define a first workflow, [discuss your property-management intake process](/company/contact) with a sample call, the system staff use, and the action that should happen after the conversation.
