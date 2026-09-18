@@ -13,6 +13,10 @@ on:
         type: choice
         default: preserve
         options: [preserve, enable, disable]
+      compatible_api_commit:
+        description: Full deployed compatible API revision (required to enable contact attribution)
+        type: string
+        default: ''
       prerequisites_verified:
         description: Required for enable actions; prerequisite checks recorded in release evidence
         type: boolean
@@ -65,4 +69,5 @@ jobs:
           CONTACT_ATTRIBUTION_ACTION: ${{ inputs.contact_attribution }}
           MANUAL_PAGEVIEWS_ACTION: ${{ inputs.manual_pageviews }}
           ROLLOUT_PREREQUISITES_VERIFIED: ${{ inputs.prerequisites_verified }}
+          COMPATIBLE_API_COMMIT: ${{ inputs.compatible_api_commit }}
         run: node .github/scripts/deploy-web.mjs

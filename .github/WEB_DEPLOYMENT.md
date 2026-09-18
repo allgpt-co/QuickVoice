@@ -37,8 +37,12 @@ The optional `contact_attribution` and `manual_pageviews` inputs accept
 production flags, verify their saved value and build/runtime scope, then deploy.
 Enabling requires `prerequisites_verified=true`: record healthy compatible API
 delivery before contact activation, and GA stream history-pageview disablement
-before manual-pageview activation. This is an operator attestation, not an
-automatic check of those external systems. Use the SEO runbooks for verification.
+before manual-pageview activation. GA preparation remains an operator attestation. Contact activation also requires
+`compatible_api_commit`, the full previously released API revision. The helper
+checks the established receiver's image tag, healthy status and finished latest
+deployment, then compares the production webhook endpoint and shared secret in
+memory before changing flags. It prints no environment values. Use the SEO
+runbooks for the separate delivery and GA checks.
 
 The helper refuses flag changes while any deployment is active, including the
 same revision. It preserves preview and unrelated environment variables and

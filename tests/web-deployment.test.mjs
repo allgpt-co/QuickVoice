@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { deployWeb, WEB_APP_UUID } from "../.github/scripts/deploy-web.mjs";
+import { deployWeb, WEB_APP_UUID, SERVER_APP_UUID } from "../.github/scripts/deploy-web.mjs";
 
 const apiUrl = "https://webhook.quickintell.com/api/v1";
 const token = "test-only-coolify-token";
@@ -10,6 +10,22 @@ const deploymentUuid = "web-deployment-123";
 const applicationPath = `/api/v1/applications/${WEB_APP_UUID}`;
 const listPath = `/api/v1/deployments/applications/${WEB_APP_UUID}`;
 const deployPath = "/api/v1/deploy";
+const serverPath = `/api/v1/applications/${SERVER_APP_UUID}`;
+const serverListPath = `/api/v1/deployments/applications/${SERVER_APP_UUID}`;
+const contactSecret = 'synthetic-shared-secret-for-receiver-check';
+const receiverEnv = [
+  { key: 'CONTACT_WEBHOOK_SECRET', value: contactSecret, is_preview: false, is_runtime: true },
+];
+const webReceiverEnv = [
+  ...receiverEnv,
+  { key: 'CONTACT_WEBHOOK_URL', value: 'https://api.quickvoice.co/api/v1/contact-delivery', is_preview: false, is_runtime: true },
+];
+function receiver(overrides = {}) {
+  return { uuid: SERVER_APP_UUID, status: 'running:healthy',
+    docker_registry_image_name: 'registry.example/allgpt-co/quickvoice-server',
+    docker_registry_image_tag: `sha-${expectedCommit}`,
+    fqdn: 'https://api.quickvoice.co', ...overrides };
+}
 const statusPath = `/api/v1/deployments/${deploymentUuid}`;
 
 function application(overrides = {}) {
@@ -57,6 +73,9 @@ function fixture(handler = () => undefined) {
     calls.push(call);
     const customResponse = await handler(call, calls);
     if (customResponse !== undefined) return customResponse;
+    if (method === "GET" && url.pathname === serverPath) return json(receiver());
+    if (method === "GET" && url.pathname === serverListPath) return json([{ status: 'finished' }]);
+    if (method === "GET" && url.pathname === serverPath + '/envs') return json(receiverEnv);
     if (method === "GET" && url.pathname === applicationPath)
       return json(application());
     if (method === "GET" && url.pathname === listPath) return json([]);
@@ -80,6 +99,7 @@ function fixture(handler = () => undefined) {
         apiUrl,
         token,
         expectedCommit,
+        expectedReceiverCommit: expectedCommit,
         fetchImpl,
         sleep: async (ms) => {
           sleeps.push(ms);
@@ -336,6 +356,7 @@ test("rollout controls preserve defaults and reject unknown flags or unverified 
   await unchanged.run({ flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "preserve" } });
   assert.equal(unchanged.calls.some(({ url }) => url.pathname.endsWith("/envs")), false);
   for (const overrides of [
+    { expectedReceiverCommit: undefined, prerequisitesVerified: true, flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "enable" } },
     { flagUpdates: { OTHER_SECRET: "enable" }, prerequisitesVerified: true },
     { flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "true" } },
     { flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "enable" } },
@@ -351,6 +372,7 @@ test("rollout writes only named production flags and verifies build/runtime scop
     { key: "PRIVATE_SECRET", value: "never-log-this", is_preview: false },
     { key: "CONTACT_ATTRIBUTION_ENABLED", value: "false", is_preview: false, is_runtime: true, is_buildtime: false },
     { key: "NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS", value: "false", is_preview: true },
+    ...webReceiverEnv,
   ];
   const context = fixture(({ url, method, init }) => {
     if (url.pathname !== applicationPath + "/envs") return;
@@ -391,5 +413,31 @@ test("unverified or ambiguous flag writes never deploy or repeat the mutation", 
     await assert.rejects(context.run({ flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: "disable" } }));
     assert.equal(writes, 1);
     assert.equal(context.calls.some(({ url }) => url.pathname === deployPath), false);
+  }
+});
+
+
+test("contact activation fails before mutations for incompatible, unhealthy or unconfigured receivers", async () => {
+  const cases = [
+    [serverPath, receiver({ status: 'running:unhealthy' })],
+    [serverPath, receiver({ docker_registry_image_tag: `sha-${oldCommit}` })],
+    [serverPath, receiver({ uuid: 'wrong' })],
+    [serverPath, receiver({ docker_registry_image_name: 'wrong-image' })],
+    [serverListPath, [{ status: 'in_progress' }, { status: 'finished' }]],
+    [serverListPath, [{ status: 'failed' }]],
+    [serverPath + '/envs', []],
+    [serverPath + '/envs', [{ ...receiverEnv[0], value: 'mismatched-secret' }]],
+    [applicationPath + '/envs', webReceiverEnv.map(row => row.key === 'CONTACT_WEBHOOK_URL' ? { ...row, value: 'https://unrelated.example/contact' } : row)],
+    [applicationPath + '/envs', webReceiverEnv.map(row => ({ ...row, is_preview: true }))],
+  ];
+  for (const [path, response] of cases) {
+    const context = fixture(({ url }) => {
+      if (url.pathname === path) return json(response);
+      if (url.pathname === applicationPath + '/envs') return json(webReceiverEnv);
+    });
+    await assert.rejects(context.run({ prerequisitesVerified: true,
+      flagUpdates: { CONTACT_ATTRIBUTION_ENABLED: 'enable' } }));
+    assert.equal(context.calls.some(call => call.method !== 'GET'), false);
+    assert.equal(context.logs.join('\n').includes(contactSecret), false);
   }
 });
