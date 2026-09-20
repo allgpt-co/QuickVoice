@@ -1,6 +1,6 @@
 # Source, status, and dependency tracker
 
-Prepared 2026-09-06; current completion status checked 2026-09-18. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
+Prepared 2026-09-06; current follow-up checked 2026-09-20. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
 
 ## Governing sources
 
@@ -14,6 +14,17 @@ Prepared 2026-09-06; current completion status checked 2026-09-18. The [Septembe
 | [Public claims gate](../public-claims-gate.md) | Evidence requirements for public claims. | Use current LICENSE if a historical license sentence differs. Never infer certification, savings, or customer approval. |
 
 ## Work and ownership
+
+### September 20 follow-up
+
+[Current verification](follow-up-2026-09-20.md): all four GA registrations exist;
+there are no missing registrations to create. The API still reports a USD 1
+key-event default, requiring correction on the existing event. Hosting read
+permission remains denied. The 101-URL live crawl and intercepted form/pageview
+checks pass; actual receipt/inbox/GA collection and consent behavior are separate
+unverified outcomes. Existing Monday reporting is reused. One IVR clarification
+is prepared privately and held behind the deployment/attribution gates.
+
 
 ### September 18 completion release
 

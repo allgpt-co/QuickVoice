@@ -114,19 +114,38 @@ def registration_plan(state):
     return plan
 
 
+def configuration_issues(plan):
+    """Inspect required semantics without changing an existing registration."""
+    issues = []
+    event = next(item for item in plan if item["identity"] == "generate_lead")["existing"]
+    if event:
+        if event.get("countingMethod") != "ONCE_PER_EVENT":
+            issues.append({"identity": "generate_lead", "field": "countingMethod",
+                           "expected": "ONCE_PER_EVENT", "actual": event.get("countingMethod")})
+        if event.get("defaultValue") is not None:
+            issues.append({"identity": "generate_lead", "field": "defaultValue",
+                           "expected": None, "actual": event["defaultValue"]})
+    return issues
+
+
 def configure(property_id, token, apply=False):
     scopes = token_scopes(token)
     state = inspect(property_id, token)
     plan = registration_plan(state)
     pending = [item for item in plan if item["action"] == "create"]
+    issues = configuration_issues(plan)
     result = {
         "observed_at": datetime.now(timezone.utc).isoformat(),
         "mode": "apply" if apply else "dry_run",
         "property": state["property"], "has_analytics_edit_scope": EDIT_SCOPE in scopes,
-        "status": "changes_pending" if pending else "already_configured",
+        "status": "configuration_mismatch" if issues else "changes_pending" if pending else "already_configured",
+        "configuration_issues": issues,
         "plan": plan, "create_responses_received": [],
         "note": "Registration is not evidence of browser collection, delivery, bookings or sales qualification. Existing registrations are never modified or deleted.",
     }
+    if issues:
+        result["apply_blocker"] = "An existing registration differs from the required settings. Have an authorized administrator correct that entry and recheck. No registration was created, modified or deleted."
+        return result
     if not pending or not apply:
         if pending and EDIT_SCOPE not in scopes:
             result["apply_blocker"] = "Existing OAuth grant lacks analytics.edit; an authorized property administrator must provide an appropriate grant or register these items in GA4. This tool never starts OAuth or changes scopes."
@@ -147,7 +166,8 @@ def configure(property_id, token, apply=False):
             return result
     try:
         result["verified_plan"] = registration_plan(inspect(property_id, token))
-        result["status"] = "verified_configured" if all(item["action"] == "existing" for item in result["verified_plan"]) else "verification_pending"
+        result["configuration_issues"] = configuration_issues(result["verified_plan"])
+        result["status"] = "configuration_mismatch" if result["configuration_issues"] else "verified_configured" if all(item["action"] == "existing" for item in result["verified_plan"]) else "verification_pending"
     except RuntimeError as error:
         result.update(status="verification_failed", error=str(error))
     return result
@@ -205,7 +225,7 @@ def main():
     parser.add_argument("--pageviews", choices=("manual", "automatic"), help="Inspect/prepare only the GA history setting instead of event registrations")
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--apply", action="store_true", help="Create missing registrations using existing authorized edit access; never modify existing entries")
-    mode.add_argument("--check", action="store_true", help="Read-only; exit 2 if any required registration is missing")
+    mode.add_argument("--check", action="store_true", help="Read-only; exit 2 for missing or mismatched configuration")
     args = parser.parse_args()
     if not args.property.isdigit() or not args.stream.isdigit():
         parser.error("--property and --stream must be numeric IDs")
@@ -216,9 +236,11 @@ def main():
         print(json.dumps({"status": "error", "error": str(error)}))
         return 1
     print(json.dumps(result, indent=2))
+    if args.check and result["status"] in {"changes_pending", "configuration_mismatch"}:
+        return 2
     if result["status"] not in {"changes_pending", "already_configured", "verified_configured"}:
         return 1
-    return 2 if args.check and result["status"] == "changes_pending" else 0
+    return 0
 
 
 if __name__ == "__main__":
