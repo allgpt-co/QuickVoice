@@ -2,7 +2,9 @@
 
 ## Verified access and remaining activation
 
-**Read-only check, September 16, 2026:** GA4 property `543950329` (QuickVoice, `America/Los_Angeles`) remains accessible. The refreshed existing OAuth grant has `analytics.readonly`, not `analytics.edit`. Registered key events are `close_convert_lead`, `qualify_lead` and `purchase`; `generate_lead` is absent. No custom dimensions are registered. No GA administrative changes or live test enquiries were performed in this check.
+**Current check, September 20, 2026:** `generate_lead` exists with once-per-event counting and all three EVENT dimensions exist. The API still returns a USD 1 default value, contrary to the intended no-default setting; correct the existing event through authorized administration. No duplicate registrations or reporting OAuth changes were made. See the [current verification and gates](follow-up-2026-09-20.md).
+
+**Historical read-only check, September 16, 2026:** GA4 property `543950329` (QuickVoice, `America/Los_Angeles`) remains accessible. The refreshed existing OAuth grant has `analytics.readonly`, not `analytics.edit`. Registered key events are `close_convert_lead`, `qualify_lead` and `purchase`; `generate_lead` is absent. No custom dimensions are registered. No GA administrative changes or live test enquiries were performed in this check.
 
 Collection has resumed since September 6; reinstalling the working tag is not the remaining task. Code emission, key-event registration, acknowledged contact delivery, inbox placement, confirmed bookings and sales qualification are separate checks. Earlier collection gaps invalidate a clean historical conversion-rate baseline. An empty event report is not evidence that no business enquiries existed.
 
@@ -11,7 +13,7 @@ Collection has resumed since September 6; reinstalling the working tag is not th
 ```sh
 # Read-only inspection and proposed registrations; never writes GA settings.
 python3 scripts/seo-measurement-setup.py
-# Same read-only check, but exits 2 if any required registration is missing.
+# Same read-only check; exits 2 for missing or mismatched configuration.
 python3 scripts/seo-measurement-setup.py --check
 ```
 
@@ -24,7 +26,7 @@ The utility reads the property and **all pages** of current registrations. It pr
 | Event-scoped `link_location` | Placement of the clicked link |
 | Event-scoped `form_location` | Homepage versus contact-page form |
 
-Existing matches are retained, including their names/counting settings; unrelated registrations are not edited or deleted. A same-name parameter with a different scope does not replace an event-scoped definition. Prefer native page dimensions over adding a redundant custom `page_path` definition.
+Existing matches are never edited or deleted. The check requires once-per-event counting and no default value for `generate_lead`; a mismatch returns `configuration_mismatch` and blocks all apply mutations until an authorized administrator corrects that existing entry. A zero default is still a configured value. Unrelated registrations remain untouched. A same-name parameter with a different scope does not replace an event-scoped definition. Prefer native page dimensions over adding a redundant custom `page_path` definition.
 
 After an authorized administrator supplies an **existing appropriately scoped credential** through the secure environment, they can explicitly run:
 

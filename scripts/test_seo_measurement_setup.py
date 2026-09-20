@@ -14,7 +14,7 @@ spec.loader.exec_module(setup)
 def state(complete=False):
     result = {"property": {"name": "properties/123"}, "keyEvents": [], "customDimensions": []}
     if complete:
-        result["keyEvents"] = [{"eventName": "generate_lead", "countingMethod": "ONCE_PER_SESSION"}]
+        result["keyEvents"] = [{"eventName": "generate_lead", "countingMethod": "ONCE_PER_EVENT"}]
         result["customDimensions"] = [{"parameterName": name, "scope": "EVENT"} for name, _ in setup.DIMENSIONS]
     return result
 
@@ -29,11 +29,43 @@ class MeasurementSetupTests(unittest.TestCase):
 
     def test_existing_registrations_are_never_changed(self):
         current = state(True)
+        current["keyEvents"][0]["countingMethod"] = "ONCE_PER_SESSION"
         original = copy.deepcopy(current)
         plan = setup.registration_plan(current)
         self.assertTrue(all(item["action"] == "existing" for item in plan))
         self.assertEqual(plan[0]["existing"]["countingMethod"], "ONCE_PER_SESSION")
         self.assertEqual(current, original)
+
+    def test_existing_wrong_counting_or_default_value_blocks_even_apply_without_mutation(self):
+        for field, value in [("countingMethod", "ONCE_PER_SESSION"),
+                             ("defaultValue", {"numericValue": 1, "currencyCode": "USD"}),
+                             ("defaultValue", {"numericValue": 0, "currencyCode": "USD"})]:
+            for apply in [False, True]:
+                with self.subTest(field=field, value=value, apply=apply):
+                    current = state(True)
+                    current["keyEvents"][0][field] = value
+                    # Even another missing registration must not trigger a partial write.
+                    current["customDimensions"].pop()
+                    with patch.object(setup, "token_scopes", return_value={setup.EDIT_SCOPE}), patch.object(setup, "inspect", return_value=current), patch.object(setup, "request_json") as request:
+                        result = setup.configure("123", "secret", apply=apply)
+                    self.assertEqual(result["status"], "configuration_mismatch")
+                    self.assertEqual(result["configuration_issues"][0]["field"], field)
+                    self.assertEqual(result["create_responses_received"], [])
+                    request.assert_not_called()
+
+    def test_readback_rejects_unintended_default_value_after_creation(self):
+        saved = state(True)
+        saved["keyEvents"][0]["defaultValue"] = {"numericValue": 1, "currencyCode": "USD"}
+        def created(url, **kwargs):
+            return {"name": url.removeprefix(setup.ADMIN + "/") + "/456"}
+        with patch.object(setup, "token_scopes", return_value={setup.EDIT_SCOPE}), patch.object(setup, "inspect", side_effect=[state(), saved]), patch.object(setup, "request_json", side_effect=created) as request:
+            result = setup.configure("123", "secret", apply=True)
+        self.assertEqual(result["status"], "configuration_mismatch")
+        self.assertEqual(request.call_count, 4)
+
+    def test_check_returns_nonzero_for_existing_configuration_mismatch(self):
+        with patch("sys.argv", ["seo-measurement-setup.py", "--check"]), patch.object(setup, "access_token", return_value="secret"), patch.object(setup, "configure", return_value={"status": "configuration_mismatch"}), patch("sys.stdout", new_callable=io.StringIO):
+            self.assertEqual(setup.main(), 2)
 
     def test_user_scoped_dimension_does_not_satisfy_event_scope(self):
         current = state(True)
