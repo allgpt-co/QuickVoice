@@ -30,7 +30,7 @@ export function GoogleAnalytics({
       coordinator.current = createPageviewCoordinator(measurementId, (parameters) => {
         // The bootstrap configures the destination before inserting this tag.
         // A delayed bootstrap must not lose the initial visit or send prematurely.
-        if (!window.gtag || !document.getElementById("quickvoice-google-tag")) return false;
+        if (window.quickvoiceAnalyticsConsent !== "granted" || !window.gtag || !document.getElementById("quickvoice-google-tag")) return false;
         window.gtag("event", "page_view", parameters);
         return true;
       });

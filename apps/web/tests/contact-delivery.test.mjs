@@ -169,6 +169,7 @@ test("lead analytics sends only fixed form context and remains optional", (t) =>
   assert.equal(trackContactLead("homepage"), false);
   const calls = [];
   globalThis.window = {
+    quickvoiceAnalyticsConsent: "granted",
     location: {
       pathname: "/company/contact",
       search: "?email=private@example.com",
@@ -187,6 +188,10 @@ test("lead analytics sends only fixed form context and remains optional", (t) =>
       },
     ],
   ]);
+  window.quickvoiceAnalyticsConsent = "denied";
+  assert.equal(trackContactLead("homepage"), false);
+  assert.equal(calls.length, 1);
+  window.quickvoiceAnalyticsConsent = "granted";
   window.gtag = () => {
     throw new Error("Analytics blocked");
   };
@@ -314,7 +319,7 @@ test("a successfully acknowledged submission is counted once per page, without s
     else globalThis.window = previousWindow;
   });
   const calls = [];
-  globalThis.window = { location: { pathname: "/company/contact" } };
+  globalThis.window = { quickvoiceAnalyticsConsent: "granted", location: { pathname: "/company/contact" } };
   assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), false);
   window.gtag = (...args) => calls.push(args);
   assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), true);

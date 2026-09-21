@@ -13,6 +13,8 @@ export type AnalyticsProperties = Record<
 
 declare global {
   interface Window {
+    quickvoiceAnalyticsConsent?: "unknown" | "granted" | "denied";
+    quickvoiceAnalyticsMeasurementId?: string;
     gtag?: (...args: unknown[]) => void;
   }
 }
@@ -21,7 +23,7 @@ export function trackAnalyticsEvent(
   eventName: AnalyticsEventName,
   properties: AnalyticsProperties = {},
 ): boolean {
-  if (typeof window === "undefined" || !window.gtag) return false;
+  if (typeof window === "undefined" || window.quickvoiceAnalyticsConsent !== "granted" || !window.gtag) return false;
 
   try {
     window.gtag("event", eventName, properties);
@@ -33,7 +35,7 @@ export function trackAnalyticsEvent(
 
 const recordedEnquiries = new Set<string>();
 
-/** Count only acknowledged contact delivery; the receipt stays out of GA. */
+/** Count only consented, acknowledged contact submissions; the receipt stays out of GA. */
 export function trackContactLead(formLocation: "homepage" | "contact_page", submissionId?: string): boolean {
   if (submissionId && recordedEnquiries.has(submissionId)) return false;
   const sent = trackAnalyticsEvent("generate_lead", {

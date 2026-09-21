@@ -84,9 +84,13 @@ export function observeEnquiryContext(href, referrer = "") {
 /** @type {EnquiryContext | undefined} */
 let documentContext;
 
-/** Capture once per document, independent of whether the analytics tag loads. */
+/** Capture only after analytics consent; declining clears the in-memory context. */
 export function captureEnquiryContext() {
   if (typeof window === "undefined") return undefined;
+  if (window.quickvoiceAnalyticsConsent !== "granted") {
+    documentContext = undefined;
+    return undefined;
+  }
   documentContext ??= observeEnquiryContext(window.location.href, document.referrer);
   return { ...documentContext };
 }

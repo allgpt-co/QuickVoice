@@ -2,7 +2,7 @@
 
 ## Verified access and remaining activation
 
-**Current check, September 20, 2026:** `generate_lead` exists with once-per-event counting and all three EVENT dimensions exist. The API still returns a USD 1 default value, contrary to the intended no-default setting; correct the existing event through authorized administration. No duplicate registrations or reporting OAuth changes were made. See the [current verification and gates](follow-up-2026-09-20.md).
+**Current check, September 21, 2026:** the existing utility returns `already_configured`: `generate_lead` uses `ONCE_PER_EVENT` with no `defaultValue`, and all three EVENT dimensions exist. The September 20 07:45 UTC private portfolio-health run also confirms the corrected key event. The earlier USD 1 observation is historical and no longer a blocker. No registrations or reporting OAuth scopes were changed. See the [consent repair and deployment handoff](follow-up-2026-09-21.md).
 
 **Historical read-only check, September 16, 2026:** GA4 property `543950329` (QuickVoice, `America/Los_Angeles`) remains accessible. The refreshed existing OAuth grant has `analytics.readonly`, not `analytics.edit`. Registered key events are `close_convert_lead`, `qualify_lead` and `purchase`; `generate_lead` is absent. No custom dimensions are registered. No GA administrative changes or live test enquiries were performed in this check.
 
