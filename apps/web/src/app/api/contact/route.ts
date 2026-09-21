@@ -109,6 +109,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     ...(submissionId ? { submissionId } : {}),
-    message: "Thank you. Your inquiry was delivered to the QuickVoice team.",
+    message: "Thank you. Your inquiry has been submitted to the QuickVoice team.",
   });
 }

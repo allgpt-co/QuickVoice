@@ -181,7 +181,7 @@ export function ContactForm({
               aria-hidden="true"
             />
             <h3 className="text-xl font-semibold">
-              Your message has been delivered.
+              Your message has been submitted.
             </h3>
             <p className="mt-3 text-muted-foreground">
               Thank you for contacting the QuickVoice team.
@@ -333,7 +333,7 @@ export function ContactForm({
           {fieldError("message")}
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          Please leave out passwords and sensitive customer information. Basic
+          Please leave out passwords and sensitive customer information. If you allow analytics, basic
           page and source context may accompany your enquiry; URL query values
           are excluded from that context. Read
           our{" "}

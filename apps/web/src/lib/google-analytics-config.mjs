@@ -33,10 +33,19 @@ export function createGoogleAnalyticsScript(configuredId = "", manualPageviews =
   if (!measurementId) return null;
 
   return `(() => {
+    if (window.quickvoiceAnalyticsConsent !== "granted") return;
     if (${!configuredId.trim()} && !["quickvoice.co", "www.quickvoice.co"].includes(window.location.hostname)) return;
     if (document.getElementById("quickvoice-google-tag")) return;
     window.dataLayer = window.dataLayer || [];
     window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+    window.quickvoiceAnalyticsMeasurementId = ${JSON.stringify(measurementId)};
+    window[${JSON.stringify(`ga-disable-${measurementId}`)}] = false;
+    window.gtag("consent", "default", {
+      analytics_storage: "denied", ad_storage: "denied",
+      ad_user_data: "denied", ad_personalization: "denied"
+    });
+    window.gtag("consent", "update", { analytics_storage: "granted" });
+    window.gtag("set", { allow_google_signals: false, allow_ad_personalization_signals: false });
     window.gtag("js", new Date());
     window.gtag("config", ${JSON.stringify(measurementId)}${manualPageviews ? ", { send_page_view: false }" : ""});
     const tag = document.createElement("script");

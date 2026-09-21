@@ -7,10 +7,10 @@ import {
   resolveGoogleAnalyticsId,
 } from "../src/lib/google-analytics-config.mjs";
 
-function browser(hostname) {
+function browser(hostname, consent = "granted") {
   const scripts = [];
   const context = {
-    window: { location: { hostname } },
+    window: { location: { hostname }, quickvoiceAnalyticsConsent: consent },
     document: {
       getElementById: (id) => scripts.find((script) => script.id === id),
       createElement: () => ({}),
@@ -33,8 +33,12 @@ test("missing build configuration initializes QuickVoice's verified tag once on 
     );
     assert.equal(scripts[0].async, true);
     const commands = context.window.dataLayer.map((args) => Array.from(args));
-    assert.equal(commands.length, 2);
-    assert.deepEqual(commands[1], ["config", "G-SZFBG11VRP"]);
+    assert.equal(commands.length, 5);
+    assert.equal(commands[0][0], "consent");
+    assert.equal(commands[0][2].analytics_storage, "denied");
+    assert.equal(commands[1][2].analytics_storage, "granted");
+    assert.equal(commands[0][2].ad_user_data, "denied");
+    assert.deepEqual(commands[4], ["config", "G-SZFBG11VRP"]);
   }
 });
 
@@ -71,12 +75,12 @@ test("manual pageviews require an explicit opt-in and suppress the automatic ini
     assert.equal(manualPageviewsEnabled(setting), false);
     const { context } = browser("quickvoice.co");
     runInNewContext(createGoogleAnalyticsScript("", manualPageviewsEnabled(setting)), context);
-    assert.equal(context.window.dataLayer[1].length, 2);
+    assert.equal(context.window.dataLayer[4].length, 2);
   }
   const { context } = browser("quickvoice.co");
   assert.equal(manualPageviewsEnabled(" true "), true);
   runInNewContext(createGoogleAnalyticsScript("", true), context);
-  assert.equal(context.window.dataLayer[1][2].send_page_view, false);
+  assert.equal(context.window.dataLayer[4][2].send_page_view, false);
   assert.equal(context.window.dataLayer.filter((args) => args[0] === "event").length, 0);
 });
 
@@ -92,4 +96,16 @@ test("the pageview coordinator uses the same destination and host guards as the 
   assert.equal(resolveGoogleAnalyticsId("G-TEST123", "localhost"), "G-TEST123");
   assert.equal(resolveGoogleAnalyticsId("off", "quickvoice.co"), null);
   assert.equal(createGoogleAnalyticsScript("off", true), null);
+});
+
+
+test("unknown or declined consent never loads a tag or queues measurement", () => {
+  for (const choice of [undefined, null, "unknown", "denied", "true"]) {
+    const { scripts, context } = browser("quickvoice.co", choice);
+    context.window.quickvoiceAnalyticsConsent = choice;
+    runInNewContext(createGoogleAnalyticsScript(), context);
+    assert.equal(scripts.length, 0);
+    assert.equal(context.window.gtag, undefined);
+    assert.equal(context.window.dataLayer, undefined);
+  }
 });

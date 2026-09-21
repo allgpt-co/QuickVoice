@@ -1,5 +1,4 @@
 import { Inter } from "next/font/google";
-import Script from "next/script";
 import { Suspense } from "react";
 import "./globals.css";
 
@@ -7,8 +6,7 @@ import type { Metadata } from "next";
 import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
-import { EnquiryAttribution } from "@/components/enquiry-attribution";
-import { GoogleAnalytics } from "@/components/google-analytics";
+import { AnalyticsConsent } from "@/components/analytics-consent";
 import {
   createGoogleAnalyticsScript,
   manualPageviewsEnabled,
@@ -86,29 +84,13 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-        {googleAnalyticsScript && (
-          <Suspense fallback={null}>
-            <GoogleAnalytics
-              script={googleAnalyticsScript}
-              configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
-              manualPageviews={manualPageviews}
-            />
-          </Suspense>
-        )}
-        {/* TruConversion for quickvoice.co */}
-        <Script id="truconversion" strategy="afterInteractive">
-          {`
-            var _tip = _tip || [];
-            (function(d,s,id){
-              var js, tjs = d.getElementsByTagName(s)[0];
-              if(d.getElementById(id)) { return; }
-              js = d.createElement(s); js.id = id;
-              js.async = true;
-              js.src = d.location.protocol + '//app.truconversion.com/ti-js/63942/ebc17.js';
-              tjs.parentNode.insertBefore(js, tjs);
-            }(document, 'script', 'ti-js'));
-          `}
-        </Script>
+        <Suspense fallback={null}>
+          <AnalyticsConsent
+            script={googleAnalyticsScript}
+            configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
+            manualPageviews={manualPageviews}
+          />
+        </Suspense>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"
@@ -116,7 +98,6 @@ export default function RootLayout({
           Skip to main content
         </a>
         <Navbar />
-        <EnquiryAttribution />
         <CtaAnalytics />
         <main id="main-content" tabIndex={-1}>
           {children}

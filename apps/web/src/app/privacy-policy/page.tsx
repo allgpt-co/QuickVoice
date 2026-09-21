@@ -45,7 +45,7 @@ export default function PrivacyPolicyPage() {
             Privacy Policy
           </h1>
           <p className="mt-4 text-lg text-muted-foreground">
-            Last updated: February 2026
+            Last updated: September 21, 2026
           </p>
         </div>
       </section>
@@ -179,9 +179,18 @@ export default function PrivacyPolicyPage() {
                 </li>
               </ul>
               <p className="mt-3 leading-relaxed text-muted-foreground">
-                You can control cookie preferences through your browser
-                settings. Disabling certain cookies may limit your ability to
-                use some features of our Services.
+                On this marketing website, optional Google Analytics is off until
+                you select Allow analytics. Use Privacy choices at the bottom of
+                any page to decline or change your choice. We store that choice
+                locally in your browser until you change it or clear browser
+                storage. The site and enquiry forms work when analytics is off.
+                Advertising consent remains off and session recording is disabled.
+                With analytics allowed, we measure page visits, link clicks and
+                acknowledged enquiry submissions. Our enquiry event excludes
+                contact details, message text and the submission receipt. Basic
+                page and source context may accompany a consented enquiry; that
+                context excludes URL query values. Submission acknowledgement
+                does not confirm arrival in the recipient inbox.
               </p>
 
               <h3 className="mt-6 text-xl font-medium">

@@ -1,6 +1,6 @@
 # Source, status, and dependency tracker
 
-Prepared 2026-09-06; current follow-up checked 2026-09-20. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
+Prepared 2026-09-06; current follow-up checked 2026-09-21. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
 
 ## Governing sources
 
@@ -15,16 +15,16 @@ Prepared 2026-09-06; current follow-up checked 2026-09-20. The [September 18 com
 
 ## Work and ownership
 
-### September 20 follow-up
+### September 21 follow-up
 
-[Current verification](follow-up-2026-09-20.md): all four GA registrations exist;
-there are no missing registrations to create. The API still reports a USD 1
-key-event default, requiring correction on the existing event. Hosting read
-permission remains denied. The 101-URL live crawl and intercepted form/pageview
-checks pass; actual receipt/inbox/GA collection and consent behavior are separate
-unverified outcomes. Existing Monday reporting is reused. One IVR clarification
-is prepared privately and held behind the deployment/attribution gates.
-
+[Current verification and hosting handoff](follow-up-2026-09-21.md): all four GA
+registrations are correct, including no key-event default value. The earlier
+USD 1 discrepancy was corrected and is no longer a blocker. The bounded consent
+repair adds default-off analytics with allow, decline and reopen controls;
+TruConversion is disabled pending verified masking and revocation controls.
+Production deployment and marked real receipt/inbox verification remain separate
+gates. Existing Monday private reporting and the staged IVR improvement are
+preserved. The [September 20 record](follow-up-2026-09-20.md) retains dated evidence.
 
 ### September 18 completion release
 

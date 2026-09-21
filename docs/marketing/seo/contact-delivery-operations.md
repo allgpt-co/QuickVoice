@@ -1,5 +1,14 @@
 # Website contact delivery
 
+## September 21: consent repair
+
+The [consent repair](follow-up-2026-09-21.md) gates the Google tag, custom events
+and optional enquiry context behind explicit analytics opt-in. Declined enquiries
+still submit and retain operational receipts; they emit no lead event. The
+preference alone is stored locally. TruConversion stays disabled pending verified
+masking and revocation. Success means submitted/acknowledged, not verified inbox
+arrival. The live deployment and real QA receipt/inbox gates remain separate.
+
 ## September 16: optional enquiry attribution rollout
 
 The SEO growth branch adds an optional `submissionId` (UUID v4), `formLocation`, and
@@ -20,9 +29,9 @@ these optional fields before enabling the flag. To roll back, disable the web
 flag before rolling back the API. There is no database migration.
 
 The browser captures the first public landing path and coarse observed source
-for the current document in memory. Internal SPA navigation keeps that context;
-a full reload starts a new observation. No cookies, localStorage, sessionStorage,
-or cross-site visitor ID are introduced. Tagged campaign traffic is unknown, and
+after analytics consent for the current document in memory. Internal SPA navigation keeps that context;
+a full reload starts a new observation. The source context uses no cookies, localStorage, sessionStorage,
+or cross-site visitor ID. Tagged campaign traffic is unknown, and
 paid click identifiers cannot be classified as organic. Referrer-based organic
 classification is only a browser observation; it does not establish country,
 Google Search Console attribution, or a qualified prospect. Missing context is
@@ -44,7 +53,7 @@ see [measurement operations](measurement-operations.md).
 
 Required staging checks: old payload accepted; extended payload accepted after
 API rollout; flag-off forwarding contains only legacy fields; rejected/failed
-forwarding never emits `generate_lead`; one successful submission emits it once;
+forwarding never emits `generate_lead`; one successful, consented submission emits it once;
 new enquiry event parameters exclude receipt IDs, query values and contact data.
 These checks do not assert URL-field redaction for other Analytics events.
 Browser tests intercept analytics,
