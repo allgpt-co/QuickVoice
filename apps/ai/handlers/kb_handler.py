@@ -7,6 +7,7 @@ KB processing pipeline:
 import os
 import io
 import copy
+import asyncio
 import ipaddress
 import inspect
 import json
@@ -21,6 +22,7 @@ from urllib.parse import urlparse, urlunparse
 from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
 from utils.pinecone_client import pinecone_client, pinecone_host
+from handlers.vector_provider_adapters import get_vector_adapters
 
 # ── lazy imports (heavy deps loaded once) ────────────────────────────────────
 
@@ -30,6 +32,9 @@ def _pinecone():
 def _index():
     pc = _pinecone()
     return pc.Index(host=pinecone_host())
+
+_default_pinecone = _pinecone
+_default_index = _index
 
 def _pinecone_namespace(agent_id: str) -> str:
     return agent_id
@@ -519,6 +524,12 @@ def _document_error_fields(exc: Exception, *, budget: dict) -> dict:
     elif "PINECONE_HOST" in message:
         code = "KB_VECTOR_STORE_HOST_MISSING"
         user_message = "Knowledge processing requires PINECONE_HOST in the AI service environment."
+    elif "GOOGLE_API_KEY" in message:
+        code = "KB_VECTOR_STORE_API_KEY_MISSING"
+        user_message = "Knowledge processing requires GOOGLE_API_KEY in the AI service environment."
+    elif "QDRANT_URL" in message:
+        code = "KB_VECTOR_STORE_HOST_MISSING"
+        user_message = "Knowledge processing requires QDRANT_URL in the AI service environment."
     else:
         code = "KB_PROCESSING_FAILED"
         user_message = "QuickVoice could not process this knowledge source. Try again later."
@@ -730,27 +741,27 @@ def _embedding_values(response) -> list[list[float]]:
 
 
 async def embed_chunks(chunks: list[str]) -> list[list[float]]:
-    """Batch-embed chunks using Pinecone Inference."""
-    import asyncio
-    pc = _pinecone()
+    """Batch-embed chunks using the configured embedding adapter."""
+    if _pinecone != _default_pinecone:
+        pc = _pinecone()
+        BATCH = 96
+        all_embeddings: list[list[float]] = []
+        for i in range(0, len(chunks), BATCH):
+            batch = chunks[i : i + BATCH]
+            result = await asyncio.to_thread(
+                pc.inference.embed,
+                model=EMBEDDING_MODEL,
+                inputs=batch,
+                parameters={"input_type": "passage", "truncate": EMBEDDING_TRUNCATE},
+            )
+            all_embeddings.extend(_embedding_values(result))
+        return all_embeddings
 
-    BATCH = 96
-    all_embeddings: list[list[float]] = []
-
-    for i in range(0, len(chunks), BATCH):
-        batch = chunks[i : i + BATCH]
-        result = await asyncio.to_thread(
-            pc.inference.embed,
-            model=EMBEDDING_MODEL,
-            inputs=batch,
-            parameters={"input_type": "passage", "truncate": EMBEDDING_TRUNCATE},
-        )
-        all_embeddings.extend(_embedding_values(result))
-
-    return all_embeddings
+    adapters = get_vector_adapters()
+    return await adapters.embedding.embed_documents(chunks)
 
 
-# ── Pinecone upsert ───────────────────────────────────────────────────────────
+# ── Vector store upsert & delete ─────────────────────────────────────────────
 
 def upsert_to_pinecone(
     chunks: list[str],
@@ -759,31 +770,62 @@ def upsert_to_pinecone(
     kb_id: str,
     doc_name: str,
 ) -> None:
-    index = _index()
-    pinecone_namespace = _pinecone_namespace(namespace)
-    _delete_kb_vectors(index=index, namespace=namespace, kb_id=kb_id)
-    vectors = [
-        {
-            "id": f"{kb_id}#{i}",
-            "values": emb,
-            "metadata": {
-                "agentId": namespace,
-                "kbId": kb_id,
-                "name": doc_name,
-                "chunkIdx": i,
-                "text": chunk[:1000],  # store truncated text for retrieval
-            },
-        }
-        for i, (chunk, emb) in enumerate(zip(chunks, embeddings))
-    ]
-    # Upsert in batches of 100
-    batch_size = 100
-    for start in range(0, len(vectors), batch_size):
-        index.upsert(vectors=vectors[start : start + batch_size], namespace=pinecone_namespace)
+    if _pinecone != _default_pinecone or _index != _default_index:
+        index = _index()
+        pinecone_namespace = _pinecone_namespace(namespace)
+        _delete_kb_vectors(index=index, namespace=namespace, kb_id=kb_id)
+        vectors = [
+            {
+                "id": f"{kb_id}#{i}",
+                "values": emb,
+                "metadata": {
+                    "agentId": namespace,
+                    "kbId": kb_id,
+                    "name": doc_name,
+                    "chunkIdx": i,
+                    "text": chunk[:1000],
+                },
+            }
+            for i, (chunk, emb) in enumerate(zip(chunks, embeddings))
+        ]
+        batch_size = 100
+        for start in range(0, len(vectors), batch_size):
+            index.upsert(vectors=vectors[start : start + batch_size], namespace=pinecone_namespace)
+        return
+
+    upsert_kb_vectors(
+        chunks=chunks,
+        embeddings=embeddings,
+        namespace=namespace,
+        kb_id=kb_id,
+        doc_name=doc_name,
+    )
+
+
+def upsert_kb_vectors(
+    chunks: list[str],
+    embeddings: list[list[float]],
+    namespace: str,
+    kb_id: str,
+    doc_name: str,
+) -> None:
+    adapters = get_vector_adapters()
+    adapters.vector_store.upsert(
+        namespace=namespace,
+        kb_id=kb_id,
+        doc_name=doc_name,
+        chunks=chunks,
+        embeddings=embeddings,
+    )
 
 
 def delete_kb_vectors(*, namespace: str, kb_id: str) -> None:
-    _delete_kb_vectors(index=_index(), namespace=namespace, kb_id=kb_id)
+    if _pinecone != _default_pinecone or _index != _default_index:
+        _delete_kb_vectors(index=_index(), namespace=namespace, kb_id=kb_id)
+        return
+
+    adapters = get_vector_adapters()
+    adapters.vector_store.delete_by_kb(namespace=namespace, kb_id=kb_id)
 
 
 def _delete_kb_vectors(*, index, namespace: str, kb_id: str) -> None:

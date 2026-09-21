@@ -39,9 +39,12 @@ async def _lifespan(_app: FastAPI):
 app = FastAPI(title="QuickVoice AI", lifespan=_lifespan)
 
 
+PUBLIC_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
+
+
 @app.middleware("http")
 async def _internal_auth_middleware(request: Request, call_next):
-    if request.url.path == "/health":
+    if request.url.path in PUBLIC_PATHS:
         return await call_next(request)
     try:
         _verify_internal(request)

@@ -857,7 +857,7 @@ async def entrypoint(ctx: JobContext):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1] == "serve":
+    if len(sys.argv) > 1 and sys.argv[1] in {"serve", "combined"}:
         raise SystemExit(run_combined_server())
 
     if len(sys.argv) > 1 and sys.argv[1] == "api":
