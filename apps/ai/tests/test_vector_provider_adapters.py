@@ -95,7 +95,8 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         mock_client.models.embed_content.assert_called_with(
             model="text-embedding-004",
             contents=["first chunk", "second chunk"],
-            config={"task_type": "RETRIEVAL_DOCUMENT"},
+            config={"task_type": "RETRIEVAL_DOCUMENT",
+            "output_dimensionality": 768,},
         )
 
         # Test query embedding
@@ -108,7 +109,9 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         mock_client.models.embed_content.assert_called_with(
             model="text-embedding-004",
             contents=["search term"],
-            config={"task_type": "RETRIEVAL_QUERY"},
+            config={"task_type": "RETRIEVAL_QUERY",
+            "output_dimensionality": 768,
+            },
         )
 
     def test_qdrant_adapter_upsert_query_and_delete(self):
