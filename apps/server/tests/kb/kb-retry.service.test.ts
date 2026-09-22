@@ -4,6 +4,7 @@ import { test } from "node:test";
 import { BadRequestError } from "../../src/common/errors/badRequest.js";
 import {
   createKnowledgeSources,
+  reindexActiveKnowledgeSources,
   retryKnowledgeSource,
 } from "../../src/modules/kb/kb.service.js";
 
@@ -144,6 +145,66 @@ test("createKnowledgeSources marks every source failed when enqueueing fails", a
       "kb-job-1",
       "org-1",
     ],
+  ]);
+});
+
+test("reindexActiveKnowledgeSources claims and queues a snapshot of active sources", async () => {
+  const calls: unknown[][] = [];
+  const activeSources = [
+    { ...SOURCE, status: "ACTIVE", metadata: null },
+    {
+      ...SOURCE,
+      kbId: "kb-source-2",
+      status: "ACTIVE",
+      sourceType: "URL",
+      storagePath: "https://example.com/guide",
+      originalFileName: null,
+    },
+  ];
+  const jobIds = ["kb-reindex-1", "kb-reindex-2"];
+  let nextJobId = 0;
+
+  const result = await reindexActiveKnowledgeSources({
+    createJobId: () => jobIds[nextJobId++]!,
+    repository: {
+      listActiveForReindex: async () => activeSources,
+      claimActiveForReindex: async (...args: unknown[]) => {
+        calls.push(["claim", ...args]);
+        return true;
+      },
+      markError: async (...args: unknown[]) => {
+        calls.push(["error", ...args]);
+      },
+    } as never,
+    queue: {
+      add: async (...args: unknown[]) => {
+        calls.push(["queue", ...args]);
+      },
+    } as never,
+  });
+
+  assert.deepEqual(result, { discovered: 2, queued: 2, skipped: 0, failed: 0 });
+  const queued = calls.filter((call) => call[0] === "queue");
+  assert.equal(queued.length, 2);
+  assert.deepEqual((queued[0]?.[2] as { documents: unknown[] }).documents, [
+    {
+      kbId: "kb-source-1",
+      name: "Pricing guide",
+      sourceType: "PDF",
+      url: null,
+      s3Key: "kb/org-1/123e4567-e89b-42d3-a456-426614174000.pdf",
+      originalFileName: "pricing.pdf",
+    },
+  ]);
+  assert.deepEqual((queued[1]?.[2] as { documents: unknown[] }).documents, [
+    {
+      kbId: "kb-source-2",
+      name: "Pricing guide",
+      sourceType: "URL",
+      url: "https://example.com/guide",
+      s3Key: null,
+      originalFileName: null,
+    },
   ]);
 });
 

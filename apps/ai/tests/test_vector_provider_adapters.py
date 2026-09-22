@@ -19,6 +19,7 @@ from handlers.vector_provider_adapters import (
     VectorMatch,
     build_embedding_adapter,
     build_vector_store_adapter,
+    clear_vector_adapter_cache,
     get_vector_adapters,
 )
 
@@ -26,8 +27,10 @@ from handlers.vector_provider_adapters import (
 class VectorProviderAdaptersTests(unittest.TestCase):
     def setUp(self):
         self.original_env = os.environ.copy()
+        clear_vector_adapter_cache()
 
     def tearDown(self):
+        clear_vector_adapter_cache()
         os.environ.clear()
         os.environ.update(self.original_env)
 
@@ -60,6 +63,30 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         adapters = get_vector_adapters()
         self.assertIsInstance(adapters.embedding, PineconeEmbeddingAdapter)
         self.assertIsInstance(adapters.vector_store, PineconeVectorStoreAdapter)
+
+    def test_factory_does_not_switch_providers_from_unrelated_credentials(self):
+        os.environ.pop("EMBEDDING_PROVIDER", None)
+        os.environ.pop("VECTOR_STORE_PROVIDER", None)
+        os.environ["GOOGLE_API_KEY"] = "AIzaSyTestKey123"
+        os.environ["QDRANT_URL"] = "http://localhost:6333"
+        os.environ["PINECONE_API_KEY"] = "pcsk_test_key"
+        os.environ["PINECONE_HOST"] = "https://test.svc.pinecone.io"
+
+        adapters = get_vector_adapters()
+
+        self.assertIsInstance(adapters.embedding, PineconeEmbeddingAdapter)
+        self.assertIsInstance(adapters.vector_store, PineconeVectorStoreAdapter)
+
+    def test_factory_reuses_configured_adapters(self):
+        os.environ["EMBEDDING_PROVIDER"] = "google"
+        os.environ["VECTOR_STORE_PROVIDER"] = "qdrant"
+        os.environ["GOOGLE_API_KEY"] = "AIzaSyTestKey123"
+        os.environ["QDRANT_URL"] = "http://localhost:6333"
+
+        first = get_vector_adapters()
+        second = get_vector_adapters()
+
+        self.assertIs(first, second)
 
     def test_factory_rejects_unsupported_providers(self):
         with self.assertRaises(VectorAdapterError):
@@ -179,6 +206,17 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             self.assertTrue(mock_qdrant_client.delete.called)
             delete_kwargs = mock_qdrant_client.delete.call_args.kwargs
             self.assertEqual(delete_kwargs["collection_name"], "test-collection")
+
+            # Existing collections must match the selected embedding dimension.
+            mock_qdrant_client.get_collection.return_value.config.params.vectors.size = 3
+            with self.assertRaisesRegex(VectorAdapterError, "expects 3-dimensional"):
+                adapter.upsert(
+                    namespace="agent_abc",
+                    kb_id="kb_xyz",
+                    doc_name="Doc 1",
+                    chunks=["Chunk 1 text"],
+                    embeddings=[[0.1, 0.2]],
+                )
 
 
 if __name__ == "__main__":

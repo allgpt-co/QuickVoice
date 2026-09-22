@@ -2,7 +2,6 @@ import asyncio
 import json
 import os
 from typing import Any
-from urllib.error import HTTPError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -62,13 +61,9 @@ async def get_config(
         if agent_number:
             encoded_agent_number = quote(agent_number or "", safe="")
             url = f"{api_base_url}/agents/number-config/{encoded_agent_number}"
-            try:
-                response = await (get_json or _get_json)(url, headers)
-                logger.info("Config loaded by agent number: {}", _config_log_summary(response.get("data", response)))
-                return normalize_config(response.get("data", response))
-            except HTTPError as error:
-                if error.code != 404 or not agent_id:
-                    raise
+            response = await (get_json or _get_json)(url, headers)
+            logger.info("Config loaded by agent number: {}", _config_log_summary(response.get("data", response)))
+            return normalize_config(response.get("data", response))
 
         if agent_id:
             encoded_agent_id = quote(agent_id, safe="")

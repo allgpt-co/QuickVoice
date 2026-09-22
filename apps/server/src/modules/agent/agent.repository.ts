@@ -226,9 +226,10 @@ export const agentExistsInOrg = async (
 export const getAgentConfigByNumber= async (
   phoneNumber:string
 )=>{
-  const phone = await prisma.phoneNumber.findUnique({
+  const phone = await prisma.phoneNumber.findFirst({
     where: {
       number: phoneNumber,
+      agent: { isActive: true },
     },
     select: {
       number: true,

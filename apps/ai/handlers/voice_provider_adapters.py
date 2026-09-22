@@ -113,16 +113,20 @@ def _build_llm(config: dict[str, Any]):
                     "AWS_SECRET_ACCESS_KEY is required when AWS credentials are set"
                 )
 
-            kwargs["api_key"] = access_key
-            kwargs["api_secret"] = secret_key
             if session_token:
-                kwargs["api_session_token"] = session_token
+                session = get_session()
+                session.set_credentials(access_key, secret_key, session_token)
+                session.set_config_variable("region", region)
+                kwargs["session"] = session
+            else:
+                kwargs["api_key"] = access_key
+                kwargs["api_secret"] = secret_key
 
         logger.info(
             "constructing bedrock LLM (model=%s, region=%s, using_explicit_creds=%s, has_session_token=%s)",
             kwargs.get("model"),
             region,
-            "api_key" in kwargs,
+            "api_key" in kwargs or "session" in kwargs,
             bool(session_token),
         )
         return aws.LLM(**kwargs)

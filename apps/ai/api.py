@@ -39,7 +39,7 @@ async def _lifespan(_app: FastAPI):
 app = FastAPI(title="QuickVoice AI", lifespan=_lifespan)
 
 
-PUBLIC_PATHS = {"/health", "/docs", "/openapi.json", "/redoc"}
+PUBLIC_PATHS = {"/health"}
 
 
 @app.middleware("http")

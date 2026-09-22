@@ -45,6 +45,15 @@ type RetryKnowledgeSourceDependencies = {
   >;
 };
 
+type ReindexKnowledgeSourcesDependencies = {
+  createJobId?: () => string;
+  queue?: Pick<KbQueueLike, "add">;
+  repository?: Pick<
+    typeof kbRepository,
+    "listActiveForReindex" | "claimActiveForReindex" | "markError"
+  >;
+};
+
 export const createKnowledgeSources = async (
   args: CreateKbArgs,
   dependencies: CreateKnowledgeSourcesDependencies = {},
@@ -231,6 +240,69 @@ export const deleteKnowledgeSource = async (
     organizationId,
   );
   return deleted;
+};
+
+export const reindexActiveKnowledgeSources = async (
+  dependencies: ReindexKnowledgeSourcesDependencies = {},
+) => {
+  const repository = dependencies.repository ?? kbRepository;
+  const createJobId = dependencies.createJobId ?? newKbJobId;
+  const queue = dependencies.queue ?? getKbQueue();
+  const sources = await repository.listActiveForReindex();
+  let queued = 0;
+  let skipped = 0;
+  let failed = 0;
+
+  for (const source of sources) {
+    if (!source.agentId) {
+      skipped += 1;
+      continue;
+    }
+
+    const jobId = createJobId();
+    const claimed = await repository.claimActiveForReindex(
+      source.kbId,
+      source.organizationId,
+      createQueuedKbMetadata(jobId),
+    );
+    if (!claimed) {
+      skipped += 1;
+      continue;
+    }
+
+    try {
+      await queue.add(
+        "process",
+        {
+          kbIds: [source.kbId],
+          agentId: source.agentId,
+          organizationId: source.organizationId,
+          documents: [
+            {
+              kbId: source.kbId,
+              name: source.name,
+              sourceType: source.sourceType,
+              url: source.sourceType === "URL" ? source.storagePath : null,
+              s3Key: source.sourceType === "URL" ? null : source.storagePath,
+              originalFileName: source.originalFileName,
+            },
+          ],
+        },
+        { jobId },
+      );
+      queued += 1;
+    } catch (error) {
+      failed += 1;
+      await repository.markError(
+        [source.kbId],
+        "The document could not be queued for reindexing.",
+        jobId,
+        source.organizationId,
+      );
+    }
+  }
+
+  return { discovered: sources.length, queued, skipped, failed };
 };
 
 export const retryKnowledgeSource = async (

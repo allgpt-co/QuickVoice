@@ -431,22 +431,33 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
         client = self._get_client()
         collections = client.get_collections().collections
         exists = any(col.name == self._collection_name for col in collections)
-        if not exists:
-            client.create_collection(
-                collection_name=self._collection_name,
-                vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
-            )
-            # Create payload indexes for fast filtered searches
-            client.create_payload_index(
-                collection_name=self._collection_name,
-                field_name="agentId",
-                field_schema=models.PayloadSchemaType.KEYWORD,
-            )
-            client.create_payload_index(
-                collection_name=self._collection_name,
-                field_name="kbId",
-                field_schema=models.PayloadSchemaType.KEYWORD,
-            )
+        if exists:
+            collection = client.get_collection(self._collection_name)
+            vectors = collection.config.params.vectors
+            configured_size = getattr(vectors, "size", None)
+            if isinstance(configured_size, int) and configured_size != vector_size:
+                raise VectorAdapterError(
+                    f"Qdrant collection '{self._collection_name}' expects {configured_size}-dimensional "
+                    f"vectors, but the configured embedding provider returned {vector_size}. "
+                    "Use a new collection or reindex it with the selected embedding model."
+                )
+            return
+
+        client.create_collection(
+            collection_name=self._collection_name,
+            vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
+        )
+        # Create payload indexes for fast filtered searches
+        client.create_payload_index(
+            collection_name=self._collection_name,
+            field_name="agentId",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+        )
+        client.create_payload_index(
+            collection_name=self._collection_name,
+            field_name="kbId",
+            field_schema=models.PayloadSchemaType.KEYWORD,
+        )
 
     def upsert(
         self,
@@ -571,14 +582,10 @@ class VectorAdapters:
 
 
 def build_embedding_adapter(provider: Optional[str] = None) -> BaseEmbeddingAdapter:
-    chosen = (provider or os.environ.get("EMBEDDING_PROVIDER", "")).strip().lower()
-    if not chosen:
-        if os.environ.get("GOOGLE_API_KEY"):
-            chosen = "google"
-        elif os.environ.get("FASTEMBED_MODEL_NAME"):
-            chosen = "fastembed"
-        else:
-            chosen = "pinecone"
+    # Preserve the pre-migration behavior unless the operator explicitly opts in.
+    # Credentials can be shared by unrelated features and are not a safe signal for
+    # changing the embedding space of an existing vector index.
+    chosen = (provider or os.environ.get("EMBEDDING_PROVIDER") or "pinecone").strip().lower()
 
     if chosen == "google":
         return GoogleEmbeddingAdapter()
@@ -591,12 +598,9 @@ def build_embedding_adapter(provider: Optional[str] = None) -> BaseEmbeddingAdap
 
 
 def build_vector_store_adapter(provider: Optional[str] = None) -> BaseVectorStoreAdapter:
-    chosen = (provider or os.environ.get("VECTOR_STORE_PROVIDER", "")).strip().lower()
-    if not chosen:
-        if os.environ.get("QDRANT_URL") or os.environ.get("QDRANT_API_KEY"):
-            chosen = "qdrant"
-        else:
-            chosen = "pinecone"
+    # QDRANT_URL alone must not move existing Pinecone-backed documents. Switching
+    # stores is an explicit deployment step performed after the reindex command.
+    chosen = (provider or os.environ.get("VECTOR_STORE_PROVIDER") or "pinecone").strip().lower()
 
     if chosen == "qdrant":
         return QdrantVectorStoreAdapter()
@@ -606,13 +610,43 @@ def build_vector_store_adapter(provider: Optional[str] = None) -> BaseVectorStor
     raise VectorAdapterError(f"Unsupported VECTOR_STORE_PROVIDER: '{chosen}'")
 
 
+_ADAPTER_ENV_NAMES = (
+    "EMBEDDING_PROVIDER",
+    "VECTOR_STORE_PROVIDER",
+    "GOOGLE_API_KEY",
+    "GOOGLE_EMBEDDING_MODEL",
+    "GOOGLE_EMBEDDING_DIMENSIONS",
+    "FASTEMBED_MODEL_NAME",
+    "PINECONE_API_KEY",
+    "PINECONE_HOST",
+    "PINECONE_EMBEDDING_MODEL",
+    "PINECONE_EMBEDDING_TRUNCATE",
+    "QDRANT_URL",
+    "QDRANT_API_KEY",
+    "QDRANT_COLLECTION_NAME",
+)
+_cached_adapters: tuple[tuple[Optional[str], ...], VectorAdapters] | None = None
+
+
+def clear_vector_adapter_cache() -> None:
+    global _cached_adapters
+    _cached_adapters = None
+
+
 def get_vector_adapters(
     embedding_provider: Optional[str] = None,
     vector_store_provider: Optional[str] = None,
 ) -> VectorAdapters:
+    global _cached_adapters
+
+    cacheable = embedding_provider is None and vector_store_provider is None
+    fingerprint = tuple(os.environ.get(name) for name in _ADAPTER_ENV_NAMES)
+    if cacheable and _cached_adapters and _cached_adapters[0] == fingerprint:
+        return _cached_adapters[1]
+
     emb = build_embedding_adapter(embedding_provider)
     vs = build_vector_store_adapter(vector_store_provider)
-    return VectorAdapters(
+    adapters = VectorAdapters(
         embedding=emb,
         vector_store=vs,
         summary={
@@ -620,3 +654,6 @@ def get_vector_adapters(
             "vector_store_provider": vs.__class__.__name__,
         },
     )
+    if cacheable:
+        _cached_adapters = (fingerprint, adapters)
+    return adapters

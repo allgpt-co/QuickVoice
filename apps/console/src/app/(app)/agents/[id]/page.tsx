@@ -68,13 +68,17 @@ function AgentDetailsForm({ agent }: { agent: Agent }) {
   async function saveAgentDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const name = draftName.trim();
-    if (!name) {
-      toast.error("Agent name cannot be blank");
+    if (name.length < 2) {
+      toast.error("Agent name must be at least 2 characters");
       return;
     }
 
-    await updateAgent.mutateAsync({ name, isActive: draftIsActive });
-    toast.success("Agent details saved");
+    try {
+      await updateAgent.mutateAsync({ name, isActive: draftIsActive });
+      toast.success("Agent details saved");
+    } catch {
+      // The mutation hook displays the API error.
+    }
   }
 
   return (
@@ -96,7 +100,8 @@ function AgentDetailsForm({ agent }: { agent: Agent }) {
               id="agent-name"
               value={draftName}
               onChange={(event) => setDraftName(event.target.value)}
-              maxLength={80}
+              minLength={2}
+              maxLength={100}
               disabled={updateAgent.isPending}
               aria-describedby="agent-name-description"
             />
@@ -136,7 +141,7 @@ function AgentDetailsForm({ agent }: { agent: Agent }) {
           type="submit"
           disabled={
             updateAgent.isPending ||
-            !draftName.trim() ||
+            draftName.trim().length < 2 ||
             (agent.name === draftName.trim() &&
               agent.isActive === draftIsActive)
           }

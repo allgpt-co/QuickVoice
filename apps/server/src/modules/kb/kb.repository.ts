@@ -83,6 +83,35 @@ export const getByIdForOrg = async (kbId: string, organizationId: string) => {
   });
 };
 
+export const listActiveForReindex = async () => {
+  return prisma.knowledgeSource.findMany({
+    where: {
+      status: kbStatus.ACTIVE,
+      agentId: { not: null },
+    },
+    orderBy: { kbId: "asc" },
+  });
+};
+
+export const claimActiveForReindex = async (
+  kbId: string,
+  organizationId: string,
+  metadata: Record<string, unknown>,
+) => {
+  const result = await prisma.knowledgeSource.updateMany({
+    where: { kbId, organizationId, status: kbStatus.ACTIVE },
+    data: {
+      status: kbStatus.PROCESSING,
+      lastIndexedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      errorRetryable: null,
+      metadata: asJsonObject(metadata),
+    },
+  });
+  return result.count === 1;
+};
+
 export const prepareKnowledgeSourceUpdate = async (input: {
   kbId: string;
   organizationId: string;
