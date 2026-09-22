@@ -37,6 +37,16 @@ services:
       retries: 20
       start_period: 5s
 
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: quickvoice-dev-qdrant
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
+    volumes:
+      - quickvoice_qdrant_data:/qdrant/storage
+
   mailpit:
     image: axllent/mailpit:v1.23
     container_name: quickvoice-dev-mailpit
@@ -49,3 +59,4 @@ services:
 volumes:
   quickvoice_postgres_data:
   quickvoice_redis_data:
+  quickvoice_qdrant_data:

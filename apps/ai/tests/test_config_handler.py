@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import unittest
+from urllib.error import HTTPError
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -130,6 +131,27 @@ class ConfigHandlerTests(unittest.TestCase):
             "http://server.test/api/v1/agents/number-config/%2B15551230000",
         )
         self.assertEqual(headers["Authorization"], "Bearer internal-secret")
+
+    def test_get_config_does_not_bypass_a_rejected_number_with_agent_id_fallback(self):
+        calls = []
+
+        async def fake_get_json(url, headers):
+            calls.append((url, headers))
+            raise HTTPError(url, 404, "not found", None, None)
+
+        with self.assertRaises(HTTPError):
+            asyncio.run(
+                get_config(
+                    "agent_123",
+                    agent_number="+15551230000",
+                    server_api_url="http://server.test/api/v1",
+                    internal_api_key="internal-secret",
+                    get_json=fake_get_json,
+                )
+            )
+
+        self.assertEqual(len(calls), 1)
+        self.assertIn("/agents/number-config/", calls[0][0])
 
     def test_get_config_fails_closed_when_runtime_backend_is_not_configured(self):
         with self.assertRaisesRegex(RuntimeError, "SERVER_API_URL and INTERNAL_API_KEY"):

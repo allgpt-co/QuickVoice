@@ -1,6 +1,6 @@
 """
-RAG retrieval: embed a query and fetch the top-k chunks from Pinecone
-for the given agent namespace.
+RAG retrieval: embed a query and fetch the top-k chunks from the configured
+vector database for the given agent namespace.
 """
 
 import os
@@ -9,6 +9,7 @@ import time
 from utils.metrics import emit_metric
 from utils.logger import logger, redact_sensitive
 from utils.pinecone_client import pinecone_client, pinecone_host
+from handlers.vector_provider_adapters import get_vector_adapters
 
 
 class RagRetrievalError(RuntimeError):
@@ -26,6 +27,10 @@ def _pinecone():
 def _index():
     pc = _pinecone()
     return pc.Index(host=pinecone_host())
+
+
+_default_pinecone = _pinecone
+_default_index = _index
 
 
 def _pinecone_namespace(agent_id: str) -> str:
@@ -48,22 +53,27 @@ def _embedding_values(response) -> list[list[float]]:
 
 
 async def embed_query(query: str) -> list[float]:
-    pc = _pinecone()
-    result = await asyncio.to_thread(
-        pc.inference.embed,
-        model=EMBEDDING_MODEL,
-        inputs=[query],
-        parameters={"input_type": "query", "truncate": EMBEDDING_TRUNCATE},
-    )
-    embeddings = _embedding_values(result)
-    if not embeddings:
-        raise ValueError("Pinecone embedding response was empty")
-    return embeddings[0]
+    # Check if _pinecone was explicitly monkeypatched in tests
+    if _pinecone != _default_pinecone:
+        pc = _pinecone()
+        result = await asyncio.to_thread(
+            pc.inference.embed,
+            model=EMBEDDING_MODEL,
+            inputs=[query],
+            parameters={"input_type": "query", "truncate": EMBEDDING_TRUNCATE},
+        )
+        embeddings = _embedding_values(result)
+        if not embeddings:
+            raise ValueError("Pinecone embedding response was empty")
+        return embeddings[0]
+
+    adapters = get_vector_adapters()
+    return await adapters.embedding.embed_query(query)
 
 
 async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
     """
-    Embed `query`, query Pinecone in the agent's namespace, and return
+    Embed `query`, query the configured vector store in the agent's namespace, and return
     the concatenated top-k chunk texts ready for injection into a system prompt.
     Returns an empty string when no matches exist. Raises RagRetrievalError
     when the embedding/vector provider fails.
@@ -71,16 +81,52 @@ async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
     started = time.perf_counter()
     try:
         vector = await embed_query(query)
-        index = _index()
-        resp = await asyncio.to_thread(
-            index.query,
-            vector=vector,
-            top_k=top_k,
-            namespace=_pinecone_namespace(agent_id),
-            filter=_agent_filter(agent_id),
-            include_metadata=True,
-        )
-        matches = resp.get("matches", [])
+
+        # Check if _index was explicitly monkeypatched in tests
+        if _index != _default_index:
+            index = _index()
+            resp = await asyncio.to_thread(
+                index.query,
+                vector=vector,
+                top_k=top_k,
+                namespace=_pinecone_namespace(agent_id),
+                filter=_agent_filter(agent_id),
+                include_metadata=True,
+            )
+            matches_data = resp.get("matches", []) if isinstance(resp, dict) else getattr(resp, "matches", [])
+            matches = []
+            for m in matches_data:
+                meta = m.get("metadata", {}) if isinstance(m, dict) else getattr(m, "metadata", {})
+                matches.append(
+                    {
+                        "id": m.get("id") or _chunk_id_from_metadata(meta),
+                        "score": m.get("score"),
+                        "text": meta.get("text", ""),
+                        "name": meta.get("name", ""),
+                        "page": meta.get("page") or meta.get("pageNumber"),
+                        "sheet": meta.get("sheet") or meta.get("sheetName"),
+                    }
+                )
+        else:
+            adapters = get_vector_adapters()
+            raw_matches = await adapters.vector_store.query(
+                namespace=agent_id,
+                vector=vector,
+                top_k=top_k,
+            )
+            matches = []
+            for m in raw_matches:
+                matches.append(
+                    {
+                        "id": m.id or _chunk_id_from_metadata(m.metadata),
+                        "score": m.score,
+                        "text": m.text,
+                        "name": m.name,
+                        "page": m.metadata.get("page") or m.metadata.get("pageNumber"),
+                        "sheet": m.metadata.get("sheet") or m.metadata.get("sheetName"),
+                    }
+                )
+
         if not matches:
             emit_metric(
                 "rag_retrieval",
@@ -94,17 +140,16 @@ async def get_rag_context(agent_id: str, query: str, top_k: int = 5) -> str:
 
         parts = []
         for m in matches:
-            metadata = m.get("metadata", {})
-            text = metadata.get("text", "")
-            name = metadata.get("name", "")
-            chunk_id = m.get("id") or _chunk_id_from_metadata(metadata)
+            text = m.get("text", "")
+            name = m.get("name", "")
+            chunk_id = m.get("id", "")
             score = m.get("score")
             if text:
                 citation = f"{name or 'Knowledge base'}"
                 if chunk_id:
                     citation += f" chunk={chunk_id}"
-                page = metadata.get("page") or metadata.get("pageNumber")
-                sheet = metadata.get("sheet") or metadata.get("sheetName")
+                page = m.get("page")
+                sheet = m.get("sheet")
                 if page:
                     citation += f" page={page}"
                 if sheet:

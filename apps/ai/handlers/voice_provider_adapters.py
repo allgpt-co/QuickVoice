@@ -1,9 +1,12 @@
+import logging
 import os
-import warnings
 from dataclasses import dataclass
 from typing import Any
 
-from livekit.plugins import deepgram, elevenlabs, sarvam
+from aiobotocore.session import get_session
+from livekit.plugins import aws, deepgram, elevenlabs, sarvam
+
+logger = logging.getLogger("voice_provider_adapters")
 
 
 class ProviderAdapterError(RuntimeError):
@@ -19,12 +22,40 @@ class VoiceProviderAdapters:
 
 
 def build_voice_provider_adapters(config: dict[str, Any]) -> VoiceProviderAdapters:
-    stt = _build_stt(
-        config["stt"],
-        config["stt"].get("language", config["language"]),
+    logger.info(
+        "building voice provider adapters",
+        extra={
+            "stt_provider": config["stt"]["provider"],
+            "llm_provider": config["llm"]["provider"],
+            "tts_provider": config["tts"]["provider"],
+            "language": config["language"],
+        },
     )
-    llm = _build_llm(config["llm"])
-    tts = _build_tts(config["tts"], config["language"])
+
+    try:
+        stt = _build_stt(
+            config["stt"],
+            config["stt"].get("language", config["language"]),
+        )
+        logger.info("stt adapter ready: %s/%s", config["stt"]["provider"], config["stt"]["model"])
+    except Exception:
+        logger.exception("failed to build STT adapter (provider=%s)", config["stt"].get("provider"))
+        raise
+
+    try:
+        llm = _build_llm(config["llm"])
+        logger.info("llm adapter ready: %s/%s", config["llm"]["provider"], config["llm"]["model"])
+    except Exception:
+        logger.exception("failed to build LLM adapter (provider=%s)", config["llm"].get("provider"))
+        raise
+
+    try:
+        tts = _build_tts(config["tts"], config["language"])
+        logger.info("tts adapter ready: %s/%s", config["tts"]["provider"], config["tts"]["model"])
+    except Exception:
+        logger.exception("failed to build TTS adapter (provider=%s)", config["tts"].get("provider"))
+        raise
+
     return VoiceProviderAdapters(
         stt=stt,
         llm=llm,
@@ -62,23 +93,45 @@ def _build_stt(config: dict[str, Any], language: str):
 def _build_llm(config: dict[str, Any]):
     provider = config["provider"]
     if provider == "bedrock":
-        aws = _aws_plugin()
-        kwargs = {
-            "model": config["model"],
-            "region": os.getenv("AWS_REGION", "us-east-1"),
-        }
+        region = os.getenv("AWS_REGION", "us-east-1")
         access_key = os.getenv("AWS_ACCESS_KEY_ID")
         secret_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        if access_key or secret_key:
-            if not access_key:
-                raise ProviderAdapterError("AWS_ACCESS_KEY_ID is required when AWS_SECRET_ACCESS_KEY is set")
-            if not secret_key:
-                raise ProviderAdapterError("AWS_SECRET_ACCESS_KEY is required when AWS_ACCESS_KEY_ID is set")
-            kwargs["api_key"] = access_key
-            kwargs["api_secret"] = secret_key
-        return aws.LLM(**kwargs)
-    raise ProviderAdapterError(f"unsupported LLM provider: {provider}")
+        session_token = os.getenv("AWS_SESSION_TOKEN")
 
+        kwargs: dict[str, Any] = {
+            "model": config["model"],
+            "region": region,
+        }
+
+        if access_key or secret_key or session_token:
+            if not access_key:
+                raise ProviderAdapterError(
+                    "AWS_ACCESS_KEY_ID is required when AWS credentials are set"
+                )
+            if not secret_key:
+                raise ProviderAdapterError(
+                    "AWS_SECRET_ACCESS_KEY is required when AWS credentials are set"
+                )
+
+            if session_token:
+                session = get_session()
+                session.set_credentials(access_key, secret_key, session_token)
+                session.set_config_variable("region", region)
+                kwargs["session"] = session
+            else:
+                kwargs["api_key"] = access_key
+                kwargs["api_secret"] = secret_key
+
+        logger.info(
+            "constructing bedrock LLM (model=%s, region=%s, using_explicit_creds=%s, has_session_token=%s)",
+            kwargs.get("model"),
+            region,
+            "api_key" in kwargs or "session" in kwargs,
+            bool(session_token),
+        )
+        return aws.LLM(**kwargs)
+
+    raise ProviderAdapterError(f"unsupported LLM provider: {provider}")
 
 def _build_tts(config: dict[str, Any], language: str):
     provider = config["provider"]
@@ -105,17 +158,6 @@ def _build_tts(config: dict[str, Any], language: str):
         )
     raise ProviderAdapterError(f"unsupported TTS provider: {provider}")
 
-
-def _aws_plugin():
-    with warnings.catch_warnings():
-        warnings.filterwarnings(
-            "ignore",
-            message="TranscribeStreamingClient is deprecated.*",
-            category=DeprecationWarning,
-        )
-        from livekit.plugins import aws
-
-    return aws
 
 
 def _required_env(name: str) -> str:

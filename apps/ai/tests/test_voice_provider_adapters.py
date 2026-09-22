@@ -78,6 +78,34 @@ class VoiceProviderAdapterTests(unittest.TestCase):
             with self.assertRaisesRegex(ProviderAdapterError, "AWS_SECRET_ACCESS_KEY"):
                 build_voice_provider_adapters(self.config)
 
+    def test_build_voice_provider_adapters_uses_session_for_temporary_aws_credentials(self):
+        with patch.dict(
+            os.environ,
+            {
+                "AWS_ACCESS_KEY_ID": "a",
+                "AWS_SECRET_ACCESS_KEY": "s",
+                "AWS_SESSION_TOKEN": "t",
+                "AWS_REGION": "us-west-2",
+                "DEEPGRAM_API_KEY": "d",
+                "ELEVENLABS_API_KEY": "e",
+            },
+            clear=True,
+        ):
+            with (
+                patch("handlers.voice_provider_adapters.get_session") as get_session,
+                patch("handlers.voice_provider_adapters.aws.LLM") as llm,
+            ):
+                build_voice_provider_adapters(self.config)
+
+        session = get_session.return_value
+        session.set_credentials.assert_called_once_with("a", "s", "t")
+        session.set_config_variable.assert_called_once_with("region", "us-west-2")
+        llm.assert_called_once_with(
+            model="us.amazon.nova-micro-v1:0",
+            region="us-west-2",
+            session=session,
+        )
+
     def test_multilingual_nova_3_uses_runtime_multi_language(self):
         config = {
             **self.config,

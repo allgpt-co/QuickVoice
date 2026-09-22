@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -10,6 +10,7 @@ import {
   Loader2,
   Radio,
   Phone,
+  Save,
   Settings,
   Trash2,
   Wrench,
@@ -27,10 +28,18 @@ import {
 } from "@/src/components/ui/alert-dialog";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
+import { Input } from "@/src/components/ui/input";
 import { Skeleton } from "@/src/components/ui/skeleton";
+import { Switch } from "@/src/components/ui/switch";
 import { AgentTabs } from "@/src/components/agents/AgentTabs";
+import { toast } from "sonner";
+import type { Agent } from "@/src/lib/api/types";
 import { AgentPreviewPanel } from "@/src/components/agents/AgentPreviewPanel";
-import { useAgent, useDeleteAgent } from "@/src/hooks/queries/agents";
+import {
+  useAgent,
+  useDeleteAgent,
+  useUpdateAgent,
+} from "@/src/hooks/queries/agents";
 
 function HeaderSkeleton() {
   return (
@@ -48,6 +57,108 @@ function HeaderSkeleton() {
         ))}
       </div>
     </div>
+  );
+}
+
+function AgentDetailsForm({ agent }: { agent: Agent }) {
+  const [draftName, setDraftName] = useState(agent.name);
+  const [draftIsActive, setDraftIsActive] = useState(agent.isActive);
+  const updateAgent = useUpdateAgent(agent.agentId);
+
+  async function saveAgentDetails(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const name = draftName.trim();
+    if (name.length < 2) {
+      toast.error("Agent name must be at least 2 characters");
+      return;
+    }
+
+    try {
+      await updateAgent.mutateAsync({ name, isActive: draftIsActive });
+      toast.success("Agent details saved");
+    } catch {
+      // The mutation hook displays the API error.
+    }
+  }
+
+  return (
+    <form
+      onSubmit={saveAgentDetails}
+      className="border bg-card p-5"
+      aria-label="Agent details"
+    >
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <div className="grid min-w-0 flex-1 gap-5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+          <div className="grid gap-2">
+            <label
+              htmlFor="agent-name"
+              className="text-sm font-medium text-foreground"
+            >
+              Agent name
+            </label>
+            <Input
+              id="agent-name"
+              value={draftName}
+              onChange={(event) => setDraftName(event.target.value)}
+              minLength={2}
+              maxLength={100}
+              disabled={updateAgent.isPending}
+              aria-describedby="agent-name-description"
+            />
+            <p
+              id="agent-name-description"
+              className="text-xs text-muted-foreground"
+            >
+              This name is shown throughout the console.
+            </p>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 border bg-background px-4 py-3 sm:min-w-56">
+            <div className="min-w-0">
+              <label
+                htmlFor="agent-active"
+                className="text-sm font-medium text-foreground"
+              >
+                Active status
+              </label>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {draftIsActive
+                  ? "The agent can receive calls."
+                  : "The agent is paused and cannot receive calls."}
+              </p>
+            </div>
+            <Switch
+              id="agent-active"
+              checked={draftIsActive}
+              onCheckedChange={setDraftIsActive}
+              disabled={updateAgent.isPending}
+              aria-label={draftIsActive ? "Pause agent" : "Activate agent"}
+            />
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={
+            updateAgent.isPending ||
+            draftName.trim().length < 2 ||
+            (agent.name === draftName.trim() &&
+              agent.isActive === draftIsActive)
+          }
+          className="w-full lg:w-auto"
+        >
+          {updateAgent.isPending ? (
+            <>
+              <Loader2 className="animate-spin" /> Saving...
+            </>
+          ) : (
+            <>
+              <Save /> Save changes
+            </>
+          )}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -188,6 +299,8 @@ export default function AgentConfigPage() {
               </div>
             </div>
           </div>
+
+          <AgentDetailsForm agent={agent} />
 
           <AgentTabs agentId={agentId} />
           <AgentPreviewPanel
