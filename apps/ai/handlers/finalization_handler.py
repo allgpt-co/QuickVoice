@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from handlers.calllog_handler import build_call_log_payload, post_call_log_with_retry
+from handlers.langfuse_handler import publish_call_to_langfuse
 from utils.logger import logger, redact_sensitive
 
 
@@ -50,5 +51,14 @@ class CallFinalizer:
                 payload["evaluatedData"] = []
             if self._config.get("retention_days") is not None:
                 payload["metadata"]["retentionDays"] = self._config.get("retention_days")
+            langfuse_result = await publish_call_to_langfuse(
+                payload,
+                config=self._config,
+                call_context=self._call_context,
+            )
+            if langfuse_result:
+                payload["metadata"]["langfuseTraceId"] = langfuse_result["trace_id"]
+                if langfuse_result.get("trace_url"):
+                    payload["metadata"]["langfuseTraceUrl"] = langfuse_result["trace_url"]
             await self._post_call_log(payload)
             logger.info("[CALL_LOG] finalized call {}", redact_sensitive({"callId": payload["callId"]}))
