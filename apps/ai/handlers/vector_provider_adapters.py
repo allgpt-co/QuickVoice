@@ -770,11 +770,24 @@ _ADAPTER_ENV_NAMES = (
     "QDRANT_COLLECTION_NAME",
 )
 _cached_adapters: tuple[tuple[Optional[str], ...], VectorAdapters] | None = None
+_cached_vector_store: tuple[tuple[Optional[str], ...], BaseVectorStoreAdapter] | None = None
 
 
 def clear_vector_adapter_cache() -> None:
-    global _cached_adapters
+    global _cached_adapters, _cached_vector_store
     _cached_adapters = None
+    _cached_vector_store = None
+
+
+def get_vector_store_adapter() -> BaseVectorStoreAdapter:
+    """Vector-only operations must not require an embedding API key or model."""
+    global _cached_vector_store
+    fingerprint = tuple(os.environ.get(name) for name in _ADAPTER_ENV_NAMES)
+    if _cached_vector_store and _cached_vector_store[0] == fingerprint:
+        return _cached_vector_store[1]
+    adapter = build_vector_store_adapter()
+    _cached_vector_store = (fingerprint, adapter)
+    return adapter
 
 
 def get_vector_adapters(
@@ -789,7 +802,11 @@ def get_vector_adapters(
         return _cached_adapters[1]
 
     emb = build_embedding_adapter(embedding_provider)
-    vs = build_vector_store_adapter(vector_store_provider)
+    vs = (
+        get_vector_store_adapter()
+        if vector_store_provider is None
+        else build_vector_store_adapter(vector_store_provider)
+    )
     adapters = VectorAdapters(
         embedding=emb,
         vector_store=vs,

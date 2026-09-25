@@ -386,7 +386,9 @@ export const publicWidgetOriginAllowed = async (
   originHeader: string | undefined,
 ) => {
   const widget = await widgetRepository.findPublicWidget(widgetId);
-  if (!widget || !widget.enabled) return false;
+  // Disabled widgets still need CORS on errors and session-end requests.
+  // Starting a call remains gated by requireRunnablePublicWidget.
+  if (!widget) return false;
   const origin = normalizeRequestOrigin(originHeader);
   if (!origin) return false;
   return originAllowed(jsonStringArray(widget.allowedOrigins), origin);

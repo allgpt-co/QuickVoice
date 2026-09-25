@@ -40,6 +40,27 @@ const errorMiddleware = (err: Error, req: Request, res: Response, next: NextFunc
     message = "Request body is too large";
   }
 
+  if ((err as Error & { type?: string }).type === "entity.parse.failed") {
+    statusCode = StatusCodes.BAD_REQUEST;
+    code = "INVALID_JSON";
+    message = "Request body must contain valid JSON";
+  }
+
+  if (statusCode >= 500) {
+    const errorCode = (err as Error & { code?: unknown }).code;
+    // Preserve diagnostic codes and source locations, never request bodies,
+    // headers or exception messages that may contain credentials or PHI.
+    console.error("[api] request failed", {
+      requestId: getRequestId(req),
+      method: req.method,
+      route: req.route?.path,
+      errorType: err.name,
+      errorCode: typeof errorCode === "string" && /^[A-Z][A-Z0-9_]{1,63}$/.test(errorCode)
+        ? errorCode : undefined,
+      frames: err.stack?.split("\n").filter((line) => /^\s+at /.test(line)).slice(0, 6),
+    });
+  }
+
   return res.status(statusCode).json(
     createErrorEnvelope({
       code,

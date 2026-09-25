@@ -188,7 +188,7 @@ export const campaignBatchIntelligenceSchema = z.object({
 export const campaignReportBuildSchema = z.object({
   randomized: z.boolean().default(false),
   persistReport: z.boolean().default(false),
-});
+}).default({ randomized: false, persistReport: false });
 
 export type CampaignPersonalizationSchemaInput = z.infer<
   typeof campaignPersonalizationSchema

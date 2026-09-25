@@ -26,6 +26,7 @@ from handlers.vector_provider_adapters import (
     build_vector_store_adapter,
     clear_vector_adapter_cache,
     get_vector_adapters,
+    get_vector_store_adapter,
 )
 
 
@@ -113,6 +114,22 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         second = get_vector_adapters()
 
         self.assertIsNot(first, second)
+
+    def test_vector_only_operations_do_not_initialize_embedding_provider(self):
+        os.environ["VECTOR_STORE_PROVIDER"] = "qdrant"
+        os.environ["EMBEDDING_PROVIDER"] = "google"
+        os.environ.pop("GOOGLE_API_KEY", None)
+        with patch("handlers.vector_provider_adapters.build_embedding_adapter", side_effect=AssertionError("embedding must not initialize")):
+            first = get_vector_store_adapter()
+            self.assertIsInstance(first, QdrantVectorStoreAdapter)
+            self.assertIs(first, get_vector_store_adapter())
+
+    def test_full_adapter_pair_reuses_vector_only_client(self):
+        os.environ["VECTOR_STORE_PROVIDER"] = "qdrant"
+        os.environ["EMBEDDING_PROVIDER"] = "google"
+        os.environ["GOOGLE_API_KEY"] = "test-key"
+        first = get_vector_store_adapter()
+        self.assertIs(first, get_vector_adapters().vector_store)
 
     def test_factory_rejects_unsupported_providers(self):
         with self.assertRaises(VectorAdapterError):
