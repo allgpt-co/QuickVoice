@@ -22,7 +22,7 @@ from urllib.parse import urlparse, urlunparse
 from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
 from utils.pinecone_client import pinecone_client, pinecone_host
-from handlers.vector_provider_adapters import get_vector_adapters
+from handlers.vector_provider_adapters import get_vector_adapters, get_vector_store_adapter
 from handlers.kb_chunking import chunk_text as _chunk_text
 
 # ── lazy imports (heavy deps loaded once) ────────────────────────────────────
@@ -803,8 +803,7 @@ def upsert_kb_vectors(
     kb_id: str,
     doc_name: str,
 ) -> None:
-    adapters = get_vector_adapters()
-    adapters.vector_store.upsert(
+    get_vector_store_adapter().upsert(
         namespace=namespace,
         kb_id=kb_id,
         doc_name=doc_name,
@@ -818,8 +817,7 @@ def delete_kb_vectors(*, namespace: str, kb_id: str) -> None:
         _delete_kb_vectors(index=_index(), namespace=namespace, kb_id=kb_id)
         return
 
-    adapters = get_vector_adapters()
-    adapters.vector_store.delete_by_kb(namespace=namespace, kb_id=kb_id)
+    get_vector_store_adapter().delete_by_kb(namespace=namespace, kb_id=kb_id)
 
 
 def _delete_kb_vectors(*, index, namespace: str, kb_id: str) -> None:

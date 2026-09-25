@@ -9,6 +9,7 @@ import { extname } from "node:path";
 
 import { generateUploadUrl, readObjectBuffer } from "../../config/s3.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
+import { NotFoundError } from "../../common/errors/notFound.js";
 import { getOutboundBatchQueue } from "../../queues/outbound-batch.queue.js";
 import * as outboundCallRepository from "./outbound-call.repository.js";
 import * as campaignIntelligenceRepository from "./outbound-campaign-intelligence.repository.js";
@@ -282,7 +283,7 @@ export async function importBatchCampaignRecipients(
   const campaign =
     await campaignIntelligenceRepo.getCampaignForImport(args.campaignId);
   if (!campaign) {
-    throw new Error("Batch campaign not found");
+    throw new NotFoundError("Batch campaign not found");
   }
 
   if (!campaign.sourceFileKey) {
@@ -499,7 +500,7 @@ export async function ingestCampaignConversionEvent(
       args.organizationId
     );
   if (!campaign) {
-    throw new Error("Batch campaign not found");
+    throw new NotFoundError("Batch campaign not found");
   }
 
   const existing = await campaignIntelligenceRepository.hasConversionDedupeKey(
@@ -595,7 +596,7 @@ export async function buildBatchCampaignReport(
     args.organizationId
   );
   if (!campaign) {
-    throw new Error("Batch campaign not found");
+    throw new NotFoundError("Batch campaign not found");
   }
 
   const assignmentsByUnit = new Map<

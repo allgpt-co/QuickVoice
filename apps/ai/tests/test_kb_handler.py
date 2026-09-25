@@ -550,6 +550,17 @@ class KbHandlerTests(unittest.TestCase):
         self.assertEqual(calls[1][1]["namespace"], "agent_123")
         self.assertEqual(calls[1][1]["vectors"][0]["metadata"]["agentId"], "agent_123")
 
+    def test_delete_vectors_does_not_require_embedding_credentials(self):
+        from handlers.vector_provider_adapters import clear_vector_adapter_cache, QdrantVectorStoreAdapter
+        clear_vector_adapter_cache()
+        try:
+            with patch.dict(os.environ, {"VECTOR_STORE_PROVIDER": "qdrant", "EMBEDDING_PROVIDER": "google"}, clear=True):
+                with patch.object(QdrantVectorStoreAdapter, "delete_by_kb") as delete:
+                    kb_handler.delete_kb_vectors(namespace="agent_123", kb_id="kb_123")
+                    delete.assert_called_once_with(namespace="agent_123", kb_id="kb_123")
+        finally:
+            clear_vector_adapter_cache()
+
     def test_delete_kb_vectors_removes_only_selected_document_namespace(self):
         calls = []
 

@@ -1,4 +1,6 @@
 import { deleteObject } from "../../config/s3.js";
+import CustomApiError from "../../common/errors/customApiError.js";
+import { deleteKbDocumentVectors } from "./kb-processing-client.js";
 
 type KnowledgeSourceAssets = {
   kbId: string;
@@ -16,38 +18,42 @@ type CleanupKnowledgeSourceDeps = {
 
 export async function cleanupKnowledgeSourceAssets(
   source: KnowledgeSourceAssets,
-  deps: CleanupKnowledgeSourceDeps = {}
+  deps: CleanupKnowledgeSourceDeps = {},
 ) {
   const deleteObjectImpl = deps.deleteObjectImpl ?? deleteObject;
   const fetchImpl = deps.fetchImpl ?? fetch;
-  const cleanupTasks: Promise<unknown>[] = [];
-
-  if (source.sourceType !== "URL" && source.storagePath) {
-    cleanupTasks.push(deleteObjectImpl(source.storagePath));
-  }
+  // Keep the source file available until vector cleanup succeeds.
 
   if (source.agentId) {
-    const aiApiUrl = deps.aiApiUrl ?? process.env.AI_API_URL ?? "http://localhost:5555";
+    const aiApiUrl =
+      deps.aiApiUrl ?? process.env.AI_API_URL ?? "http://localhost:5555";
     const internalApiKey =
       deps.internalApiKey ?? process.env.INTERNAL_API_KEY?.trim();
     if (!internalApiKey) {
-      throw new Error("INTERNAL_API_KEY is required for KB vector cleanup");
+      throw new CustomApiError(
+        "Knowledge deletion is unavailable: internal AI authentication is not configured.",
+        503,
+        { code: "KB_CLEANUP_NOT_CONFIGURED" },
+      );
     }
-    cleanupTasks.push(
-      fetchImpl(
-        `${aiApiUrl.replace(/\/$/, "")}/kb/${encodeURIComponent(source.agentId)}/${encodeURIComponent(source.kbId)}`,
-        {
-          method: "DELETE",
-          headers: { "x-internal-key": internalApiKey },
-          signal: AbortSignal.timeout(10_000),
-        }
-      ).then(async (response) => {
-        if (!response.ok && response.status !== 404) {
-          throw new Error(`KB vector cleanup returned ${response.status}`);
-        }
-      })
-    );
+    await deleteKbDocumentVectors({
+      aiApiUrl,
+      internalApiKey,
+      agentId: source.agentId,
+      kbId: source.kbId,
+      fetchImpl,
+    });
   }
 
-  await Promise.all(cleanupTasks);
+  if (source.sourceType !== "URL" && source.storagePath) {
+    try {
+      await deleteObjectImpl(source.storagePath);
+    } catch {
+      throw new CustomApiError(
+        "The knowledge file could not be removed from storage. Check storage access and retry deletion.",
+        502,
+        { code: "KB_STORAGE_CLEANUP_FAILED" },
+      );
+    }
+  }
 }
