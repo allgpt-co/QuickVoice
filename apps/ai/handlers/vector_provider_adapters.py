@@ -8,10 +8,13 @@ from __future__ import annotations
 
 import abc
 import asyncio
+import math
 import os
 import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
+
+import httpx
 
 from utils.logger import logger, redact_sensitive
 
@@ -322,6 +325,139 @@ class FastEmbedAdapter(BaseEmbeddingAdapter):
         return list(generator[0])
 
 
+# ── Text Embeddings Inference (TEI) Adapter ─────────────────────────────────
+
+class TeiEmbeddingAdapter(BaseEmbeddingAdapter):
+    def __init__(
+        self,
+        url: Optional[str] = None,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        timeout_seconds: Optional[float] = None,
+        expected_dimensions: Optional[int] = None,
+        batch_size: Optional[int] = None,
+        transport: Optional[httpx.AsyncBaseTransport] = None,
+    ):
+        raw_url = url or os.environ.get("TEI_URL")
+        if not raw_url or not str(raw_url).strip():
+            raise KeyError("TEI_URL")
+        raw_key = api_key or os.environ.get("TEI_API_KEY")
+        if not raw_key or not str(raw_key).strip():
+            raise KeyError("TEI_API_KEY")
+
+        self._url = str(raw_url).strip().strip("'\"").rstrip("/")
+        self._api_key = str(raw_key).strip().strip("'\"")
+        self._model = model or os.environ.get("TEI_MODEL_NAME", "all-MiniLM-L12-v2")
+        self._timeout_seconds = (
+            timeout_seconds
+            if timeout_seconds is not None
+            else float(os.environ.get("TEI_TIMEOUT_SECONDS", "30"))
+        )
+        self._expected_dimensions = (
+            expected_dimensions
+            if expected_dimensions is not None
+            else int(os.environ.get("TEI_EMBEDDING_DIMENSIONS", "384"))
+        )
+        self._batch_size = (
+            batch_size
+            if batch_size is not None
+            else int(os.environ.get("TEI_BATCH_SIZE", "32"))
+        )
+        self._transport = transport
+
+        parsed_url = httpx.URL(self._url)
+        if parsed_url.scheme not in {"http", "https"} or not parsed_url.host:
+            raise VectorAdapterError("TEI_URL must be an absolute http(s) URL")
+        if parsed_url.username or parsed_url.password or parsed_url.query or parsed_url.fragment:
+            raise VectorAdapterError("TEI_URL must not contain credentials, query, or fragment")
+        if not math.isfinite(self._timeout_seconds) or self._timeout_seconds <= 0:
+            raise VectorAdapterError("TEI_TIMEOUT_SECONDS must be greater than zero")
+        if self._expected_dimensions <= 0:
+            raise VectorAdapterError("TEI_EMBEDDING_DIMENSIONS must be greater than zero")
+        if self._batch_size <= 0:
+            raise VectorAdapterError("TEI_BATCH_SIZE must be greater than zero")
+
+    def _validate_response(self, payload: Any, input_count: int) -> list[list[float]]:
+        data = payload.get("data") if isinstance(payload, dict) else None
+        if not isinstance(data, list):
+            raise VectorAdapterError("TEI embedding response did not contain a data list")
+        if len(data) != input_count:
+            raise VectorAdapterError(
+                f"TEI returned {len(data)} embeddings for {input_count} inputs"
+            )
+
+        by_index: dict[int, list[float]] = {}
+        for item in data:
+            if not isinstance(item, dict):
+                raise VectorAdapterError("TEI embedding response contained an invalid item")
+            index = item.get("index")
+            if isinstance(index, bool) or not isinstance(index, int) or index in by_index:
+                raise VectorAdapterError("TEI embedding response contained invalid indexes")
+            raw_embedding = item.get("embedding")
+            if not isinstance(raw_embedding, list):
+                raise VectorAdapterError("TEI embedding response did not contain a vector")
+            if len(raw_embedding) != self._expected_dimensions:
+                raise VectorAdapterError(
+                    "TEI embedding response expected "
+                    f"{self._expected_dimensions} dimensions but received {len(raw_embedding)}"
+                )
+
+            embedding: list[float] = []
+            for value in raw_embedding:
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise VectorAdapterError("TEI embedding response contained a non-numeric value")
+                numeric_value = float(value)
+                if not math.isfinite(numeric_value):
+                    raise VectorAdapterError("TEI embedding response contained a non-finite value")
+                embedding.append(numeric_value)
+            by_index[index] = embedding
+
+        if set(by_index) != set(range(input_count)):
+            raise VectorAdapterError("TEI embedding response contained invalid indexes")
+        return [by_index[index] for index in range(input_count)]
+
+    async def _embed(self, texts: list[str]) -> list[list[float]]:
+        if not texts:
+            return []
+
+        results: list[list[float]] = []
+        headers = {"Authorization": f"Bearer {self._api_key}"}
+        try:
+            async with httpx.AsyncClient(
+                timeout=self._timeout_seconds,
+                transport=self._transport,
+                trust_env=False,
+            ) as client:
+                for start in range(0, len(texts), self._batch_size):
+                    batch = texts[start : start + self._batch_size]
+                    response = await client.post(
+                        f"{self._url}/v1/embeddings",
+                        headers=headers,
+                        json={"input": batch, "model": self._model},
+                    )
+                    if not 200 <= response.status_code < 300:
+                        raise VectorAdapterError(
+                            f"TEI embedding request failed with HTTP {response.status_code}"
+                        )
+                    try:
+                        payload = response.json()
+                    except ValueError as exc:
+                        raise VectorAdapterError("TEI embedding response was not valid JSON") from exc
+                    results.extend(self._validate_response(payload, len(batch)))
+        except VectorAdapterError:
+            raise
+        except httpx.RequestError as exc:
+            raise VectorAdapterError("TEI embedding request failed") from exc
+        return results
+
+    async def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        return await self._embed(texts)
+
+    async def embed_query(self, text: str) -> list[float]:
+        embeddings = await self._embed([text])
+        return embeddings[0]
+
+
 # ── Pinecone Vector Store Adapter ───────────────────────────────────────────
 
 class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
@@ -593,6 +729,8 @@ def build_embedding_adapter(provider: Optional[str] = None) -> BaseEmbeddingAdap
         return PineconeEmbeddingAdapter()
     if chosen == "fastembed":
         return FastEmbedAdapter()
+    if chosen == "tei":
+        return TeiEmbeddingAdapter()
 
     raise VectorAdapterError(f"Unsupported EMBEDDING_PROVIDER: '{chosen}'")
 
@@ -617,6 +755,12 @@ _ADAPTER_ENV_NAMES = (
     "GOOGLE_EMBEDDING_MODEL",
     "GOOGLE_EMBEDDING_DIMENSIONS",
     "FASTEMBED_MODEL_NAME",
+    "TEI_URL",
+    "TEI_API_KEY",
+    "TEI_MODEL_NAME",
+    "TEI_TIMEOUT_SECONDS",
+    "TEI_EMBEDDING_DIMENSIONS",
+    "TEI_BATCH_SIZE",
     "PINECONE_API_KEY",
     "PINECONE_HOST",
     "PINECONE_EMBEDDING_MODEL",

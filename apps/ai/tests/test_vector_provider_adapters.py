@@ -1,8 +1,12 @@
 import asyncio
+import json
+import math
 import os
 import sys
 import unittest
 from unittest.mock import MagicMock, patch
+
+import httpx
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -15,6 +19,7 @@ from handlers.vector_provider_adapters import (
     PineconeEmbeddingAdapter,
     PineconeVectorStoreAdapter,
     QdrantVectorStoreAdapter,
+    TeiEmbeddingAdapter,
     VectorAdapterError,
     VectorMatch,
     build_embedding_adapter,
@@ -65,6 +70,14 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         self.assertIsInstance(adapters.embedding, PineconeEmbeddingAdapter)
         self.assertIsInstance(adapters.vector_store, PineconeVectorStoreAdapter)
 
+    def test_factory_resolves_tei_when_configured(self):
+        os.environ["TEI_URL"] = "http://minilm-l12-embeddings:80"
+        os.environ["TEI_API_KEY"] = "test-tei-api-key"
+
+        adapter = build_embedding_adapter("tei")
+
+        self.assertEqual(adapter.__class__.__name__, "TeiEmbeddingAdapter")
+
     def test_factory_does_not_switch_providers_from_unrelated_credentials(self):
         os.environ.pop("EMBEDDING_PROVIDER", None)
         os.environ.pop("VECTOR_STORE_PROVIDER", None)
@@ -88,6 +101,19 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         second = get_vector_adapters()
 
         self.assertIs(first, second)
+
+    def test_factory_refreshes_cached_tei_adapter_when_configuration_changes(self):
+        os.environ["EMBEDDING_PROVIDER"] = "tei"
+        os.environ["VECTOR_STORE_PROVIDER"] = "qdrant"
+        os.environ["TEI_URL"] = "http://minilm-l12-embeddings:80"
+        os.environ["TEI_API_KEY"] = "test-tei-api-key"
+        os.environ["TEI_MODEL_NAME"] = "all-MiniLM-L12-v2"
+
+        first = get_vector_adapters()
+        os.environ["TEI_MODEL_NAME"] = "replacement-model"
+        second = get_vector_adapters()
+
+        self.assertIsNot(first, second)
 
     def test_vector_only_operations_do_not_initialize_embedding_provider(self):
         os.environ["VECTOR_STORE_PROVIDER"] = "qdrant"
@@ -157,6 +183,179 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             "output_dimensionality": 768,
             },
         )
+
+    def test_tei_adapter_batches_authenticated_requests_and_preserves_response_order(self):
+        requests = []
+
+        def handler(request):
+            requests.append(request)
+            payload = json.loads(request.content)
+            vectors_by_text = {
+                "first": [1.0, 0.0, 0.0],
+                "second": [0.0, 1.0, 0.0],
+                "third": [0.0, 0.0, 1.0],
+                "query": [0.5, 0.5, 0.0],
+            }
+            data = [
+                {"index": index, "embedding": vectors_by_text[text]}
+                for index, text in reversed(list(enumerate(payload["input"])))
+            ]
+            return httpx.Response(200, json={"data": data, "model": payload["model"]})
+
+        adapter = TeiEmbeddingAdapter(
+            url="http://minilm-l12-embeddings:80",
+            api_key="test-tei-api-key",
+            model="all-MiniLM-L12-v2",
+            expected_dimensions=3,
+            batch_size=2,
+            transport=httpx.MockTransport(handler),
+        )
+
+        documents = asyncio.run(adapter.embed_documents(["first", "second", "third"]))
+        query = asyncio.run(adapter.embed_query("query"))
+
+        self.assertEqual(documents, [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        self.assertEqual(query, [0.5, 0.5, 0.0])
+        self.assertEqual([request.url.path for request in requests], ["/v1/embeddings"] * 3)
+        self.assertEqual([json.loads(request.content)["input"] for request in requests], [
+            ["first", "second"],
+            ["third"],
+            ["query"],
+        ])
+        for request in requests:
+            self.assertEqual(request.headers["authorization"], "Bearer test-tei-api-key")
+
+    def test_tei_adapter_rejects_malformed_embedding_responses(self):
+        cases = (
+            (
+                "count",
+                {"data": [{"index": 0, "embedding": [1.0, 0.0, 0.0]}]},
+                ["first", "second"],
+                "returned 1 embeddings for 2 inputs",
+            ),
+            (
+                "dimension",
+                {"data": [{"index": 0, "embedding": [1.0, 0.0]}]},
+                ["first"],
+                "expected 3 dimensions",
+            ),
+            (
+                "nonfinite",
+                {"data": [{"index": 0, "embedding": [1.0, math.nan, 0.0]}]},
+                ["first"],
+                "non-finite",
+            ),
+            (
+                "index",
+                {"data": [{"index": 1, "embedding": [1.0, 0.0, 0.0]}]},
+                ["first"],
+                "invalid indexes",
+            ),
+        )
+
+        for name, response, texts, message in cases:
+            with self.subTest(name=name):
+                if name == "nonfinite":
+                    transport = httpx.MockTransport(
+                        lambda request: httpx.Response(
+                            200,
+                            content=b'{"data":[{"index":0,"embedding":[1.0,NaN,0.0]}]}',
+                            headers={"content-type": "application/json"},
+                        )
+                    )
+                else:
+                    transport = httpx.MockTransport(
+                        lambda request, body=response: httpx.Response(200, json=body)
+                    )
+                adapter = TeiEmbeddingAdapter(
+                    url="http://minilm-l12-embeddings:80",
+                    api_key="test-tei-api-key",
+                    expected_dimensions=3,
+                    transport=transport,
+                )
+                with self.assertRaisesRegex(VectorAdapterError, message):
+                    asyncio.run(adapter.embed_documents(texts))
+
+    def test_tei_adapter_rejects_every_non_success_http_status(self):
+        for status_code in (199, 302):
+            with self.subTest(status_code=status_code):
+                transport = httpx.MockTransport(
+                    lambda request, status=status_code: httpx.Response(
+                        status,
+                        json={"data": [{"index": 0, "embedding": [1.0, 0.0, 0.0]}]},
+                    )
+                )
+                adapter = TeiEmbeddingAdapter(
+                    url="http://minilm-l12-embeddings:80",
+                    api_key="test-tei-api-key",
+                    expected_dimensions=3,
+                    transport=transport,
+                )
+                with self.assertRaisesRegex(
+                    VectorAdapterError,
+                    f"TEI embedding request failed with HTTP {status_code}",
+                ):
+                    asyncio.run(adapter.embed_query("query"))
+
+    def test_tei_adapter_requires_private_service_configuration(self):
+        with patch.dict(os.environ, {}, clear=True):
+            with self.assertRaisesRegex(KeyError, "TEI_URL"):
+                TeiEmbeddingAdapter()
+            with self.assertRaisesRegex(KeyError, "TEI_API_KEY"):
+                TeiEmbeddingAdapter(url="http://minilm-l12-embeddings:80")
+
+    def test_tei_adapter_rejects_secret_bearing_base_urls(self):
+        for url in (
+            "http://user:password@minilm-l12-embeddings:80",
+            "http://minilm-l12-embeddings:80?token=secret",
+            "http://minilm-l12-embeddings:80#secret",
+        ):
+            with self.subTest(url=url):
+                with self.assertRaisesRegex(VectorAdapterError, "must not contain credentials, query, or fragment"):
+                    TeiEmbeddingAdapter(url=url, api_key="test-tei-api-key")
+
+    def test_tei_adapter_ignores_ambient_http_proxy_configuration(self):
+        created_clients = []
+        real_async_client = httpx.AsyncClient
+
+        def create_client(**kwargs):
+            created_clients.append(kwargs)
+            return real_async_client(**kwargs)
+
+        transport = httpx.MockTransport(
+            lambda request: httpx.Response(
+                200,
+                json={"data": [{"index": 0, "embedding": [1.0, 0.0, 0.0]}]},
+            )
+        )
+        with patch("handlers.vector_provider_adapters.httpx.AsyncClient", side_effect=create_client):
+            adapter = TeiEmbeddingAdapter(
+                url="http://minilm-l12-embeddings:80",
+                api_key="test-tei-api-key",
+                expected_dimensions=3,
+                transport=transport,
+            )
+            asyncio.run(adapter.embed_query("query"))
+
+        self.assertEqual(len(created_clients), 1)
+        self.assertIs(created_clients[0]["trust_env"], False)
+
+    def test_tei_adapter_rejects_nonpositive_runtime_limits(self):
+        cases = (
+            ({"timeout_seconds": 0}, "TEI_TIMEOUT_SECONDS"),
+            ({"timeout_seconds": math.nan}, "TEI_TIMEOUT_SECONDS"),
+            ({"timeout_seconds": math.inf}, "TEI_TIMEOUT_SECONDS"),
+            ({"expected_dimensions": 0}, "TEI_EMBEDDING_DIMENSIONS"),
+            ({"batch_size": 0}, "TEI_BATCH_SIZE"),
+        )
+        for overrides, message in cases:
+            with self.subTest(overrides=overrides):
+                with self.assertRaisesRegex(VectorAdapterError, message):
+                    TeiEmbeddingAdapter(
+                        url="http://minilm-l12-embeddings:80",
+                        api_key="test-tei-api-key",
+                        **overrides,
+                    )
 
     def test_pinecone_adapter_preserves_full_chunk_text(self):
         adapter = PineconeVectorStoreAdapter()

@@ -24,7 +24,7 @@ For an embedding runtime explicitly configured for 256 tokens, use the settings 
 
 Only newly processed or reprocessed sources use these chunks. After deployment, run the existing server command `pnpm --filter server reindex:knowledge` to rebuild active sources and verify their ingestion status. Keep the chunk cap (`KB_MAX_CHUNKS_PER_DOCUMENT`, default 500) in mind because changing token budgets changes the number of chunks.
 
-Switching the actual embedding model is a separate configuration/integration change. Both document and query embeddings must use the same model. A model switch requires rebuilding embeddings in a separate compatible collection/index; all-MiniLM-L12-v2 produces 384-dimensional vectors. See [vector migration](qdrant-migration.md).
+Switching the actual embedding model is a separate configuration/integration change. Both document and query embeddings must use the same model. A model switch requires rebuilding embeddings in a separate compatible collection/index; all-MiniLM-L12-v2 produces 384-dimensional vectors. See [vector migration](qdrant-migration.md) and the [private MiniLM TEI deployment guide](minilm-tei-deployment.md).
 
 ## Verification
 
