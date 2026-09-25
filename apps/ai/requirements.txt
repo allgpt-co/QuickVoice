@@ -19,6 +19,7 @@ pinecone>=7.0,<8
 qdrant-client>=1.9,<2
 google-genai>=0.1.0,<1
 fastembed>=0.3.0,<1
+tokenizers>=0.21,<0.23
 pymupdf>=1.24,<2
 python-docx>=1.1,<2
 openpyxl>=3.1,<4

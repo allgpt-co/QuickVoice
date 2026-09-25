@@ -141,6 +141,21 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             },
         )
 
+    def test_pinecone_adapter_preserves_full_chunk_text(self):
+        adapter = PineconeVectorStoreAdapter()
+        index = MagicMock()
+        text = "information " * 150
+        with patch.object(adapter, "_index", return_value=index):
+            adapter.upsert(
+                namespace="agent_abc",
+                kb_id="kb_xyz",
+                doc_name="Doc",
+                chunks=[text],
+                embeddings=[[0.1, 0.2]],
+            )
+        vector = index.upsert.call_args.kwargs["vectors"][0]
+        self.assertEqual(vector["metadata"]["text"], text)
+
     def test_qdrant_adapter_upsert_query_and_delete(self):
         mock_models = MagicMock()
         mock_models.PointStruct = lambda id, vector, payload: MagicMock(id=id, vector=vector, payload=payload)
@@ -168,7 +183,7 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             adapter._client = mock_qdrant_client
 
             # 1. Upsert
-            chunks = ["Chunk 1 text", "Chunk 2 text"]
+            chunks = ["information " * 150, "Chunk 2 text"]
             embeddings = [[0.1, 0.2], [0.3, 0.4]]
             adapter.upsert(
                 namespace="agent_abc",
@@ -184,6 +199,7 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             self.assertEqual(len(upsert_kwargs["points"]), 2)
             self.assertEqual(upsert_kwargs["points"][0].payload["agentId"], "agent_abc")
             self.assertEqual(upsert_kwargs["points"][0].payload["kbId"], "kb_xyz")
+            self.assertEqual(upsert_kwargs["points"][0].payload["text"], chunks[0])
 
             # 2. Query
             mock_point = MagicMock()
