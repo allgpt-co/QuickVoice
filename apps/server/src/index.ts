@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { createServer } from "node:http";
 import path from "node:path";
-import express, { Request, type RequestHandler } from "express";
+import express, { Request } from "express";
 import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
@@ -22,7 +22,7 @@ import { getReadiness } from "./modules/system/readiness.service.js";
 import systemRuntimeRouter from "./modules/system/runtime.route.js";
 import contactRouter from "./modules/contact/contact.route.js";
 import { publicWidgetOriginAllowed } from "./modules/widgets/widget.service.js";
-import { setPublicWidgetCorsHeaders } from "./modules/widgets/public-widget-cors.js";
+import { createPublicWidgetCors } from "./modules/widgets/public-widget-cors.js";
 import "./workers/kb.worker.js";
 import "./workers/outbound-batch.worker.js";
 import swaggerUi from "swagger-ui-express";
@@ -60,40 +60,11 @@ app.use(
   }),
 );
 
-const publicWidgetPreflight: RequestHandler<{ widgetId: string }> = async (
-  req,
-  res,
-  next,
-) => {
-  try {
-    const origin = req.headers.origin;
-    const allowed = await publicWidgetOriginAllowed(
-      req.params.widgetId,
-      origin,
-    );
-    if (allowed && origin) {
-      setPublicWidgetCorsHeaders(res, origin);
-    }
-    res.status(allowed ? 204 : 403).end();
-  } catch (error) {
-    next(error);
-  }
-};
-
-// Public widget preflights must run before global console CORS, otherwise the
-// generic CORS middleware terminates customer-site OPTIONS requests without
-// the widget-specific origin allowlist headers.
-app.options(
-  `/api/${apiVersion}/public/widgets/:widgetId/config`,
-  publicWidgetPreflight,
-);
-app.options(
-  `/api/${apiVersion}/public/widgets/:widgetId/sessions`,
-  publicWidgetPreflight,
-);
-app.options(
-  `/api/${apiVersion}/public/widgets/:widgetId/sessions/:sessionId/end`,
-  publicWidgetPreflight,
+// Run widget CORS for every method, before console CORS, parsers and limits.
+const publicWidgetPath = `/api/${apiVersion}/public/widgets`;
+app.use(
+  `${publicWidgetPath}/:widgetId`,
+  createPublicWidgetCors(publicWidgetOriginAllowed),
 );
 
 /**
@@ -105,14 +76,16 @@ app.options(
 // Security headers
 app.use(helmet());
 
-// CORS
-app.use(
-  cors({
-    origin: trustedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-    credentials: true,
-  }),
-);
+// Public widgets use their own origin allowlist, including on error responses.
+const consoleCors = cors({
+  origin: trustedOrigins,
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  credentials: true,
+});
+app.use((req, res, next) => {
+  if (req.path.startsWith(`${publicWidgetPath}/`)) return next();
+  return consoleCors(req, res, next);
+});
 
 // Request logger
 app.use(

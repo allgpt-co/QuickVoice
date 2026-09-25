@@ -1,3 +1,5 @@
+import CustomApiError from "../../common/errors/customApiError.js";
+
 type FetchLike = (input: string, init?: RequestInit) => Promise<Response>;
 
 type KbProcessingPayload = {
@@ -91,14 +93,23 @@ export async function deleteKbDocumentVectors({
   fetchImpl?: FetchLike;
 }) {
   const baseUrl = trimTrailingSlashes(aiApiUrl);
-  await fetchJson(
-    fetchImpl,
-    `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}`,
-    {
-      method: "DELETE",
-      headers: { "x-internal-key": internalApiKey },
-    },
-  );
+  try {
+    await fetchJson(
+      fetchImpl,
+      `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}`,
+      {
+        method: "DELETE",
+        headers: { "x-internal-key": internalApiKey },
+        signal: AbortSignal.timeout(10_000),
+      },
+    );
+  } catch {
+    throw new CustomApiError(
+      "Knowledge vectors could not be removed. Check AI service connectivity, internal authentication and vector-store configuration, then retry.",
+      502,
+      { code: "KB_VECTOR_CLEANUP_FAILED" },
+    );
+  }
 }
 
 async function pollKbJob({

@@ -1,4 +1,3 @@
-import type { RequestHandler } from "express";
 import { Router } from "express";
 
 import authMiddleware from "../../middleware/auth.middleware.js";
@@ -11,57 +10,24 @@ import {
   endPublicWidgetSessionSchema,
   updateAgentWidgetSchema,
 } from "./widget.schema.js";
-import { publicWidgetOriginAllowed } from "./widget.service.js";
-import { setPublicWidgetCorsHeaders } from "./public-widget-cors.js";
 
 const router = Router();
 
-const publicWidgetCors: RequestHandler = async (req, res, next) => {
-  try {
-    const origin = req.headers.origin;
-    const widgetId = req.params.widgetId;
-    const allowed =
-      typeof widgetId === "string" &&
-      (await publicWidgetOriginAllowed(widgetId, origin));
-
-    if (allowed && origin) {
-      setPublicWidgetCorsHeaders(res, origin);
-    }
-
-    if (req.method === "OPTIONS") {
-      res.status(allowed ? 204 : 403).end();
-      return;
-    }
-
-    next();
-  } catch (error) {
-    next(error);
-  }
-};
-
-router.options("/public/widgets/:widgetId/config", publicWidgetCors);
-router.options("/public/widgets/:widgetId/sessions", publicWidgetCors);
-router.options(
-  "/public/widgets/:widgetId/sessions/:sessionId/end",
-  publicWidgetCors,
-);
+// Public CORS is mounted before request parsing in index.ts.
 
 router.get(
   "/public/widgets/:widgetId/config",
-  publicWidgetCors,
   widgetController.getPublicWidgetConfig,
 );
 
 router.post(
   "/public/widgets/:widgetId/sessions",
-  publicWidgetCors,
   validate(createPublicWidgetSessionSchema),
   widgetController.createPublicWidgetSession,
 );
 
 router.post(
   "/public/widgets/:widgetId/sessions/:sessionId/end",
-  publicWidgetCors,
   validate(endPublicWidgetSessionSchema),
   widgetController.endPublicWidgetSession,
 );

@@ -82,3 +82,20 @@ test("errorMiddleware returns field-addressable Zod validation errors", () => {
   assert.equal(response.body.requestId, "req_validation");
   assert.equal(Array.isArray(response.body.details.issues), true);
 });
+
+test("unexpected errors log diagnostic codes without exception messages or request secrets", (t) => {
+  const logged = t.mock.method(console, "error", () => undefined);
+  const error = Object.assign(new Error("private query values and credentials"), { code: "P2022" });
+  const response = {
+    status() { return this; },
+    json() { return this; },
+  };
+  errorMiddleware(error, {
+    headers: { authorization: "Bearer secret", "x-request-id": "req_tools" },
+    method: "GET", route: { path: "/tools" }, body: { private: "patient data" },
+  } as any, response as any, (() => undefined) as any);
+  const entry = logged.mock.calls[0]?.arguments as unknown as [string, Record<string, unknown>];
+  assert.equal(entry[1].errorCode, "P2022");
+  assert.equal(entry[1].requestId, "req_tools");
+  assert.doesNotMatch(JSON.stringify(entry), /private query|credentials|Bearer secret|patient data/);
+});

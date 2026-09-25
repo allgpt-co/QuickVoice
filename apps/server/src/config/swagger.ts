@@ -1859,7 +1859,7 @@ export const swaggerSpec = {
           },
         ],
         requestBody: {
-          required: true,
+          required: false,
           content: {
             "application/json": {
               schema: { $ref: "#/components/schemas/CampaignReportBuildRequest" },
@@ -1867,7 +1867,8 @@ export const swaggerSpec = {
           },
         },
         responses: {
-          200: { description: "Campaign report preview" },
+          200: { description: "Campaign report preview from saved campaign data" },
+          404: { description: "Campaign not found in the active organization" },
           400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
