@@ -291,6 +291,115 @@ jobs:
           done
           exit 1
 
+  docker-minilm-tei:
+    name: MiniLM TEI Docker Validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build pinned MiniLM TEI image
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3; do
+            if docker build \
+              --tag quickvoice-minilm-tei:ci \
+              --file apps/ai/embeddings/minilm_l12_v2/Dockerfile \
+              apps/ai/embeddings/minilm_l12_v2; then
+              exit 0
+            fi
+            echo "MiniLM TEI build failed on attempt ${attempt}; retrying after transient registry/network failure..."
+            sleep $((attempt * 20))
+          done
+          exit 1
+
+      - name: Verify derived model provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_id="$(docker create quickvoice-minilm-tei:ci)"
+          trap 'docker rm -f "${container_id}" >/dev/null 2>&1 || true' EXIT
+          docker cp \
+            "${container_id}:/models/all-MiniLM-L12-v2/quickvoice-model-manifest.json" \
+            /tmp/quickvoice-model-manifest.json
+          python3 - <<'PY'
+          import json
+
+          with open("/tmp/quickvoice-model-manifest.json", encoding="utf-8") as handle:
+              manifest = json.load(handle)
+          assert manifest["model_id"] == "sentence-transformers/all-MiniLM-L12-v2"
+          assert manifest["revision"] == "a50ef00143b4d5391434df20ae11632588ac25be"
+          assert manifest["source_max_seq_length"] == 128
+          assert manifest["runtime_max_seq_length"] == 256
+          assert len(manifest["derived_sentence_bert_config_sha256"]) == 64
+          PY
+
+      - name: Run authenticated MiniLM TEI canary
+        shell: bash
+        run: |
+          set -euo pipefail
+          container_id="$(docker run --detach \
+            --read-only \
+            --tmpfs /tmp:rw,nosuid,nodev,size=512m \
+            --env API_KEY=ci-test-key \
+            --publish 127.0.0.1:18080:80 \
+            quickvoice-minilm-tei:ci)"
+          cleanup() {
+            docker logs "${container_id}" || true
+            docker rm -f "${container_id}" >/dev/null 2>&1 || true
+          }
+          trap cleanup EXIT
+
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent \
+              --header 'Authorization: Bearer ci-test-key' \
+              http://127.0.0.1:18080/health >/dev/null; then
+              break
+            fi
+            if [ "${attempt}" -eq 60 ]; then
+              echo "MiniLM TEI did not become healthy"
+              exit 1
+            fi
+            sleep 2
+          done
+
+          unauthorized_status="$(curl --silent --output /dev/null --write-out '%{http_code}' \
+            --header 'Content-Type: application/json' \
+            --data '{"input":["health probe"],"model":"all-MiniLM-L12-v2"}' \
+            http://127.0.0.1:18080/v1/embeddings)"
+          test "${unauthorized_status}" = "401"
+
+          python3 - <<'PY'
+          import json
+          import math
+          import urllib.request
+
+          headers = {"Authorization": "Bearer ci-test-key"}
+          info_request = urllib.request.Request("http://127.0.0.1:18080/info", headers=headers)
+          with urllib.request.urlopen(info_request, timeout=10) as response:
+              info = json.load(response)
+          assert info["model_id"] == "/models/all-MiniLM-L12-v2"
+          assert info["served_model_name"] == "all-MiniLM-L12-v2"
+          assert info["max_input_length"] == 256
+
+          body = json.dumps({
+              "input": ["QuickVoice knowledge embedding canary"],
+              "model": "all-MiniLM-L12-v2",
+          }).encode()
+          embed_request = urllib.request.Request(
+              "http://127.0.0.1:18080/v1/embeddings",
+              data=body,
+              headers={**headers, "Content-Type": "application/json"},
+          )
+          with urllib.request.urlopen(embed_request, timeout=30) as response:
+              payload = json.load(response)
+          vector = payload["data"][0]["embedding"]
+          assert len(vector) == 384
+          assert all(math.isfinite(value) for value in vector)
+          PY
+
   quality-summary:
     name: Quality Summary
     runs-on: ubuntu-latest
@@ -306,6 +415,7 @@ jobs:
       - ai-python
       - docker-server
       - docker-ai
+      - docker-minilm-tei
     steps:
       - name: Write quality gate summary
         run: |
@@ -320,6 +430,7 @@ jobs:
             echo "- AI Python: ${{ needs.ai-python.result }}"
             echo "- Server Docker: ${{ needs.docker-server.result }}"
             echo "- AI Docker: ${{ needs.docker-ai.result }}"
+            echo "- MiniLM TEI Docker: ${{ needs.docker-minilm-tei.result }}"
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Fail if any quality job failed
@@ -334,7 +445,8 @@ jobs:
             "${{ needs.server.result }}" \
             "${{ needs.ai-python.result }}" \
             "${{ needs.docker-server.result }}" \
-            "${{ needs.docker-ai.result }}"; do
+            "${{ needs.docker-ai.result }}" \
+            "${{ needs.docker-minilm-tei.result }}"; do
             if [ "$result" != "success" ]; then
               echo "Quality job result was ${result}"
               exit 1
