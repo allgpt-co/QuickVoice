@@ -354,7 +354,7 @@ class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
                     "kbId": kb_id,
                     "name": doc_name,
                     "chunkIdx": i,
-                    "text": chunk[:1000],
+                    "text": chunk,
                 },
             }
             for i, (chunk, emb) in enumerate(zip(chunks, embeddings))
@@ -484,7 +484,7 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
                     "kbId": kb_id,
                     "name": doc_name,
                     "chunkIdx": i,
-                    "text": chunk[:1000],
+                    "text": chunk,
                 },
             )
             for i, (chunk, emb) in enumerate(zip(chunks, embeddings))

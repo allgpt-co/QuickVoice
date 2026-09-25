@@ -2,6 +2,7 @@ import asyncio
 import os
 import sys
 import unittest
+from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -116,7 +117,7 @@ class KbHandlerTests(unittest.TestCase):
         calls = {"embed": 0, "upsert": 0}
 
         async def fake_fetch_url(url):
-            return "x" * 5000
+            return "knowledge " * 1000
 
         async def fake_embed_chunks(chunks):
             calls["embed"] += 1
@@ -167,7 +168,7 @@ class KbHandlerTests(unittest.TestCase):
         calls = {"embed": 0, "upsert": 0}
 
         async def fake_fetch_url(url):
-            return "x" * 1200
+            return "knowledge " * 600
 
         async def fake_embed_chunks(chunks):
             calls["embed"] += 1
@@ -211,6 +212,42 @@ class KbHandlerTests(unittest.TestCase):
         self.assertEqual(result[0]["error"], result[0]["userMessage"])
         self.assertFalse(result[0]["retryable"])
         self.assertEqual(calls, {"embed": 0, "upsert": 0})
+
+    def test_process_documents_embeds_and_indexes_complete_token_limited_chunks(self):
+        text = "information " * 600 + "Final original text."
+        embedded = []
+
+        async def fake_embed(chunks):
+            embedded.extend(chunks)
+            return [[0.1, 0.2]] * len(chunks)
+
+        with (
+            patch.object(kb_handler, "validate_ingest_url"),
+            patch.object(kb_handler, "fetch_url", new=AsyncMock(return_value=text)),
+            patch.object(kb_handler, "embed_chunks", side_effect=fake_embed),
+            patch.object(kb_handler, "upsert_to_pinecone") as upsert,
+            patch.object(kb_handler, "MAX_INPUT_TOKENS", 128),
+        ):
+            results = asyncio.run(
+                kb_handler.process_documents({
+                    "agentId": "agent_123",
+                    "organizationId": "org_123",
+                    "documents": [{
+                        "kbId": "kb_tokens", "name": "Token document",
+                        "sourceType": "URL", "url": "https://example.com/knowledge",
+                    }],
+                })
+            )
+
+        from handlers.kb_chunking import get_tokenizer
+        self.assertEqual(results[0]["status"], "ok")
+        self.assertEqual(results[0]["chunks"], len(embedded))
+        self.assertGreater(len(embedded[0]), 1000)
+        self.assertTrue(embedded[-1].endswith("Final original text."))
+        for chunk in embedded:
+            self.assertLessEqual(len(get_tokenizer().encode(chunk).ids), 128)
+        self.assertEqual(upsert.call_args.args[0], embedded)
+        self.assertEqual(upsert.call_args.kwargs["namespace"], "agent_123")
 
     def test_process_documents_returns_structured_user_safe_empty_text_error(self):
         async def fake_fetch_url(_url):
@@ -433,7 +470,7 @@ class KbHandlerTests(unittest.TestCase):
         try:
             kb_handler._index = lambda: FakeIndex()
             kb_handler.upsert_to_pinecone(
-                chunks=["new text"],
+                chunks=["information " * 150],
                 embeddings=[[0.1, 0.2]],
                 namespace="agent_123",
                 kb_id="kb_123",
@@ -446,6 +483,7 @@ class KbHandlerTests(unittest.TestCase):
         self.assertEqual(calls[0][1]["namespace"], "agent_123")
         self.assertEqual(calls[0][1]["filter"], {"kbId": {"$eq": "kb_123"}})
         self.assertEqual(calls[1][0], "upsert")
+        self.assertEqual(calls[1][1]["vectors"][0]["metadata"]["text"], "information " * 150)
 
     def test_upsert_continues_when_existing_namespace_is_missing(self):
         calls = []
