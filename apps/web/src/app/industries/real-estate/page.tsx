@@ -1,10 +1,11 @@
 import { workflowPages } from "@/data/workflow-pages";
-import { WorkflowPage, workflowMetadata } from "@/components/seo/workflow-page";
+import { workflowMetadata } from "@/components/seo/workflow-page";
+import { PropertyManagementPage } from "@/components/seo/property-management-page";
 
 const page = workflowPages.realEstate!;
 
 export const metadata = workflowMetadata(page);
 
 export default function Page() {
-  return <WorkflowPage page={page} />;
+  return <PropertyManagementPage page={page} />;
 }

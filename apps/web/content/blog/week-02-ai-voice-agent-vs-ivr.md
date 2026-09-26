@@ -20,15 +20,17 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-16T18:15:25.564Z'
-  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
+  reviewedAt: '2026-09-26T05:11:25.447Z'
+  reviewer: >-
+    Codex (AI-assisted primary-source, repository and contextual-link review;
+    not human expert review)
   sources:
     - 'https://www.twilio.com/docs/voice/twiml/gather'
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
     - 'https://github.com/allgpt-co/QuickVoice'
     - 'https://quickvoice.co/pricing'
-  contentHash: c82f06b41bd4ac54b36a313413b601fc2aa53e2d06ec96ffe64d70254bf6b41e
+  contentHash: 5a2641af819053a5db615b0a9f00ce46edd55f23347e5015b8cc8d6bb3696781
 ---
 
 # AI Voice Agent vs IVR: Choose the Right Call-Handling Design
@@ -101,6 +103,8 @@ A business may keep a short menu or an established transaction path while adding
 Plan the transition and fallback explicitly. Test the carrier path and staff destination; do not assume every phone system supports the same transfers or routing options.
 
 The [IVR migration guide](/blog/how-to-migrate-ivr-to-ai-voice-agents) covers route inventory, acceptance gates, and rollback once the business decides to pilot a change.
+
+A property manager can keep established resident and safety routes while evaluating a limited leasing-intake path. The [after-hours leasing-call playbook](/blog/after-hours-leasing-call-handling) explains the coverage, failed-handoff and next-shift ownership questions to settle before changing that route.
 
 ## QuickVoice evaluation scope
 

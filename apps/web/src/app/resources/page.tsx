@@ -66,6 +66,12 @@ export default function ResourcesPage() {
       </section>
 
       <div className="site-container py-12 sm:py-16">
+        <section className="mb-10 rounded-xl border border-border bg-muted/30 p-6 sm:p-8" aria-labelledby="property-resource-heading">
+          <p className="eyebrow">Property-management evaluation kit</p>
+          <h2 id="property-resource-heading" className="mt-3 text-2xl font-semibold tracking-tight">Plan a request-only leasing pilot.</h2>
+          <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">Read a fictional call script, a leasing-specific checklist and 30 unexecuted synthetic test cases. Download the editable scorecard and empty pilot evidence log. These are planning materials, not customer results.</p>
+          <Link href="/resources/property-management-call-intake" className="mt-5 inline-flex min-h-11 items-center gap-2 font-semibold text-primary underline underline-offset-4">Explore the leasing-intake kit <ArrowRight aria-hidden="true" className="size-4" /></Link>
+        </section>
         <section id="checklist" className="scroll-mt-28 border-b border-border pb-10" aria-labelledby="checklist-heading">
           <h2 id="checklist-heading" className="text-2xl font-semibold tracking-tight">Use the checklist to define a decision.</h2>
           <p className="mt-4 max-w-3xl leading-7 text-muted-foreground">Start with one call type, a defined outcome, and a named human fallback. Record what the pilot must demonstrate and which requests it should leave with your team.</p>

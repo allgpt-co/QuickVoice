@@ -1,0 +1,12 @@
+family,representative_keyword,us_english_monthly_volume_estimate,owner_path,intent,implementation_note
+answering_service,property management answering service,880,/industries/real-estate,commercial,"QuickVoice software and scoped assistance; not a staffed human call center. Buyer-model comparison has separate evaluation intent."
+answering_service,answering service for property management companies,390,/industries/real-estate,commercial,"Same family; do not add a duplicate keyword landing page or sum close variants."
+answering_service,property management call answering service,70,/industries/real-estate,commercial,"Same family. No native PMS or automatic-booking claim."
+answering_service,residential property management answering service,50,/industries/real-estate,commercial,"Residential scope; avoid tenant consumer or company phone-number searches."
+apartment_answering,apartment answering service,110,/blog/property-management-answering-services,evaluation,"Compare AI/live/hybrid service models using documented boundaries; no unperformed vendor tests."
+after_hours,after hours answering service property management,90,/blog/after-hours-leasing-call-handling,workflow,"Leasing intake only; maintenance emergency handling requires a separate approved process."
+leasing_assistant,ai leasing agent,50,/blog/ai-voice-agents-property-management,implementation,"Strong established SERP competitors despite low provider difficulty; no traffic forecast."
+leasing_assistant,ai leasing assistant,50,/blog/ai-voice-agents-property-management,implementation,"Related family; do not treat overlapping estimates as independent demand."
+cost,property management answering service cost,,/blog/property-management-answering-service-cost,evaluation,"Reliable sampled volume unavailable; useful purchasing-objection content, not a volume-validated traffic claim."
+integration,property management phone agent integration,,/blog/property-management-phone-agent-integration-checklist,implementation,"Reliable sampled volume unavailable; no QuickVoice connector implied by a vendor API."
+script,leasing agent phone script,10,/resources/property-management-call-intake,resource,"Fictional script and unexecuted 30-case scorecard; no performance evidence."

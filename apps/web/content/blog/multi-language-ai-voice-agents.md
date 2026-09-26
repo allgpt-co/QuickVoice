@@ -20,8 +20,10 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-16T18:15:25.744Z'
-  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
+  reviewedAt: '2026-09-26T05:11:25.687Z'
+  reviewer: >-
+    Codex (AI-assisted primary-source, repository and contextual-link review;
+    not human expert review)
   sources:
     - 'https://developers.deepgram.com/docs/models-languages-overview'
     - 'https://developers.deepgram.com/docs/multilingual-code-switching'
@@ -33,7 +35,7 @@ evidenceReview:
     - >-
       https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
     - 'https://quickvoice.co/pricing'
-  contentHash: f5f1982a18763d6618d72fd4a47b727aba223dcc28544cbe123802083f75f6b8
+  contentHash: 565fff8b790a01138d1b202c7d2530d08899b98e885fd3c724ae05a9ebcfe29d
 ---
 
 # Multilingual AI Voice Agents: Validate Languages Across the Whole Call
@@ -115,5 +117,7 @@ Have fluent reviewers inspect both the conversation and resulting records. Measu
 Do not average a weak language result into a stronger overall score. Retest affected scenarios when changing a speech model, voice, prompt, or knowledge source.
 
 Apply the language-specific tests to one [customer support phone workflow](/use-cases/customer-support), with approved answers and a staff route for unsupported requests. Review [QuickVoice's implementation prerequisites](/open-source) and [operating-cost categories](/pricing) before selecting a provider configuration; these pages do not establish additional language coverage.
+
+For a property-management pilot, keep the first language configuration explicitly scoped and staff-reviewed. Use the [leasing-intake guide](/blog/ai-voice-agents-property-management) to separate public property answers from eligibility decisions and viewing requests; a translated conversation must not expand the assistant's authority.
 
 To evaluate a multilingual workflow, [discuss the languages and tasks your callers need](/company/contact) with example terminology, a fluent reviewer, and the required human fallback.

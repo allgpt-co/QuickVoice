@@ -19,8 +19,10 @@ ogImage: /og-image.png
 readTime: 5 min
 evidenceReview:
   status: reviewed
-  reviewedAt: '2026-09-16T18:15:25.151Z'
-  reviewer: 'Codex (primary-source, repository, and editorial journey review)'
+  reviewedAt: '2026-09-26T05:11:25.223Z'
+  reviewer: >-
+    Codex (AI-assisted primary-source, repository and contextual-link review;
+    not human expert review)
   sources:
     - 'https://calendly.com/pricing'
     - 'https://cal.com/pricing'
@@ -28,7 +30,7 @@ evidenceReview:
     - 'https://github.com/allgpt-co/QuickVoice'
     - 'https://docs.vapi.ai/assistants/examples/appointment-scheduling'
     - 'https://quickvoice.co/pricing'
-  contentHash: ac42a7841fb4139fa15ad2a7022e0c9cfb42334454f11596206c1a5df307c808
+  contentHash: 358e83f0651fb0a5952a98ca8595e156f400c9f0ae045c5738bfbed3e288747b
 ---
 
 # Free AI Appointment Scheduling Tools: What Is Actually Free?
@@ -41,23 +43,23 @@ Product details were checked against the linked official sources on September 6,
 
 ## Compare the job before comparing the tools
 
-| Your customer's task | Category to evaluate | What to check |
-| --- | --- | --- |
-| Pick an available time from a link | Booking page | Calendar connections, event types, cancellation rules |
-| Coordinate a meeting through messages | Scheduling assistant | Supported channels and subscription requirements |
-| Call the business and describe a request | Voice agent plus scheduling system | Phone service, calendar access, confirmation and fallback |
-| Request a service that staff must approve | Intake form or phone intake | Who reviews the request and confirms the appointment |
+| Your customer's task                      | Category to evaluate               | What to check                                             |
+| ----------------------------------------- | ---------------------------------- | --------------------------------------------------------- |
+| Pick an available time from a link        | Booking page                       | Calendar connections, event types, cancellation rules     |
+| Coordinate a meeting through messages     | Scheduling assistant               | Supported channels and subscription requirements          |
+| Call the business and describe a request  | Voice agent plus scheduling system | Phone service, calendar access, confirmation and fallback |
+| Request a service that staff must approve | Intake form or phone intake        | Who reviews the request and confirms the appointment      |
 
 Booking software determines which slots are available. A conversational agent needs permission and a working connection to that system before it can create appointments. A fluent spoken response is not evidence that a calendar entry exists.
 
 ## A shortlist with clear free-plan boundaries
 
-| Option | Officially documented offering | Suitable starting point | Boundary to verify |
-| --- | --- | --- | --- |
-| Calendly | Free includes one event type and one calendar connection | A solo operator offering one meeting type | Additional event types and automations are plan-dependent |
-| Cal.com | Individual plan is listed as free, with multiple event types and calendars | An individual managing several appointment types | Team routing and shared scheduling have separate requirements |
-| Google Calendar appointment schedules | Booking pages use calendar availability | An organization already using Google Calendar | Features depend on the account and subscription |
-| QuickVoice | MIT-licensed phone-agent source code | A team with an implementation owner evaluating phone intake | Hosting, calls, inference, and calendar integration are separate work and cost |
+| Option                                | Officially documented offering                                             | Suitable starting point                                     | Boundary to verify                                                             |
+| ------------------------------------- | -------------------------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Calendly                              | Free includes one event type and one calendar connection                   | A solo operator offering one meeting type                   | Additional event types and automations are plan-dependent                      |
+| Cal.com                               | Individual plan is listed as free, with multiple event types and calendars | An individual managing several appointment types            | Team routing and shared scheduling have separate requirements                  |
+| Google Calendar appointment schedules | Booking pages use calendar availability                                    | An organization already using Google Calendar               | Features depend on the account and subscription                                |
+| QuickVoice                            | MIT-licensed phone-agent source code                                       | A team with an implementation owner evaluating phone intake | Hosting, calls, inference, and calendar integration are separate work and cost |
 
 These distinctions come from [Calendly's pricing page](https://calendly.com/pricing), [Cal.com's pricing page](https://cal.com/pricing), [Google's appointment-schedule documentation](https://support.google.com/calendar/answer/11608416), and the [QuickVoice repository](https://github.com/allgpt-co/QuickVoice). A calendar product appearing here does not mean QuickVoice includes a preconfigured connector for it.
 
@@ -98,6 +100,8 @@ Use your appointment mix and expected call length. Separate one-time implementat
 Use fictional appointments to test an available slot, a slot taken before confirmation, a caller changing dates, and locations with different business hours. Also test cancellation, rescheduling, a calendar timeout, and a confirmation message that fails after the booking succeeds.
 
 Record the final calendar state, not just the transcript. When a result is uncertain, reconcile it before retrying so the customer does not receive duplicate appointments. Staff should be able to find and resolve an incomplete request.
+
+For leasing calls, a requested viewing is not a booked appointment. The [property-management leasing-intake guide](/blog/ai-voice-agents-property-management) applies this request-and-review boundary to property information, preferred times and a staff-owned follow-up process.
 
 ## Choose a starting point
 

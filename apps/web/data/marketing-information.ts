@@ -107,6 +107,20 @@ export const marketingInformation: Record<string, InformationPageContent> = {
       "Choose an industry to review its phone requests, sensitive information and exception paths. These guides describe implementation patterns and evaluation criteria; they do not establish customer deployments, built-in industry integrations or measured customer results.",
     sections: [
       {
+        title: "Property management: leasing intake",
+        body: "Start with approved listing answers, viewing preferences, and staff-reviewed follow-up. Explore a scoped assisted pilot and a fictional call-intake test pack, not a promise of autonomous booking or maintenance dispatch.",
+        links: [
+          {
+            href: "/industries/real-estate",
+            label: "Evaluate the leasing-intake pilot",
+          },
+          {
+            href: "/resources/property-management-call-intake",
+            label: "Use the call-intake checklist and test pack",
+          },
+        ],
+      },
+      {
         title: "Retail and e-commerce",
         body: "Product questions, order information and return requests need maintained policy content and authorized order access.",
         links: [
@@ -133,16 +147,6 @@ export const marketingInformation: Record<string, InformationPageContent> = {
           {
             href: "/industries/financial-services",
             label: "Read the financial services guide",
-          },
-        ],
-      },
-      {
-        title: "Real estate",
-        body: "Property enquiries, viewing requests and tenant questions depend on current records and a confirmed staff process.",
-        links: [
-          {
-            href: "/industries/real-estate",
-            label: "Read the real estate guide",
           },
         ],
       },
