@@ -17,8 +17,20 @@ from zoneinfo import ZoneInfo
 BRAND_REGEX = r"quick\s*voice"
 ROW_LIMIT = 25000
 GA_ROW_LIMIT = 10000
+PROPERTY_MANAGEMENT_PATHS = (
+    "/industries/real-estate",
+    "/blog/ai-voice-agents-property-management",
+    "/blog/property-management-answering-services",
+    "/blog/after-hours-leasing-call-handling",
+    "/blog/property-management-answering-service-cost",
+    "/blog/property-management-phone-agent-integration-checklist",
+    "/resources/property-management-call-intake",
+)
+PROPERTY_MANAGEMENT_URLS = tuple("https://quickvoice.co" + path for path in PROPERTY_MANAGEMENT_PATHS)
+PROPERTY_MANAGEMENT_PAGE_REGEX = "^(?:" + "|".join(re.escape(url) for url in PROPERTY_MANAGEMENT_URLS) + ")$"
 CLUSTERS = (
     ("Alternatives and comparisons", r"vapi|retell|synthflow|bland|elevenlabs|deepgram"),
+    ("Property management", r"property[ -]+manage|leasing|tenant|multifamily"),
     ("Open source", r"open[ -]?source|self[ -]?host"),
     ("Appointment scheduling", r"appointment|schedul|booking|calendar"),
     ("IVR replacement", r"\bivr\b"),
@@ -116,12 +128,49 @@ def select_end(gsc_end, requested, ga_today, ga_lag_days=2):
     return requested or safe_end
 
 
-def ga_filter(country="United States", organic=True):
+def ga_filter(country="United States", organic=True, landing_pages=None):
     expressions = [{"filter": {"fieldName": "country", "stringFilter": {"matchType": "EXACT", "value": country}}},
         {"filter": {"fieldName": "hostName", "inListFilter": {"values": ["quickvoice.co", "www.quickvoice.co"]}}}]
     if organic:
         expressions.append({"filter": {"fieldName": "sessionDefaultChannelGroup", "stringFilter": {"matchType": "EXACT", "value": "Organic Search"}}})
+    if landing_pages is not None:
+        expressions.append({"filter": {"fieldName": "landingPage", "inListFilter": {"values": list(landing_pages)}}})
     return {"andGroup": {"expressions": expressions}}
+
+
+def property_management_requests(ga, site, windows, brand_regex):
+    """Exact page/landing cohorts, not a claim that every visit has sector intent."""
+    requests = {}
+    for period, window in windows.items():
+        filters = [
+            {"dimension": "country", "operator": "equals", "expression": "usa"},
+            {"dimension": "page", "operator": "includingRegex", "expression": PROPERTY_MANAGEMENT_PAGE_REGEX},
+        ]
+        for cohort, dimensions in (
+            ("us_property_management", (("totals", []), ("daily", ["date"]), ("pages", ["page"]), ("queries", ["query"]), ("query_pages", ["query", "page"]))),
+            ("us_property_management_nonbrand", (("totals", []), ("queries", ["query"]), ("query_pages", ["query", "page"]))),
+        ):
+            cohort_filters = filters + ([{"dimension": "query", "operator": "excludingRegex", "expression": brand_regex}] if cohort.endswith("nonbrand") else [])
+            for suffix, dims in dimensions:
+                requests[f"gsc_{period}_{cohort}_{suffix}"] = (gsc_base(site) + "/searchAnalytics/query", {
+                    **window, "type": "web", "dataState": "final", "dimensions": dims,
+                    "rowLimit": ROW_LIMIT, "dimensionFilterGroups": [{"filters": cohort_filters}],
+                })
+        base = {"dateRanges": [window], "limit": GA_ROW_LIMIT,
+                "dimensionFilter": ga_filter(landing_pages=PROPERTY_MANAGEMENT_PATHS)}
+        for suffix, dims in (("totals", []), ("daily", ["date"]), ("landing_pages", ["landingPage"]), ("events", ["eventName"])):
+            metrics = ("eventCount",) if suffix == "events" else ("sessions", "engagedSessions", "keyEvents")
+            requests[f"ga_{period}_us_organic_property_management_{suffix}"] = (ga, {
+                **base, "dimensions": [{"name": dim} for dim in dims],
+                "metrics": [{"name": metric} for metric in metrics],
+                "orderBys": [{"metric": {"metricName": metrics[0]}, "desc": True}],
+            })
+    for index, url in enumerate(PROPERTY_MANAGEMENT_URLS, 1):
+        requests[f"gsc_property_management_inspection_{index}"] = (
+            "https://searchconsole.googleapis.com/v1/urlInspection/index:inspect",
+            {"inspectionUrl": url, "siteUrl": site, "languageCode": "en-US"},
+        )
+    return requests
 
 
 def report_requests(property_id, site, stream_id, windows, brand_regex=BRAND_REGEX):
@@ -131,6 +180,7 @@ def report_requests(property_id, site, stream_id, windows, brand_regex=BRAND_REG
     requests = {
         "ga_property": (admin, None),
         "ga_key_events": (admin + "/keyEvents", None),
+        "ga_custom_dimensions": (admin + "/customDimensions", None),
         "ga_enhanced_measurement": (admin + f"/dataStreams/{stream_id}/enhancedMeasurementSettings", None),
         "gsc_sitemaps": (gsc + "/sitemaps", None),
     }
@@ -172,6 +222,8 @@ def report_requests(property_id, site, stream_id, windows, brand_regex=BRAND_REG
             requests[f"ga_{period}_{cohort}_events"] = (ga,
                 {**filtered, "dimensions": [{"name": "eventName"}], "metrics": [{"name": "eventCount"}],
                  "orderBys": [{"metric": {"metricName": "eventCount"}, "desc": True}]})
+    if property_id == "543950329" and site == "sc-domain:quickvoice.co":
+        requests.update(property_management_requests(ga, site, windows, brand_regex))
     return requests
 
 
@@ -216,6 +268,64 @@ def ga_values(response):
     return [dict(zip(headers, [v["value"] for v in row.get("dimensionValues", [])] + [v["value"] for v in row.get("metricValues", [])])) for row in response.get("rows", [])]
 
 
+def property_management_summary(reports, period, before_creation=False):
+    prefix = f"gsc_{period}_us_property_management"
+    if prefix + "_totals" not in reports:
+        return []
+    lines = ["", "### US property-management page cohort", "",
+        "Exact seven canonical URLs; page membership is not a query-intent or qualified-prospect classification.",
+        "| GSC page cohort | Clicks | Impressions | CTR | Avg position |", "|---|---:|---:|---:|---:|"]
+    for suffix, label in (("_totals", "US exact pages, all queries"), ("_nonbrand_totals", "US exact pages, reported nonbrand only")):
+        rows = response_rows(reports, prefix + suffix)
+        if rows is None:
+            lines.append(f"| {label} | ERROR | — | — | — |")
+        else:
+            row = rows[0] if rows else {"clicks": 0, "impressions": 0, "ctr": 0, "position": 0}
+            position = f"{row['position']:.2f}" if row["impressions"] else "—"
+            lines.append(f"| {label} | {row['clicks']} | {row['impressions']} | {row['ctr']:.2%} | {position} |")
+    queries, totals = response_rows(reports, prefix + "_queries"), response_rows(reports, prefix + "_totals")
+    if queries is not None and totals:
+        lines.append(f"Returned query rows explain {sum(row['clicks'] for row in queries)} of {totals[0]['clicks']} cohort clicks and {sum(row['impressions'] for row in queries)} of {totals[0]['impressions']} impressions. Unreported query identity stays unknown; the remainder is not classified as nonbrand.")
+    ga_prefix = f"ga_{period}_us_organic_property_management"
+    if before_creation:
+        lines.append("GA cohort unavailable: this window predates property creation.")
+    else:
+        report = reports.get(ga_prefix + "_totals", {})
+        if report.get("status") == "ok":
+            rows = ga_values(report["response"])
+            row = rows[0] if rows else {}
+            lines.append(f"Recorded US organic sessions landing on cohort pages: {row.get('sessions', '0')}; engaged sessions: {row.get('engagedSessions', '0')}; all key events: {row.get('keyEvents', '0')}.")
+        else:
+            lines.append("ERROR: GA cohort sessions unavailable; not zero.")
+        report = reports.get(ga_prefix + "_events", {})
+        if report.get("status") == "ok":
+            values = {row["eventName"]: row["eventCount"] for row in ga_values(report["response"])}
+            missing = "unknown (row limit)" if report.get("row_limit_reached") else "0"
+            lines.append("Same landing-session cohort event counts: " + "; ".join(f"`{name}` = {values.get(name, missing)}" for name in ("generate_lead", "qualify_lead", "close_convert_lead")) + ". These are not independently verified sales outcomes.")
+        else:
+            lines.append("ERROR: GA cohort events unavailable; not zero.")
+    return lines
+
+
+def inspection_summary(reports):
+    names = sorted(name for name in reports if name.startswith("gsc_property_management_inspection_"))
+    if not names:
+        return []
+    lines = ["## Property-management indexed-snapshot observations", "",
+             "Read-only URL Inspection, once per exact cohort URL. This is Google's indexed snapshot, not a live test or an indexing request. An unpublished/new URL may legitimately be unknown.", ""]
+    for name in names:
+        report = reports[name]
+        url = report.get("request", {}).get("inspectionUrl", "(URL unavailable)")
+        if report.get("status") != "ok":
+            lines.append(f"- {url}: ERROR; index state unknown.")
+            continue
+        data = report.get("response", {}).get("inspectionResult", {}).get("indexStatusResult", {})
+        # Provider strings are serialized rather than interpreted as Markdown.
+        fields = {key: data.get(key, "not returned") for key in ("verdict", "coverageState", "indexingState", "lastCrawlTime", "googleCanonical", "userCanonical")}
+        lines.append(f"- {url}: `{json.dumps(fields, ensure_ascii=True)}`")
+    return lines + [""]
+
+
 def markdown_summary(result):
     reports = result["reports"]
     property_created = reports.get("ga_property", {}).get("response", {}).get("createTime", "")[:10]
@@ -224,7 +334,8 @@ def markdown_summary(result):
         "", "US = GSC country `usa`; GA United States + production hostname. GA organic = Organic Search (all search engines).",
         "**Reported nonbrand queries omit anonymized queries; zero reported nonbrand clicks does not mean zero total nonbrand clicks.**",
         "GA has no final-data certificate. Its property-timezone lag buffer and matching calendar labels do not make GA/GSC metrics interchangeable.",
-        "Historical comparisons crossing the known Aug 12–Sep 5, 2026 GA measurement interruption are not valid growth comparisons.", ""]
+        "Historical comparisons crossing the known Aug 12–Sep 5, 2026 GA measurement interruption are not valid growth comparisons.",
+        "Consent controls were observed publicly on Sep 25, 2026; the exact production cutover was not established by the Sep 21 local repair record. GA is a consent-dependent subset: do not interpret the September collection break as an SEO decline or compare different measurement regimes without annotation.", ""]
     if property_created:
         lines += [f"GA property created: {property_created}. Dates before creation are unmeasured, not zero demand.", ""]
     registration = reports.get("ga_key_events", {})
@@ -270,6 +381,7 @@ def markdown_summary(result):
             lines.append("Event counts: " + "; ".join(f"`{name}` = {counts.get(name, missing)}" for name in ("generate_lead", "qualify_lead", "close_convert_lead")) + ".")
         else:
             lines.append("ERROR: GA organic events unavailable; not zero.")
+        lines += property_management_summary(reports, period, before_creation)
         rows = response_rows(reports, f"gsc_{period}_us_nonbrand_queries")
         if rows is not None:
             lines += ["", "### Reported nonbrand query clusters", "", "| Cluster | Queries | Clicks | Impressions | Weighted position |", "|---|---:|---:|---:|---:|"]
@@ -277,6 +389,7 @@ def markdown_summary(result):
                 pos = f"{group['position']:.2f}" if group["position"] is not None else "—"
                 lines.append(f"| {name} | {group['queries']} | {group['clicks']} | {group['impressions']} | {pos} |")
         lines.append("")
+    lines += inspection_summary(reports)
     lines += ["## Collection warnings", ""]
     for name, report in reports.items():
         if report.get("status") == "error":
@@ -368,9 +481,17 @@ def main():
             "coverage": "Empty successful responses mean no recorded rows for the request, not proof of no business activity. Errors are retained as errors. Missing daily rows do not establish whether tracking failed or traffic was absent.",
             "limits": f"Up to {ROW_LIMIT} top GSC rows and {GA_ROW_LIMIT} GA rows per grouped report; no exhaustive-row claim. GA rowCount and metadata retain truncation/thresholding evidence. GSC sitemap indexed field is deprecated.",
             "known_measurement_gap": "GA daily rows were absent 2026-08-12 through 2026-09-05 and live tag was absent at the Sep 6 pre-repair audit; collection resumed Sep 6. Do not interpret comparisons spanning this interruption as growth. Missing rows alone do not prove tracking failure.",
+            "consent_coverage": "Default-off consent controls were observed on production HTTP on Sep 25, 2026; exact deployment time was not established. The Sep 21 document is local repair/handoff evidence, not a deployment timestamp. GA and optional enquiry source context omit nonconsenting activity; no guessed coverage multiplier is applied.",
         },
         "reports": reports,
     }
+    if args.property == "543950329" and args.site == "sc-domain:quickvoice.co":
+        result["filters"]["property_management"] = {
+            "gsc_exact_canonical_urls": list(PROPERTY_MANAGEMENT_URLS),
+            "gsc_page_regex": PROPERTY_MANAGEMENT_PAGE_REGEX,
+            "ga_exact_landing_paths": list(PROPERTY_MANAGEMENT_PATHS),
+            "definition": "Page cohort includes all query identities; its separate nonbrand subset omits anonymized queries. GA events are restricted to the same US organic landing-session cohort, not events occurring only on those pages. Neither establishes a verified property-management prospect.",
+        }
     write_private(args.output, json.dumps(result, indent=2) + "\n")
     write_private(summary_path, markdown_summary(result))
     errors = [name for name, report in reports.items() if report["status"] == "error"]

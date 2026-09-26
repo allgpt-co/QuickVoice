@@ -23,6 +23,14 @@ only the existing reporting grant; it does not need Analytics edit access.
 See [completion evidence and remaining activation](completion-2026-09-18.md).
 Automation does not establish a completed human review or reconciled sales results.
 
+### Property-management extension — September 26
+
+The reporter now adds the [exact seven-page property-management cohort](property-management-execution.md), separate US reported-nonbrand query subsets, a matching GA US organic **landing-session** cohort, and one read-only URL Inspection per cohort URL. It activates only for property `543950329` and `sc-domain:quickvoice.co`; reports for other configured properties do not acquire QuickVoice-specific page filters. All existing report names and cohort definitions remain available.
+
+**Scheduling handoff remains pending:** the existing private workflow checks out a reviewed public commit from `seo-operations/source-revision`. After this implementation is reviewed, merged and its public URLs verified, the private-reporting owner must update that existing pin to the merged commit, run its existing manual dispatch once, inspect errors/cohorts, and retain the next Monday run. No new schedule or secret is required. The locally inspected private workflow copy still pins `1414cde5ee3c337e06b4dda544f2482f582f0e27`; that is local evidence, not a fresh remote-state claim. This code edit alone does not update the running private job.
+
+With the default five comparison/recovery windows, the extended run issues **209 requests** including freshness probes: 12 additional sector reports per window, seven URL inspections once per run, and a custom-dimension metadata read. The count changes with selected windows; the previous 141-request run remains historical evidence, not a current acceptance target. No DataForSEO calls, indexing requests, GA writes or events are added.
+
 ## Dates and reproducible comparisons
 
 - By default, query the latest 21 days twice (`dataState=all` and `final`). Use Google's `firstIncompleteDate` minus one day; if that field is absent, conservatively use the newest returned final daily row. No final rows means failure, not an assumed date.
@@ -43,18 +51,27 @@ Automation does not establish a completed human review or reconciled sales resul
 | GA global context | Existing all-traffic totals, channels, source/medium and landing-page reports retained |
 | GA US all traffic | `country = United States`; hostname `quickvoice.co` or `www.quickvoice.co` |
 | GA US organic | Same US/hostname filters plus `sessionDefaultChannelGroup = Organic Search` (all search engines, not just Google) |
+| GSC US property-management pages | US Web final data with an anchored exact canonical-URL allowlist; independent totals, daily, pages, queries and query-page rows |
+| GSC US property-management reported nonbrand | Same exact page cohort plus the existing brand-regex exclusion; totals, queries and query-page rows; anonymous query identity remains unknown |
+| GA US organic property-management landings | Existing US/production-host/Organic Search filters plus `landingPage` in the seven exact paths; totals, daily, landings and event counts |
 
 `--brand-regex` overrides the GSC RE2 expression for both included/excluded cohorts. Treat changes as a new baseline and record the exact regex. This is a simple brand-string classification, not Google's machine-classified brand feature. Ambiguous navigational queries and unrelated brands can remain in the nonbrand cohort; manually review intent before claiming qualified demand.
+
+The exact page allowlist lives in `PROPERTY_MANAGEMENT_PATHS` in the reporter and is included with its canonical URLs/regex in the private JSON. GSC matches the canonical apex URLs exactly, not www, query variants, trailing-slash variants, or similarly named articles. GA uses query-free landing paths and both production hostnames. Page membership does **not** classify a visitor as a property-management buyer. A property-management enquiry that first landed outside these seven pages is outside this acquisition-page cohort, even if the verified sales prospect belongs to the target sector.
+
+GA cohort event counts follow sessions landing on those pages, including subsequent events on the contact page; they are not restricted to events whose current `pagePath` is in the list. They are still not a CRM outcome or a closed acquisition-cohort conversion rate. Keep verified sector prospects as a separate private sales cohort without adding fields to the strict lead-scorecard CSV.
 
 ## Interpret the exports
 
 - **Query anonymity:** the summary compares returned US query-row clicks/impressions with independent US totals. The missing remainder is never assigned to either brand cohort. “Zero clicks from reported US nonbrand queries” does not establish zero total US nonbrand clicks. Including/excluding a query filter also omits anonymized data.
-- GSC reports include global totals/daily/pages/queries and US totals/daily/devices/pages/query-page pairs. The heuristic query-cluster table sums **query-only** rows and weights position by impressions. Each query belongs to one cluster; the order is alternatives/comparisons, open source, scheduling, IVR, multilingual, automotive, receptionist/answering, pricing, other. These clusters are an inspection aid, not proof of intent, cannibalization, or predicted traffic.
+- GSC reports include global totals/daily/pages/queries and US totals/daily/devices/pages/query-page pairs. The heuristic query-cluster table sums **query-only** rows and weights position by impressions. Each query belongs to one cluster; the order is alternatives/comparisons, property management, open source, scheduling, IVR, multilingual, automotive, receptionist/answering, pricing, other. These labels are an inspection aid, not proof of intent, page membership, cannibalization, or predicted traffic.
 - GA retains US organic landing pages and full event-name counts separately from session totals. The summary calls out `generate_lead`, `qualify_lead`, and `close_convert_lead`; **all `keyEvents` are not an enquiry count**. Key-event registration is read from the Admin API, and missing `generate_lead` registration is flagged.
 - A delivered enquiry, a booked meeting, a qualified opportunity, and a GA event are different facts. Use inbox/CRM evidence and the offline lead scorecard for business outcomes. Never infer organic source for an enquiry with unknown attribution, and keep synthetic QA activity out of business-result claims.
 - The script records each failed request as an error and exits nonzero. It does not replace failures with zero activity. Empty successful responses mean no recorded rows for that request, not evidence that no enquiries or users existed.
 - Grouped requests cap GSC at **25,000 top rows**, GA at **10,000 rows**; there is no exhaustive-row claim or hidden-query estimate. A reached cap is flagged. Inspect GA `rowCount` and retained `metadata` for thresholding, sampling, and other-row loss. GSC can omit rows even below the cap. A daily-row gap alone cannot distinguish no traffic from absent measurement.
 - Sitemap `contents[].indexed` is deprecated and never used as an indexed-page count. URL Inspection describes Google's most recent indexed/crawled observation, not a live URL test. Compare it with the actual response status, robots directives, canonical and last-crawl date before calling an old exclusion a current defect.
+- The property-management inspection summary preserves verdict, coverage/indexing state, crawl time and Google/user canonicals. A successful response with missing fields is **not returned**, not indexed. An API failure is **ERROR/unknown** and the run exits nonzero; it never substitutes zero demand or a successful indexing request. Newly planned/unpublished routes may be unknown to Google legitimately.
+- Consent controls were observed in live HTTP on September 25. The September 21 repair note does not establish the exact production cutover. The sharp September collection break and default-off consent mean GA measures a consent-dependent subset. Annotate the actual deployment when verified; do not infer lost search demand or apply an invented consent-coverage multiplier. GSC clicks and independently verified sales outcomes remain separate evidence.
 
 ## September 16, 2026 verification
 

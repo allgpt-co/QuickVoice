@@ -322,7 +322,9 @@ export function ContactForm({
             className="mt-1 text-sm text-muted-foreground"
           >
             Tell us about your calling workflow and what you would like to
-            achieve. 10–5,000 characters.
+            achieve. For a property-management pilot, you can include
+            approximate portfolio size, call volume, current systems, and who
+            handles follow-up. These details are optional. 10–5,000 characters.
           </p>
           <textarea
             {...fieldProps("message")}
@@ -333,10 +335,9 @@ export function ContactForm({
           {fieldError("message")}
         </div>
         <p className="text-xs leading-5 text-muted-foreground">
-          Please leave out passwords and sensitive customer information. If you allow analytics, basic
-          page and source context may accompany your enquiry; URL query values
-          are excluded from that context. Read
-          our{" "}
+          Please leave out passwords and sensitive customer information. If you
+          allow analytics, basic page and source context may accompany your
+          enquiry; URL query values are excluded from that context. Read our{" "}
           <a
             href="/privacy-policy"
             className="text-primary underline underline-offset-4"

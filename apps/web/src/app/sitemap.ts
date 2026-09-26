@@ -32,6 +32,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "monthly",
       priority: 0.8,
     },
+    {
+      url: `${baseUrl}/resources/property-management-call-intake`,
+      changeFrequency: "monthly",
+      priority: 0.8,
+    },
 
     // Company pages
     {

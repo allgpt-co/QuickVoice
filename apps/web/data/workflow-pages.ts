@@ -354,68 +354,104 @@ export const workflowPages: Record<string, WorkflowPageContent> = {
   },
   realEstate: {
     path: "/industries/real-estate",
-    label: "Real estate and property management",
-    seoTitle: "AI Phone Agents for Property Management",
-    title: "AI phone agents for leasing and tenant requests",
+    label: "Property management",
+    seoTitle: "AI Answering for Property Management Leasing Enquiries",
+    title: "AI answering for property-management leasing enquiries",
     description:
-      "Explore AI phone workflows for leasing questions, viewing requests, and maintenance intake, with staff escalation and property-system requirements.",
+      "Plan an assisted leasing-intake pilot: approved property answers, viewing requests, and staff follow-up. Review setup, costs, and integration boundaries.",
     introduction:
-      "Property calls range from routine listing questions to situations that need immediate human judgment. Begin with bounded leasing or maintenance intake and make the next staff action explicit.",
+      "Answer approved listing questions, capture viewing preferences, and leave your team a clear follow-up record. Start with one after-hours leasing workflow, not an automated property manager.",
     steps: [
       {
-        title: "Provide listing information",
-        body: "Answer from approved property information. Time-sensitive availability and pricing require a current source, and a listing answer is not an offer or reservation.",
+        title: "Answer from approved facts",
+        body: "Identify the property and use a dated listing-information set. An unknown answer or uncertain availability goes to staff instead of becoming a price commitment or reservation.",
       },
       {
-        title: "Collect viewing requests",
-        body: "Record the property, preferred time, and contact details. A confirmed appointment requires a tested calendar connection and a successful booking result.",
+        title: "Confirm the request",
+        body: "Collect the property reference, callback details, and viewing preference. Repeat them to the caller and explain that staff must confirm availability and any appointment.",
       },
       {
-        title: "Route maintenance intake",
-        body: "Capture the reported issue and property reference. Publish a separate emergency route and define escalation with staff; do not ask an agent to diagnose danger or authorize repairs.",
+        title: "Leave follow-up with staff",
+        body: "Inspect the saved call record, check the details, and acknowledge follow-up in a private pilot log. A transcript is not a delivered work order or a confirmed booking.",
       },
     ],
     requirements: [
-      "Current listing knowledge and a staff owner.",
-      "Property-system credentials and verified tenant access for private records.",
-      "Emergency instructions, callback coverage, and a tested maintenance delivery path.",
+      "A property-information owner who maintains approved listing facts.",
+      "A technical owner for provider accounts, telephony, deployment, and monitoring.",
+      "A named staff reviewer, agreed follow-up coverage, and an approved out-of-scope call route.",
     ],
     checks: [
       {
-        scenario: "Caller reports immediate danger",
+        scenario: "Listing facts are missing or outdated",
         expected:
-          "The approved emergency instructions take precedence over routine intake.",
+          "Do not guess or commit to availability. Record the question for staff confirmation.",
       },
       {
-        scenario: "Property availability is outdated",
+        scenario: "Caller corrects their number or viewing preference",
         expected:
-          "The agent asks staff to confirm instead of offering an unavailable unit.",
+          "Repeat the final details and verify the saved record against the call before staff follow-up.",
       },
       {
-        scenario: "Caller requests a tenant's personal details",
-        expected: "The agent does not disclose another person's records.",
+        scenario: "Record storage fails or no staff member is available",
+        expected:
+          "Do not imply a successful handoff. Follow the approved fallback and make the unresolved request visible to the operator.",
+      },
+      {
+        scenario:
+          "Caller asks about eligibility, private records, or urgent maintenance",
+        expected:
+          "Keep eligibility decisions and private tenant records outside the workflow; use the separately approved urgent-call instructions rather than diagnosing or dispatching.",
       },
     ],
     faqs: [
       {
-        question: "Does this replace the property management system?",
+        question: "Is QuickVoice a staffed answering service?",
         answer:
-          "No. Your existing system remains the source of record. QuickVoice supplies the phone-agent workflow; account lookups, work orders, and scheduling require verified connections.",
+          "No. QuickVoice is self-hostable phone-agent software. A scoped assisted pilot helps define the implementation; your team still owns provider accounts, approved information, operations, and staff follow-up. Agree assistance and support terms before starting.",
       },
       {
-        question: "Can it decide applicant eligibility?",
+        question: "Does a viewing request mean a tour is booked?",
         answer:
-          "Keep eligibility, screening, accommodation requests, and disputed decisions with authorized staff under your organization's policies. This workflow is for information and intake.",
+          "No. The first workflow captures a preference for staff to review. It must not confirm a tour, reserve a unit, or promise availability. Direct booking is separate integration work requiring a verified successful result.",
+      },
+      {
+        question:
+          "Does QuickVoice integrate with AppFolio, Buildium, or Yardi?",
+        answer:
+          "This pilot does not include a verified native connector to those systems. Keep their records authoritative and agree any access, field mapping, and write operations separately. A vendor API does not establish a working QuickVoice integration.",
+      },
+      {
+        question:
+          "Can it handle maintenance emergencies or applicant screening?",
+        answer:
+          "Those are outside this leasing-intake pilot. Your team must approve the route for urgent or sensitive requests. Do not use the agent to diagnose danger, dispatch repairs, decide eligibility, or disclose another tenant's information.",
+      },
+      {
+        question: "What evidence is available on this page?",
+        answer:
+          "The example and linked test pack are fictional planning materials, not recordings, executed benchmark results, or customer testimonials. A real pilot must verify saved records, staff acknowledgement, failure handling, and observed operating costs before outcome claims are made.",
       },
     ],
     guides: [
       {
         slug: "ai-voice-agents-property-management",
-        title: "Property management workflow guide",
+        title: "Design the leasing-intake workflow",
       },
       {
-        slug: "ai-phone-answering-service-small-business",
-        title: "Evaluate a phone answering workflow",
+        slug: "property-management-answering-services",
+        title: "Compare AI, live, and hybrid answering",
+      },
+      {
+        slug: "after-hours-leasing-call-handling",
+        title: "Plan after-hours leasing calls",
+      },
+      {
+        slug: "property-management-answering-service-cost",
+        title: "Estimate the complete operating cost",
+      },
+      {
+        slug: "property-management-phone-agent-integration-checklist",
+        title: "Check property-system dependencies",
       },
     ],
   },
