@@ -21,7 +21,8 @@ Prepared 2026-09-06; current follow-up checked 2026-09-27. The [September 27 rev
 runtime attribution activation are verified. The single marked QA enquiry was
 acknowledged with a matching receipt; inbox placement is deferred by the user.
 All 106 live sitemap URLs pass the technical check. The IVR clarification is
-locally reviewed and tested, with publication still gated. Existing TidyCal,
+locally reviewed and tested, with PR creation and merge explicitly authorized
+by the user on September 27. Inbox delivery remains unverified. Existing TidyCal,
 Monday private reporting and six-hour coordination remain unchanged. Actual
 business records, customer evidence, a working voice-demo environment and
 specifically authorized distribution remain separate dependencies.
