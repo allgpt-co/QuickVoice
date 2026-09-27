@@ -154,7 +154,7 @@ function getStringValue(value: unknown): string | null {
   return null;
 }
 
-function getBearerToken(value: string | undefined): string | null {
+export function getBearerToken(value: string | undefined): string | null {
   const match = value?.match(/^Bearer\s+(.+)$/i);
   if (!match) return null;
   const token = match[1];
