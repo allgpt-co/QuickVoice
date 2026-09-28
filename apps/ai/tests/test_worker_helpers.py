@@ -3,6 +3,7 @@ import sys
 import unittest
 import asyncio
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -21,6 +22,7 @@ from handlers.worker_handler import (
     webhook_body_values,
 )
 from livekit.agents import room_io
+from livekit import rtc
 
 from main import (
     Assistant,
@@ -39,11 +41,12 @@ from main import (
 class _RoomExitContext:
     def __init__(self, delete_error=None):
         self.room = type("Room", (), {"name": "outbound_call-1"})()
+        self.api = SimpleNamespace(room=SimpleNamespace(delete_room=self.delete_room))
         self.events = []
         self._delete_error = delete_error
 
-    async def delete_room(self, room_name=None):
-        self.events.append(("delete_room", room_name))
+    async def delete_room(self, request):
+        self.events.append(("delete_room", request.room))
         if self._delete_error:
             raise self._delete_error
 
@@ -86,6 +89,34 @@ class EarlyExitHangUpTests(unittest.TestCase):
             ctx.events,
             [("delete_room", "outbound_call-1"), ("shutdown", "entrypoint_failed")],
         )
+
+
+class WorkerCallTimingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_clock_starts_after_sip_answers(self):
+        import time
+
+        room = rtc.EventEmitter()
+        caller = SimpleNamespace(identity="caller", attributes={"sip.callStatus": "dialing"},
+                                 kind=rtc.ParticipantKind.PARTICIPANT_KIND_SIP)
+        joined = asyncio.Event()
+
+        async def wait_for_participant():
+            joined.set()
+            return caller
+
+        ctx = SimpleNamespace(room=room, wait_for_participant=wait_for_participant)
+        # Inbound startup must not wait for an answer that requires the agent.
+        inbound, _, _ = await asyncio.wait_for(wait_for_billed_participant(ctx), 1)
+        self.assertIs(inbound, caller)
+        joined.clear()
+        waiting = asyncio.create_task(wait_for_billed_participant(ctx, wait_for_answer=True))
+        await joined.wait()
+        self.assertFalse(waiting.done())
+        answered_at = time.monotonic()
+        room.emit("participant_attributes_changed", {"sip.callStatus": "active"}, caller)
+        participant, connected_at, _ = await asyncio.wait_for(waiting, 1)
+        self.assertIs(participant, caller)
+        self.assertGreaterEqual(connected_at, answered_at)
 
 
 class WorkerHandlerTests(unittest.TestCase):

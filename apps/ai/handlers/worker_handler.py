@@ -1,15 +1,99 @@
 import asyncio
 import json
 import re
-from collections.abc import Callable
+import time
+from collections.abc import Awaitable, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from typing import Any
+from livekit import api
 from utils.logger import logger
 
 PREVIEW_TRANSCRIPT_TOPIC = "quickvoice.preview.transcript"
 PREVIEW_TRANSCRIPT_TYPE = "preview_user_transcript"
 DYNAMIC_VARIABLE_TOKEN_RE = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+async def delete_call_room(ctx: Any) -> None:
+    """Propagate hangup failures; JobContext.delete_room logs and swallows them."""
+    if getattr(ctx, "is_fake_job", lambda: False)():
+        return
+    try:
+        await ctx.api.room.delete_room(api.DeleteRoomRequest(room=ctx.room.name))
+    except api.TwirpError as error:
+        if error.code != api.TwirpErrorCode.NOT_FOUND:
+            raise
+
+
+async def wait_for_sip_answer(room: Any, participant: Any) -> None:
+    """A SIP participant can join the room while the phone is still ringing."""
+    answered = asyncio.get_running_loop().create_future()
+
+    def on_attributes_changed(changed: dict, remote: Any) -> None:
+        if remote.identity != participant.identity or answered.done():
+            return
+        status = changed.get("sip.callStatus", remote.attributes.get("sip.callStatus"))
+        if status in {"active", "automation"}:
+            answered.set_result(None)
+        elif status == "hangup":
+            answered.set_exception(RuntimeError("SIP call ended before answering"))
+
+    def on_disconnected(remote: Any) -> None:
+        if remote.identity == participant.identity and not answered.done():
+            answered.set_exception(RuntimeError("SIP caller disconnected before answering"))
+
+    room.on("participant_attributes_changed", on_attributes_changed)
+    room.on("participant_disconnected", on_disconnected)
+    try:
+        on_attributes_changed({}, participant)
+        await answered
+    finally:
+        room.off("participant_attributes_changed", on_attributes_changed)
+        room.off("participant_disconnected", on_disconnected)
+
+
+def attach_call_limits(
+    session: Any,
+    *,
+    max_duration_seconds: float,
+    connected_at_monotonic: float,
+    stop_session: Callable[[str], Awaitable[None]],
+) -> Callable[[], None]:
+    """Use LiveKit's idle detection and a separate, non-resetting call deadline."""
+    stopped = False
+    stop_task: asyncio.Task | None = None
+
+    def request_stop(reason: str) -> None:
+        nonlocal stop_task
+        if not stopped and stop_task is None:
+            stop_task = asyncio.create_task(stop_session(reason))
+
+    def on_user_state_changed(event) -> None:
+        if event.new_state == "away":
+            request_stop("silence_timeout")
+
+    remaining = max(0.0, max_duration_seconds - (time.monotonic() - connected_at_monotonic))
+    deadline = asyncio.get_running_loop().call_later(
+        remaining, request_stop, "max_call_duration",
+    )
+
+    def close(_event=None) -> None:
+        nonlocal stopped
+        if stopped:
+            return
+        stopped = True
+        deadline.cancel()
+        session.off("user_state_changed", on_user_state_changed)
+        session.off("close", on_closed)
+        # Do not cancel an in-flight hangup when session.shutdown emits close.
+
+    def on_closed(_event=None) -> None:
+        request_stop("session_closed")
+        close()
+
+    session.on("user_state_changed", on_user_state_changed)
+    session.on("close", on_closed)
+    return close
+
 
 ROUTING_METADATA_KEYS = {
     "agent_id",

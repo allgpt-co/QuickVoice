@@ -34,11 +34,14 @@ from handlers.worker_handler import (
     PREVIEW_TRANSCRIPT_TOPIC,
     apply_initiation_webhook_metadata,
     apply_metadata_overrides,
+    attach_call_limits,
     build_call_context,
     consume_preview_user_transcript_stream,
+    delete_call_room,
     parse_preview_user_transcript_packet,
     parse_metadata,
     speak_first_message,
+    wait_for_sip_answer,
 )
 from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import resolve_voice_config
@@ -111,16 +114,21 @@ async def wait_for_billed_participant(
     ctx: JobContext,
     *,
     identity: str | None = None,
+    wait_for_answer: bool = False,
 ):
     # UNVERIFIED (LiveKit MCP unavailable): the current official Python
     # reference documents JobContext.wait_for_participant(identity=...).
-    wait = (
-        ctx.wait_for_participant(identity=identity)
-        if identity
-        else ctx.wait_for_participant()
-    )
+    async def wait_until_connected():
+        participant = await (
+            ctx.wait_for_participant(identity=identity)
+            if identity else ctx.wait_for_participant()
+        )
+        if wait_for_answer and getattr(participant, "kind", None) == rtc.ParticipantKind.PARTICIPANT_KIND_SIP:
+            await wait_for_sip_answer(ctx.room, participant)
+        return participant
+
     participant = await asyncio.wait_for(
-        wait,
+        wait_until_connected(),
         timeout=_participant_wait_timeout_seconds(),
     )
     return participant, time.monotonic(), datetime.now(timezone.utc)
@@ -536,7 +544,7 @@ async def end_call_without_billing(ctx: JobContext, reason: str) -> None:
     carrier's maximum call duration.
     """
     try:
-        await ctx.delete_room(room_name=ctx.room.name)
+        await delete_call_room(ctx)
     except Exception as error:
         logger.warning(
             "Could not delete room {} after early exit: {}",
@@ -607,6 +615,11 @@ async def _run_entrypoint(ctx: JobContext):
                 call_start_time,
             ) = await wait_for_billed_participant(
                 ctx,
+                # Inbound calls may need the agent to start before being answered.
+                wait_for_answer=(
+                    metadata.get("direction") == "outbound"
+                    or ctx.room.name.startswith("outbound_")
+                ),
             )
             participant_attributes = getattr(participant, "attributes", {}) or {}
             metadata.update(participant_attributes)
@@ -671,6 +684,7 @@ async def _run_entrypoint(ctx: JobContext):
     )
     session = AgentSession(
         **provider_kwargs,
+        user_away_timeout=config["silence_end_call_timeout_seconds"],
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
@@ -678,17 +692,19 @@ async def _run_entrypoint(ctx: JobContext):
         ivr_detection=config["ivr_navigation_enabled"],
     )
     shutdown_reason = "session_shutdown"
+    call_ended_at: datetime | None = None
+    billed_participant_identity = getattr(participant, "identity", None)
     billing_termination_started = False
     session_started = False
 
-    async def stop_session_for_insufficient_funds(reason: str) -> None:
-        nonlocal billing_termination_started, shutdown_reason
+    async def stop_session(reason: str) -> None:
+        nonlocal billing_termination_started, shutdown_reason, call_ended_at
         first_attempt = not billing_termination_started
         billing_termination_started = True
-        shutdown_reason = f"billing_{reason or 'insufficient_funds'}"
+        shutdown_reason = reason or "insufficient_funds"
         if first_attempt:
             logger.warning(
-                "[BILLING_USAGE] ending depleted session {}",
+                "[CALL_TERMINATION] ending session {}",
                 redact_sensitive(
                     {
                         "call_id": call_context.get("call_id"),
@@ -697,6 +713,10 @@ async def _run_entrypoint(ctx: JobContext):
                     }
                 ),
             )
+        # Keep the worker alive to retry if the physical hangup fails.
+        await delete_call_room(ctx)
+        call_ended_at = call_ended_at or datetime.now(timezone.utc)
+        billing_reporter.mark_ended()
         failures: list[str] = []
         if session_started:
             # UNVERIFIED (LiveKit MCP unavailable): cross-checked against the current
@@ -705,10 +725,6 @@ async def _run_entrypoint(ctx: JobContext):
                 session.shutdown(drain=False)
             except Exception as error:
                 failures.append(f"session shutdown: {error}")
-        try:
-            await ctx.delete_room(room_name=ctx.room.name)
-        except Exception as error:
-            failures.append(f"room deletion: {error}")
         try:
             ctx.shutdown(reason=shutdown_reason)
         except Exception as error:
@@ -741,7 +757,7 @@ async def _run_entrypoint(ctx: JobContext):
             provider_call_id=str(call_context.get("provider_call_id") or "") or None,
         ),
         usage_supplier=lambda: session.usage,
-        stop_session=stop_session_for_insufficient_funds,
+        stop_session=stop_session,
         connected_at_monotonic=participant_connected_monotonic,
         canonical_model_ids=selected_billing_model_ids(config),
     )
@@ -752,7 +768,17 @@ async def _run_entrypoint(ctx: JobContext):
     def on_session_usage_updated(event):
         billing_reporter.update_usage(getattr(event, "usage", None))
 
+    cancel_call_limits = attach_call_limits(
+        session,
+        max_duration_seconds=config["max_conversation_duration_seconds"],
+        connected_at_monotonic=participant_connected_monotonic,
+        stop_session=billing_reporter.request_stop,
+    )
+
     async def billing_shutdown_hook():
+        nonlocal call_ended_at
+        call_ended_at = call_ended_at or datetime.now(timezone.utc)
+        cancel_call_limits()
         try:
             await billing_reporter.close(final_usage=session.usage)
         except Exception as error:
@@ -834,6 +860,9 @@ async def _run_entrypoint(ctx: JobContext):
         await live_transcript_publisher.close(reason="session_start_failed")
         raise
     session_started = True
+    if billing_termination_started:
+        await billing_shutdown_hook()
+        return
     await billing_reporter.start()
     speak_first_message(session, config)
 
@@ -864,7 +893,8 @@ async def _run_entrypoint(ctx: JobContext):
         if preview_mode:
             return
         try:
-            await call_finalizer.finalize()
+            call_context.setdefault("metadata", {})["terminationReason"] = shutdown_reason
+            await call_finalizer.finalize(ended_at=call_ended_at)
         except Exception as error:
             logger.error("[CALL_LOG] Failed to finalize completed call: {}", redact_sensitive(str(error)))
 
@@ -873,12 +903,18 @@ async def _run_entrypoint(ctx: JobContext):
 
     @ctx.room.on("participant_disconnected")
     def on_participant_disconnected(participant):
-        nonlocal shutdown_started, shutdown_reason
+        nonlocal shutdown_started, shutdown_reason, call_ended_at
+        if getattr(participant, "identity", None) != billed_participant_identity:
+            return
         logger.info("[HANGUP] Participant disconnected: {}", redact_sensitive(getattr(participant, "identity", "")))
         if shutdown_started:
             return
         shutdown_started = True
-        shutdown_reason = "participant_disconnected"
+        if not billing_termination_started:
+            shutdown_reason = "participant_disconnected"
+        call_ended_at = datetime.now(timezone.utc)
+        billing_reporter.mark_ended()
+        cancel_call_limits()
         asyncio.create_task(unified_shutdown_hook())
 
 

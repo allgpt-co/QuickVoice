@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import os
 from typing import Any
 from urllib.parse import quote
@@ -37,6 +38,8 @@ DEFAULT_CONFIG = {
     "store_call_audio": True,
     "zero_pii_retention": False,
     "retention_days": None,
+    "max_conversation_duration_seconds": 600,
+    "silence_end_call_timeout_seconds": 30,
     "mcp_connections": [],
 }
 
@@ -126,9 +129,23 @@ def normalize_config(raw: dict[str, Any]) -> dict[str, Any]:
             "store_call_audio": _pick_bool(raw, "storeCallAudio", "store_call_audio", default=True),
             "zero_pii_retention": _pick_bool(raw, "zeroPiiRetention", "zero_pii_retention", default=False),
             "retention_days": _pick(raw, "retentionDays", "retention_days"),
+            "max_conversation_duration_seconds": _positive_seconds(
+                raw.get("max_conversation_duration_seconds"), 600,
+            ),
+            "silence_end_call_timeout_seconds": _positive_seconds(
+                raw.get("silence_end_call_timeout_seconds"), 30,
+            ),
         }
     )
     return config
+
+
+def _positive_seconds(value: Any, default: float) -> float:
+    try:
+        seconds = float(value) if not isinstance(value, bool) else 0
+    except (TypeError, ValueError):
+        return default
+    return seconds if math.isfinite(seconds) and seconds > 0 else default
 
 
 def _pick(source: dict[str, Any], *keys: str):

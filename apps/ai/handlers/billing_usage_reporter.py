@@ -114,6 +114,7 @@ class BillingUsageReporter:
             else now
         )
         self._required = hosted_billing_required() if required is None else bool(required)
+        self._ended_monotonic: float | None = None
         self._canonical_model_ids = {
             str(kind).strip().lower(): str(model_id).strip()
             for kind, model_id in (canonical_model_ids or {}).items()
@@ -178,7 +179,7 @@ class BillingUsageReporter:
             return False
         if not self.enabled:
             if self._required:
-                await self._request_stop("billing_configuration_missing")
+                await self.request_stop("billing_configuration_missing")
                 return False
             return True
 
@@ -188,7 +189,7 @@ class BillingUsageReporter:
         if delivered:
             return True
         if self._required:
-            await self._request_stop("billing_reporting_unavailable")
+            await self.request_stop("billing_reporting_unavailable")
             return False
         return True
 
@@ -200,7 +201,7 @@ class BillingUsageReporter:
                 "[BILLING_USAGE] reporting disabled because server credentials or identifiers are missing"
             )
             if self._required:
-                await self._request_stop("billing_configuration_missing")
+                await self.request_stop("billing_configuration_missing")
             return
         if self._closed or (self._periodic_task and not self._periodic_task.done()):
             return
@@ -258,14 +259,19 @@ class BillingUsageReporter:
                     stop_reason = server_stop_reason
 
         if stop_reason is not None:
-            await self._request_stop(stop_reason)
+            await self.request_stop(stop_reason)
         return delivered
+
+    def mark_ended(self) -> None:
+        if self._ended_monotonic is None:
+            self._ended_monotonic = self._monotonic()
 
     async def close(self, final_usage: Any = None) -> None:
         """Stop periodic work and make one best-effort final cumulative export."""
 
         if self._closed or self._closing:
             return
+        self.mark_ended()
         self._closing = True
         self._stop_event.set()
 
@@ -292,7 +298,7 @@ class BillingUsageReporter:
                 remaining = self._remaining_reporting_time()
                 if remaining is not None:
                     if remaining <= 0:
-                        await self._request_stop("billing_reporting_unavailable")
+                        await self.request_stop("billing_reporting_unavailable")
                         break
                     timeout = min(timeout, remaining)
                 try:
@@ -311,7 +317,7 @@ class BillingUsageReporter:
                 redact_sensitive(str(error)),
             )
             if self._required:
-                await self._request_stop("billing_reporter_failed")
+                await self.request_stop("billing_reporter_failed")
 
     def _read_latest_usage(self) -> list[dict[str, Any]]:
         if self._usage_supplier is None:
@@ -344,7 +350,9 @@ class BillingUsageReporter:
             "organizationId": self._identifiers.organization_id,
             "sequence": sequence,
             "connectedSeconds": round(
-                max(0.0, self._monotonic() - self._started_monotonic),
+                max(0.0, (
+                    self._ended_monotonic if self._ended_monotonic is not None else self._monotonic()
+                ) - self._started_monotonic),
                 3,
             ),
             "modelUsage": model_usage,
@@ -436,7 +444,8 @@ class BillingUsageReporter:
                 redact_sensitive(str(error)),
             )
 
-    async def _request_stop(self, reason: str) -> None:
+    async def request_stop(self, reason: str) -> None:
+        """Terminate the physical call with retries, for billing or call limits."""
         first_request = not self._stop_requested
         self._stop_requested = True
         self._stop_event.set()
