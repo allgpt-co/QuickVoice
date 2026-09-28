@@ -28,10 +28,64 @@ from main import (
     build_agent_instructions,
     build_room_options,
     build_session_provider_kwargs,
+    end_call_without_billing,
+    entrypoint,
     provider_section,
     selected_billing_model_ids,
     wait_for_billed_participant,
 )
+
+
+class _RoomExitContext:
+    def __init__(self, delete_error=None):
+        self.room = type("Room", (), {"name": "outbound_call-1"})()
+        self.events = []
+        self._delete_error = delete_error
+
+    async def delete_room(self, room_name=None):
+        self.events.append(("delete_room", room_name))
+        if self._delete_error:
+            raise self._delete_error
+
+    def shutdown(self, reason=""):
+        self.events.append(("shutdown", reason))
+
+
+class EarlyExitHangUpTests(unittest.TestCase):
+    def test_early_exit_deletes_the_room_before_shutting_down(self):
+        ctx = _RoomExitContext()
+
+        asyncio.run(end_call_without_billing(ctx, "participant_connection_timeout"))
+
+        self.assertEqual(
+            ctx.events,
+            [
+                ("delete_room", "outbound_call-1"),
+                ("shutdown", "participant_connection_timeout"),
+            ],
+        )
+
+    def test_early_exit_still_shuts_down_when_room_deletion_fails(self):
+        ctx = _RoomExitContext(delete_error=RuntimeError("livekit unavailable"))
+
+        asyncio.run(end_call_without_billing(ctx, "participant_connection_failed"))
+
+        self.assertEqual(ctx.events[-1], ("shutdown", "participant_connection_failed"))
+
+    def test_entrypoint_failure_hangs_up_the_room_and_reraises(self):
+        ctx = _RoomExitContext()
+
+        async def failing_entrypoint(_ctx):
+            raise RuntimeError("config fetch failed")
+
+        with patch("main._run_entrypoint", failing_entrypoint):
+            with self.assertRaisesRegex(RuntimeError, "config fetch failed"):
+                asyncio.run(entrypoint(ctx))
+
+        self.assertEqual(
+            ctx.events,
+            [("delete_room", "outbound_call-1"), ("shutdown", "entrypoint_failed")],
+        )
 
 
 class WorkerHandlerTests(unittest.TestCase):

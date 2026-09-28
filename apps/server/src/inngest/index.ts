@@ -7,6 +7,7 @@ import {
   recoverPhoneNumberPurchases,
   reconcileProviderCallCosts,
   reconcileStripeWallet,
+  terminateSilentBilledCalls,
   transitionLegacyBilling,
 } from "./billing-maintenance.js";
 
@@ -19,4 +20,5 @@ export const inngestFunctions: InngestFunction.Any[] = [
   reconcileStripeWallet,
   billPhoneNumbers,
   transitionLegacyBilling,
+  terminateSilentBilledCalls,
 ];

@@ -36,6 +36,10 @@ import {
   BLOCKED_LEGACY_SUBSCRIPTION_MUTATIONS,
   rejectLegacySubscriptionMutation,
 } from "./modules/billing/legacy-subscription.guard.js";
+import {
+  startSilentCallWatchdog,
+  stopSilentCallWatchdog,
+} from "./modules/billing/silent-call-watchdog.service.js";
 
 const app = express();
 
@@ -234,11 +238,14 @@ httpServer.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
 });
 
+startSilentCallWatchdog();
+
 let shuttingDown = false;
 async function shutdown(signal: NodeJS.Signals) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[server] received ${signal}; shutting down`);
+  stopSilentCallWatchdog();
   try {
     await liveTranscriptGateway.close();
     if (httpServer.listening) {

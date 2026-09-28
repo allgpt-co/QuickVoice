@@ -528,7 +528,33 @@ class Assistant(Agent):
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
 
+async def end_call_without_billing(ctx: JobContext, reason: str) -> None:
+    """Hang up the whole room when the job exits before billing is running.
+
+    ``ctx.shutdown()`` only disconnects this agent. A provider-billed SIP
+    participant would otherwise stay connected, and unbilled, until the
+    carrier's maximum call duration.
+    """
+    try:
+        await ctx.delete_room(room_name=ctx.room.name)
+    except Exception as error:
+        logger.warning(
+            "Could not delete room {} after early exit: {}",
+            redact_sensitive(ctx.room.name),
+            redact_sensitive(str(error)),
+        )
+    ctx.shutdown(reason=reason)
+
+
 async def entrypoint(ctx: JobContext):
+    try:
+        await _run_entrypoint(ctx)
+    except Exception:
+        await end_call_without_billing(ctx, "entrypoint_failed")
+        raise
+
+
+async def _run_entrypoint(ctx: JobContext):
     logger.info("Entrypoint called with room: {}", redact_sensitive(ctx.room.name))
 
     await ctx.connect()
@@ -548,14 +574,14 @@ async def entrypoint(ctx: JobContext):
             )
         except asyncio.TimeoutError:
             logger.warning("Timed out waiting for the billed room participant to connect")
-            ctx.shutdown(reason="participant_connection_timeout")
+            await end_call_without_billing(ctx, "participant_connection_timeout")
             return
         except RuntimeError as error:
             logger.warning(
                 "Could not wait for billed room participant: {}",
                 redact_sensitive(str(error)),
             )
-            ctx.shutdown(reason="participant_connection_failed")
+            await end_call_without_billing(ctx, "participant_connection_failed")
             return
         participant_attributes = getattr(participant, "attributes", {}) or {}
         metadata.update(participant_attributes)
@@ -586,14 +612,14 @@ async def entrypoint(ctx: JobContext):
             metadata.update(participant_attributes)
         except asyncio.TimeoutError:
             logger.warning("Timed out waiting for the billed room participant to connect")
-            ctx.shutdown(reason="participant_connection_timeout")
+            await end_call_without_billing(ctx, "participant_connection_timeout")
             return
         except RuntimeError as error:
             logger.warning(
                 "Could not wait for billed room participant: {}",
                 redact_sensitive(str(error)),
             )
-            ctx.shutdown(reason="participant_connection_failed")
+            await end_call_without_billing(ctx, "participant_connection_failed")
             return
         call_context = build_call_context(ctx.room.name, metadata)
         logger.info("Call context: {}", redact_sensitive(call_context))
@@ -629,7 +655,7 @@ async def entrypoint(ctx: JobContext):
         provider_kwargs = build_session_provider_kwargs(config)
     except ProviderAdapterError as error:
         logger.error("Voice provider adapter error: {}", redact_sensitive(str(error)))
-        ctx.shutdown(reason=f"provider adapter error: {error}")
+        await end_call_without_billing(ctx, f"provider adapter error: {error}")
         return
 
     config["ivr_navigation_enabled"] = ivr_navigation_enabled(config, call_context)

@@ -57,6 +57,33 @@ type AgentDispatchClientLike = {
 
 type OutboundTrunks = Record<TelephonyProvider, string>;
 
+const DEFAULT_OUTBOUND_MAX_CALL_DURATION_SECONDS = 15 * 60;
+const DEFAULT_OUTBOUND_RINGING_TIMEOUT_SECONDS = 45;
+
+function positiveSecondsFromEnv(name: string, fallback: number) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
+
+/**
+ * LiveKit hangs the SIP leg up on its own at these limits, so a provider-billed
+ * call is bounded even if the AI worker and the billing watchdog both fail.
+ */
+export function outboundCallLimits(ringingTimeoutSeconds?: number | null) {
+  const maxCallDuration = positiveSecondsFromEnv(
+    "OUTBOUND_MAX_CALL_DURATION_SECONDS",
+    DEFAULT_OUTBOUND_MAX_CALL_DURATION_SECONDS,
+  );
+  const ringingTimeout =
+    ringingTimeoutSeconds && ringingTimeoutSeconds > 0
+      ? Math.floor(ringingTimeoutSeconds)
+      : positiveSecondsFromEnv(
+          "OUTBOUND_RINGING_TIMEOUT_SECONDS",
+          DEFAULT_OUTBOUND_RINGING_TIMEOUT_SECONDS,
+        );
+  return { maxCallDuration, ringingTimeout };
+}
+
 type CreateQuickOutboundCallDeps = {
   repository?: QuickOutboundCallRepository;
   sipClient?: SipClientLike;
@@ -176,6 +203,7 @@ export async function createQuickOutboundCall(
           participantName: args.username,
           participantMetadata: metadataJson,
           waitUntilAnswered: false,
+          ...outboundCallLimits(),
         }
       );
 
@@ -313,7 +341,7 @@ export async function dispatchScheduledOutboundCall(
           participantIdentity: `outbound-${outbound.outboundId}`,
           participantMetadata: metadataJson,
           waitUntilAnswered: false,
-          ...(ringingTimeoutSeconds ? { ringingTimeout: ringingTimeoutSeconds } : {}),
+          ...outboundCallLimits(ringingTimeoutSeconds),
         }
       );
 
