@@ -88,7 +88,7 @@ async function exhaustPublicAllowance(
   headers: Record<string, string> = {},
   initialStatus = 204,
 ) {
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < 1000; i++) {
     const response = await requestJson(`${baseUrl}${path}`, { headers });
     assert.equal(response.status, initialStatus, `request ${i + 1}`);
   }

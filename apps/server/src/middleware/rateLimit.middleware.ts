@@ -3,8 +3,8 @@ import rateLimit from "express-rate-limit";
 import { getBearerToken, matchesInternalApiKey } from "./auth.middleware.js";
 
 export const publicRateLimitMiddleware = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 min
-  max: 100, // per IP
+  windowMs: 60 * 1000, // 1 minute
+  max: 1000, // Temporary demo allowance per IP; replace with authenticated user limits.
   message: {
     success: false,
     message: "Too many requests, try again later.",
