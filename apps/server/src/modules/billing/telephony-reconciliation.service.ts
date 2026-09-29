@@ -451,11 +451,7 @@ export async function finalizeProviderCost(
     providerCost.baseCostMicros,
     catalog,
   );
-  const finalTotalMicros =
-    session.aiCostMicros +
-    session.platformCostMicros +
-    sessionUnreportedTailMicros(session) +
-    telephonyFinalMicros;
+  const finalTotalMicros = providerFinalTotalMicros(session, telephonyFinalMicros);
   const differenceMicros = finalTotalMicros - session.totalSettledMicros;
   let account;
   let additionalDebtMicros = 0n;
@@ -539,6 +535,14 @@ export async function finalizeProviderCost(
     requestAutoRecharge(session.organizationId);
   }
   return { status, telephonyFinalMicros, finalTotalMicros };
+}
+
+export function providerFinalTotalMicros(
+  session: Pick<CallBillingSession, "aiCostMicros" | "platformCostMicros" | "livekitEstimatedMicros" | "unreportedTailMicros">,
+  telephonyFinalMicros: bigint,
+) {
+  return session.aiCostMicros + session.platformCostMicros +
+    (session.livekitEstimatedMicros ?? 0n) + (session.unreportedTailMicros ?? 0n) + telephonyFinalMicros;
 }
 
 async function callFundingSources(session: CallBillingSession) {
@@ -714,7 +718,7 @@ export function parseTelnyxCdrCsv(csv: string): Map<string, ProviderFinalCost> {
   return result;
 }
 
-function parseCsv(value: string) {
+export function parseCsv(value: string) {
   const rows: string[][] = [];
   let row: string[] = [];
   let field = "";
@@ -744,7 +748,7 @@ function parseCsv(value: string) {
       field += character;
     }
   }
-  if (quoted) throw new Error("Telnyx CDR contains an unterminated CSV quote");
+  if (quoted) throw new Error("CSV contains an unterminated quote");
   row.push(field.replace(/\r$/, ""));
   if (row.some((item) => item.length > 0)) rows.push(row);
   return rows;
@@ -800,12 +804,6 @@ function positive(value: bigint) {
 
 function minBigInt(left: bigint, right: bigint) {
   return left < right ? left : right;
-}
-
-function sessionUnreportedTailMicros(session: CallBillingSession) {
-  return (
-    session as CallBillingSession & { unreportedTailMicros?: bigint }
-  ).unreportedTailMicros ?? 0n;
 }
 
 function requestAutoRecharge(organizationId: string) {

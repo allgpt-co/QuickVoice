@@ -67,6 +67,13 @@ router.post(
 );
 
 router.get(
+  "/calls/:callId/cost",
+  authMiddleware,
+  requirePermission({ billing: ["read"] }),
+  billingController.getCallCost,
+);
+
+router.get(
   "/usage",
   authMiddleware,
   requirePermission({ callLogs: ["read"] }),

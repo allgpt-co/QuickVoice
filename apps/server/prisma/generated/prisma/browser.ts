@@ -242,3 +242,28 @@ export type Secret = Prisma.SecretModel
  *
  */
 export type AuditLog = Prisma.AuditLogModel
+/**
+ * Model ProviderSpendDay
+ *
+ */
+export type ProviderSpendDay = Prisma.ProviderSpendDayModel
+/**
+ * Model ProviderSpendAlert
+ *
+ */
+export type ProviderSpendAlert = Prisma.ProviderSpendAlertModel
+/**
+ * Model ProviderSpendDelivery
+ *
+ */
+export type ProviderSpendDelivery = Prisma.ProviderSpendDeliveryModel
+/**
+ * Model BillingRateCatalog
+ *
+ */
+export type BillingRateCatalog = Prisma.BillingRateCatalogModel
+/**
+ * Model TelephonyRate
+ *
+ */
+export type TelephonyRate = Prisma.TelephonyRateModel

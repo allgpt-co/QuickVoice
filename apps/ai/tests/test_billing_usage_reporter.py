@@ -152,6 +152,9 @@ class BillingUsageReporterTests(unittest.IsolatedAsyncioTestCase):
             agent_id="agent-3",
             telephony_provider="TWILIO",
             provider_call_id="CA-provider-call-4",
+            direction="inbound",
+            from_number="+14155550100",
+            to_number="+18005550100",
         )
 
     def make_reporter(self, post_json, **kwargs):
@@ -216,6 +219,9 @@ class BillingUsageReporterTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(second_body["modelUsage"][0]["input_tokens"], 5)
         self.assertEqual(second_body["telephonyProvider"], "TWILIO")
         self.assertEqual(second_body["providerCallId"], "CA-provider-call-4")
+        self.assertEqual(second_body["direction"], "inbound")
+        self.assertEqual(second_body["fromNumber"], "+14155550100")
+        self.assertEqual(second_body["toNumber"], "+18005550100")
         self.assertNotEqual(first_headers["Idempotency-Key"], second_headers["Idempotency-Key"])
 
     async def test_retries_same_snapshot_sequence_and_idempotency_key(self):

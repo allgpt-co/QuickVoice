@@ -17,6 +17,7 @@ import type { ListOutboundCallsArgs, QuickOutboundCallArgs } from "./outbound-ca
 import * as outboundCallRepository from "./outbound-call.repository.js";
 import {
   authorizeCallBilling,
+  callAdmissionMessage,
   cancelCallBillingAdmission,
   hasActiveLegacySubscription,
 } from "../billing/call-metering.service.js";
@@ -173,10 +174,12 @@ export async function createQuickOutboundCall(
       userId: args.userId,
       telephonyProvider: provider,
       direction: "outbound",
+      fromNumber: args.fromNumber,
+      toNumber: args.phoneNumber,
     });
     if (admission.action === "stop") {
       throw new PaymentRequiredError(
-        "Add prepaid credit before making this call",
+        callAdmissionMessage(admission, "Add prepaid credit before making this call"),
         {
           reason: admission.reason,
           requiredMicros: admission.reserveMicros?.toString() ?? null,
@@ -302,10 +305,12 @@ export async function dispatchScheduledOutboundCall(
       userId: outbound.userId,
       telephonyProvider: provider,
       direction: "outbound",
+      fromNumber: outbound.fromNumber,
+      toNumber: outbound.phoneNumber,
     });
     if (admission.action === "stop") {
       throw new PaymentRequiredError(
-        "Insufficient prepaid credit for scheduled call",
+        callAdmissionMessage(admission, "Insufficient prepaid credit for scheduled call"),
         { reason: admission.reason },
       );
     }

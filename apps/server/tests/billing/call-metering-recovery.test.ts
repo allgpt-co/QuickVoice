@@ -56,6 +56,7 @@ test("recovery selects the highest settled checkpoint ahead of a lagging session
   );
 
   assert.equal(recovered?.checkpoint.sequence, 4);
+  assert.equal(recovered?.checkpoint.livekitEstimatedMicros, "0");
   assert.equal(recovered?.transaction.debtDeltaMicros, 25n);
   assert.equal(
     selectPendingUsageCheckpoint(
@@ -65,6 +66,17 @@ test("recovery selects the highest settled checkpoint ahead of a lagging session
     ),
     undefined,
   );
+});
+
+test("recovery preserves settled LiveKit costs and rejects malformed infrastructure checkpoints", () => {
+  const data = checkpoint("call-1", 4);
+  const recovered = selectPendingUsageCheckpoint([
+    transaction({ usageCheckpoint: { ...data.usageCheckpoint, livekitEstimatedMicros: "5400" } }),
+  ], "call-1", 3);
+  assert.equal(recovered?.checkpoint.livekitEstimatedMicros, "5400");
+  assert.equal(selectPendingUsageCheckpoint([
+    transaction({ usageCheckpoint: { ...data.usageCheckpoint, livekitEstimatedMicros: "-1" } }),
+  ], "call-1", 3), undefined);
 });
 
 test("released orphan reserve advances to a deterministic recovery generation", async () => {

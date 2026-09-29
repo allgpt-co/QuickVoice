@@ -1,14 +1,14 @@
 import type { TelephonyProvider } from "../../../prisma/generated/prisma/client.js";
 import {
   calculateAiUsageCostMicros,
-  calculateEstimatedTelephonyChargeMicros,
+  calculateCallTelephonyMicros,
+  calculateLivekitChargeMicros,
   calculatePlatformFeeFromMilliseconds,
   getRateCatalog,
   type RateCatalog,
   type AiUsage,
   type TelephonyCatalogProvider,
 } from "./rate-catalog.service.js";
-import { ceilDiv } from "./money.js";
 
 export type RawModelUsage = Record<
   string,
@@ -20,6 +20,7 @@ export type RatedCallUsage = {
   aiCostMicros: bigint;
   platformCostMicros: bigint;
   telephonyEstimatedMicros: bigint;
+  livekitEstimatedMicros: bigint;
   totalCostMicros: bigint;
   normalizedUsage: AiUsage;
 };
@@ -48,22 +49,22 @@ export function rateCumulativeCallUsage(args: {
   const platformCostMicros =
     calculatePlatformFeeFromMilliseconds(connectedMilliseconds, catalog);
   const telephonyEstimatedMicros = args.telephonyProvider
-      ? calculateEstimatedTelephonyChargeMicros({
+      ? calculateCallTelephonyMicros({
         provider: providerCatalogKey(args.telephonyProvider),
         direction: args.direction ?? "outbound",
-        // Provider estimates deliberately use whole provider minutes. The
-        // asynchronous provider charge replaces this estimate after the call.
-        providerBillableMinutes: ceilDiv(connectedMilliseconds, 60_000n),
+        connectedMilliseconds,
       }, catalog)
     : 0n;
+  const livekitEstimatedMicros = calculateLivekitChargeMicros(connectedMilliseconds, catalog);
 
   return {
     connectedMilliseconds,
     aiCostMicros,
     platformCostMicros,
     telephonyEstimatedMicros,
+    livekitEstimatedMicros,
     totalCostMicros:
-      aiCostMicros + platformCostMicros + telephonyEstimatedMicros,
+      aiCostMicros + platformCostMicros + telephonyEstimatedMicros + livekitEstimatedMicros,
     normalizedUsage,
   };
 }
@@ -74,8 +75,9 @@ export function estimateConfiguredMinuteMicros(args: {
   ttsModel?: string | null;
   telephonyProvider?: TelephonyProvider | null;
   direction?: "inbound" | "outbound";
+  rateCatalog?: Readonly<RateCatalog>;
 }): bigint {
-  const catalog = getRateCatalog();
+  const catalog = args.rateCatalog ?? getRateCatalog();
   const sttModel = resolveConfiguredModel(
     catalog.ai.stt,
     args.sttModel,
@@ -97,17 +99,17 @@ export function estimateConfiguredMinuteMicros(args: {
     tts: [{ modelId: ttsModel, characters: 900n }],
   }, catalog);
   const telephonyEstimate = args.telephonyProvider
-    ? calculateEstimatedTelephonyChargeMicros({
+    ? calculateCallTelephonyMicros({
         provider: providerCatalogKey(args.telephonyProvider),
         direction: args.direction ?? "outbound",
-        providerBillableMinutes: 1n,
+        connectedMilliseconds: 60_000n,
       }, catalog)
     : 0n;
 
   return (
     aiEstimate +
     calculatePlatformFeeFromMilliseconds(60_000n, catalog) +
-    telephonyEstimate
+    telephonyEstimate + calculateLivekitChargeMicros(60_000n, catalog)
   );
 }
 

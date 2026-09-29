@@ -60,6 +60,9 @@ class BillingUsageIdentifiers:
     agent_id: str | None = None
     telephony_provider: str | None = None
     provider_call_id: str | None = None
+    direction: str | None = None
+    from_number: str | None = None
+    to_number: str | None = None
 
 
 class BillingUsageReporter:
@@ -366,6 +369,14 @@ class BillingUsageReporter:
             payload["telephonyProvider"] = self._identifiers.telephony_provider
         if self._identifiers.provider_call_id:
             payload["providerCallId"] = self._identifiers.provider_call_id
+        if self._identifiers.telephony_provider:
+            for key, value in (
+                ("direction", self._identifiers.direction),
+                ("fromNumber", self._identifiers.from_number),
+                ("toNumber", self._identifiers.to_number),
+            ):
+                if value:
+                    payload[key] = value
         return payload
 
     def _build_headers(self, sequence: int) -> dict[str, str]:

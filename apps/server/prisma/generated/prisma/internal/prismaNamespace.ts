@@ -428,7 +428,12 @@ export const ModelName = {
   AgentMcpConnection: 'AgentMcpConnection',
   McpToolExecutionLog: 'McpToolExecutionLog',
   Secret: 'Secret',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  ProviderSpendDay: 'ProviderSpendDay',
+  ProviderSpendAlert: 'ProviderSpendAlert',
+  ProviderSpendDelivery: 'ProviderSpendDelivery',
+  BillingRateCatalog: 'BillingRateCatalog',
+  TelephonyRate: 'TelephonyRate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -444,7 +449,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "session" | "account" | "verification" | "apikey" | "organization" | "organizationRole" | "member" | "invitation" | "subscription" | "billingAccount" | "billingTransaction" | "billingReservation" | "promotionalGrant" | "topUp" | "callBillingSession" | "telephonyCostReport" | "stripeWebhookEvent" | "phoneNumber" | "phoneNumberPurchase" | "agent" | "agentConfiguration" | "agentWidget" | "agentWidgetSession" | "knowledgeSource" | "callLog" | "callTranscript" | "outboundCall" | "campaign" | "campaignPersonalizationSchema" | "campaignRecipientSnapshot" | "campaignExperiment" | "campaignExperimentVariant" | "campaignExperimentAssignment" | "campaignGoal" | "campaignConversionEvent" | "campaignAttributionResult" | "campaignReportSnapshot" | "tool" | "mcpServerCatalogItem" | "mcpConnection" | "agentMcpConnection" | "mcpToolExecutionLog" | "secret" | "auditLog"
+    modelProps: "user" | "session" | "account" | "verification" | "apikey" | "organization" | "organizationRole" | "member" | "invitation" | "subscription" | "billingAccount" | "billingTransaction" | "billingReservation" | "promotionalGrant" | "topUp" | "callBillingSession" | "telephonyCostReport" | "stripeWebhookEvent" | "phoneNumber" | "phoneNumberPurchase" | "agent" | "agentConfiguration" | "agentWidget" | "agentWidgetSession" | "knowledgeSource" | "callLog" | "callTranscript" | "outboundCall" | "campaign" | "campaignPersonalizationSchema" | "campaignRecipientSnapshot" | "campaignExperiment" | "campaignExperimentVariant" | "campaignExperimentAssignment" | "campaignGoal" | "campaignConversionEvent" | "campaignAttributionResult" | "campaignReportSnapshot" | "tool" | "mcpServerCatalogItem" | "mcpConnection" | "agentMcpConnection" | "mcpToolExecutionLog" | "secret" | "auditLog" | "providerSpendDay" | "providerSpendAlert" | "providerSpendDelivery" | "billingRateCatalog" | "telephonyRate"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3778,6 +3783,376 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProviderSpendDay: {
+      payload: Prisma.$ProviderSpendDayPayload<ExtArgs>
+      fields: Prisma.ProviderSpendDayFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProviderSpendDayFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProviderSpendDayFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        findFirst: {
+          args: Prisma.ProviderSpendDayFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProviderSpendDayFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        findMany: {
+          args: Prisma.ProviderSpendDayFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>[]
+        }
+        create: {
+          args: Prisma.ProviderSpendDayCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        createMany: {
+          args: Prisma.ProviderSpendDayCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProviderSpendDayCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>[]
+        }
+        delete: {
+          args: Prisma.ProviderSpendDayDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        update: {
+          args: Prisma.ProviderSpendDayUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProviderSpendDayDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProviderSpendDayUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProviderSpendDayUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProviderSpendDayUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDayPayload>
+        }
+        aggregate: {
+          args: Prisma.ProviderSpendDayAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProviderSpendDay>
+        }
+        groupBy: {
+          args: Prisma.ProviderSpendDayGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendDayGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProviderSpendDayCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendDayCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProviderSpendAlert: {
+      payload: Prisma.$ProviderSpendAlertPayload<ExtArgs>
+      fields: Prisma.ProviderSpendAlertFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProviderSpendAlertFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProviderSpendAlertFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        findFirst: {
+          args: Prisma.ProviderSpendAlertFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProviderSpendAlertFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        findMany: {
+          args: Prisma.ProviderSpendAlertFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>[]
+        }
+        create: {
+          args: Prisma.ProviderSpendAlertCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        createMany: {
+          args: Prisma.ProviderSpendAlertCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProviderSpendAlertCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>[]
+        }
+        delete: {
+          args: Prisma.ProviderSpendAlertDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        update: {
+          args: Prisma.ProviderSpendAlertUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProviderSpendAlertDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProviderSpendAlertUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProviderSpendAlertUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProviderSpendAlertUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendAlertPayload>
+        }
+        aggregate: {
+          args: Prisma.ProviderSpendAlertAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProviderSpendAlert>
+        }
+        groupBy: {
+          args: Prisma.ProviderSpendAlertGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendAlertGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProviderSpendAlertCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendAlertCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProviderSpendDelivery: {
+      payload: Prisma.$ProviderSpendDeliveryPayload<ExtArgs>
+      fields: Prisma.ProviderSpendDeliveryFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProviderSpendDeliveryFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProviderSpendDeliveryFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        findFirst: {
+          args: Prisma.ProviderSpendDeliveryFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProviderSpendDeliveryFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        findMany: {
+          args: Prisma.ProviderSpendDeliveryFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>[]
+        }
+        create: {
+          args: Prisma.ProviderSpendDeliveryCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        createMany: {
+          args: Prisma.ProviderSpendDeliveryCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProviderSpendDeliveryCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>[]
+        }
+        delete: {
+          args: Prisma.ProviderSpendDeliveryDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        update: {
+          args: Prisma.ProviderSpendDeliveryUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProviderSpendDeliveryDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProviderSpendDeliveryUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProviderSpendDeliveryUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProviderSpendDeliveryUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProviderSpendDeliveryPayload>
+        }
+        aggregate: {
+          args: Prisma.ProviderSpendDeliveryAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProviderSpendDelivery>
+        }
+        groupBy: {
+          args: Prisma.ProviderSpendDeliveryGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendDeliveryGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProviderSpendDeliveryCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProviderSpendDeliveryCountAggregateOutputType> | number
+        }
+      }
+    }
+    BillingRateCatalog: {
+      payload: Prisma.$BillingRateCatalogPayload<ExtArgs>
+      fields: Prisma.BillingRateCatalogFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BillingRateCatalogFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BillingRateCatalogFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        findFirst: {
+          args: Prisma.BillingRateCatalogFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BillingRateCatalogFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        findMany: {
+          args: Prisma.BillingRateCatalogFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>[]
+        }
+        create: {
+          args: Prisma.BillingRateCatalogCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        createMany: {
+          args: Prisma.BillingRateCatalogCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BillingRateCatalogCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>[]
+        }
+        delete: {
+          args: Prisma.BillingRateCatalogDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        update: {
+          args: Prisma.BillingRateCatalogUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        deleteMany: {
+          args: Prisma.BillingRateCatalogDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BillingRateCatalogUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BillingRateCatalogUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>[]
+        }
+        upsert: {
+          args: Prisma.BillingRateCatalogUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BillingRateCatalogPayload>
+        }
+        aggregate: {
+          args: Prisma.BillingRateCatalogAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBillingRateCatalog>
+        }
+        groupBy: {
+          args: Prisma.BillingRateCatalogGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BillingRateCatalogGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BillingRateCatalogCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BillingRateCatalogCountAggregateOutputType> | number
+        }
+      }
+    }
+    TelephonyRate: {
+      payload: Prisma.$TelephonyRatePayload<ExtArgs>
+      fields: Prisma.TelephonyRateFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TelephonyRateFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TelephonyRateFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        findFirst: {
+          args: Prisma.TelephonyRateFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TelephonyRateFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        findMany: {
+          args: Prisma.TelephonyRateFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>[]
+        }
+        create: {
+          args: Prisma.TelephonyRateCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        createMany: {
+          args: Prisma.TelephonyRateCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TelephonyRateCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>[]
+        }
+        delete: {
+          args: Prisma.TelephonyRateDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        update: {
+          args: Prisma.TelephonyRateUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        deleteMany: {
+          args: Prisma.TelephonyRateDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TelephonyRateUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TelephonyRateUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>[]
+        }
+        upsert: {
+          args: Prisma.TelephonyRateUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TelephonyRatePayload>
+        }
+        aggregate: {
+          args: Prisma.TelephonyRateAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTelephonyRate>
+        }
+        groupBy: {
+          args: Prisma.TelephonyRateGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TelephonyRateGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TelephonyRateCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TelephonyRateCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -4136,6 +4511,7 @@ export const CallBillingSessionScalarFieldEnum = {
   connectedMilliseconds: 'connectedMilliseconds',
   aiCostMicros: 'aiCostMicros',
   platformCostMicros: 'platformCostMicros',
+  livekitEstimatedMicros: 'livekitEstimatedMicros',
   telephonyEstimatedMicros: 'telephonyEstimatedMicros',
   telephonyFinalMicros: 'telephonyFinalMicros',
   unreportedTailMicros: 'unreportedTailMicros',
@@ -4750,6 +5126,69 @@ export const AuditLogScalarFieldEnum = {
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
 
 
+export const ProviderSpendDayScalarFieldEnum = {
+  sourceId: 'sourceId',
+  day: 'day',
+  amountMicros: 'amountMicros',
+  baselineMicros: 'baselineMicros',
+  baselineDays: 'baselineDays',
+  estimated: 'estimated',
+  checkedAt: 'checkedAt',
+  sourceAsOf: 'sourceAsOf'
+} as const
+
+export type ProviderSpendDayScalarFieldEnum = (typeof ProviderSpendDayScalarFieldEnum)[keyof typeof ProviderSpendDayScalarFieldEnum]
+
+
+export const ProviderSpendAlertScalarFieldEnum = {
+  id: 'id',
+  sourceId: 'sourceId',
+  day: 'day',
+  severity: 'severity',
+  subject: 'subject',
+  text: 'text',
+  createdAt: 'createdAt'
+} as const
+
+export type ProviderSpendAlertScalarFieldEnum = (typeof ProviderSpendAlertScalarFieldEnum)[keyof typeof ProviderSpendAlertScalarFieldEnum]
+
+
+export const ProviderSpendDeliveryScalarFieldEnum = {
+  alertId: 'alertId',
+  email: 'email',
+  sentAt: 'sentAt',
+  claimToken: 'claimToken',
+  claimedAt: 'claimedAt',
+  attempts: 'attempts'
+} as const
+
+export type ProviderSpendDeliveryScalarFieldEnum = (typeof ProviderSpendDeliveryScalarFieldEnum)[keyof typeof ProviderSpendDeliveryScalarFieldEnum]
+
+
+export const BillingRateCatalogScalarFieldEnum = {
+  version: 'version',
+  effectiveAt: 'effectiveAt',
+  expiresAt: 'expiresAt',
+  contentHash: 'contentHash',
+  settings: 'settings',
+  createdAt: 'createdAt'
+} as const
+
+export type BillingRateCatalogScalarFieldEnum = (typeof BillingRateCatalogScalarFieldEnum)[keyof typeof BillingRateCatalogScalarFieldEnum]
+
+
+export const TelephonyRateScalarFieldEnum = {
+  catalogVersion: 'catalogVersion',
+  provider: 'provider',
+  direction: 'direction',
+  originPrefix: 'originPrefix',
+  destinationPrefix: 'destinationPrefix',
+  rate: 'rate'
+} as const
+
+export type TelephonyRateScalarFieldEnum = (typeof TelephonyRateScalarFieldEnum)[keyof typeof TelephonyRateScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -5342,6 +5781,11 @@ export type GlobalOmitConfig = {
   mcpToolExecutionLog?: Prisma.McpToolExecutionLogOmit
   secret?: Prisma.SecretOmit
   auditLog?: Prisma.AuditLogOmit
+  providerSpendDay?: Prisma.ProviderSpendDayOmit
+  providerSpendAlert?: Prisma.ProviderSpendAlertOmit
+  providerSpendDelivery?: Prisma.ProviderSpendDeliveryOmit
+  billingRateCatalog?: Prisma.BillingRateCatalogOmit
+  telephonyRate?: Prisma.TelephonyRateOmit
 }
 
 /* Types for Logging */

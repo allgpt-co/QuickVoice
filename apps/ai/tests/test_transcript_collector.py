@@ -40,7 +40,8 @@ class TranscriptCollectorTests(unittest.TestCase):
         )
 
     def test_final_user_transcript_is_fallback_when_history_item_is_missing(self):
-        collector = TranscriptCollector()
+        activity = []
+        collector = TranscriptCollector(on_user_activity=lambda: activity.append(True))
         collector.on_user_input_transcribed(
             SimpleNamespace(transcript="I need help", is_final=True, created_at=1704067202.0)
         )
@@ -51,6 +52,7 @@ class TranscriptCollectorTests(unittest.TestCase):
         self.assertEqual(len(collector.read()), 1)
         self.assertEqual(collector.read()[0]["role"], "user")
         self.assertEqual(collector.read()[0]["content"], "I need help")
+        self.assertEqual(activity, [True])
 
     def test_committed_user_item_replaces_matching_stt_fallback(self):
         published = []
@@ -95,7 +97,8 @@ class TranscriptCollectorTests(unittest.TestCase):
         self.assertEqual(len(published), 1)
 
     def test_user_stt_fallback_ignores_recent_agent_echo_fragment(self):
-        collector = TranscriptCollector()
+        activity = []
+        collector = TranscriptCollector(on_user_activity=lambda: activity.append(True))
         collector.on_conversation_item_added(
             SimpleNamespace(
                 created_at=1704067201.0,
@@ -120,6 +123,7 @@ class TranscriptCollectorTests(unittest.TestCase):
 
         self.assertEqual(len(collector.read()), 1)
         self.assertEqual(collector.read()[0]["role"], "agent")
+        self.assertEqual(activity, [])
 
     def test_committed_user_item_ignores_recent_agent_echo_fragment(self):
         collector = TranscriptCollector()

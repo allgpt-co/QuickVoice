@@ -57,6 +57,9 @@ export const callUsageSnapshotSchema = z.object({
     .pipe(z.enum(["TWILIO", "TELNYX"]))
     .optional(),
   providerCallId: z.string().min(1).max(255).optional(),
+  direction: z.enum(["inbound", "outbound"]).optional(),
+  fromNumber: z.string().max(32).optional(),
+  toNumber: z.string().max(32).optional(),
   sequence: z.number().int().nonnegative(),
   connectedSeconds: z.number().finite().nonnegative(),
   modelUsage: z.array(modelUsageEntrySchema).max(100),

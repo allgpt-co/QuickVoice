@@ -599,6 +599,7 @@ model CallBillingSession {
   connectedMilliseconds    BigInt                   @default(0)
   aiCostMicros             BigInt                   @default(0)
   platformCostMicros       BigInt                   @default(0)
+  livekitEstimatedMicros   BigInt                   @default(0)
   telephonyEstimatedMicros BigInt                   @default(0)
   telephonyFinalMicros     BigInt?
   unreportedTailMicros     BigInt                   @default(0)
@@ -1390,4 +1391,67 @@ model AuditLog {
   @@index([organizationId, createdAt])
   @@index([userId])
   @@index([action])
+}
+
+// Provider expenses/usage are separate from customer wallet charges.
+model ProviderSpendDay {
+  sourceId       String
+  day            DateTime @db.Date
+  amountMicros   BigInt
+  baselineMicros BigInt?
+  baselineDays   Int      @default(0)
+  estimated      Boolean
+  checkedAt      DateTime
+  sourceAsOf     DateTime?
+
+  @@id([sourceId, day])
+}
+
+model ProviderSpendAlert {
+  id         String   @id
+  sourceId   String
+  day        DateTime @db.Date
+  severity   String
+  subject    String
+  text       String
+  createdAt  DateTime @default(now())
+  deliveries ProviderSpendDelivery[]
+
+  @@index([sourceId, day])
+}
+
+model ProviderSpendDelivery {
+  alertId    String
+  email      String
+  sentAt     DateTime?
+  claimToken String?
+  claimedAt  DateTime?
+  attempts   Int      @default(0)
+  alert      ProviderSpendAlert @relation(fields: [alertId], references: [id], onDelete: Cascade)
+
+  @@id([alertId, email])
+  @@index([sentAt, claimedAt])
+}
+
+// Immutable imports. Calls store the selected rates in their existing snapshot.
+model BillingRateCatalog {
+  version     String   @id
+  effectiveAt DateTime @unique
+  expiresAt   DateTime
+  contentHash String
+  settings    Json
+  createdAt   DateTime @default(now())
+  routes      TelephonyRate[]
+}
+
+model TelephonyRate {
+  catalogVersion    String
+  catalog           BillingRateCatalog @relation(fields: [catalogVersion], references: [version], onDelete: Restrict)
+  provider          String
+  direction         String
+  originPrefix      String
+  destinationPrefix String
+  rate              Json
+
+  @@id([catalogVersion, provider, direction, destinationPrefix, originPrefix])
 }
