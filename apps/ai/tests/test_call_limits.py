@@ -7,7 +7,6 @@ import unittest
 from types import SimpleNamespace
 from unittest.mock import AsyncMock
 from livekit import api
-from livekit.agents import AgentSession
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
@@ -18,6 +17,7 @@ from handlers.worker_handler import attach_call_limits, delete_call_room, wait_f
 class Events:
     def __init__(self):
         self.handlers = {}
+        self.messages = []
 
     def on(self, name, handler):
         self.handlers.setdefault(name, []).append(handler)
@@ -28,6 +28,9 @@ class Events:
     def emit(self, name, *args):
         for handler in list(self.handlers.get(name, [])):
             handler(*args)
+
+    def say(self, text, **_kwargs):
+        self.messages.append(text)
 
 
 class CallLimitTests(unittest.IsolatedAsyncioTestCase):
@@ -49,8 +52,8 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
         await delete_call_room(ctx)
         delete.assert_not_called()
 
-    async def test_native_livekit_idle_detection_waits_until_speech_finishes(self):
-        session = AgentSession(user_away_timeout=0.02)
+    async def test_background_vad_activity_cannot_extend_meaningful_silence(self):
+        session = Events()
         ended = asyncio.Event()
         reasons = []
 
@@ -58,18 +61,141 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
             reasons.append(reason)
             ended.set()
 
-        close = attach_call_limits(session, max_duration_seconds=600,
-                                   connected_at_monotonic=time.monotonic(), stop_session=stop)
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.09,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
         try:
-            session._update_agent_state("speaking")
-            await asyncio.sleep(0.04)
-            self.assertFalse(ended.is_set())
-            session._update_agent_state("listening")
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            for state in ("speaking", "listening", "speaking", "listening"):
+                await asyncio.sleep(0.015)
+                session.emit("user_state_changed", SimpleNamespace(new_state=state))
             await asyncio.wait_for(ended.wait(), 1)
             self.assertEqual(reasons, ["silence_timeout"])
+            self.assertEqual(session.messages, ["Are you still there?"])
         finally:
-            session._cancel_user_away_timer()
-            close()
+            guard.close()
+
+    async def test_meaningful_activity_restarts_the_full_silence_window(self):
+        session = Events()
+        ended = asyncio.Event()
+
+        async def stop(_reason):
+            ended.set()
+
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.12,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
+        try:
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.sleep(0.06)
+            guard.record_user_activity("transcript")
+            await asyncio.sleep(0.06)
+            self.assertFalse(ended.is_set())
+            self.assertEqual(session.messages, [])
+            await asyncio.wait_for(ended.wait(), 1)
+            self.assertEqual(session.messages, ["Are you still there?"])
+        finally:
+            guard.close()
+
+    async def test_agent_work_pauses_silence_before_the_warning(self):
+        session = Events()
+        ended = asyncio.Event()
+
+        async def stop(_reason):
+            ended.set()
+
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.09,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
+        try:
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.sleep(0.03)
+            session.emit("agent_state_changed", SimpleNamespace(new_state="thinking"))
+            await asyncio.sleep(0.1)
+            self.assertFalse(ended.is_set())
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.wait_for(ended.wait(), 1)
+        finally:
+            guard.close()
+
+    async def test_warning_speech_does_not_restart_the_final_deadline(self):
+        session = Events()
+        ended = asyncio.Event()
+        reasons = []
+
+        def say(text, **_kwargs):
+            session.messages.append(text)
+            session.emit("agent_state_changed", SimpleNamespace(new_state="speaking"))
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+
+        session.say = say
+
+        async def stop(reason):
+            reasons.append(reason)
+            ended.set()
+
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.09,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
+        try:
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.wait_for(ended.wait(), 1)
+            self.assertEqual(reasons, ["silence_timeout"])
+            self.assertEqual(session.messages, ["Are you still there?"])
+        finally:
+            guard.close()
+
+    async def test_only_the_callers_dtmf_restarts_silence(self):
+        session = Events()
+        room = Events()
+        ended = asyncio.Event()
+
+        async def stop(_reason):
+            ended.set()
+
+        guard = attach_call_limits(
+            session,
+            room=room,
+            participant_identity="caller",
+            silence_timeout_seconds=0.12,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
+        try:
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.sleep(0.06)
+            room.emit(
+                "sip_dtmf_received",
+                SimpleNamespace(participant=SimpleNamespace(identity="other")),
+            )
+            await asyncio.sleep(0.03)
+            self.assertEqual(session.messages, ["Are you still there?"])
+            room.emit(
+                "sip_dtmf_received",
+                SimpleNamespace(participant=SimpleNamespace(identity="caller")),
+            )
+            await asyncio.sleep(0.06)
+            self.assertFalse(ended.is_set())
+        finally:
+            guard.close()
+        self.assertFalse(any(room.handlers.values()))
 
     async def test_silence_uses_retrying_hangup_even_while_billing_is_healthy(self):
         session = Events()
@@ -91,15 +217,17 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
             queue_dir=self.queue.name,
         )
         self.assertTrue(await reporter.authorize())
-        close = attach_call_limits(session, max_duration_seconds=600,
-                                   connected_at_monotonic=time.monotonic(), stop_session=reporter.request_stop)
-        session.emit("user_state_changed", SimpleNamespace(new_state="listening"))
-        await asyncio.sleep(0)
-        self.assertEqual(attempts, [])
-        session.emit("user_state_changed", SimpleNamespace(new_state="away"))
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.03,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=reporter.request_stop,
+        )
+        session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
         await asyncio.wait_for(ended.wait(), 1)
         self.assertEqual(attempts, ["silence_timeout", "silence_timeout"])
-        close()
+        guard.close()
         await reporter.close()
 
     async def test_maximum_duration_fires_despite_speech_and_uses_original_start(self):
@@ -111,12 +239,12 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
             reasons.append(reason)
             ended.set()
 
-        close = attach_call_limits(session, max_duration_seconds=600,
+        guard = attach_call_limits(session, max_duration_seconds=600,
                                    connected_at_monotonic=time.monotonic() - 601, stop_session=stop)
-        session.emit("user_state_changed", SimpleNamespace(new_state="speaking"))
+        session.emit("agent_state_changed", SimpleNamespace(new_state="speaking"))
         await asyncio.wait_for(ended.wait(), 1)
         self.assertEqual(reasons, ["max_call_duration"])
-        close()
+        guard.close()
 
     async def test_close_cancels_pending_duration_and_silence_handlers(self):
         session = Events()
@@ -125,10 +253,10 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
         async def stop(reason):
             reasons.append(reason)
 
-        close = attach_call_limits(session, max_duration_seconds=1,
+        guard = attach_call_limits(session, max_duration_seconds=1,
                                    connected_at_monotonic=time.monotonic() - 2, stop_session=stop)
-        close()
-        session.emit("user_state_changed", SimpleNamespace(new_state="away"))
+        guard.close()
+        session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
         await asyncio.sleep(0.01)
         self.assertEqual(reasons, [])
         self.assertFalse(any(session.handlers.values()))

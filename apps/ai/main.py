@@ -684,7 +684,7 @@ async def _run_entrypoint(ctx: JobContext):
     )
     session = AgentSession(
         **provider_kwargs,
-        user_away_timeout=config["silence_end_call_timeout_seconds"],
+        user_away_timeout=None,
         vad=silero.VAD.load(),
         turn_handling=TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
@@ -771,8 +771,11 @@ async def _run_entrypoint(ctx: JobContext):
     def on_session_usage_updated(event):
         billing_reporter.update_usage(getattr(event, "usage", None))
 
-    cancel_call_limits = attach_call_limits(
+    call_limits = attach_call_limits(
         session,
+        room=ctx.room,
+        participant_identity=billed_participant_identity,
+        silence_timeout_seconds=config["silence_end_call_timeout_seconds"],
         max_duration_seconds=config["max_conversation_duration_seconds"],
         connected_at_monotonic=participant_connected_monotonic,
         stop_session=billing_reporter.request_stop,
@@ -781,7 +784,7 @@ async def _run_entrypoint(ctx: JobContext):
     async def billing_shutdown_hook():
         nonlocal call_ended_at
         call_ended_at = call_ended_at or datetime.now(timezone.utc)
-        cancel_call_limits()
+        call_limits.close()
         try:
             await billing_reporter.close(final_usage=session.usage)
         except Exception as error:
@@ -805,7 +808,8 @@ async def _run_entrypoint(ctx: JobContext):
     if not preview_mode:
         await live_transcript_publisher.start(call_start_time)
     transcript_collector = TranscriptCollector(
-        on_item=live_transcript_publisher.publish_transcript
+        on_item=live_transcript_publisher.publish_transcript,
+        on_user_activity=lambda: call_limits.record_user_activity("transcript"),
     ).attach(session)
     system_prompt = build_agent_instructions(config)
     agent = Assistant(
@@ -827,6 +831,7 @@ async def _run_entrypoint(ctx: JobContext):
         if not text:
             return
 
+        call_limits.record_user_activity("preview_transcript")
         logger.info(
             "[preview] received browser transcript from {}",
             redact_sensitive(getattr(participant, "identity", "")),
@@ -842,6 +847,9 @@ async def _run_entrypoint(ctx: JobContext):
                 generate_reply=lambda text: session.generate_reply(
                     user_input=text,
                     allow_interruptions=True,
+                ),
+                on_user_activity=lambda: call_limits.record_user_activity(
+                    "preview_transcript"
                 ),
             )
         )
@@ -917,7 +925,7 @@ async def _run_entrypoint(ctx: JobContext):
             shutdown_reason = "participant_disconnected"
         call_ended_at = datetime.now(timezone.utc)
         billing_reporter.mark_ended()
-        cancel_call_limits()
+        call_limits.close()
         asyncio.create_task(unified_shutdown_hook())
 
 
