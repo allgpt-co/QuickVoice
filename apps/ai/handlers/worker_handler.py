@@ -73,6 +73,9 @@ class CallLimitGuard:
         self._closed = False
         self._agent_listening = False
         self._warning_sent = False
+        self._warning_remaining_seconds = silence_timeout_seconds * (2 / 3)
+        self._hangup_remaining_seconds = silence_timeout_seconds
+        self._inactivity_timer_started_at: float | None = None
         self._warning_timer: asyncio.TimerHandle | None = None
         self._hangup_timer: asyncio.TimerHandle | None = None
         self._stop_task: asyncio.Task | None = None
@@ -97,6 +100,8 @@ class CallLimitGuard:
         logger.info("[INACTIVITY] meaningful user activity source={}", source)
         self._warning_sent = False
         self._cancel_inactivity_timers()
+        self._warning_remaining_seconds = self._silence_timeout_seconds * (2 / 3)
+        self._hangup_remaining_seconds = self._silence_timeout_seconds
         if self._agent_listening:
             self._start_inactivity_timer()
 
@@ -113,12 +118,16 @@ class CallLimitGuard:
         # Do not cancel an in-flight hangup when session.shutdown emits close.
 
     def _on_agent_state_changed(self, event: Any) -> None:
-        self._agent_listening = event.new_state == "listening"
+        agent_listening = event.new_state == "listening"
+        if agent_listening == self._agent_listening:
+            return
+        self._agent_listening = agent_listening
         if self._warning_sent:
             return
-        self._cancel_inactivity_timers()
         if self._agent_listening:
             self._start_inactivity_timer()
+        else:
+            self._pause_inactivity_timer()
 
     def _on_sip_dtmf_received(self, event: Any) -> None:
         participant = getattr(event, "participant", None)
@@ -128,26 +137,43 @@ class CallLimitGuard:
         self.record_user_activity("dtmf")
 
     def _start_inactivity_timer(self) -> None:
-        warning_delay = self._silence_timeout_seconds * (2 / 3)
+        if self._inactivity_timer_started_at is not None:
+            return
+        warning_delay = self._warning_remaining_seconds
+        hangup_delay = self._hangup_remaining_seconds
         logger.info(
             "[INACTIVITY] timer started warning_seconds={} hangup_seconds={}",
             round(warning_delay, 3),
-            round(self._silence_timeout_seconds, 3),
+            round(hangup_delay, 3),
         )
-        self._warning_timer = asyncio.get_running_loop().call_later(
-            warning_delay,
-            self._warn,
+        loop = asyncio.get_running_loop()
+        self._inactivity_timer_started_at = loop.time()
+        if not self._warning_sent:
+            self._warning_timer = loop.call_later(warning_delay, self._warn)
+        self._hangup_timer = loop.call_later(
+            hangup_delay, self._request_stop, "silence_timeout",
         )
-        self._hangup_timer = asyncio.get_running_loop().call_later(
-            self._silence_timeout_seconds,
-            self._request_stop,
-            "silence_timeout",
+
+    def _pause_inactivity_timer(self) -> None:
+        if self._inactivity_timer_started_at is None:
+            return
+        elapsed = max(
+            0.0,
+            asyncio.get_running_loop().time() - self._inactivity_timer_started_at,
         )
+        self._warning_remaining_seconds = max(
+            0.0, self._warning_remaining_seconds - elapsed,
+        )
+        self._hangup_remaining_seconds = max(
+            0.0, self._hangup_remaining_seconds - elapsed,
+        )
+        self._cancel_inactivity_timers()
 
     def _warn(self) -> None:
         if self._closed or self._warning_sent:
             return
         self._warning_timer = None
+        self._warning_remaining_seconds = 0.0
         self._warning_sent = True
         logger.warning("[INACTIVITY] warning sent")
         try:
@@ -170,6 +196,7 @@ class CallLimitGuard:
         if self._hangup_timer is not None:
             self._hangup_timer.cancel()
             self._hangup_timer = None
+        self._inactivity_timer_started_at = None
 
 
 def attach_call_limits(

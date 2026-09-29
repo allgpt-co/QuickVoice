@@ -130,6 +130,35 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
         finally:
             guard.close()
 
+    async def test_repeated_agent_state_churn_does_not_reset_silence_window(self):
+        session = Events()
+        ended = asyncio.Event()
+        reasons = []
+
+        async def stop(reason):
+            reasons.append(reason)
+            ended.set()
+
+        guard = attach_call_limits(
+            session,
+            silence_timeout_seconds=0.12,
+            max_duration_seconds=600,
+            connected_at_monotonic=time.monotonic(),
+            stop_session=stop,
+        )
+        try:
+            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            for _ in range(3):
+                await asyncio.sleep(0.02)
+                session.emit("agent_state_changed", SimpleNamespace(new_state="thinking"))
+                await asyncio.sleep(0.005)
+                session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+            await asyncio.wait_for(ended.wait(), 0.2)
+            self.assertEqual(reasons, ["silence_timeout"])
+            self.assertEqual(session.messages, ["Are you still there?"])
+        finally:
+            guard.close()
+
     async def test_warning_speech_does_not_restart_the_final_deadline(self):
         session = Events()
         ended = asyncio.Event()
