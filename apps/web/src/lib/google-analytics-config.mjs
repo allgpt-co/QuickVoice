@@ -45,7 +45,17 @@ export function createGoogleAnalyticsScript(configuredId = "", manualPageviews =
       ad_user_data: "denied", ad_personalization: "denied"
     });
     window.gtag("consent", "update", { analytics_storage: "granted" });
-    window.gtag("set", { allow_google_signals: false, allow_ad_personalization_signals: false });
+    // Keep the referral source without forwarding arbitrary path/query values.
+    // Set this before config: automatic initial views and custom events inherit it.
+    let pageReferrer = "";
+    try {
+      const referrer = new URL(document.referrer);
+      if (["http:", "https:"].includes(referrer.protocol)) pageReferrer = referrer.origin;
+    } catch { /* Direct visits and malformed referrers have no referral source. */ }
+    window.gtag("set", {
+      allow_google_signals: false, allow_ad_personalization_signals: false,
+      page_referrer: pageReferrer
+    });
     window.gtag("js", new Date());
     window.gtag("config", ${JSON.stringify(measurementId)}${manualPageviews ? ", { send_page_view: false }" : ""});
     const tag = document.createElement("script");

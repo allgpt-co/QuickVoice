@@ -10,6 +10,7 @@ import {
 function browser(hostname, consent = "granted") {
   const scripts = [];
   const context = {
+    URL,
     window: { location: { hostname }, quickvoiceAnalyticsConsent: consent },
     document: {
       getElementById: (id) => scripts.find((script) => script.id === id),
@@ -107,5 +108,28 @@ test("unknown or declined consent never loads a tag or queues measurement", () =
     assert.equal(scripts.length, 0);
     assert.equal(context.window.gtag, undefined);
     assert.equal(context.window.dataLayer, undefined);
+  }
+});
+
+test("bootstrap keeps only the HTTP referral origin before automatic measurement starts", () => {
+  for (const [referrer, expected] of [
+    ["https://search.example/private/account?q=synthetic#details", "https://search.example"],
+    ["http://referral.example:8080/customer/123?message=synthetic", "http://referral.example:8080"],
+    ["https://user:password@referral.example/private?email=qa%40example.invalid", "https://referral.example"],
+    ["", ""], [undefined, ""], ["not a URL", ""],
+    ["javascript:alert(1)", ""], ["data:text/plain,synthetic", ""],
+    ["file:///private/report", ""],
+  ]) {
+    const { context } = browser("quickvoice.co");
+    context.document.referrer = referrer;
+    runInNewContext(createGoogleAnalyticsScript(), context);
+    const commands = context.window.dataLayer.map((args) => Array.from(args));
+    const settingIndex = commands.findIndex(([command, values]) => command === "set" && "page_referrer" in values);
+    const configIndex = commands.findIndex(([command]) => command === "config");
+    assert.ok(settingIndex < configIndex);
+    assert.equal(commands[settingIndex][1].page_referrer, expected);
+    assert.equal(commands[settingIndex][1].page_location, undefined);
+    assert.deepEqual(commands[configIndex], ["config", "G-SZFBG11VRP"]);
+    assert.equal(commands.some(([command]) => command === "event"), false);
   }
 });
