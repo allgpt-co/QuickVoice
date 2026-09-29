@@ -410,9 +410,7 @@ async function sendComposedEmail(args: {
     if (
       args.requireRecipientAcceptance &&
       !result.accepted?.some(
-        (value) =>
-          (typeof value === "string" ? value : value.address).toLowerCase() ===
-          args.email.toLowerCase(),
+        (value) => value.toLowerCase() === args.email.toLowerCase(),
       )
     ) {
       throw new Error("SMTP did not acknowledge the email recipient");
