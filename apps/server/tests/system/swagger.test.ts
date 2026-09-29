@@ -8,6 +8,7 @@ const spec = swaggerSpec as any;
 test("OpenAPI documents billing, batch campaigns, and destructive agent cleanup", () => {
   for (const path of [
     "/billing/usage",
+    "/billing/calls/{callId}/cost",
     "/outbound-calls/batch-upload-url",
     "/outbound-calls/batches",
     "/outbound-calls/batches/{campaignId}",

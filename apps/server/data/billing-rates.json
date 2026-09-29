@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
-  "catalogVersion": "2026-08-01.1",
+  "catalogVersion": "2026-09-29.1",
   "currency": "USD",
-  "effectiveAt": "2026-08-01T00:00:00.000Z",
+  "effectiveAt": "2026-09-29T00:00:00.000Z",
+  "priceBasis": "regular",
   "markupBasisPoints": {
     "ai": 2000,
     "telephony": 2000
@@ -19,11 +20,11 @@
   "ai": {
     "stt": {
       "deepgram/nova-3": {
-        "baseMicrosPerAudioMinute": "4800",
+        "baseMicrosPerAudioMinute": "7700",
         "source": "https://deepgram.com/pricing"
       },
       "deepgram/nova-3-multilingual": {
-        "baseMicrosPerAudioMinute": "5800",
+        "baseMicrosPerAudioMinute": "9200",
         "source": "https://deepgram.com/pricing"
       },
       "deepgram/nova-2": {

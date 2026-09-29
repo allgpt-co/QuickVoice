@@ -95,7 +95,12 @@ export const ModelName = {
   AgentMcpConnection: 'AgentMcpConnection',
   McpToolExecutionLog: 'McpToolExecutionLog',
   Secret: 'Secret',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  ProviderSpendDay: 'ProviderSpendDay',
+  ProviderSpendAlert: 'ProviderSpendAlert',
+  ProviderSpendDelivery: 'ProviderSpendDelivery',
+  BillingRateCatalog: 'BillingRateCatalog',
+  TelephonyRate: 'TelephonyRate'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -433,6 +438,7 @@ export const CallBillingSessionScalarFieldEnum = {
   connectedMilliseconds: 'connectedMilliseconds',
   aiCostMicros: 'aiCostMicros',
   platformCostMicros: 'platformCostMicros',
+  livekitEstimatedMicros: 'livekitEstimatedMicros',
   telephonyEstimatedMicros: 'telephonyEstimatedMicros',
   telephonyFinalMicros: 'telephonyFinalMicros',
   unreportedTailMicros: 'unreportedTailMicros',
@@ -1045,6 +1051,69 @@ export const AuditLogScalarFieldEnum = {
 } as const
 
 export type AuditLogScalarFieldEnum = (typeof AuditLogScalarFieldEnum)[keyof typeof AuditLogScalarFieldEnum]
+
+
+export const ProviderSpendDayScalarFieldEnum = {
+  sourceId: 'sourceId',
+  day: 'day',
+  amountMicros: 'amountMicros',
+  baselineMicros: 'baselineMicros',
+  baselineDays: 'baselineDays',
+  estimated: 'estimated',
+  checkedAt: 'checkedAt',
+  sourceAsOf: 'sourceAsOf'
+} as const
+
+export type ProviderSpendDayScalarFieldEnum = (typeof ProviderSpendDayScalarFieldEnum)[keyof typeof ProviderSpendDayScalarFieldEnum]
+
+
+export const ProviderSpendAlertScalarFieldEnum = {
+  id: 'id',
+  sourceId: 'sourceId',
+  day: 'day',
+  severity: 'severity',
+  subject: 'subject',
+  text: 'text',
+  createdAt: 'createdAt'
+} as const
+
+export type ProviderSpendAlertScalarFieldEnum = (typeof ProviderSpendAlertScalarFieldEnum)[keyof typeof ProviderSpendAlertScalarFieldEnum]
+
+
+export const ProviderSpendDeliveryScalarFieldEnum = {
+  alertId: 'alertId',
+  email: 'email',
+  sentAt: 'sentAt',
+  claimToken: 'claimToken',
+  claimedAt: 'claimedAt',
+  attempts: 'attempts'
+} as const
+
+export type ProviderSpendDeliveryScalarFieldEnum = (typeof ProviderSpendDeliveryScalarFieldEnum)[keyof typeof ProviderSpendDeliveryScalarFieldEnum]
+
+
+export const BillingRateCatalogScalarFieldEnum = {
+  version: 'version',
+  effectiveAt: 'effectiveAt',
+  expiresAt: 'expiresAt',
+  contentHash: 'contentHash',
+  settings: 'settings',
+  createdAt: 'createdAt'
+} as const
+
+export type BillingRateCatalogScalarFieldEnum = (typeof BillingRateCatalogScalarFieldEnum)[keyof typeof BillingRateCatalogScalarFieldEnum]
+
+
+export const TelephonyRateScalarFieldEnum = {
+  catalogVersion: 'catalogVersion',
+  provider: 'provider',
+  direction: 'direction',
+  originPrefix: 'originPrefix',
+  destinationPrefix: 'destinationPrefix',
+  rate: 'rate'
+} as const
+
+export type TelephonyRateScalarFieldEnum = (typeof TelephonyRateScalarFieldEnum)[keyof typeof TelephonyRateScalarFieldEnum]
 
 
 export const SortOrder = {

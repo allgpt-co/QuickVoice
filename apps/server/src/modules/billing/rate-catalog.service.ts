@@ -10,12 +10,46 @@ import {
 const microsString = z.string().regex(/^\d+$/, "must be an integer micro-dollar string");
 const sourceUrl = z.string().url();
 
+export const timedRateSchema = z.object({
+  baseMicrosPerMinute: microsString,
+  minimumSeconds: z.number().int().min(0).max(3600),
+  incrementSeconds: z.number().int().min(1).max(3600),
+});
+
+export const telephonyRouteSchema = timedRateSchema.extend({
+  provider: z.enum(["twilio", "telnyx"]),
+  account: z.string().min(1),
+  product: z.enum(["programmable-voice", "elastic-sip", "sip-trunking"]),
+  direction: z.enum(["inbound", "outbound"]),
+  originPrefix: z.string().regex(/^(?:\+[1-9]\d{0,14}|ALL|ROW)$/),
+  destinationPrefix: z.string().regex(/^\+[1-9]\d{0,14}$/),
+  source: sourceUrl,
+  description: z.string().min(1),
+}).strict();
+
+export const livekitRateSchema = timedRateSchema.extend({
+  meter: z.enum(["webrtc", "sip", "twilio-connector", "agent-hosting"]),
+  units: z.number().int().min(1).max(10),
+}).strict();
+
 const rateCatalogSchema = z
   .object({
     schemaVersion: z.literal(1),
     catalogVersion: z.string().min(1),
     currency: z.literal("USD"),
     effectiveAt: z.string().datetime(),
+    priceBasis: z.enum(["regular", "account"]).optional(),
+    selectedTelephonyRate: telephonyRouteSchema.optional(),
+    // Only selected call meters are snapshotted; account allowances are not
+    // assigned to individual callers. These are published-unit estimates.
+    livekit: z.object({
+      plan: z.string().min(1),
+      markupBasisPoints: z.number().int().nonnegative().max(10000),
+      rates: z.array(livekitRateSchema).max(4),
+      source: sourceUrl,
+      estimated: z.literal(true),
+    }).optional(),
+    reserveBufferSeconds: z.number().int().min(0).max(120).optional(),
     markupBasisPoints: z.object({
       ai: z.number().int().nonnegative(),
       telephony: z.number().int().nonnegative(),
@@ -35,6 +69,8 @@ const rateCatalogSchema = z
         z.string(),
         z.object({
           baseMicrosPerAudioMinute: microsString,
+          // Optional verified account price, kept separate from customer list pricing.
+          providerMicrosPerAudioMinute: microsString.optional(),
           source: sourceUrl,
         }),
       ),
@@ -50,6 +86,7 @@ const rateCatalogSchema = z
         z.string(),
         z.object({
           baseMicrosPerThousandCharacters: microsString,
+          providerMicrosPerThousandCharacters: microsString.optional(),
           source: sourceUrl,
         }),
       ),
@@ -215,6 +252,41 @@ export function calculateEstimatedTelephonyChargeMicros(args: {
     rate * args.providerBillableMinutes,
     catalog,
   );
+}
+
+export function calculateTimedChargeMicros(
+  milliseconds: bigint,
+  rate: z.infer<typeof timedRateSchema>,
+): bigint {
+  assertNonNegativeMicros(milliseconds, "milliseconds");
+  if (milliseconds === 0n) return 0n;
+  const seconds = ceilDiv(milliseconds, 1000n);
+  const minimum = BigInt(rate.minimumSeconds);
+  const increment = BigInt(rate.incrementSeconds);
+  const billable = ceilDiv(seconds > minimum ? seconds : minimum, increment) * increment;
+  return ceilDiv(BigInt(rate.baseMicrosPerMinute) * billable, 60n);
+}
+
+export function calculateCallTelephonyMicros(args: {
+  provider: TelephonyCatalogProvider;
+  direction: "inbound" | "outbound";
+  connectedMilliseconds: bigint;
+}, catalog: Readonly<RateCatalog>): bigint {
+  const route = catalog.selectedTelephonyRate;
+  if (!route) return calculateEstimatedTelephonyChargeMicros({
+    ...args, providerBillableMinutes: ceilDiv(args.connectedMilliseconds, 60_000n),
+  }, catalog);
+  if (route.provider !== args.provider || route.direction !== args.direction) {
+    throw new Error("Call route conflicts with its frozen telephony rate");
+  }
+  return calculateTelephonyChargeMicros(calculateTimedChargeMicros(args.connectedMilliseconds, route), catalog);
+}
+
+export function calculateLivekitChargeMicros(milliseconds: bigint, catalog: Readonly<RateCatalog>): bigint {
+  if (!catalog.livekit) return 0n; // Historical snapshots predate LiveKit pricing.
+  const base = catalog.livekit.rates.reduce((sum, rate) =>
+    sum + calculateTimedChargeMicros(milliseconds, rate) * BigInt(rate.units), 0n);
+  return applyMarkup(base, catalog.livekit.markupBasisPoints);
 }
 
 export function calculateNumberRentalPriceMicros(

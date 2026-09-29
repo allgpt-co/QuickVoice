@@ -16,7 +16,8 @@
     "test": "tsx --test tests/**/*.test.ts",
     "seed": "tsx prisma/seed.ts",
     "import:smithery-catalog": "tsx prisma/import-smithery-catalog.ts",
-    "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts"
+    "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts",
+    "billing:rates": "tsx src/modules/billing/rate-book.cli.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1072.0",

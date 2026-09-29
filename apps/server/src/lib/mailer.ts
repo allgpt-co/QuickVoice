@@ -310,6 +310,17 @@ export async function sendContactSubmission(submission: ContactSubmission) {
   });
 }
 
+export async function sendProviderSpendAlert(args: { email: string; subject: string; text: string }) {
+  return sendComposedEmail({
+    ...args,
+    fullName: "QuickVoice team",
+    html: `<html><body><pre style="white-space:pre-wrap;font-family:Arial,sans-serif">${escapeHtml(args.text)}</pre></body></html>`,
+    failureLabel: "provider spend alert",
+    timeoutMs: 8_000,
+    requireRecipientAcceptance: true,
+  });
+}
+
 async function sendComposedEmail(args: {
   email: string;
   fullName: string;

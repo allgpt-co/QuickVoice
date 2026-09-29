@@ -53,6 +53,12 @@ export const getTransactions = authorized(async (req, res) => {
   });
 });
 
+export const getCallCost = authorized(async (req, res) => {
+  const { getCallCostBreakdown } = await import("./call-metering.service.js");
+  const result = await getCallCostBreakdown(req.auth.activeOrganizationId, String(req.params.callId));
+  res.status(200).json({ success: true, data: toBillingJson(result) });
+});
+
 export const createTopUp = authorized(async (req, res) => {
   const result = await createTopUpCheckout({
     organizationId: req.auth.activeOrganizationId,
@@ -102,10 +108,9 @@ export const ingestCallUsage = authorized(async (req, res) => {
   const result = await applyCallUsageSnapshot(input);
   res.status(result.action === "stop" ? 402 : 200).json({
     success: result.action !== "stop",
-    message:
-      result.action === "stop"
-        ? "Insufficient credit; end the call"
-        : "Call usage applied",
+    message: result.action === "stop"
+      ? result.reason === "pricing_unavailable" ? "Call pricing unavailable; end the call" : "Insufficient credit; end the call"
+      : "Call usage applied",
     data: toBillingJson(result),
   });
 });

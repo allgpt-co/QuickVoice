@@ -34,6 +34,7 @@ export type CallBillingSessionAvgAggregateOutputType = {
   connectedMilliseconds: number | null
   aiCostMicros: number | null
   platformCostMicros: number | null
+  livekitEstimatedMicros: number | null
   telephonyEstimatedMicros: number | null
   telephonyFinalMicros: number | null
   unreportedTailMicros: number | null
@@ -51,6 +52,7 @@ export type CallBillingSessionSumAggregateOutputType = {
   connectedMilliseconds: bigint | null
   aiCostMicros: bigint | null
   platformCostMicros: bigint | null
+  livekitEstimatedMicros: bigint | null
   telephonyEstimatedMicros: bigint | null
   telephonyFinalMicros: bigint | null
   unreportedTailMicros: bigint | null
@@ -81,6 +83,7 @@ export type CallBillingSessionMinAggregateOutputType = {
   connectedMilliseconds: bigint | null
   aiCostMicros: bigint | null
   platformCostMicros: bigint | null
+  livekitEstimatedMicros: bigint | null
   telephonyEstimatedMicros: bigint | null
   telephonyFinalMicros: bigint | null
   unreportedTailMicros: bigint | null
@@ -121,6 +124,7 @@ export type CallBillingSessionMaxAggregateOutputType = {
   connectedMilliseconds: bigint | null
   aiCostMicros: bigint | null
   platformCostMicros: bigint | null
+  livekitEstimatedMicros: bigint | null
   telephonyEstimatedMicros: bigint | null
   telephonyFinalMicros: bigint | null
   unreportedTailMicros: bigint | null
@@ -163,6 +167,7 @@ export type CallBillingSessionCountAggregateOutputType = {
   connectedMilliseconds: number
   aiCostMicros: number
   platformCostMicros: number
+  livekitEstimatedMicros: number
   telephonyEstimatedMicros: number
   telephonyFinalMicros: number
   unreportedTailMicros: number
@@ -192,6 +197,7 @@ export type CallBillingSessionAvgAggregateInputType = {
   connectedMilliseconds?: true
   aiCostMicros?: true
   platformCostMicros?: true
+  livekitEstimatedMicros?: true
   telephonyEstimatedMicros?: true
   telephonyFinalMicros?: true
   unreportedTailMicros?: true
@@ -209,6 +215,7 @@ export type CallBillingSessionSumAggregateInputType = {
   connectedMilliseconds?: true
   aiCostMicros?: true
   platformCostMicros?: true
+  livekitEstimatedMicros?: true
   telephonyEstimatedMicros?: true
   telephonyFinalMicros?: true
   unreportedTailMicros?: true
@@ -239,6 +246,7 @@ export type CallBillingSessionMinAggregateInputType = {
   connectedMilliseconds?: true
   aiCostMicros?: true
   platformCostMicros?: true
+  livekitEstimatedMicros?: true
   telephonyEstimatedMicros?: true
   telephonyFinalMicros?: true
   unreportedTailMicros?: true
@@ -279,6 +287,7 @@ export type CallBillingSessionMaxAggregateInputType = {
   connectedMilliseconds?: true
   aiCostMicros?: true
   platformCostMicros?: true
+  livekitEstimatedMicros?: true
   telephonyEstimatedMicros?: true
   telephonyFinalMicros?: true
   unreportedTailMicros?: true
@@ -321,6 +330,7 @@ export type CallBillingSessionCountAggregateInputType = {
   connectedMilliseconds?: true
   aiCostMicros?: true
   platformCostMicros?: true
+  livekitEstimatedMicros?: true
   telephonyEstimatedMicros?: true
   telephonyFinalMicros?: true
   unreportedTailMicros?: true
@@ -450,6 +460,7 @@ export type CallBillingSessionGroupByOutputType = {
   connectedMilliseconds: bigint
   aiCostMicros: bigint
   platformCostMicros: bigint
+  livekitEstimatedMicros: bigint
   telephonyEstimatedMicros: bigint
   telephonyFinalMicros: bigint | null
   unreportedTailMicros: bigint
@@ -515,6 +526,7 @@ export type CallBillingSessionWhereInput = {
   connectedMilliseconds?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   aiCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   platformCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyFinalMicros?: Prisma.BigIntNullableFilter<"CallBillingSession"> | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
@@ -559,6 +571,7 @@ export type CallBillingSessionOrderByWithRelationInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrderInput | Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -607,6 +620,7 @@ export type CallBillingSessionWhereUniqueInput = Prisma.AtLeast<{
   connectedMilliseconds?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   aiCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   platformCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyFinalMicros?: Prisma.BigIntNullableFilter<"CallBillingSession"> | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
@@ -651,6 +665,7 @@ export type CallBillingSessionOrderByWithAggregationInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrderInput | Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -701,6 +716,7 @@ export type CallBillingSessionScalarWhereWithAggregatesInput = {
   connectedMilliseconds?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
   aiCostMicros?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
   platformCostMicros?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
   telephonyFinalMicros?: Prisma.BigIntNullableWithAggregatesFilter<"CallBillingSession"> | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntWithAggregatesFilter<"CallBillingSession"> | bigint | number
@@ -741,6 +757,7 @@ export type CallBillingSessionCreateInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -785,6 +802,7 @@ export type CallBillingSessionUncheckedCreateInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -825,6 +843,7 @@ export type CallBillingSessionUpdateInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -869,6 +888,7 @@ export type CallBillingSessionUncheckedUpdateInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -911,6 +931,7 @@ export type CallBillingSessionCreateManyInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -951,6 +972,7 @@ export type CallBillingSessionUpdateManyMutationInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -993,6 +1015,7 @@ export type CallBillingSessionUncheckedUpdateManyInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1050,6 +1073,7 @@ export type CallBillingSessionCountOrderByAggregateInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -1077,6 +1101,7 @@ export type CallBillingSessionAvgOrderByAggregateInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -1107,6 +1132,7 @@ export type CallBillingSessionMaxOrderByAggregateInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -1147,6 +1173,7 @@ export type CallBillingSessionMinOrderByAggregateInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -1174,6 +1201,7 @@ export type CallBillingSessionSumOrderByAggregateInput = {
   connectedMilliseconds?: Prisma.SortOrder
   aiCostMicros?: Prisma.SortOrder
   platformCostMicros?: Prisma.SortOrder
+  livekitEstimatedMicros?: Prisma.SortOrder
   telephonyEstimatedMicros?: Prisma.SortOrder
   telephonyFinalMicros?: Prisma.SortOrder
   unreportedTailMicros?: Prisma.SortOrder
@@ -1308,6 +1336,7 @@ export type CallBillingSessionCreateWithoutOrganizationInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1350,6 +1379,7 @@ export type CallBillingSessionUncheckedCreateWithoutOrganizationInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1421,6 +1451,7 @@ export type CallBillingSessionScalarWhereInput = {
   connectedMilliseconds?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   aiCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   platformCostMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
   telephonyFinalMicros?: Prisma.BigIntNullableFilter<"CallBillingSession"> | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFilter<"CallBillingSession"> | bigint | number
@@ -1461,6 +1492,7 @@ export type CallBillingSessionCreateWithoutBillingAccountInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1503,6 +1535,7 @@ export type CallBillingSessionUncheckedCreateWithoutBillingAccountInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1570,6 +1603,7 @@ export type CallBillingSessionCreateManyOrganizationInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1610,6 +1644,7 @@ export type CallBillingSessionUpdateWithoutOrganizationInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1652,6 +1687,7 @@ export type CallBillingSessionUncheckedUpdateWithoutOrganizationInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1693,6 +1729,7 @@ export type CallBillingSessionUncheckedUpdateManyWithoutOrganizationInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1734,6 +1771,7 @@ export type CallBillingSessionCreateManyBillingAccountInput = {
   connectedMilliseconds?: bigint | number
   aiCostMicros?: bigint | number
   platformCostMicros?: bigint | number
+  livekitEstimatedMicros?: bigint | number
   telephonyEstimatedMicros?: bigint | number
   telephonyFinalMicros?: bigint | number | null
   unreportedTailMicros?: bigint | number
@@ -1774,6 +1812,7 @@ export type CallBillingSessionUpdateWithoutBillingAccountInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1816,6 +1855,7 @@ export type CallBillingSessionUncheckedUpdateWithoutBillingAccountInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1857,6 +1897,7 @@ export type CallBillingSessionUncheckedUpdateManyWithoutBillingAccountInput = {
   connectedMilliseconds?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   aiCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   platformCostMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
+  livekitEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyEstimatedMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
   telephonyFinalMicros?: Prisma.NullableBigIntFieldUpdateOperationsInput | bigint | number | null
   unreportedTailMicros?: Prisma.BigIntFieldUpdateOperationsInput | bigint | number
@@ -1901,6 +1942,7 @@ export type CallBillingSessionSelect<ExtArgs extends runtime.Types.Extensions.In
   connectedMilliseconds?: boolean
   aiCostMicros?: boolean
   platformCostMicros?: boolean
+  livekitEstimatedMicros?: boolean
   telephonyEstimatedMicros?: boolean
   telephonyFinalMicros?: boolean
   unreportedTailMicros?: boolean
@@ -1945,6 +1987,7 @@ export type CallBillingSessionSelectCreateManyAndReturn<ExtArgs extends runtime.
   connectedMilliseconds?: boolean
   aiCostMicros?: boolean
   platformCostMicros?: boolean
+  livekitEstimatedMicros?: boolean
   telephonyEstimatedMicros?: boolean
   telephonyFinalMicros?: boolean
   unreportedTailMicros?: boolean
@@ -1989,6 +2032,7 @@ export type CallBillingSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.
   connectedMilliseconds?: boolean
   aiCostMicros?: boolean
   platformCostMicros?: boolean
+  livekitEstimatedMicros?: boolean
   telephonyEstimatedMicros?: boolean
   telephonyFinalMicros?: boolean
   unreportedTailMicros?: boolean
@@ -2033,6 +2077,7 @@ export type CallBillingSessionSelectScalar = {
   connectedMilliseconds?: boolean
   aiCostMicros?: boolean
   platformCostMicros?: boolean
+  livekitEstimatedMicros?: boolean
   telephonyEstimatedMicros?: boolean
   telephonyFinalMicros?: boolean
   unreportedTailMicros?: boolean
@@ -2052,7 +2097,7 @@ export type CallBillingSessionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type CallBillingSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"callBillingSessionId" | "callId" | "billingAccountId" | "organizationId" | "status" | "billingMode" | "admissionGeneration" | "rateCatalogVersion" | "rateSnapshot" | "lastModelUsage" | "activeReservationId" | "sessionId" | "roomName" | "agentId" | "userId" | "lastUsageSequence" | "processingUsageSequence" | "processingUsageStartedAt" | "connectedSeconds" | "connectedMilliseconds" | "aiCostMicros" | "platformCostMicros" | "telephonyEstimatedMicros" | "telephonyFinalMicros" | "unreportedTailMicros" | "totalSettledMicros" | "debtIncurredMicros" | "telephonyProvider" | "providerCallId" | "providerBillableSeconds" | "reconciliationAttempts" | "reconciliationClaimedAt" | "reconciliationNextAt" | "reconciliationLastError" | "startedAt" | "endedAt" | "reconciledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["callBillingSession"]>
+export type CallBillingSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"callBillingSessionId" | "callId" | "billingAccountId" | "organizationId" | "status" | "billingMode" | "admissionGeneration" | "rateCatalogVersion" | "rateSnapshot" | "lastModelUsage" | "activeReservationId" | "sessionId" | "roomName" | "agentId" | "userId" | "lastUsageSequence" | "processingUsageSequence" | "processingUsageStartedAt" | "connectedSeconds" | "connectedMilliseconds" | "aiCostMicros" | "platformCostMicros" | "livekitEstimatedMicros" | "telephonyEstimatedMicros" | "telephonyFinalMicros" | "unreportedTailMicros" | "totalSettledMicros" | "debtIncurredMicros" | "telephonyProvider" | "providerCallId" | "providerBillableSeconds" | "reconciliationAttempts" | "reconciliationClaimedAt" | "reconciliationNextAt" | "reconciliationLastError" | "startedAt" | "endedAt" | "reconciledAt" | "createdAt" | "updatedAt", ExtArgs["result"]["callBillingSession"]>
 export type CallBillingSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   billingAccount?: boolean | Prisma.BillingAccountDefaultArgs<ExtArgs>
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -2095,6 +2140,7 @@ export type $CallBillingSessionPayload<ExtArgs extends runtime.Types.Extensions.
     connectedMilliseconds: bigint
     aiCostMicros: bigint
     platformCostMicros: bigint
+    livekitEstimatedMicros: bigint
     telephonyEstimatedMicros: bigint
     telephonyFinalMicros: bigint | null
     unreportedTailMicros: bigint
@@ -2559,6 +2605,7 @@ export interface CallBillingSessionFieldRefs {
   readonly connectedMilliseconds: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
   readonly aiCostMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
   readonly platformCostMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
+  readonly livekitEstimatedMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
   readonly telephonyEstimatedMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
   readonly telephonyFinalMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>
   readonly unreportedTailMicros: Prisma.FieldRef<"CallBillingSession", 'BigInt'>

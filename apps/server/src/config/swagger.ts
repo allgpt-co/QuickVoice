@@ -1986,6 +1986,21 @@ export const swaggerSpec = {
         },
       },
     },
+    "/billing/calls/{callId}/cost": {
+      get: {
+        tags: ["Billing"],
+        summary: "Get a call's wallet cost breakdown",
+        description: "Requires billing read permission in the active organization. Amounts are USD micro-dollar strings. Returns measured STT/LLM/TTS base lines, total AI charge, platform, estimated and finalized telephony, LiveKit connection estimate, adjustments, shutdown tail, total settled and optional shadow pricing comparison. LiveKit estimates do not represent the complete provider invoice.",
+        security: userAuthSecurity,
+        parameters: [{ name: "callId", in: "path", required: true, schema: { type: "string" } }],
+        responses: {
+          200: { description: "Call cost breakdown" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
+          404: { $ref: "#/components/responses/NotFound" },
+        },
+      },
+    },
     "/billing/usage": {
       get: {
         tags: ["Billing"],

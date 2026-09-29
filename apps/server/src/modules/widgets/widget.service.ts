@@ -22,6 +22,7 @@ import type {
 } from "./widget.schema.js";
 import {
   authorizeCallBilling,
+  callAdmissionMessage,
   cancelCallBillingAdmission,
 } from "../billing/call-metering.service.js";
 import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
@@ -309,7 +310,7 @@ export const createPublicWidgetSession = async (
   });
   if (admission.action === "stop") {
     throw new PaymentRequiredError(
-      "This voice agent is temporarily unavailable because its account needs credit",
+      callAdmissionMessage(admission, "This voice agent is temporarily unavailable because its account needs credit"),
       { reason: admission.reason },
     );
   }

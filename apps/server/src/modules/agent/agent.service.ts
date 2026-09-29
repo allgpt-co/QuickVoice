@@ -27,8 +27,10 @@ import type {
   UpdateAgentInput,
 } from "./agent.schema.js";
 import { estimateConfiguredMinuteMicros } from "../billing/call-pricing.service.js";
+import { getCallAdmissionCatalog, PricingUnavailableError } from "../billing/database-rate-catalog.service.js";
 import {
   authorizeCallBilling,
+  callAdmissionMessage,
   cancelCallBillingAdmission,
 } from "../billing/call-metering.service.js";
 import { assertSupportedBillingModels } from "../billing/call-pricing.service.js";
@@ -188,7 +190,7 @@ export const createAgentPreviewSession = async (
     agentId,
   });
   if (admission.action === "stop") {
-    throw new PaymentRequiredError("Add credit before starting a preview call", {
+    throw new PaymentRequiredError(callAdmissionMessage(admission, "Add credit before starting a preview call"), {
       reason: admission.reason,
       requiredMicros: admission.reserveMicros?.toString() ?? null,
     });
@@ -549,17 +551,24 @@ export const getAgentConfig = async (
   return withEstimatedPrice(redactAgentConfigSecrets(configuration));
 };
 
-function withEstimatedPrice<T extends {
+async function withEstimatedPrice<T extends {
   sttModel?: string | null;
   llmModel?: string | null;
   ttsModel?: string | null;
 }>(configuration: T) {
+  const resolved = await getCallAdmissionCatalog({}).catch((error: unknown) => {
+    if (error instanceof PricingUnavailableError) return null;
+    throw error;
+  });
+  if (!resolved) return { ...configuration, estimatedPricePerMinuteMicros: null };
+  const { catalog } = resolved;
   return {
     ...configuration,
     estimatedPricePerMinuteMicros: estimateConfiguredMinuteMicros({
       sttModel: configuration.sttModel,
       llmModel: configuration.llmModel,
       ttsModel: configuration.ttsModel,
+      rateCatalog: catalog,
     }).toString(),
   };
 }
