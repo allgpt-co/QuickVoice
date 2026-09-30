@@ -49,11 +49,12 @@ export function LoginForm({ invitationId = "" }: { invitationId?: string } = {})
       await authClient.signIn.email({
         email: data.email,
         password: data.password,
-        rememberMe: data.remember,
+        rememberMe: data.remember === true,
         fetchOptions: {
           onSuccess: () => {
             toast.success("Login successful");
             router.push(invitationId ? invitationPath(invitationId) : "/dashboard");
+            router.refresh();
           },
           onError: (ctx) => {
             const msg = ctx.error.message || "Something went wrong";
@@ -128,6 +129,7 @@ export function LoginForm({ invitationId = "" }: { invitationId?: string } = {})
                   <InputGroupInput
                     placeholder="••••••••"
                     type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
                     className="h-11"
                     {...field}
                   />
@@ -155,12 +157,16 @@ export function LoginForm({ invitationId = "" }: { invitationId?: string } = {})
             <FormItem className="flex items-center gap-2 ml-2 ">
               <FormControl>
                 <Checkbox
+                  id="remember"
+                  name={field.name}
+                  ref={field.ref}
+                  onBlur={field.onBlur}
                   checked={field.value}
                   onCheckedChange={field.onChange}
                   disabled={loading}
                 />
               </FormControl>
-              <FormLabel>Remember me</FormLabel>
+              <FormLabel htmlFor="remember">Remember me</FormLabel>
             </FormItem>
           )}
         />
