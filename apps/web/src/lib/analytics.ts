@@ -15,6 +15,7 @@ declare global {
   interface Window {
     quickvoiceAnalyticsConsent?: "unknown" | "granted" | "denied";
     quickvoiceAnalyticsMeasurementId?: string;
+    quickvoiceStartAnalytics?: () => void;
     gtag?: (...args: unknown[]) => void;
   }
 }

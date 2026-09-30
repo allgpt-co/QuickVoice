@@ -7,6 +7,9 @@ import Navbar from "@/components/landing/navbar";
 import { Footer } from "@/components/landing/footer";
 import { CtaAnalytics } from "@/components/cta-analytics";
 import { AnalyticsConsent } from "@/components/analytics-consent";
+import { createPublicAnalyticsPaths } from "@/lib/analytics-public-routes.mjs";
+import { getAllSlugs as getBlogSlugs } from "@/lib/blog";
+import { getAllSlugs as getCaseStudySlugs } from "@/lib/case-studies";
 import {
   createGoogleAnalyticsScript,
   manualPageviewsEnabled,
@@ -15,10 +18,6 @@ const inter = Inter({ subsets: ["latin"], display: "swap" });
 
 const manualPageviews = manualPageviewsEnabled(
   process.env.NEXT_PUBLIC_GA_MANUAL_PAGEVIEWS,
-);
-const googleAnalyticsScript = createGoogleAnalyticsScript(
-  process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
-  manualPageviews,
 );
 
 export const metadata: Metadata = {
@@ -66,6 +65,11 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const googleAnalyticsScript = createGoogleAnalyticsScript(
+    process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+    manualPageviews,
+    createPublicAnalyticsPaths(getBlogSlugs(), getCaseStudySlugs()),
+  );
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
