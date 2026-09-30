@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { after, before, beforeEach, test } from "node:test";
+import { after, before, beforeEach, mock, test } from "node:test";
 import type { Server } from "node:http";
 import express from "express";
 
@@ -21,9 +21,12 @@ const callbacks = [
 let server: Server;
 let baseUrl: string;
 let limits: typeof import("../../src/middleware/rateLimit.middleware.js");
+let sessionLookups = 0;
+let restorePrisma = () => {};
 
 before(async () => {
   process.env.API_VERSION = "rate-limit-test";
+  process.env.RATE_LIMIT_STORE = "memory";
   process.env.DATABASE_URL =
     "postgresql://test:test@127.0.0.1:1/quickvoice-test";
   process.env.STRIPE_SECRET_KEY = "sk_test_placeholder";
@@ -36,6 +39,28 @@ before(async () => {
     await import("../../src/middleware/auth.middleware.js");
   const { default: errorMiddleware } =
     await import("../../src/middleware/error.middleware.js");
+  const { auth } = await import("../../src/lib/auth.js");
+  const { default: prisma } = await import("../../src/config/prisma.js");
+  mock.method(auth.api, "getSession", async ({ headers }: { headers: Headers }) => {
+    sessionLookups++;
+    const cookie = headers.get("cookie");
+    const userId = cookie === "session=alice" || cookie === "session=alice-other-device"
+      ? "alice" : cookie === "session=bob" ? "bob" : null;
+    return userId ? { user: { id: userId }, session: { activeOrganizationId: "org" } } : null;
+  });
+  mock.method(auth.api, "verifyApiKey", async ({ body }: { body: { key: string } }) => (
+    ["key-a", "key-b"].includes(body.key)
+      ? { valid: true, key: { id: body.key, referenceId: "org", permissions: { callLogs: ["read"] } } }
+      : { valid: false }
+  ));
+  const findMember = prisma.member.findFirst;
+  const executeRaw = prisma.$executeRaw;
+  prisma.member.findFirst = (async () => ({ userId: "alice" })) as typeof findMember;
+  prisma.$executeRaw = (async () => 1) as typeof executeRaw;
+  restorePrisma = () => {
+    prisma.member.findFirst = findMember;
+    prisma.$executeRaw = executeRaw;
+  };
 
   const app = express();
   // Exercise the production ordering and auth without invoking live providers.
@@ -43,6 +68,8 @@ before(async () => {
   app.use(express.json());
   const router = express.Router();
   router.get("/public-test", (_req, res) => res.sendStatus(204));
+  router.get(["/health", "/ready"], (_req, res) => res.sendStatus(204));
+  router.get("/protected", authMiddleware, (req, res) => res.json({ userId: req.auth?.userId }));
   router.get(
     ["/agents/internal-config/:agentId", "/agents/number-config/:phoneNumber"],
     requireInternalApiKey,
@@ -71,6 +98,10 @@ beforeEach(async () => {
   process.env.INTERNAL_API_KEY = internalKey;
   await limits.publicRateLimitMiddleware.resetKey("127.0.0.1");
   await limits.internalCallbackRateLimitMiddleware.resetKey("127.0.0.1");
+  for (const key of ["user:alice", "user:bob", "api-key:key-a", "api-key:key-b"]) {
+    await limits.authenticatedRateLimitMiddleware.resetKey(key);
+  }
+  sessionLookups = 0;
 });
 
 after(async () => {
@@ -81,6 +112,8 @@ after(async () => {
     });
   }
   process.env = originalEnv;
+  restorePrisma();
+  mock.restoreAll();
 });
 
 async function exhaustPublicAllowance(
@@ -94,7 +127,58 @@ async function exhaustPublicAllowance(
   }
   const response = await requestJson(`${baseUrl}${path}`, { headers });
   assert.equal(response.status, 429);
+  assert.equal(response.headers["ratelimit-limit"], "1000");
+  assert.ok(Number(response.headers["retry-after"]) <= 60);
 }
+
+test("one user's quota cannot block another user, anonymous traffic, or AI callbacks on the same IP", async () => {
+  for (let i = 0; i < 300; i++) {
+    const response = await requestJson(`${baseUrl}/protected`, { headers: { cookie: "session=alice" } });
+    assert.equal(response.status, 200);
+  }
+  assert.equal(sessionLookups, 300, "route auth reuses the verified identity");
+  const blocked = await requestJson(`${baseUrl}/protected`, {
+    headers: { cookie: "session=alice-other-device", "x-user-id": "bob", "x-organization-id": "other-org" },
+  });
+  assert.equal(blocked.status, 429);
+  assert.equal(blocked.headers["ratelimit-limit"], "300");
+  assert.ok(Number(blocked.headers["retry-after"]) > 0);
+  assert.ok(Number(blocked.headers["retry-after"]) <= 60);
+  assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { cookie: "session=bob" } })).status, 200);
+  assert.equal((await requestJson(`${baseUrl}/public-test`)).status, 204);
+  assert.equal((await requestJson(`${baseUrl}${callbacks[0]!.path}`, { headers: internalHeaders })).status, 204);
+});
+
+test("API key quotas use verified key IDs separately from the owner's browser session", async () => {
+  for (let i = 0; i < 300; i++) {
+    assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { "x-api-key": "key-a" } })).status, 200);
+  }
+  assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { "x-api-key": "key-a", "x-user-id": "bob" } })).status, 429);
+  assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { "x-api-key": "key-b" } })).status, 200);
+  assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { cookie: "session=alice" } })).status, 200);
+});
+
+test("exhausted anonymous quota cannot block verified users or health probes; forged identities cannot bypass it", async () => {
+  await exhaustPublicAllowance();
+  for (const path of ["/health", "/ready", "/HEALTH/?probe=1"]) {
+    assert.equal((await requestJson(`${baseUrl}${path}`)).status, 204);
+    assert.equal((await requestJson(`${baseUrl}${path}`, { method: "HEAD" })).status, 204);
+  }
+  assert.equal((await requestJson(`${baseUrl}/health/extra`)).status, 429);
+  for (const headers of [
+    { "x-user-id": "alice" }, { cookie: "session=forged" }, { "x-api-key": "forged" },
+  ]) {
+    assert.equal((await requestJson(`${baseUrl}/protected`, { headers })).status, 429);
+  }
+  assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { cookie: "session=alice" } })).status, 200);
+});
+
+test("health probes do not consume anonymous quota", async () => {
+  for (let i = 0; i < 1001; i++) {
+    assert.equal((await requestJson(`${baseUrl}/health`)).status, 204);
+  }
+  await exhaustPublicAllowance();
+});
 
 test("AI callbacks exceed 100 requests without consuming the shared IP's public allowance", async () => {
   for (let i = 0; i < 104; i++) {

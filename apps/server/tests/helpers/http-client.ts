@@ -1,4 +1,4 @@
-import { request } from "node:http";
+import { request, type IncomingHttpHeaders } from "node:http";
 
 type RequestOptions = {
   method?: string;
@@ -9,6 +9,7 @@ type RequestOptions = {
 export async function requestJson(url: string, options: RequestOptions = {}) {
   return new Promise<{
     status: number;
+    headers: IncomingHttpHeaders;
     json: <T = any>() => Promise<T>;
   }>((resolve, reject) => {
     const req = request(
@@ -25,6 +26,7 @@ export async function requestJson(url: string, options: RequestOptions = {}) {
           const payload = Buffer.concat(chunks).toString("utf8");
           resolve({
             status: response.statusCode ?? 0,
+            headers: response.headers,
             json: async <T>() => JSON.parse(payload) as T,
           });
         });
