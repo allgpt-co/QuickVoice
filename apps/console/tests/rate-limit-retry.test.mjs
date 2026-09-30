@@ -16,13 +16,13 @@ function loadClient() {
     const output = ts.transpileModule(source, { compilerOptions: {
       module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true,
     } }).outputText;
-    const module = { exports: {} };
+    const testModule = { exports: {} };
     vm.runInNewContext(output, {
-      exports: module.exports, module, Date: Clock,
+      exports: testModule.exports, module: testModule, Date: Clock,
       window: { location: { pathname: "/agents" } },
       require: (name) => overrides[name] ?? require(name),
     });
-    return module.exports;
+    return testModule.exports;
   }
   const errors = load("../src/lib/errors.ts");
   const { apiClient } = load("../src/lib/api/client.ts", {
