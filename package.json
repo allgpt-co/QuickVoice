@@ -45,7 +45,7 @@
   },
   "pnpm": {
     "overrides": {
-      "@grpc/grpc-js": "1.14.4",
+      "@grpc/grpc-js": "1.14.5",
       "@babel/core@7": "7.29.6",
       "@hono/node-server": "2.0.12",
       "@humanfs/node": "0.16.8",
@@ -53,7 +53,7 @@
       "@opentelemetry/core": "2.10.0",
       "@opentelemetry/propagator-jaeger": "2.9.0",
       "@prisma/config>deepmerge-ts": "8.0.0",
-      "axios": "1.18.0",
+      "axios": "1.20.0",
       "baseline-browser-mapping": "2.11.21",
       "body-parser": "2.3.0",
       "brace-expansion": "5.0.12",
@@ -64,7 +64,7 @@
       "flatted": "3.4.2",
       "form-data": "4.0.6",
       "glob": "10.5.0",
-      "hono": "4.13.5",
+      "hono": "4.13.12",
       "immutable": "5.1.9",
       "ip-address": "10.7.1",
       "js-yaml@3": "3.15.2",
