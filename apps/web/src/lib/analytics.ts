@@ -16,6 +16,7 @@ declare global {
     quickvoiceAnalyticsConsent?: "unknown" | "granted" | "denied";
     quickvoiceAnalyticsMeasurementId?: string;
     quickvoiceStartAnalytics?: () => void;
+    quickvoiceAnalyticsPageAllowed?: () => boolean;
     gtag?: (...args: unknown[]) => void;
   }
 }
@@ -27,6 +28,8 @@ export function trackAnalyticsEvent(
   if (typeof window === "undefined" || window.quickvoiceAnalyticsConsent !== "granted" || !window.gtag) return false;
 
   try {
+    // Startup permission does not grant permission on later private/unknown routes.
+    if (window.quickvoiceAnalyticsPageAllowed?.() !== true) return false;
     window.gtag("event", eventName, properties);
     return true;
   } catch {
