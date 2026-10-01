@@ -13,9 +13,9 @@ const compiled = ts.transpileModule(
 
 function fixture({ configuredId = "", hostname = "quickvoice.co" } = {}) {
   const scripts = [];
-  const module = { exports: {} };
+  const compiledModule = { exports: {} };
   const context = {
-    URL, module, exports: module.exports,
+    URL, module: compiledModule, exports: compiledModule.exports,
     window: {
       location: { hostname, pathname: "/pricing" },
       quickvoiceAnalyticsConsent: "granted",
@@ -31,7 +31,7 @@ function fixture({ configuredId = "", hostname = "quickvoice.co" } = {}) {
     "/case-studies/public-scenario",
   ]), context);
   runInNewContext(compiled, context);
-  return { context, scripts, ...module.exports,
+  return { context, scripts, ...compiledModule.exports,
     events: () => (context.window.dataLayer || []).filter((args) => args[0] === "event"),
   };
 }
