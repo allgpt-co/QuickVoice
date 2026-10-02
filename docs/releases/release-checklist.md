@@ -20,6 +20,7 @@ Use Node.js `^20.19 || ^22.13 || >=24`; CI currently uses Node 24. Start from a 
 ```sh
 corepack prepare pnpm@9.0.0 --activate
 pnpm install --frozen-lockfile
+pnpm release:check -- v0.1.0 --draft
 pnpm check:tasks
 pnpm check:configs
 pnpm lint

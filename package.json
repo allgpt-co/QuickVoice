@@ -29,7 +29,8 @@
     "seo:measurement": "python3 scripts/seo-measurement-setup.py",
     "seo:leads": "python3 scripts/seo-lead-scorecard.py",
     "test:seo-operations": "python3 -m unittest discover -s scripts -p 'test_seo_*.py'",
-    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
+    "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source",
+    "release:check": "node scripts/check-release-metadata.mjs"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
