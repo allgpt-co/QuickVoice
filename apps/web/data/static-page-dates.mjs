@@ -4,7 +4,7 @@
  */
 export const STATIC_PAGE_LAST_MODIFIED = {
   "/": "2026-09-07",
-  "/blog": "2026-09-26",
+  "/blog": "2026-10-02",
   "/case-studies": "2026-09-07",
   "/company/about-us": "2026-09-26",
   "/company/careers": "2026-09-26",
@@ -22,7 +22,7 @@ export const STATIC_PAGE_LAST_MODIFIED = {
   "/industries/real-estate": "2026-09-26",
   "/industries/saas": "2026-09-26",
   "/industries/travel-hospitality": "2026-09-26",
-  "/open-source": "2026-09-18",
+  "/open-source": "2026-10-02",
   "/pricing": "2026-09-18",
   "/privacy-policy": "2026-09-21",
   "/resources": "2026-09-26",
