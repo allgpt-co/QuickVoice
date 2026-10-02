@@ -213,7 +213,7 @@ test("priority article edits keep exact reviews and contextual workflow/pricing 
         "2026-09-26",
         "new or substantially revised industry content uses its actual date",
       );
-    else if (slug !== "quickvoice-vs-vapi")
+    else if (slug !== "quickvoice-vs-vapi" && slug !== "quickvoice-vs-synthflow")
       assert.equal(
         post.updatedAt,
         "2026-09-06",

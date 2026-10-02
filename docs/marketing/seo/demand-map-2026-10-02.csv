@@ -1,0 +1,40 @@
+cluster,keyword,us_monthly_volume_12mo_avg,keyword_difficulty,cpc_usd,main_intent,target_page,page_state_2026_10_02,action,source
+receptionist,ai receptionist,49500,25,34.22,navigational/commercial,/solutions/ai-receptionist,indexed; not ranking,rebuild as cluster hub (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+receptionist,ai receptionist for small business,2900,32,60.46,commercial,/blog/ai-receptionist-for-small-business,missing,new article (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai virtual receptionist,1900,25,35.14,commercial,/solutions/ai-receptionist,indexed; not ranking,hub secondary term (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+receptionist,ai receptionist software,390,8,15.18,commercial,/blog/best-ai-receptionist-software,missing,new article (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai phone receptionist,320,25,51.80,commercial,/solutions/ai-receptionist,indexed; not ranking,hub secondary term (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+receptionist,best ai receptionist,320,29,38.04,commercial,/blog/best-ai-receptionist-software,missing,new article (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai voice receptionist,210,25,34.28,commercial,/solutions/ai-receptionist,indexed; position 68,hub (P1),DataForSEO Labs ranked_keywords US en 2026-10-02
+receptionist,free ai receptionist,170,16,32.03,informational,/blog/free-ai-receptionist,partially covered by scheduling post,new article + re-angle (P1/P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai receptionist cost,90,7,18.02,informational,/blog/ai-receptionist-cost,missing,new article + /pricing section (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai receptionist pricing,90,10,43.00,commercial,/pricing,indexed,add cost explainer + FAQ (P1),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,how much does an ai receptionist cost,50,7,37.82,commercial,/blog/ai-receptionist-cost,missing,new article (P2),DataForSEO Labs keyword_overview US en 2026-10-02
+receptionist,dental ai receptionist,170,9,127.26,navigational,/blog/ai-voice-agents-dental-practices,discovered not indexed,index + solution page (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai medical receptionist,140,6,87.85,informational,/industries/healthcare,crawled not indexed,retitle + index (P1),DataForSEO Labs keyword_suggestions US en 2026-10-02
+receptionist,ai receptionist for law firms,90,3,62.02,commercial,/blog/ai-voice-agents-law-firms,indexed,retitle toward receptionist term (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+receptionist,ai receptionist for medical office,90,6,111.45,informational,/industries/healthcare,crawled not indexed,retitle + index (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+answering,ai answering service,3600,29,47.55,informational/commercial,/solutions/ai-answering-service,indexed; not ranking,rebuild as cluster hub (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+answering,ai phone answering service,2400,18,54.27,commercial,/solutions/ai-answering-service,indexed; not ranking,hub + blog support (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+answering,ai answering service for business,1600,29,110.52,commercial,/solutions/ai-answering-service,indexed; not ranking,hub (P1),DataForSEO Labs keyword_suggestions US en 2026-10-02
+answering,ai answering service for small business,320,29,107.38,commercial,/blog/ai-phone-answering-service-small-business,stale noindex verdict (live index follow),request indexing (P0),DataForSEO Labs keyword_suggestions US en 2026-10-02
+answering,ai call answering service,170,33,62.93,informational,/solutions/ai-answering-service,indexed,hub secondary term (P1),DataForSEO Labs keyword_suggestions US en 2026-10-02
+appointment,ai appointment setter,320,4,46.81,commercial,/use-cases/appointment-scheduling,indexed; 18 impressions,retarget as phone-first setter page (P1; slug decision pending),DataForSEO Labs keyword_overview US en 2026-10-02
+appointment,ai appointment scheduling,110,28,53.72,commercial,/blog/free-ai-appointment-scheduling-tools,indexed; 802 GSC impressions at position 21.8 with 0 clicks,re-angle away from calendar-tool intent (P1),DataForSEO Labs keyword_overview + GSC 90d 2026-10-02
+appointment,ai scheduling assistant,1000,29,21.10,commercial,none,calendar-assistant intent; not a fit,do not target,DataForSEO Labs keyword_overview US en 2026-10-02
+appointment,ai booking assistant,90,7,11.14,commercial,/use-cases/appointment-scheduling,139 GSC impressions on wrong page,retarget (P1),DataForSEO Labs keyword_overview + GSC 90d 2026-10-02
+platform,ai voice agent,22200,38,44.18,commercial,/,indexed,homepage title/H1 category term (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+platform,ai phone agent,1600,41,89.37,commercial,/,indexed,homepage primary term (P1),DataForSEO Labs keyword_overview US en 2026-10-02
+platform,ai voice agent platform,1000,44,41.27,commercial,/blog/best-ai-voice-agent-platforms-2026,crawled not indexed,request indexing + refresh (P0/P2),DataForSEO Labs keyword_overview US en 2026-10-02
+platform,ai call center software,2400,28,41.00,commercial,none,no page,evaluate after receptionist cluster,DataForSEO Labs keyword_overview US en 2026-10-02
+platform,what is an ai voice agent,110,9,8.29,informational,/blog/what-is-an-ai-voice-agent,stale noindex verdict (live index follow),request indexing (P0),DataForSEO Labs keyword_suggestions US en 2026-10-02
+platform,ai voice agent for small business,90,1,40.29,commercial,/blog/build-ai-voice-agent-small-business,indexed,retitle toward query (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+platform,ai voice agent for customer service,140,20,116.20,transactional,/use-cases/customer-support,indexed,retitle (P2),DataForSEO Labs keyword_suggestions US en 2026-10-02
+platform,ai voice agent for healthcare,110,6,23.52,commercial,/industries/healthcare,crawled not indexed,retitle + index (P1),DataForSEO Labs keyword_suggestions US en 2026-10-02
+alternatives,vapi alternatives,320,n/a,23.33,informational,/blog/vapi-alternatives,indexed,refresh with pricing table (P2),DataForSEO Labs keyword_overview US en 2026-10-02
+alternatives,synthflow alternatives,260,n/a,n/a,commercial,/blog/synthflow-alternatives,indexed,refresh (P2),DataForSEO Labs keyword_overview US en 2026-10-02
+alternatives,bland ai alternatives,170,n/a,53.15,commercial,/blog/bland-ai-alternatives,discovered not indexed,request indexing (P0),DataForSEO Labs keyword_overview US en 2026-10-02
+alternatives,vapi vs retell,110,n/a,136.03,informational,/blog/quickvoice-vs-vapi,discovered not indexed,request indexing (P0),DataForSEO Labs keyword_overview US en 2026-10-02
+alternatives,retell ai alternatives,40,n/a,38.87,informational,/blog/retell-ai-alternatives,stale noindex verdict (live index follow),request indexing (P0),DataForSEO Labs keyword_overview US en 2026-10-02
+differentiator,open source voice ai,40,29,9.72,informational,/open-source,indexed,keep as body-copy differentiator only,DataForSEO Labs keyword_overview US en 2026-10-02
+differentiator,open source ai voice agent,10,n/a,n/a,informational,/open-source,indexed,keep as body-copy differentiator only,DataForSEO Labs keyword_overview US en 2026-10-02

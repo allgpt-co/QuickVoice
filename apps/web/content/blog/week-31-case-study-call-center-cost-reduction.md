@@ -1,15 +1,29 @@
 ---
-title: "How to Build an Evidence-Backed AI Call Center Cost Case Study"
-slug: "case-study-call-center-cost-reduction-ai-voice"
-date: "2026-09-28"
-author: "Rahul Agarwal"
-category: "ROI & Business Case"
-tags: ["call center cost study", "voice AI measurement", "cost per outcome"]
-metaTitle: "How to Build an Evidence-Backed AI Call Center Cost Case Study"
-metaDescription: "Create a defensible call-center cost study with matched periods, full operating costs, verified outcomes, and explicit limits on savings attribution."
-canonical: "https://quickvoice.co/blog/case-study-call-center-cost-reduction-ai-voice"
-ogImage: "/og-image.png"
-readTime: "3 min"
+title: How to Build an Evidence-Backed AI Call Center Cost Case Study
+slug: case-study-call-center-cost-reduction-ai-voice
+date: '2026-09-28'
+author: Rahul Agarwal
+category: ROI & Business Case
+tags:
+  - call center cost study
+  - voice AI measurement
+  - cost per outcome
+metaTitle: How to Build an Evidence-Backed AI Call Center Cost Case Study
+metaDescription: >-
+  Create a defensible call-center cost study with matched periods, full
+  operating costs, verified outcomes, and explicit limits on savings
+  attribution.
+canonical: 'https://quickvoice.co/blog/case-study-call-center-cost-reduction-ai-voice'
+ogImage: /og-image.png
+readTime: 3 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-10-02T07:44:21.605Z'
+  reviewer: Claude (primary-source and repository review)
+  sources:
+    - 'https://www.nist.gov/itl/ai-risk-management-framework'
+    - 'https://github.com/allgpt-co/QuickVoice'
+  contentHash: fff8f7f5f1ce10a762f1068138a4732c9ffe8d2a7914cd3fe5a7c7aaca4ac9ea
 ---
 
 # How to Build an Evidence-Backed AI Call Center Cost Case Study
