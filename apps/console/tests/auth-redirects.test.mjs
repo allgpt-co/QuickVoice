@@ -131,11 +131,16 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
   for (const invitationId of ["", "invite&role=owner", "https://untrusted.example/path"]) {
     let submit;
     let nextPage;
+    let refreshed = false;
+    let signInBody;
     let socialBody;
     const elements = [];
     const noop = () => {};
     const signIn = {
-      email: async (body) => body.fetchOptions.onSuccess(),
+      email: async (body) => {
+        signInBody = body;
+        body.fetchOptions.onSuccess();
+      },
       social: async (body) => { socialBody = body; },
     };
     const mocks = {
@@ -144,7 +149,10 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
         jsx: (type, props) => { elements.push({ type, props }); return { type, props }; },
         jsxs: (type, props) => { elements.push({ type, props }); return { type, props }; },
       },
-      "next/navigation": { useRouter: () => ({ push: (path) => { nextPage = path; } }) },
+      "next/navigation": { useRouter: () => ({
+        push: (path) => { nextPage = path; },
+        refresh: () => { refreshed = true; },
+      }) },
       "react-hook-form": { useForm: () => ({ handleSubmit: (handler) => { submit = handler; } }) },
       "@hookform/resolvers/zod": { zodResolver: noop },
       sonner: { toast: { success: noop, error: (message) => { throw new Error(message); } } },
@@ -161,9 +169,12 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
       return component.exports;
     }
     loadComponent("../src/components/forms/auth/login-form.tsx").LoginForm({ invitationId });
-    await submit({ email: "qa@example.com", password: "test-only-password", remember: false });
+    const remember = invitationId !== "";
+    await submit({ email: "qa@example.com", password: "test-only-password", remember });
     const destination = invitationId ? `/accept-invitation?invitationId=${encodeURIComponent(invitationId)}` : "/dashboard";
     assert.equal(nextPage, destination);
+    assert.equal(refreshed, true);
+    assert.equal(signInBody.rememberMe, remember);
     assert.ok(elements.some(({ props }) => props?.href === links.exports.invitationPath(invitationId, "/register")));
     elements.find(({ props }) => props?.name === "password" && props.render).props.render({ field: {} });
     assert.ok(elements.some(({ props }) => props?.href === links.exports.invitationPath(invitationId, "/forgot-password")));

@@ -3,6 +3,7 @@ import sys
 import unittest
 import asyncio
 from unittest.mock import patch
+from types import SimpleNamespace
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -21,6 +22,7 @@ from handlers.worker_handler import (
     webhook_body_values,
 )
 from livekit.agents import room_io
+from livekit import rtc
 
 from main import (
     Assistant,
@@ -28,10 +30,93 @@ from main import (
     build_agent_instructions,
     build_room_options,
     build_session_provider_kwargs,
+    end_call_without_billing,
+    entrypoint,
     provider_section,
     selected_billing_model_ids,
     wait_for_billed_participant,
 )
+
+
+class _RoomExitContext:
+    def __init__(self, delete_error=None):
+        self.room = type("Room", (), {"name": "outbound_call-1"})()
+        self.api = SimpleNamespace(room=SimpleNamespace(delete_room=self.delete_room))
+        self.events = []
+        self._delete_error = delete_error
+
+    async def delete_room(self, request):
+        self.events.append(("delete_room", request.room))
+        if self._delete_error:
+            raise self._delete_error
+
+    def shutdown(self, reason=""):
+        self.events.append(("shutdown", reason))
+
+
+class EarlyExitHangUpTests(unittest.TestCase):
+    def test_early_exit_deletes_the_room_before_shutting_down(self):
+        ctx = _RoomExitContext()
+
+        asyncio.run(end_call_without_billing(ctx, "participant_connection_timeout"))
+
+        self.assertEqual(
+            ctx.events,
+            [
+                ("delete_room", "outbound_call-1"),
+                ("shutdown", "participant_connection_timeout"),
+            ],
+        )
+
+    def test_early_exit_still_shuts_down_when_room_deletion_fails(self):
+        ctx = _RoomExitContext(delete_error=RuntimeError("livekit unavailable"))
+
+        asyncio.run(end_call_without_billing(ctx, "participant_connection_failed"))
+
+        self.assertEqual(ctx.events[-1], ("shutdown", "participant_connection_failed"))
+
+    def test_entrypoint_failure_hangs_up_the_room_and_reraises(self):
+        ctx = _RoomExitContext()
+
+        async def failing_entrypoint(_ctx):
+            raise RuntimeError("config fetch failed")
+
+        with patch("main._run_entrypoint", failing_entrypoint):
+            with self.assertRaisesRegex(RuntimeError, "config fetch failed"):
+                asyncio.run(entrypoint(ctx))
+
+        self.assertEqual(
+            ctx.events,
+            [("delete_room", "outbound_call-1"), ("shutdown", "entrypoint_failed")],
+        )
+
+
+class WorkerCallTimingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_connection_clock_starts_after_sip_answers(self):
+        import time
+
+        room = rtc.EventEmitter()
+        caller = SimpleNamespace(identity="caller", attributes={"sip.callStatus": "dialing"},
+                                 kind=rtc.ParticipantKind.PARTICIPANT_KIND_SIP)
+        joined = asyncio.Event()
+
+        async def wait_for_participant():
+            joined.set()
+            return caller
+
+        ctx = SimpleNamespace(room=room, wait_for_participant=wait_for_participant)
+        # Inbound startup must not wait for an answer that requires the agent.
+        inbound, _, _ = await asyncio.wait_for(wait_for_billed_participant(ctx), 1)
+        self.assertIs(inbound, caller)
+        joined.clear()
+        waiting = asyncio.create_task(wait_for_billed_participant(ctx, wait_for_answer=True))
+        await joined.wait()
+        self.assertFalse(waiting.done())
+        answered_at = time.monotonic()
+        room.emit("participant_attributes_changed", {"sip.callStatus": "active"}, caller)
+        participant, connected_at, _ = await asyncio.wait_for(waiting, 1)
+        self.assertIs(participant, caller)
+        self.assertGreaterEqual(connected_at, answered_at)
 
 
 class WorkerHandlerTests(unittest.TestCase):

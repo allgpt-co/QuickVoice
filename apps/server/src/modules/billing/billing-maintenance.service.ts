@@ -10,6 +10,7 @@ import {
   ReservationStateError,
   settleReservation,
 } from "./wallet-ledger.service.js";
+import { terminateSilentCalls } from "./silent-call-watchdog.service.js";
 
 const BATCH_SIZE = 200;
 
@@ -17,6 +18,9 @@ const BATCH_SIZE = 200;
 export async function releaseExpiredBillingReservations(now = new Date()) {
   if (!isHostedBilling) return { skipped: true, released: 0 };
 
+  // Hang up silent telephony calls first so their holds are settled (and later
+  // reconciled to the provider's price) instead of released below.
+  await terminateSilentCalls(now);
   await repairSettledTailProjections(now);
 
   const expired = await prisma.billingReservation.findMany({
@@ -62,6 +66,12 @@ export async function releaseExpiredBillingReservations(now = new Date()) {
       } catch (error) {
         if (!(error instanceof ReservationStateError)) throw error;
       }
+      continue;
+    }
+    if (callSession && callSession.telephonyProvider !== null) {
+      // A provider-billed leg may still be connected. Releasing the hold would
+      // make the call free, so leave it to the silent-call watchdog, which
+      // hangs up first and then bills it.
       continue;
     }
 

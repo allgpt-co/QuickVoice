@@ -12,12 +12,14 @@ class TranscriptCollector:
     def __init__(
         self,
         on_item: Callable[[dict[str, Any]], None] | None = None,
+        on_user_activity: Callable[[], None] | None = None,
     ) -> None:
         self._items: list[dict[str, Any]] = []
         self._seen_ids: set[str] = set()
         self._last_final_user_transcript: str | None = None
         self._recent_agent_transcripts: list[str] = []
         self._on_item = on_item
+        self._on_user_activity = on_user_activity
 
     def attach(self, session: Any) -> "TranscriptCollector":
         session.on("conversation_item_added", self.on_conversation_item_added)
@@ -113,6 +115,8 @@ class TranscriptCollector:
     def _append(self, item: dict[str, Any]) -> None:
         if item.get("role") == "agent":
             self._remember_agent_transcript(str(item.get("content") or ""))
+        elif self._on_user_activity is not None:
+            self._on_user_activity()
         self._items.append(item)
         if self._on_item is None:
             return

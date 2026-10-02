@@ -20,14 +20,20 @@ import {
 } from "./wallet-ledger.service.js";
 import {
   getRateCatalog,
+  calculateCallTelephonyMicros,
+  calculateLivekitChargeMicros,
+  calculateAiUsageCostBreakdown,
   parseRateCatalogSnapshot,
   type RateCatalog,
 } from "./rate-catalog.service.js";
 import {
   estimateConfiguredMinuteMicros,
   rateCumulativeCallUsage,
+  normalizeLiveKitModelUsage,
 } from "./call-pricing.service.js";
 import type { CallUsageSnapshotInput } from "./billing.schema.js";
+import { NotFoundError } from "../../common/errors/notFound.js";
+import { getCallAdmissionCatalog, PricingUnavailableError, type PricingRoute } from "./database-rate-catalog.service.js";
 
 const RESERVATION_TTL_MS = 2 * 60 * 1_000;
 const SNAPSHOT_CLAIM_STALE_MS = 30_000;
@@ -47,6 +53,7 @@ type UsageCheckpoint = {
   aiCostMicros: string;
   platformCostMicros: string;
   telephonyEstimatedMicros: string;
+  livekitEstimatedMicros: string;
   targetTotalSettledMicros: string;
   priorDebtIncurredMicros: string;
   nextReserveMicros: string;
@@ -66,7 +73,7 @@ type CompletedUsageCheckpoint = {
   status: CallBillingSessionStatus;
 };
 
-type AdmissionArgs = {
+type AdmissionArgs = PricingRoute & {
   organizationId: string;
   callId: string;
   roomName?: string | null;
@@ -84,9 +91,24 @@ export type CallAdmission = {
   callBillingSessionId?: string;
 };
 
+export function callAdmissionMessage(admission: CallAdmission, creditMessage: string) {
+  return admission.reason === "pricing_unavailable"
+    ? "Call pricing is unavailable. Ask your workspace administrator to check the billing rates."
+    : creditMessage;
+}
+
 export async function authorizeCallBilling(
   args: AdmissionArgs,
 ): Promise<CallAdmission> {
+  try {
+    return await authorizePricedCall(args);
+  } catch (error) {
+    if (error instanceof PricingUnavailableError) return { action: "stop", reason: "pricing_unavailable" };
+    throw error;
+  }
+}
+
+async function authorizePricedCall(args: AdmissionArgs): Promise<CallAdmission> {
   if (!isHostedBilling) return { action: "continue", reason: "self_hosted" };
   const existing = await prisma.callBillingSession.findUnique({
     where: { callId: args.callId },
@@ -154,7 +176,7 @@ async function authorizeLegacyCall(
   }
 
   const [pricing, account] = await Promise.all([
-    admissionPricing(args),
+    admissionPricing(args, true),
     getBillingSummary(args.organizationId),
   ]);
   try {
@@ -360,6 +382,7 @@ async function reauthorizeCanceledAdmission(
       connectedMilliseconds: 0n,
       aiCostMicros: 0n,
       platformCostMicros: 0n,
+      livekitEstimatedMicros: 0n,
       telephonyEstimatedMicros: 0n,
       telephonyFinalMicros: null,
       totalSettledMicros: 0n,
@@ -394,21 +417,32 @@ async function reauthorizeCanceledAdmission(
     : { action: "stop", reason: "call_admission_conflict" };
 }
 
-async function admissionPricing(args: AdmissionArgs) {
+async function admissionPricing(args: AdmissionArgs, recordDeniedCall = false) {
   const configuration = args.agentId
     ? await prisma.agentConfiguration.findUnique({
         where: { agentId: args.agentId },
         select: { sttModel: true, llmModel: true, ttsModel: true },
       })
     : null;
-  const catalog = getRateCatalog();
-  const reserveMicros = estimateConfiguredMinuteMicros({
+  // A denied, already-connected inbound leg still needs actual-provider
+  // reconciliation. It is never authorized/estimated using this fallback.
+  const resolved = recordDeniedCall
+    ? { catalog: getRateCatalog() }
+    : await getCallAdmissionCatalog(args);
+  const catalog = resolved.catalog;
+  const estimate = (rateCatalog: Readonly<RateCatalog>) => estimateConfiguredMinuteMicros({
     sttModel: configuration?.sttModel,
     llmModel: configuration?.llmModel,
     ttsModel: configuration?.ttsModel,
     telephonyProvider: args.telephonyProvider,
     direction: args.direction,
+    rateCatalog,
   });
+  const minute = estimate(catalog);
+  const horizon = BigInt(60 + (catalog.reserveBufferSeconds ?? 0)) * 1000n;
+  const infrastructure = infrastructureCost(args, 60_000n, catalog);
+  const reserveMicros = divideRoundUp((minute - infrastructure) * horizon, 60_000n)
+    + infrastructureCost(args, horizon, catalog);
   return {
     catalog,
     reserveMicros,
@@ -422,6 +456,11 @@ async function admissionPricing(args: AdmissionArgs) {
       ttsModel: configuration?.ttsModel ?? null,
       direction: args.direction ?? null,
       initialReserveMicros: reserveMicros.toString(),
+      ...(resolved.shadowCatalog ? {
+        shadowRateCatalog: resolved.shadowCatalog,
+        shadowMinuteMicros: estimate(resolved.shadowCatalog).toString(),
+      } : {}),
+      ...(resolved.shadowError ? { shadowPricingError: resolved.shadowError } : {}),
     },
   };
 }
@@ -477,9 +516,9 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
   const provider = input.telephonyProvider
     ? TelephonyProvider[input.telephonyProvider]
     : null;
-  const direction = input.roomName.startsWith("outbound_")
+  const direction = input.direction ?? (input.roomName.startsWith("outbound_")
     ? ("outbound" as const)
-    : ("inbound" as const);
+    : ("inbound" as const));
 
   let session = await prisma.callBillingSession.findUnique({
     where: { callId: input.callId },
@@ -494,6 +533,8 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
       userId: input.userId,
       telephonyProvider: provider,
       direction,
+      fromNumber: input.fromNumber,
+      toNumber: input.toNumber,
     });
     if (admission.action === "stop") {
       if (provider) {
@@ -577,11 +618,13 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
       where: { callId: input.callId },
     });
     const catalog = rateCatalogForSession(session);
+    const frozenDirection = (session.rateSnapshot as Record<string, unknown>).direction;
+    const billingDirection = frozenDirection === "outbound" || frozenDirection === "inbound" ? frozenDirection : direction;
     const rated = rateCumulativeCallUsage({
       connectedSeconds: input.connectedSeconds,
       modelUsage: input.modelUsage,
       telephonyProvider: provider ?? session.telephonyProvider,
-      direction,
+      direction: billingDirection,
       rateCatalog: catalog,
       configuredModels: snapshotModels(session),
     });
@@ -594,12 +637,13 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
       rated.telephonyEstimatedMicros,
       session.telephonyEstimatedMicros,
     );
+    const livekitEstimatedMicros = maxBigInt(rated.livekitEstimatedMicros, session.livekitEstimatedMicros ?? 0n);
     const priorTotal =
       session.aiCostMicros +
       session.platformCostMicros +
-      session.telephonyEstimatedMicros;
+      session.telephonyEstimatedMicros + (session.livekitEstimatedMicros ?? 0n);
     const cumulativeTotal =
-      aiCostMicros + platformCostMicros + telephonyEstimatedMicros;
+      aiCostMicros + platformCostMicros + telephonyEstimatedMicros + livekitEstimatedMicros;
     const deltaMicros = cumulativeTotal - priorTotal;
 
     const nextReserveMicros = calculateRollingReserveMicros({
@@ -609,6 +653,11 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
       priorAiAndPlatformMicros:
         session.aiCostMicros + session.platformCostMicros,
       aiAndPlatformMicros: aiCostMicros + platformCostMicros,
+      horizonMilliseconds: BigInt(60 + (catalog.reserveBufferSeconds ?? 0)) * 1000n,
+      infrastructureReserveMicros: infrastructureCost({
+        telephonyProvider: provider ?? session.telephonyProvider, direction: billingDirection,
+      }, rated.connectedMilliseconds + BigInt(60 + (catalog.reserveBufferSeconds ?? 0)) * 1000n, catalog)
+        - infrastructureCost({ telephonyProvider: provider ?? session.telephonyProvider, direction: billingDirection }, rated.connectedMilliseconds, catalog),
     });
     const checkpoint: UsageCheckpoint = {
       version: USAGE_CHECKPOINT_VERSION,
@@ -620,6 +669,7 @@ export async function applyCallUsageSnapshot(input: CallUsageSnapshotInput) {
       aiCostMicros: aiCostMicros.toString(),
       platformCostMicros: platformCostMicros.toString(),
       telephonyEstimatedMicros: telephonyEstimatedMicros.toString(),
+      livekitEstimatedMicros: livekitEstimatedMicros.toString(),
       targetTotalSettledMicros: (
         session.totalSettledMicros + deltaMicros
       ).toString(),
@@ -730,7 +780,9 @@ async function persistDeniedProviderSession(args: {
       userId: input.userId,
       telephonyProvider: provider,
       direction: args.direction,
-    }),
+      fromNumber: input.fromNumber,
+      toNumber: input.toNumber,
+    }, true),
     getBillingSummary(input.organizationId),
   ]);
   const now = new Date();
@@ -981,6 +1033,7 @@ async function completeUsageCheckpoint(args: {
       connectedMilliseconds: BigInt(checkpoint.connectedMilliseconds),
       aiCostMicros: BigInt(checkpoint.aiCostMicros),
       platformCostMicros: BigInt(checkpoint.platformCostMicros),
+      livekitEstimatedMicros: BigInt(checkpoint.livekitEstimatedMicros),
       telephonyEstimatedMicros: BigInt(
         checkpoint.telephonyEstimatedMicros,
       ),
@@ -1099,6 +1152,7 @@ function parseUsageCheckpoint(value: Prisma.JsonValue): UsageCheckpoint | null {
     if (!isUnsignedIntegerString(checkpoint[field])) return null;
   }
   const endedAt = nullableString(checkpoint.endedAt);
+  if (checkpoint.livekitEstimatedMicros !== undefined && !isUnsignedIntegerString(checkpoint.livekitEstimatedMicros)) return null;
   if (checkpoint.final && !endedAt) return null;
   const provider =
     checkpoint.telephonyProvider === TelephonyProvider.TWILIO ||
@@ -1115,6 +1169,7 @@ function parseUsageCheckpoint(value: Prisma.JsonValue): UsageCheckpoint | null {
     aiCostMicros: String(checkpoint.aiCostMicros),
     platformCostMicros: String(checkpoint.platformCostMicros),
     telephonyEstimatedMicros: String(checkpoint.telephonyEstimatedMicros),
+    livekitEstimatedMicros: String(checkpoint.livekitEstimatedMicros ?? "0"),
     targetTotalSettledMicros: String(checkpoint.targetTotalSettledMicros),
     priorDebtIncurredMicros: String(checkpoint.priorDebtIncurredMicros),
     nextReserveMicros: String(checkpoint.nextReserveMicros),
@@ -1136,6 +1191,8 @@ export function calculateRollingReserveMicros(args: {
   connectedMilliseconds: bigint;
   priorAiAndPlatformMicros: bigint;
   aiAndPlatformMicros: bigint;
+  infrastructureReserveMicros?: bigint;
+  horizonMilliseconds?: bigint;
 }) {
   const elapsedMilliseconds = positive(
     args.connectedMilliseconds - args.priorConnectedMilliseconds,
@@ -1145,9 +1202,53 @@ export function calculateRollingReserveMicros(args: {
   );
   const observedMinuteMicros =
     elapsedMilliseconds > 0n
-      ? divideRoundUp(usageDeltaMicros * 60_000n, elapsedMilliseconds)
+      ? divideRoundUp(usageDeltaMicros * (args.horizonMilliseconds ?? 60_000n), elapsedMilliseconds)
       : 0n;
-  return maxBigInt(args.configuredReserveMicros, observedMinuteMicros);
+  return maxBigInt(args.configuredReserveMicros, observedMinuteMicros + (args.infrastructureReserveMicros ?? 0n));
+}
+
+function infrastructureCost(route: PricingRoute, milliseconds: bigint, catalog: Readonly<RateCatalog>) {
+  return calculateLivekitChargeMicros(milliseconds, catalog) + (route.telephonyProvider
+    ? calculateCallTelephonyMicros({
+      provider: route.telephonyProvider.toLowerCase() as "twilio" | "telnyx",
+      direction: route.direction ?? "outbound", connectedMilliseconds: milliseconds,
+    }, catalog) : 0n);
+}
+
+export async function getCallCostBreakdown(organizationId: string, callId: string) {
+  const session = await prisma.callBillingSession.findFirst({ where: { organizationId, callId } });
+  if (!session) throw new NotFoundError("Call billing session not found");
+  const catalog = rateCatalogForSession(session);
+  const snapshot = session.rateSnapshot as Record<string, unknown>;
+  const measuredAi = calculateAiUsageCostBreakdown(normalizeLiveKitModelUsage(
+    (session.lastModelUsage ?? []) as CallUsageSnapshotInput["modelUsage"],
+    snapshotModels(session),
+  ), catalog);
+  const shadow = snapshot.shadowRateCatalog ? rateCumulativeCallUsage({
+    connectedSeconds: session.connectedSeconds,
+    modelUsage: (session.lastModelUsage ?? []) as CallUsageSnapshotInput["modelUsage"],
+    telephonyProvider: session.telephonyProvider,
+    direction: snapshot.direction === "outbound" ? "outbound" : "inbound",
+    configuredModels: snapshotModels(session),
+    rateCatalog: parseRateCatalogSnapshot(snapshot.shadowRateCatalog),
+  }) : null;
+  return {
+    callId, status: session.status, currency: catalog.currency, catalogVersion: session.rateCatalogVersion,
+    aiPriceBasis: catalog.priceBasis ?? "historical", connectedMilliseconds: session.connectedMilliseconds,
+    aiCostMicros: session.aiCostMicros, platformCostMicros: session.platformCostMicros,
+    measuredAiBaseLines: measuredAi.lines,
+    aiMarkupBasisPoints: catalog.markupBasisPoints.ai,
+    telephonyEstimatedMicros: session.telephonyEstimatedMicros,
+    telephonyFinalMicros: session.telephonyFinalMicros,
+    telephonyAdjustmentMicros: session.telephonyFinalMicros === null ? null : session.telephonyFinalMicros - session.telephonyEstimatedMicros,
+    livekitEstimatedMicros: session.livekitEstimatedMicros,
+    livekitIncluded: !!catalog.livekit, livekitPlan: catalog.livekit?.plan ?? null,
+    livekitIsEstimate: true,
+    unreportedTailMicros: session.unreportedTailMicros,
+    totalSettledMicros: session.totalSettledMicros,
+    shadowEstimatedTotalMicros: shadow?.totalCostMicros ?? null,
+    shadowPricingError: snapshot.shadowPricingError ?? null,
+  };
 }
 
 async function syncCallLogBillingCost(session: CallBillingSession) {

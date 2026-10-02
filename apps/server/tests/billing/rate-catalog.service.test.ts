@@ -9,6 +9,7 @@ import {
   calculatePlatformFeeMicros,
   calculateTelephonyChargeMicros,
   getRateCatalog,
+  parseRateCatalogSnapshot,
 } from "../../src/modules/billing/rate-catalog.service.js";
 
 test("deploy-time catalog covers every selectable voice model", () => {
@@ -46,16 +47,86 @@ test("deploy-time catalog covers every selectable voice model", () => {
   );
 });
 
-test("multilingual Nova-3 and Nova-2 use exact current per-minute bases", () => {
+test("Deepgram uses regular PAYG streaming and TTS prices with the existing 20% markup", () => {
   const catalog = getRateCatalog();
+  assert.equal(catalog.priceBasis, "regular");
+  assert.equal(catalog.catalogVersion, "2026-09-29.1");
+  assert.equal(
+    catalog.ai.stt["deepgram/nova-3"]?.baseMicrosPerAudioMinute,
+    "7700",
+  );
   assert.equal(
     catalog.ai.stt["deepgram/nova-3-multilingual"]?.baseMicrosPerAudioMinute,
-    "5800",
+    "9200",
   );
   // $0.35/hour is $0.0058333.../minute, rounded up to one micro-dollar.
   assert.equal(
     catalog.ai.stt["deepgram/nova-2"]?.baseMicrosPerAudioMinute,
     "5834",
+  );
+  assert.equal(
+    catalog.ai.tts["deepgram/aura-2"]?.baseMicrosPerThousandCharacters,
+    "30000",
+  );
+  assert.equal(
+    calculateAiUsageCostBreakdown({
+      stt: [{ modelId: "deepgram/nova-3", audioMilliseconds: 60_000n }],
+    }).totalCostMicros,
+    9_240n,
+  );
+  assert.equal(
+    calculateAiUsageCostBreakdown({
+      stt: [
+        { modelId: "deepgram/nova-3-multilingual", audioMilliseconds: 60_000n },
+      ],
+    }).totalCostMicros,
+    11_040n,
+  );
+  assert.equal(
+    calculateAiUsageCostBreakdown({
+      tts: [{ modelId: "deepgram/aura-2", characters: 1_000n }],
+    }).totalCostMicros,
+    36_000n,
+  );
+});
+
+test("historical call snapshots retain their promotional rates after the default catalog changes", () => {
+  const prior = {
+    ...structuredClone(getRateCatalog()),
+    catalogVersion: "2026-08-01.1",
+    effectiveAt: "2026-08-01T00:00:00.000Z",
+    priceBasis: undefined,
+  };
+  prior.ai.stt["deepgram/nova-3"]!.baseMicrosPerAudioMinute = "4800";
+  prior.ai.stt["deepgram/nova-3-multilingual"]!.baseMicrosPerAudioMinute =
+    "5800";
+  const snapshot = parseRateCatalogSnapshot(JSON.parse(JSON.stringify(prior)));
+  assert.equal(
+    calculateAiUsageCostBreakdown(
+      {
+        stt: [{ modelId: "deepgram/nova-3", audioMilliseconds: 60_000n }],
+      },
+      snapshot,
+    ).totalCostMicros,
+    5_760n,
+  );
+  assert.equal(
+    calculateAiUsageCostBreakdown(
+      {
+        stt: [
+          {
+            modelId: "deepgram/nova-3-multilingual",
+            audioMilliseconds: 60_000n,
+          },
+        ],
+      },
+      snapshot,
+    ).totalCostMicros,
+    6_960n,
+  );
+  assert.equal(
+    getRateCatalog().ai.stt["deepgram/nova-3"]!.baseMicrosPerAudioMinute,
+    "7700",
   );
 });
 
@@ -72,9 +143,9 @@ test("AI cost uses measured provider units then applies the 20% markup", () => {
     tts: [{ modelId: "bulbul:v3", characters: 1_000n }],
   });
 
-  assert.equal(result.baseCostMicros, 210_869n);
-  assert.equal(result.markupMicros, 42_174n);
-  assert.equal(result.totalCostMicros, 253_043n);
+  assert.equal(result.baseCostMicros, 213_769n);
+  assert.equal(result.markupMicros, 42_754n);
+  assert.equal(result.totalCostMicros, 256_523n);
 });
 
 test("platform billing is prorated by whole connected second", () => {

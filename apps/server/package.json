@@ -16,7 +16,8 @@
     "test": "tsx --test tests/**/*.test.ts",
     "seed": "tsx prisma/seed.ts",
     "import:smithery-catalog": "tsx prisma/import-smithery-catalog.ts",
-    "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts"
+    "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts",
+    "billing:rates": "tsx src/modules/billing/rate-book.cli.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1072.0",
@@ -41,7 +42,7 @@
     "ioredis": "5.10.1",
     "livekit-server-sdk": "^2.15.1",
     "morgan": "^1.11.0",
-    "nodemailer": "^9.1.1",
+    "nodemailer": "^10.0.12",
     "prisma": "^7.5.0",
     "socket.io": "^4.8.1",
     "stripe": "^22.3.2",
@@ -59,7 +60,6 @@
     "@types/express": "^5.0.0",
     "@types/morgan": "^1.9.10",
     "@types/node": "^20",
-    "@types/nodemailer": "^8.0.1",
     "@types/swagger-ui-express": "^4.1.8",
     "tsx": "^4.23.1",
     "typescript": "^5"

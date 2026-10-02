@@ -11,6 +11,24 @@ from handlers.finalization_handler import CallFinalizer
 
 
 class FinalizationHandlerTests(unittest.TestCase):
+    def test_call_duration_uses_disconnect_time_not_delayed_finalization(self):
+        posts = []
+
+        async def post(payload):
+            posts.append(payload)
+
+        finalizer = CallFinalizer(
+            config={"agent_id": "agent_123", "organization_id": "org_123"},
+            call_context={"call_id": "call_123"},
+            started_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            recording_path=None,
+            transcript_reader=lambda: [],
+            post_call_log=post,
+        )
+        asyncio.run(finalizer.finalize(ended_at=datetime(2026, 1, 1, 0, 10, tzinfo=timezone.utc)))
+        self.assertEqual(posts[0]["durationSeconds"], 600)
+        self.assertEqual(posts[0]["endTime"], "2026-01-01T00:10:00Z")
+
     def test_call_finalizer_posts_only_once_when_shutdown_runs_multiple_times(self):
         posts = []
 

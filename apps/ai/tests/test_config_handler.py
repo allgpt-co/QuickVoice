@@ -11,6 +11,22 @@ from handlers.config_handler import get_config, normalize_config
 
 
 class ConfigHandlerTests(unittest.TestCase):
+    def test_call_limits_are_preserved_and_invalid_values_cannot_disable_them(self):
+        config = normalize_config({
+            "max_conversation_duration_seconds": 120,
+            "silence_end_call_timeout_seconds": "20",
+        })
+        self.assertEqual(config["max_conversation_duration_seconds"], 120)
+        self.assertEqual(config["silence_end_call_timeout_seconds"], 20)
+        for value in (None, 0, -1, "invalid", "nan", "inf", True):
+            with self.subTest(value=value):
+                config = normalize_config({
+                    "max_conversation_duration_seconds": value,
+                    "silence_end_call_timeout_seconds": value,
+                })
+                self.assertEqual(config["max_conversation_duration_seconds"], 600)
+                self.assertEqual(config["silence_end_call_timeout_seconds"], 30)
+
     def test_normalize_config_maps_console_fields_to_livekit_runtime_fields(self):
         config = normalize_config(
             {

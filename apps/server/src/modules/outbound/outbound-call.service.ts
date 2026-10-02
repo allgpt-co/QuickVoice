@@ -17,6 +17,7 @@ import type { ListOutboundCallsArgs, QuickOutboundCallArgs } from "./outbound-ca
 import * as outboundCallRepository from "./outbound-call.repository.js";
 import {
   authorizeCallBilling,
+  callAdmissionMessage,
   cancelCallBillingAdmission,
   hasActiveLegacySubscription,
 } from "../billing/call-metering.service.js";
@@ -56,6 +57,33 @@ type AgentDispatchClientLike = {
 };
 
 type OutboundTrunks = Record<TelephonyProvider, string>;
+
+const DEFAULT_OUTBOUND_MAX_CALL_DURATION_SECONDS = 15 * 60;
+const DEFAULT_OUTBOUND_RINGING_TIMEOUT_SECONDS = 45;
+
+function positiveSecondsFromEnv(name: string, fallback: number) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) && value > 0 ? Math.floor(value) : fallback;
+}
+
+/**
+ * LiveKit hangs the SIP leg up on its own at these limits, so a provider-billed
+ * call is bounded even if the AI worker and the billing watchdog both fail.
+ */
+export function outboundCallLimits(ringingTimeoutSeconds?: number | null) {
+  const maxCallDuration = positiveSecondsFromEnv(
+    "OUTBOUND_MAX_CALL_DURATION_SECONDS",
+    DEFAULT_OUTBOUND_MAX_CALL_DURATION_SECONDS,
+  );
+  const ringingTimeout =
+    ringingTimeoutSeconds && ringingTimeoutSeconds > 0
+      ? Math.floor(ringingTimeoutSeconds)
+      : positiveSecondsFromEnv(
+          "OUTBOUND_RINGING_TIMEOUT_SECONDS",
+          DEFAULT_OUTBOUND_RINGING_TIMEOUT_SECONDS,
+        );
+  return { maxCallDuration, ringingTimeout };
+}
 
 type CreateQuickOutboundCallDeps = {
   repository?: QuickOutboundCallRepository;
@@ -146,10 +174,12 @@ export async function createQuickOutboundCall(
       userId: args.userId,
       telephonyProvider: provider,
       direction: "outbound",
+      fromNumber: args.fromNumber,
+      toNumber: args.phoneNumber,
     });
     if (admission.action === "stop") {
       throw new PaymentRequiredError(
-        "Add prepaid credit before making this call",
+        callAdmissionMessage(admission, "Add prepaid credit before making this call"),
         {
           reason: admission.reason,
           requiredMicros: admission.reserveMicros?.toString() ?? null,
@@ -176,6 +206,7 @@ export async function createQuickOutboundCall(
           participantName: args.username,
           participantMetadata: metadataJson,
           waitUntilAnswered: false,
+          ...outboundCallLimits(),
         }
       );
 
@@ -274,10 +305,12 @@ export async function dispatchScheduledOutboundCall(
       userId: outbound.userId,
       telephonyProvider: provider,
       direction: "outbound",
+      fromNumber: outbound.fromNumber,
+      toNumber: outbound.phoneNumber,
     });
     if (admission.action === "stop") {
       throw new PaymentRequiredError(
-        "Insufficient prepaid credit for scheduled call",
+        callAdmissionMessage(admission, "Insufficient prepaid credit for scheduled call"),
         { reason: admission.reason },
       );
     }
@@ -313,7 +346,7 @@ export async function dispatchScheduledOutboundCall(
           participantIdentity: `outbound-${outbound.outboundId}`,
           participantMetadata: metadataJson,
           waitUntilAnswered: false,
-          ...(ringingTimeoutSeconds ? { ringingTimeout: ringingTimeoutSeconds } : {}),
+          ...outboundCallLimits(ringingTimeoutSeconds),
         }
       );
 

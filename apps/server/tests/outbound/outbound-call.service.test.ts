@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   createQuickOutboundCall,
   dispatchScheduledOutboundCall,
+  outboundCallLimits,
 } from "../../src/modules/outbound/outbound-call.service.js";
 
 test("createQuickOutboundCall persists the quick call and dispatches a LiveKit SIP participant", async () => {
@@ -105,6 +106,8 @@ test("createQuickOutboundCall persists the quick call and dispatches a LiveKit S
   assert.equal(sip[4].fromNumber, "+15551230000");
   assert.equal(sip[4].participantIdentity, "outbound-2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   assert.equal(sip[4].waitUntilAnswered, false);
+  assert.equal(sip[4].maxCallDuration, 900);
+  assert.equal(sip[4].ringingTimeout, 45);
 
   const metadata = JSON.parse(sip[4].participantMetadata);
   assert.deepEqual(metadata, {
@@ -489,4 +492,28 @@ test("dispatchScheduledOutboundCall marks an existing campaign row failed when q
       "Plan minutes exhausted for the current billing period",
     ],
   ]);
+});
+
+test("outbound calls always carry a LiveKit max duration and ringing timeout", () => {
+  const previousMax = process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS;
+  const previousRinging = process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS;
+  try {
+    delete process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS;
+    delete process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS;
+    assert.deepEqual(outboundCallLimits(), { maxCallDuration: 900, ringingTimeout: 45 });
+    assert.deepEqual(outboundCallLimits(20), { maxCallDuration: 900, ringingTimeout: 20 });
+    assert.deepEqual(outboundCallLimits(null), { maxCallDuration: 900, ringingTimeout: 45 });
+
+    process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS = "300";
+    process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS = "30";
+    assert.deepEqual(outboundCallLimits(), { maxCallDuration: 300, ringingTimeout: 30 });
+
+    process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS = "not-a-number";
+    assert.equal(outboundCallLimits().maxCallDuration, 900);
+  } finally {
+    if (previousMax === undefined) delete process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS;
+    else process.env.OUTBOUND_MAX_CALL_DURATION_SECONDS = previousMax;
+    if (previousRinging === undefined) delete process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS;
+    else process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS = previousRinging;
+  }
 });

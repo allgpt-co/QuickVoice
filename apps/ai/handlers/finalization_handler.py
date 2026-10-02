@@ -27,13 +27,13 @@ class CallFinalizer:
         self._lock = asyncio.Lock()
         self._completed = False
 
-    async def finalize(self) -> None:
+    async def finalize(self, *, ended_at: datetime | None = None) -> None:
         async with self._lock:
             if self._completed:
                 return
             self._completed = True
 
-            ended_at = datetime.now(timezone.utc)
+            ended_at = ended_at or datetime.now(timezone.utc)
             zero_pii_retention = bool(self._config.get("zero_pii_retention"))
             transcript = [] if zero_pii_retention else self._transcript_reader()
             payload = build_call_log_payload(

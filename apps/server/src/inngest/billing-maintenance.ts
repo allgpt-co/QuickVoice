@@ -3,10 +3,17 @@ import type { InngestFunction } from "inngest";
 import { inngest } from "../config/inngest.js";
 import { releaseExpiredBillingReservations } from "../modules/billing/billing-maintenance.service.js";
 import { scheduleLegacySubscriptionsForPrepaidTransition } from "../modules/billing/legacy-subscription-transition.service.js";
+import { terminateSilentCalls } from "../modules/billing/silent-call-watchdog.service.js";
 import { reconcileTelephonyCosts } from "../modules/billing/telephony-reconciliation.service.js";
 import { reconcilePendingStripeTopUps } from "../modules/billing/stripe-wallet.service.js";
 import { runPhoneNumberBilling } from "../modules/numbers/number-billing.service.js";
 import { recoverStaleNumberPurchases } from "../modules/numbers/number-purchase-maintenance.service.js";
+import { refreshRateBook } from "../modules/billing/database-rate-catalog.service.js";
+
+export const refreshBillingRates: InngestFunction.Any = inngest.createFunction(
+  { id: "refresh-billing-rates", retries: 2, concurrency: 1, triggers: { cron: "TZ=UTC 0 2 * * *" } },
+  async ({ step }) => step.run("import-validated-rate-book", () => refreshRateBook()),
+);
 
 export const expireBillingReservations: InngestFunction.Any =
   inngest.createFunction(
@@ -18,6 +25,19 @@ export const expireBillingReservations: InngestFunction.Any =
     async ({ step }) =>
       step.run("release-expired-wallet-holds", () =>
         releaseExpiredBillingReservations(),
+      ),
+  );
+
+export const terminateSilentBilledCalls: InngestFunction.Any =
+  inngest.createFunction(
+    {
+      id: "terminate-silent-billed-calls",
+      retries: 2,
+      triggers: { cron: "TZ=UTC * * * * *" },
+    },
+    async ({ step }) =>
+      step.run("hang-up-calls-without-usage-reports", () =>
+        terminateSilentCalls(),
       ),
   );
 

@@ -1,6 +1,6 @@
 # Source, status, and dependency tracker
 
-Prepared 2026-09-06; current follow-up checked 2026-09-21. The [September 18 completion record](completion-2026-09-18.md) records the live content release, active private reports, and remaining access blockers. The older [execution report](execution-2026-09-06.md) remains historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
+Prepared 2026-09-06; current follow-up checked 2026-09-27. The [September 27 review](follow-up-2026-09-27.md) records completed live verification, the locally reviewed IVR clarification and remaining evidence dependencies. The [September 18 completion record](completion-2026-09-18.md) and older [execution report](execution-2026-09-06.md) remain historical evidence. Status vocabulary: **locally verified** = implementation passed the recorded local checks, with deployment still pending; **prepared** = usable local asset exists; **pending verification** = implementation or measurement needs a recorded check; **scheduled** = future work; **blocked by evidence/access** = required external input unavailable; **superseded** = historical recommendation conflicts with current evidence.
 
 ## Governing sources
 
@@ -34,6 +34,18 @@ links for the other comparison and industry guides need body edits plus
 re-reviews and move to Phase 1. Search Console indexing requests, GA4 key-event
 registration and the consent-model decision remain owner actions and are listed
 in the audit record and the growth backlog.
+
+### September 27 completion review
+
+[Current status](follow-up-2026-09-27.md): live consent, compatible receiver and
+runtime attribution activation are verified. The single marked QA enquiry was
+acknowledged with a matching receipt; inbox placement is deferred by the user.
+All 106 live sitemap URLs pass the technical check. The IVR clarification is
+locally reviewed and tested, with PR creation and merge explicitly authorized
+by the user on September 27. Inbox delivery remains unverified. Existing TidyCal,
+Monday private reporting and six-hour coordination remain unchanged. Actual
+business records, customer evidence, a working voice-demo environment and
+specifically authorized distribution remain separate dependencies.
 
 ### September 21 follow-up
 

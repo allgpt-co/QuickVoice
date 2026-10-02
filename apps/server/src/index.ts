@@ -13,6 +13,8 @@ import authMiddleware from "./middleware/auth.middleware.js";
 import notFound from "./middleware/notFound.middleware.js";
 import errorHandler from "./middleware/error.middleware.js";
 import rateLimitMiddleware from "./middleware/rateLimit.middleware.js";
+import { closeRateLimitStore } from "./middleware/rate-limit-store.js";
+import { trustedProxies } from "./config/trusted-proxies.js";
 
 import { serve as serveInngest } from "inngest/express";
 import { inngest } from "./config/inngest.js";
@@ -36,8 +38,13 @@ import {
   BLOCKED_LEGACY_SUBSCRIPTION_MUTATIONS,
   rejectLegacySubscriptionMutation,
 } from "./modules/billing/legacy-subscription.guard.js";
+import {
+  startSilentCallWatchdog,
+  stopSilentCallWatchdog,
+} from "./modules/billing/silent-call-watchdog.service.js";
 
 const app = express();
+app.set("trust proxy", trustedProxies());
 
 const port = process.env.PORT || 5000;
 const apiVersion = process.env.API_VERSION || "v1";
@@ -81,6 +88,7 @@ const consoleCors = cors({
   origin: trustedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
+  exposedHeaders: ["Retry-After", "RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset"],
 });
 app.use((req, res, next) => {
   if (req.path.startsWith(`${publicWidgetPath}/`)) return next();
@@ -234,11 +242,14 @@ httpServer.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
 });
 
+startSilentCallWatchdog();
+
 let shuttingDown = false;
 async function shutdown(signal: NodeJS.Signals) {
   if (shuttingDown) return;
   shuttingDown = true;
   console.log(`[server] received ${signal}; shutting down`);
+  stopSilentCallWatchdog();
   try {
     await liveTranscriptGateway.close();
     if (httpServer.listening) {
@@ -246,6 +257,7 @@ async function shutdown(signal: NodeJS.Signals) {
         httpServer.close((error) => (error ? reject(error) : resolve()));
       });
     }
+    closeRateLimitStore();
     process.exitCode = 0;
   } catch (error) {
     console.error("[server] graceful shutdown failed", error);

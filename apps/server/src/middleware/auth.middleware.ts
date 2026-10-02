@@ -32,6 +32,9 @@ const authMiddleware = async (
   next: NextFunction,
 ) => {
   try {
+    // The global limiter may already have verified the session/API key. Reuse
+    // that server-owned identity without a second auth lookup or audit write.
+    if (req.auth) return next();
     // 1. Internal server-to-server bypass
     const bearerToken = getBearerToken(req.headers.authorization);
     if (bearerToken) {
@@ -154,7 +157,7 @@ function getStringValue(value: unknown): string | null {
   return null;
 }
 
-function getBearerToken(value: string | undefined): string | null {
+export function getBearerToken(value: string | undefined): string | null {
   const match = value?.match(/^Bearer\s+(.+)$/i);
   if (!match) return null;
   const token = match[1];

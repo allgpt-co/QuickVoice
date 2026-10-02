@@ -1,15 +1,224 @@
 import asyncio
 import json
 import re
-from collections.abc import Callable
+import time
+from collections.abc import Awaitable, Callable
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 from typing import Any
+from livekit import api
 from utils.logger import logger
 
 PREVIEW_TRANSCRIPT_TOPIC = "quickvoice.preview.transcript"
 PREVIEW_TRANSCRIPT_TYPE = "preview_user_transcript"
 DYNAMIC_VARIABLE_TOKEN_RE = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+async def delete_call_room(ctx: Any) -> None:
+    """Propagate hangup failures; JobContext.delete_room logs and swallows them."""
+    if getattr(ctx, "is_fake_job", lambda: False)():
+        return
+    try:
+        await ctx.api.room.delete_room(api.DeleteRoomRequest(room=ctx.room.name))
+    except api.TwirpError as error:
+        if error.code != api.TwirpErrorCode.NOT_FOUND:
+            raise
+
+
+async def wait_for_sip_answer(room: Any, participant: Any) -> None:
+    """A SIP participant can join the room while the phone is still ringing."""
+    answered = asyncio.get_running_loop().create_future()
+
+    def on_attributes_changed(changed: dict, remote: Any) -> None:
+        if remote.identity != participant.identity or answered.done():
+            return
+        status = changed.get("sip.callStatus", remote.attributes.get("sip.callStatus"))
+        if status in {"active", "automation"}:
+            answered.set_result(None)
+        elif status == "hangup":
+            answered.set_exception(RuntimeError("SIP call ended before answering"))
+
+    def on_disconnected(remote: Any) -> None:
+        if remote.identity == participant.identity and not answered.done():
+            answered.set_exception(RuntimeError("SIP caller disconnected before answering"))
+
+    room.on("participant_attributes_changed", on_attributes_changed)
+    room.on("participant_disconnected", on_disconnected)
+    try:
+        on_attributes_changed({}, participant)
+        await answered
+    finally:
+        room.off("participant_attributes_changed", on_attributes_changed)
+        room.off("participant_disconnected", on_disconnected)
+
+
+class CallLimitGuard:
+    """End calls on meaningful inactivity without trusting noisy VAD state."""
+
+    def __init__(
+        self,
+        session: Any,
+        *,
+        room: Any | None,
+        participant_identity: str | None,
+        silence_timeout_seconds: float,
+        max_duration_seconds: float,
+        connected_at_monotonic: float,
+        stop_session: Callable[[str], Awaitable[None]],
+    ) -> None:
+        self._session = session
+        self._room = room
+        self._participant_identity = participant_identity
+        self._silence_timeout_seconds = silence_timeout_seconds
+        self._stop_session = stop_session
+        self._closed = False
+        self._agent_listening = False
+        self._warning_sent = False
+        self._warning_remaining_seconds = silence_timeout_seconds * (2 / 3)
+        self._hangup_remaining_seconds = silence_timeout_seconds
+        self._inactivity_timer_started_at: float | None = None
+        self._warning_timer: asyncio.TimerHandle | None = None
+        self._hangup_timer: asyncio.TimerHandle | None = None
+        self._stop_task: asyncio.Task | None = None
+
+        remaining = max(
+            0.0,
+            max_duration_seconds - (time.monotonic() - connected_at_monotonic),
+        )
+        self._duration_timer = asyncio.get_running_loop().call_later(
+            remaining,
+            self._request_stop,
+            "max_call_duration",
+        )
+        session.on("agent_state_changed", self._on_agent_state_changed)
+        session.on("close", self._on_closed)
+        if room is not None:
+            room.on("sip_dtmf_received", self._on_sip_dtmf_received)
+
+    def record_user_activity(self, source: str) -> None:
+        if self._closed:
+            return
+        logger.info("[INACTIVITY] meaningful user activity source={}", source)
+        self._warning_sent = False
+        self._cancel_inactivity_timers()
+        self._warning_remaining_seconds = self._silence_timeout_seconds * (2 / 3)
+        self._hangup_remaining_seconds = self._silence_timeout_seconds
+        if self._agent_listening:
+            self._start_inactivity_timer()
+
+    def close(self, _event=None) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._duration_timer.cancel()
+        self._cancel_inactivity_timers()
+        self._session.off("agent_state_changed", self._on_agent_state_changed)
+        self._session.off("close", self._on_closed)
+        if self._room is not None:
+            self._room.off("sip_dtmf_received", self._on_sip_dtmf_received)
+        # Do not cancel an in-flight hangup when session.shutdown emits close.
+
+    def _on_agent_state_changed(self, event: Any) -> None:
+        agent_listening = event.new_state == "listening"
+        if agent_listening == self._agent_listening:
+            return
+        self._agent_listening = agent_listening
+        if self._warning_sent:
+            return
+        if self._agent_listening:
+            self._start_inactivity_timer()
+        else:
+            self._pause_inactivity_timer()
+
+    def _on_sip_dtmf_received(self, event: Any) -> None:
+        participant = getattr(event, "participant", None)
+        identity = getattr(participant, "identity", None)
+        if self._participant_identity and identity != self._participant_identity:
+            return
+        self.record_user_activity("dtmf")
+
+    def _start_inactivity_timer(self) -> None:
+        if self._inactivity_timer_started_at is not None:
+            return
+        warning_delay = self._warning_remaining_seconds
+        hangup_delay = self._hangup_remaining_seconds
+        logger.info(
+            "[INACTIVITY] timer started warning_seconds={} hangup_seconds={}",
+            round(warning_delay, 3),
+            round(hangup_delay, 3),
+        )
+        loop = asyncio.get_running_loop()
+        self._inactivity_timer_started_at = loop.time()
+        if not self._warning_sent:
+            self._warning_timer = loop.call_later(warning_delay, self._warn)
+        self._hangup_timer = loop.call_later(
+            hangup_delay, self._request_stop, "silence_timeout",
+        )
+
+    def _pause_inactivity_timer(self) -> None:
+        if self._inactivity_timer_started_at is None:
+            return
+        elapsed = max(
+            0.0,
+            asyncio.get_running_loop().time() - self._inactivity_timer_started_at,
+        )
+        self._warning_remaining_seconds = max(
+            0.0, self._warning_remaining_seconds - elapsed,
+        )
+        self._hangup_remaining_seconds = max(
+            0.0, self._hangup_remaining_seconds - elapsed,
+        )
+        self._cancel_inactivity_timers()
+
+    def _warn(self) -> None:
+        if self._closed or self._warning_sent:
+            return
+        self._warning_timer = None
+        self._warning_remaining_seconds = 0.0
+        self._warning_sent = True
+        logger.warning("[INACTIVITY] warning sent")
+        try:
+            self._session.say("Are you still there?", allow_interruptions=True)
+        except Exception as error:
+            logger.warning("[INACTIVITY] warning failed: {}", str(error))
+
+    def _request_stop(self, reason: str) -> None:
+        if not self._closed and self._stop_task is None:
+            self._stop_task = asyncio.create_task(self._stop_session(reason))
+
+    def _on_closed(self, _event=None) -> None:
+        self._request_stop("session_closed")
+        self.close()
+
+    def _cancel_inactivity_timers(self) -> None:
+        if self._warning_timer is not None:
+            self._warning_timer.cancel()
+            self._warning_timer = None
+        if self._hangup_timer is not None:
+            self._hangup_timer.cancel()
+            self._hangup_timer = None
+        self._inactivity_timer_started_at = None
+
+
+def attach_call_limits(
+    session: Any,
+    *,
+    room: Any | None = None,
+    participant_identity: str | None = None,
+    silence_timeout_seconds: float = 30,
+    max_duration_seconds: float,
+    connected_at_monotonic: float,
+    stop_session: Callable[[str], Awaitable[None]],
+) -> CallLimitGuard:
+    return CallLimitGuard(
+        session,
+        room=room,
+        participant_identity=participant_identity,
+        silence_timeout_seconds=silence_timeout_seconds,
+        max_duration_seconds=max_duration_seconds,
+        connected_at_monotonic=connected_at_monotonic,
+        stop_session=stop_session,
+    )
+
 
 ROUTING_METADATA_KEYS = {
     "agent_id",
@@ -497,6 +706,7 @@ async def consume_preview_user_transcript_stream(
     participant_identity: str | None,
     preview_mode: bool,
     generate_reply: Callable[[str], Any],
+    on_user_activity: Callable[[], None] | None = None,
 ) -> str | None:
     topic = getattr(getattr(reader, "info", None), "topic", PREVIEW_TRANSCRIPT_TOPIC)
     text = parse_preview_user_transcript_packet(
@@ -509,6 +719,8 @@ async def consume_preview_user_transcript_stream(
         return None
 
     logger.info("[preview] received browser transcript from text stream")
+    if on_user_activity is not None:
+        on_user_activity()
     generate_reply(text)
     return text
 

@@ -10,7 +10,8 @@ import {
 function browser(hostname, consent = "granted") {
   const scripts = [];
   const context = {
-    window: { location: { hostname }, quickvoiceAnalyticsConsent: consent },
+    URL,
+    window: { location: { hostname, pathname: "/" }, quickvoiceAnalyticsConsent: consent },
     document: {
       getElementById: (id) => scripts.find((script) => script.id === id),
       createElement: () => ({}),
@@ -107,5 +108,73 @@ test("unknown or declined consent never loads a tag or queues measurement", () =
     assert.equal(scripts.length, 0);
     assert.equal(context.window.gtag, undefined);
     assert.equal(context.window.dataLayer, undefined);
+  }
+});
+
+test("a consented direct private or unknown visit does not load or configure Analytics", () => {
+  for (const pathname of ["/login", "/app/customer-123", "/api/contact", "/unknown-marker",
+    "/blog/unknown-post", "/solutions/unknown-solution", "/case-studies/unknown-customer", "/pricing/private-marker"]) {
+    for (const manual of [false, true]) {
+      const { context, scripts } = browser("quickvoice.co");
+      context.window.location.pathname = pathname;
+      runInNewContext(createGoogleAnalyticsScript("", manual), context);
+      assert.equal(scripts.length, 0, pathname);
+      assert.equal(context.window.gtag, undefined, pathname);
+      assert.equal(context.window.dataLayer, undefined, pathname);
+    }
+  }
+});
+
+test("a blocked initial visit can start once on a known public page while still respecting consent", () => {
+  const { context, scripts } = browser("quickvoice.co");
+  context.window.location.pathname = "/unknown-marker";
+  runInNewContext(createGoogleAnalyticsScript(), context);
+  context.window.quickvoiceStartAnalytics();
+  assert.equal(scripts.length, 0);
+  context.window.location.pathname = "/pricing/";
+  context.window.quickvoiceAnalyticsConsent = "denied";
+  context.window.quickvoiceStartAnalytics();
+  assert.equal(scripts.length, 0);
+  context.window.quickvoiceAnalyticsConsent = "granted";
+  context.window.quickvoiceStartAnalytics();
+  context.window.quickvoiceStartAnalytics();
+  assert.equal(scripts.length, 1);
+  assert.equal(context.window.dataLayer.filter(args => args[0] === "config").length, 1);
+});
+
+test("only content slugs explicitly provided by the server may initialize the tag", () => {
+  const paths = ["/", "/blog/published-example", "/case-studies/public-scenario"];
+  for (const pathname of paths.slice(1)) {
+    const { context, scripts } = browser("quickvoice.co");
+    context.window.location.pathname = pathname;
+    runInNewContext(createGoogleAnalyticsScript("", false, paths), context);
+    assert.equal(scripts.length, 1, pathname);
+  }
+  const { context, scripts } = browser("quickvoice.co");
+  context.window.location.pathname = "/blog/unpublished-example";
+  runInNewContext(createGoogleAnalyticsScript("", false, paths), context);
+  assert.equal(scripts.length, 0);
+});
+
+test("bootstrap keeps only the HTTP referral origin before automatic measurement starts", () => {
+  for (const [referrer, expected] of [
+    ["https://search.example/private/account?q=synthetic#details", "https://search.example"],
+    ["http://referral.example:8080/customer/123?message=synthetic", "http://referral.example:8080"],
+    ["https://user:password@referral.example/private?email=qa%40example.invalid", "https://referral.example"],
+    ["", ""], [undefined, ""], ["not a URL", ""],
+    ["javascript:alert(1)", ""], ["data:text/plain,synthetic", ""],
+    ["file:///private/report", ""],
+  ]) {
+    const { context } = browser("quickvoice.co");
+    context.document.referrer = referrer;
+    runInNewContext(createGoogleAnalyticsScript(), context);
+    const commands = context.window.dataLayer.map((args) => Array.from(args));
+    const settingIndex = commands.findIndex(([command, values]) => command === "set" && "page_referrer" in values);
+    const configIndex = commands.findIndex(([command]) => command === "config");
+    assert.ok(settingIndex < configIndex);
+    assert.equal(commands[settingIndex][1].page_referrer, expected);
+    assert.equal(commands[settingIndex][1].page_location, undefined);
+    assert.deepEqual(commands[configIndex], ["config", "G-SZFBG11VRP"]);
+    assert.equal(commands.some(([command]) => command === "event"), false);
   }
 });

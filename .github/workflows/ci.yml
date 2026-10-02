@@ -173,6 +173,16 @@ jobs:
     name: Server Lint, Types, Build, Tests
     runs-on: ubuntu-latest
     timeout-minutes: 40
+    services:
+      rate-limit-redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -208,6 +218,8 @@ jobs:
 
       - name: Run server tests
         run: pnpm --filter server test
+        env:
+          TEST_RATE_LIMIT_REDIS_URL: redis://127.0.0.1:6379
 
   ai-python:
     name: AI Python Tests

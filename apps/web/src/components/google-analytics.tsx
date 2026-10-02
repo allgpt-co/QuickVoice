@@ -21,6 +21,10 @@ export function GoogleAnalytics({
   const query = useSearchParams().toString();
   const coordinator = useRef<ReturnType<typeof createPageviewCoordinator> | null>(null);
 
+  // A consented visit may start on a 404. Next Script runs once per layout, so
+  // retry its guarded initializer after navigation to a known public page.
+  useEffect(() => { window.quickvoiceStartAnalytics?.(); }, [pathname]);
+
   useEffect(() => {
     if (!manualPageviews) return;
     const measurementId = resolveGoogleAnalyticsId(configuredId, window.location.hostname);
@@ -56,7 +60,10 @@ export function GoogleAnalytics({
     <Script
       id="google-analytics"
       strategy="afterInteractive"
-      onReady={() => coordinator.current?.flush()}
+      onReady={() => {
+        window.quickvoiceStartAnalytics?.();
+        coordinator.current?.flush();
+      }}
     >
       {script}
     </Script>
