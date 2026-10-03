@@ -17,6 +17,7 @@ declare global {
     quickvoiceAnalyticsMeasurementId?: string;
     quickvoiceStartAnalytics?: () => void;
     quickvoiceAnalyticsPageAllowed?: (url?: string) => boolean;
+    quickvoiceAnalyticsPageviewInitialized?: boolean;
     gtag?: (...args: unknown[]) => void;
   }
 }

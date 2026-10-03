@@ -47,32 +47,58 @@ export function GoogleAnalytics({
         isActive: () => window.quickvoiceAnalyticsConsent === "granted" && window.quickvoiceAnalyticsPageAllowed?.() === true,
         isAllowed: (url) => window.quickvoiceAnalyticsPageAllowed?.(url) === true,
       });
+      // The consent UI unmounts this component on denial. A later mount is a
+      // new sequence in the same document, not a new external landing visit.
+      if (window.quickvoiceAnalyticsPageviewInitialized) coordinator.current.reset();
+      window.quickvoiceAnalyticsPageviewInitialized = true;
     }
     const current = coordinator.current;
     // Read metadata after React's route commit, not at the history mutation.
     // Cleanup drops a pending callback when a navigation is superseded.
     let timer: number | undefined;
+    let titleObserver: MutationObserver | undefined;
     const schedule = () => {
       window.clearTimeout(timer);
+      titleObserver?.disconnect();
+      titleObserver = undefined;
       // Do not turn delayed bootstrap into a denied snapshot. onReady retries it.
       if (typeof window.quickvoiceAnalyticsPageAllowed !== "function") return;
       current.flush(); // Immediately discard pending visits on a privacy boundary.
-      timer = window.setTimeout(() => {
+      const recordWhenTitleReady = () => {
         if (
           window.location.pathname !== pathname ||
           new URLSearchParams(window.location.search).toString() !== query
         ) return;
+        // Streamed metadata can leave the committed document without a title.
+        // Wait for it rather than permanently recording an empty title. This
+        // observer and callback are discarded on navigation or consent unmount.
+        if (!document.title.trim()) {
+          if (!titleObserver) {
+            titleObserver = new MutationObserver(() => {
+              window.clearTimeout(timer);
+              timer = window.setTimeout(recordWhenTitleReady, 0);
+            });
+            titleObserver.observe(document.documentElement, {
+              childList: true, subtree: true, characterData: true,
+            });
+          }
+          return;
+        }
+        titleObserver?.disconnect();
+        titleObserver = undefined;
         current.record({
           url: window.location.href,
           title: document.title,
           referrer: document.referrer,
         });
-      }, 0);
+      };
+      timer = window.setTimeout(recordWhenTitleReady, 0);
     };
     recordCurrent.current = schedule;
     schedule();
     return () => {
       window.clearTimeout(timer);
+      titleObserver?.disconnect();
       if (recordCurrent.current === schedule) recordCurrent.current = null;
     };
   }, [pathname, query, configuredId, manualPageviews]);
