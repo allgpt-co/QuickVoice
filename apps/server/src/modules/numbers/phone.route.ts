@@ -15,6 +15,7 @@ type PhoneRouterDeps = {
   authorizeDelete?: RequestHandler;
   authorizeBillingManage?: RequestHandler;
   requireBillingManager?: RequestHandler;
+  listCountries?: RequestHandler;
   searchNumbers?: RequestHandler;
   listNumbers?: RequestHandler;
   buyNumber?: RequestHandler;
@@ -45,6 +46,7 @@ export function createPhoneRouter(deps: PhoneRouterDeps = {}) {
 
   // Search is proxied to the provider and does not write. It remains gated on
   // `create` because it is only useful as the first step of a purchase.
+  router.get("/countries", authenticate, authorizeCreate, deps.listCountries ?? phoneController.listCountries);
   router.get("/search", authenticate, authorizeCreate, searchNumbers);
 
   router.get("/", authenticate, authorizeRead, listNumbers);

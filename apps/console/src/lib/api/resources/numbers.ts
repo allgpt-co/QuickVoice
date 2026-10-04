@@ -6,6 +6,11 @@ import type {
   TelephonyProvider,
 } from "@/src/lib/api/types";
 
+export interface NumberCountry {
+  code: string;
+  name: string;
+}
+
 export interface NumberSearchParams {
   provider: TelephonyProvider;
   country: string;
@@ -26,6 +31,12 @@ export interface UpdateNumberInput {
 }
 
 export const numbersApi = {
+  countries: async (provider: TelephonyProvider): Promise<NumberCountry[]> => {
+    const res = await apiClient.get<ApiEnvelope<NumberCountry[]>>(
+      "/numbers/countries", { params: { provider } },
+    );
+    return res.data.data;
+  },
   list: async (): Promise<PhoneNumber[]> => {
     const res = await apiClient.get<ApiEnvelope<PhoneNumber[]>>("/numbers");
     return res.data.data;

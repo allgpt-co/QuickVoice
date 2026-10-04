@@ -18,6 +18,16 @@ export function useNumbers() {
   });
 }
 
+export function useNumberCountries(provider: NumberSearchParams["provider"], enabled: boolean) {
+  return useQuery({
+    queryKey: queryKeys.numbers.countries(provider),
+    queryFn: () => numbersApi.countries(provider),
+    enabled,
+    staleTime: 5 * 60_000,
+    retry: false,
+  });
+}
+
 export function useNumberSearch(
   params: NumberSearchParams | null,
   enabled: boolean,

@@ -14,6 +14,7 @@ export const queryKeys = {
       [...queryKeys.agents.all, "widgets", agentId] as const,
   },
   numbers: {
+    countries: (provider: string) => [...queryKeys.numbers.all, "countries", provider] as const,
     all: ["numbers"] as const,
     list: () => [...queryKeys.numbers.all, "list"] as const,
     search: (p: Record<string, unknown>) =>
