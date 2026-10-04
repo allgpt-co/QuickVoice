@@ -9,6 +9,7 @@ import {
 } from "./rate-catalog.service.js";
 import {
   importRateBook,
+  MAX_RATE_BOOK_ROUTES,
   rateBookSchema,
   selectRouteRate,
   type RateBook,
@@ -121,29 +122,33 @@ export function sipCsvRates(
     : -1;
   const prefix = (raw: string) =>
     raw.startsWith("+") || raw === "ALL" || raw === "ROW" ? raw : `+${raw}`;
+  let expandedRows = 0;
   return rows.flatMap((row) => {
     if (row.length !== headers.length)
       throw new Error("SIP CSV row has an unexpected column count");
-    const origins = origin < 0 ? ["ALL"] : row[origin]!.trim().split(/[;\s]+/);
-    return row[destination]!.trim()
-      .split(/[;\s]+/)
-      .flatMap((to) =>
-        origins.map((from) =>
-          telephonyRouteSchema.parse({
-            provider: "twilio",
-            product: "elastic-sip",
-            account: mapping.account,
-            direction: mapping.direction,
-            destinationPrefix: prefix(to),
-            originPrefix: prefix(from),
-            baseMicrosPerMinute: usdRateMicros(row[price]!.trim()),
-            minimumSeconds: mapping.minimumSeconds,
-            incrementSeconds: mapping.incrementSeconds,
-            source: mapping.source,
-            description: row[description]!.trim(),
-          }),
-        ),
-      );
+    const rawOrigin = origin < 0 ? "" : row[origin]!.trim();
+    const origins = rawOrigin ? rawOrigin.split(/[,;\s]+/) : ["ALL"];
+    const destinations = row[destination]!.trim().split(/[,;\s]+/);
+    expandedRows += origins.length * destinations.length;
+    if (expandedRows > MAX_RATE_BOOK_ROUTES)
+      throw new Error(`SIP deck exceeds ${MAX_RATE_BOOK_ROUTES} expanded routes`);
+    return destinations.flatMap((to) =>
+      origins.map((from) =>
+        telephonyRouteSchema.parse({
+          provider: "twilio",
+          product: "elastic-sip",
+          account: mapping.account,
+          direction: mapping.direction,
+          destinationPrefix: prefix(to),
+          originPrefix: prefix(from),
+          baseMicrosPerMinute: usdRateMicros(row[price]!.trim()),
+          minimumSeconds: mapping.minimumSeconds,
+          incrementSeconds: mapping.incrementSeconds,
+          source: mapping.source,
+          description: row[description]!.trim(),
+        }),
+      ),
+    );
   });
 }
 
@@ -266,7 +271,7 @@ async function main() {
       account: rates[0]!.account,
       product: rates[0]!.product,
     };
-    book.routes.push(...rates);
+    book.routes = book.routes.concat(rates);
     return rateBookSchema.parse(book);
   }
   throw new Error(

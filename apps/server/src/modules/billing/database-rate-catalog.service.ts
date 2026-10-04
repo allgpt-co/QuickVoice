@@ -23,6 +23,9 @@ const providerConfig = z
   })
   .strict();
 
+// Bound expansion while accommodating worldwide SIP decks with origin rules.
+export const MAX_RATE_BOOK_ROUTES = 250_000;
+
 export const rateBookSchema = z
   .object({
     catalog: z.unknown().transform((value) => parseRateCatalogSnapshot(value)),
@@ -45,7 +48,7 @@ export const rateBookSchema = z
         phone: z.array(livekitRateSchema).max(4),
       })
       .strict(),
-    routes: z.array(telephonyRouteSchema).max(100_000),
+    routes: z.array(telephonyRouteSchema).max(MAX_RATE_BOOK_ROUTES),
   })
   .strict()
   .superRefine((book, ctx) => {
@@ -343,7 +346,7 @@ export async function refreshRateBook() {
       const { done, value } = await reader.read();
       if (done) break;
       bytes += value.byteLength;
-      if (bytes > 50 * 1024 * 1024) throw new Error("Rate book exceeds 50 MiB");
+      if (bytes > 128 * 1024 * 1024) throw new Error("Rate book exceeds 128 MiB");
       chunks.push(value);
     }
   } finally {
