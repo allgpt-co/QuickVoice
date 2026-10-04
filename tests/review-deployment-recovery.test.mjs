@@ -23,7 +23,7 @@ test('deploy diff uses successful deployment job, includes missed commits and fa
     const commit = name => { writeFileSync(join(dir, name), name); git('add', '.'); git('commit', '-qm', name); return git('rev-parse', 'HEAD'); };
     const deployed = commit('deployed'); const missed = commit('missed'); const head = commit('head');
     mkdirSync(join(dir, 'bin'));
-    writeFileSync(join(dir, 'bin/gh'), `#!/bin/sh\ncase "$*" in\n *workflows*) printf '2\\t${missed}\\n1\\t${deployed}\\n';;\n *runs/2/jobs*) printf 'Quality Summary\\n';;\n *runs/1/jobs*) printf 'Deploy Backend\\n';;\n *) exit 1;;\nesac\n`, { mode: 0o755 });
+    writeFileSync(join(dir, 'bin/gh'), `#!/bin/sh\ncase "$*" in\n *workflows*) printf '2\\t${missed}\\n1\\t${deployed}\\n';;\n *runs/2/jobs*) printf 'Quality Summary\\n';;\n *runs/1/jobs*) printf 'Deploy Backend\\n'; seq 1 20000;;\n *) exit 1;;\nesac\n`, { mode: 0o755 });
     const env = { ...process.env, PATH: `${dir}/bin:${process.env.PATH}`, GITHUB_REPOSITORY: 'test/repo', SOURCE_SHA: head, DEPLOY_JOB: 'Deploy Backend' };
     const run = () => execFileSync('bash', [join(root, '.github/scripts/deploy-diff-base.sh')], { cwd: dir, env, encoding: 'utf8' }).trim();
     assert.equal(run(), deployed);
@@ -44,4 +44,30 @@ test('normal deployment recovery re-runs CI on main and reusable jobs reject oth
     const workflow = YAML.parse(readFileSync(join(root, '.github/workflows', file), 'utf8'));
     for (const [name, job] of Object.entries(workflow.jobs)) assert.match(job.if, /github.ref == 'refs\/heads\/main'/, name);
   }
+});
+
+test('deployment detection preserves matches in large diffs under pipefail', () => {
+  const ci = YAML.parse(readFileSync(join(root, '.github/workflows/ci.yml'), 'utf8'));
+  const step = ci.jobs['deployment-changes'].steps.find(step => step.name === 'Detect deployable changes from the tested push');
+  const start = step.run.search(/^server=false$/m);
+  assert.ok(start >= 0);
+  const dir = mkdtempSync(join(tmpdir(), 'qv-deploy-detection-'));
+  try {
+    const padding = Array.from({ length: 20000 }, (_, i) => `docs/unchanged-scope-${i}.md`).join('\n');
+    for (const [paths, expected] of [
+      [['apps/server/src/index.ts', 'apps/ai/main.py', 'apps/mcp-server/src/index.ts'], 'server=true\nai=true\nmcp=true'],
+      [['apps/server/src/index.ts'], 'server=true\nai=false\nmcp=false'],
+      [[], 'server=false\nai=false\nmcp=false'],
+    ]) {
+      writeFileSync(join(dir, 'files'), [...paths, padding].join('\n'));
+      writeFileSync(join(dir, 'outputs'), '');
+      execFileSync('bash', ['-e', '-o', 'pipefail', '-c',
+        'changed_files=$(cat "$QV_TEST_FILES")\nmcp_changed_files="$changed_files"\n' + step.run.slice(start)], {
+        cwd: root,
+        env: { ...process.env, QV_TEST_FILES: join(dir, 'files'), GITHUB_OUTPUT: join(dir, 'outputs'), GITHUB_STEP_SUMMARY: join(dir, 'summary'), SOURCE_SHA: 'test' },
+        stdio: 'pipe',
+      });
+      assert.equal(readFileSync(join(dir, 'outputs'), 'utf8').trim(), expected);
+    }
+  } finally { rmSync(dir, { recursive: true, force: true }); }
 });

@@ -10,7 +10,7 @@ while IFS=$'\t' read -r run_id sha; do
   [ "$sha" != "$SOURCE_SHA" ] || continue
   git merge-base --is-ancestor "$sha" "$SOURCE_SHA" || continue
   jobs="$(gh api --paginate "repos/${GITHUB_REPOSITORY}/actions/runs/${run_id}/jobs?per_page=100" --jq '.jobs[] | select(.conclusion == "success") | .name')"
-  if printf '%s\n' "$jobs" | grep -Fqx "$DEPLOY_JOB"; then
+  if grep -Fqx "$DEPLOY_JOB" <<< "$jobs"; then
     printf '%s\n' "$sha"
     exit 0
   fi
