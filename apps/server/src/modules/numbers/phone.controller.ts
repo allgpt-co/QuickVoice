@@ -4,11 +4,21 @@ import { StatusCodes } from "http-status-codes";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import { ForbiddenError } from "../../common/errors/forbidden.js";
 import * as phoneService from "./phone.service.js";
-import { searchNumbersSchema } from "./phone.schema.js";
+import { numberCountriesSchema, searchNumbersSchema } from "./phone.schema.js";
 import { authorized } from "../../middleware/authorize.middleware.js";
 import { recordAuditEvent } from "../audit/audit-log.service.js";
 import { toBillingJson } from "../billing/billing-json.js";
 
+
+export const listCountries = authorized(async (req, res) => {
+  const { provider } = numberCountriesSchema.parse(req.query);
+  const countries = await phoneService.listNumberCountries(provider);
+  res.status(StatusCodes.OK).json({
+    success: true,
+    message: "Supported local-number countries fetched successfully",
+    data: countries,
+  });
+});
 
 export const searchNumbers = authorized(async (req, res) => {
   // GET query params are validated inline — the shared validate middleware

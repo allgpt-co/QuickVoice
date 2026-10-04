@@ -42,6 +42,10 @@ before(async () => {
       authorizeDelete: stage("phone:delete"),
       authorizeBillingManage: stage("billing:manage"),
       requireBillingManager: stage("owner-or-admin"),
+      listCountries: (_req, res) => {
+        calls.push("countries-handler");
+        res.status(200).json({ success: true, data: [] });
+      },
       searchNumbers: (_req, res) => {
         calls.push("search-handler");
         res.status(200).json({ success: true, data: [] });
@@ -145,4 +149,11 @@ test("listing remains read-only and does not require billing management", async 
 
   assert.equal(response.status, 200);
   assert.deepEqual(calls, ["auth", "phone:read", "list-handler"]);
+});
+
+
+test("country discovery requires authentication and number-create permission", async () => {
+  const response = await requestJson(`${baseUrl}/api/v1/numbers/countries?provider=TWILIO`);
+  assert.equal(response.status, 200);
+  assert.deepEqual(calls, ["auth", "phone:create", "countries-handler"]);
 });

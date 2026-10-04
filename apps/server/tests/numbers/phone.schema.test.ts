@@ -50,3 +50,9 @@ test("provider schemas reject unknown provider values", () => {
     /Invalid option/
   );
 });
+
+
+test("country codes are normalized and reject non-letter input", () => {
+  assert.equal(searchNumbersSchema.parse({ provider: "TWILIO", country: "us" }).country, "US");
+  assert.equal(searchNumbersSchema.safeParse({ provider: "TWILIO", country: "12" }).success, false);
+});
