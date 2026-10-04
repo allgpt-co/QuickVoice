@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
 import {
   importRateBook,
+  MAX_RATE_BOOK_ROUTES,
   getCallAdmissionCatalog,
   rateBookSchema,
   resolveDatabaseCallCatalog,
@@ -468,6 +469,46 @@ test("SIP deck mapping validates columns, decimal precision and product without 
     /decimal/,
   );
   assert.throws(() => usdRateMicros("NaN"));
+});
+
+test("SIP decks expand comma-separated origins and destinations, with blank origins covering ALL", () => {
+  const mapping = {
+    account: route.account,
+    direction: "outbound",
+    currency: "USD",
+    destinationPrefixColumn: "Prefix",
+    originPrefixColumn: "Origin",
+    priceColumn: "USD",
+    descriptionColumn: "Destination",
+    minimumSeconds: 60,
+    incrementSeconds: 60,
+    source: route.source,
+  };
+  const rates = sipCsvRates(
+    'Prefix,Origin,USD,Destination\n"91, 92",,0.27,Default\n"91;92","30, 31",0.16,Regional',
+    mapping,
+  );
+  assert.equal(rates.length, 6);
+  assert.equal(selectRouteRate(rates, "+14155550100", "+919876543210").baseMicrosPerMinute, "270000");
+  assert.equal(selectRouteRate(rates, "+30123456789", "+919876543210").baseMicrosPerMinute, "160000");
+  assert.throws(() => sipCsvRates("Prefix,Origin,USD,Destination\n,ALL,0.27,Invalid", mapping));
+  const prefixes = Array.from({ length: 501 }, (_, i) => String(1000 + i)).join(",");
+  assert.throws(
+    () => sipCsvRates(`Prefix,Origin,USD,Destination\n"${prefixes}","${prefixes}",0.27,TooBig`, mapping),
+    /expanded routes/,
+  );
+  // Worldwide origin-dependent decks exceed 100k rows; keep validation bounded.
+  const largeBook = {
+    ...book(),
+    routes: Array.from({ length: 182_950 }, (_, i) => ({
+      ...route,
+      destinationPrefix: `+${1000000 + i}`,
+    })),
+  };
+  assert.equal(rateBookSchema.parse(largeBook).routes.length, 182_950);
+  assert.throws(() => rateBookSchema.parse({
+    ...book(), routes: Array(MAX_RATE_BOOK_ROUTES + 1).fill(route),
+  }));
 });
 
 test("Twilio Voice imports account current price instead of retail base price", () => {
