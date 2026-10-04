@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from typing import Any, List, Optional
 
@@ -30,10 +31,13 @@ def _verify_internal(request: Request) -> None:
 @asynccontextmanager
 async def _lifespan(_app: FastAPI):
     # Keep the HTTP process alive when deployment configuration is incomplete
-    # so orchestration receives a diagnostic 503 from /health. All non-health
-    # routes continue to fail closed in the authentication middleware.
+    # so liveness remains available. Authenticated readiness and all runtime
+    # routes continue to fail closed when configuration is incomplete.
     _app.state.startup_runtime_config = evaluate_local_runtime_config()
-    yield
+    try:
+        yield
+    finally:
+        await kb_handler.close_kb_job_store()
 
 
 app = FastAPI(title="QuickVoice AI", lifespan=_lifespan)
@@ -57,6 +61,12 @@ async def _internal_auth_middleware(request: Request, call_next):
 
 @app.get("/health")
 async def health_check():
+    return {"ok": True, "service": "ai"}
+
+
+@app.get("/ready")
+async def readiness_check(request: Request):
+    _verify_internal(request)
     readiness = await get_runtime_readiness()
     return JSONResponse(
         status_code=200 if readiness["ok"] else 503,
@@ -143,7 +153,7 @@ async def process_kb(
 ):
     _verify_internal(request)
     try:
-        job = kb_handler.create_kb_job(payload.model_dump(exclude_none=True))
+        job = await kb_handler.create_kb_job(payload.model_dump(exclude_none=True))
     except kb_handler.KbJobValidationError as exc:
         raise _kb_http_exception(exc) from exc
 
@@ -156,7 +166,7 @@ async def process_kb(
 async def read_kb_job(job_id: str, request: Request):
     _verify_internal(request)
     try:
-        return kb_handler.get_kb_job(job_id)
+        return await kb_handler.get_kb_job(job_id)
     except KeyError as exc:
         raise _kb_not_found(job_id) from exc
 
@@ -165,7 +175,7 @@ async def read_kb_job(job_id: str, request: Request):
 async def cancel_kb_job(job_id: str, request: Request):
     _verify_internal(request)
     try:
-        return kb_handler.cancel_kb_job(job_id)
+        return await kb_handler.cancel_kb_job(job_id)
     except KeyError as exc:
         raise _kb_not_found(job_id) from exc
 
@@ -174,7 +184,7 @@ async def cancel_kb_job(job_id: str, request: Request):
 async def retry_kb_job(job_id: str, request: Request, response: Response, background_tasks: BackgroundTasks):
     _verify_internal(request)
     try:
-        job = kb_handler.retry_kb_job(job_id)
+        job = await kb_handler.retry_kb_job(job_id)
     except KeyError as exc:
         raise _kb_not_found(job_id) from exc
     except kb_handler.KbJobValidationError as exc:
@@ -186,7 +196,12 @@ async def retry_kb_job(job_id: str, request: Request, response: Response, backgr
 
 
 @app.delete("/kb/{agent_id}/{kb_id}")
-async def delete_kb(agent_id: str, kb_id: str, request: Request):
+async def delete_kb(agent_id: str, kb_id: str, request: Request, permanent: bool = True):
     _verify_internal(request)
-    kb_handler.delete_kb_vectors(namespace=agent_id, kb_id=kb_id)
+    await asyncio.to_thread(
+        kb_handler.delete_kb_vectors,
+        namespace=agent_id,
+        kb_id=kb_id,
+        permanent=permanent,
+    )
     return {"success": True, "agentId": agent_id, "kbId": kb_id}

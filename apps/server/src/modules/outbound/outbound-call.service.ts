@@ -9,6 +9,7 @@ import {
   LIVEKIT_SIP_OUTBOUND_TRUNK_TELNYX_ID,
   LIVEKIT_SIP_OUTBOUND_TRUNK_TWILIO_ID,
   livekitAgentDispatchClient,
+  livekitRoomServiceClient,
   livekitSipClient,
 } from "../../config/livekit.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
@@ -26,6 +27,7 @@ import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
 type QuickOutboundCallRepository = {
   getDialableNumber: typeof outboundCallRepository.getDialableNumber;
   getOutboundCallForDispatch?: typeof outboundCallRepository.getOutboundCallForDispatch;
+  claimQuickOutboundCall?: typeof outboundCallRepository.claimQuickOutboundCall;
   createQuickCall: typeof outboundCallRepository.createQuickCall;
   markInProgress: typeof outboundCallRepository.markInProgress;
   markFailed: typeof outboundCallRepository.markFailed;
@@ -54,6 +56,12 @@ type AgentDispatchClientLike = {
     options?: { metadata?: string }
   ) => Promise<unknown>;
   deleteDispatch?: (dispatchId: string, roomName: string) => Promise<void>;
+};
+
+type RoomServiceClientLike = {
+  deleteRoom: (roomName: string) => Promise<unknown>;
+  listRooms?: (names?: string[]) => Promise<Array<{ name?: string }>>;
+  listParticipants?: (roomName: string) => Promise<Array<{ identity?: string }>>;
 };
 
 type OutboundTrunks = Record<TelephonyProvider, string>;
@@ -89,6 +97,7 @@ type CreateQuickOutboundCallDeps = {
   repository?: QuickOutboundCallRepository;
   sipClient?: SipClientLike;
   dispatchClient?: AgentDispatchClientLike;
+  roomClient?: RoomServiceClientLike;
   outboundTrunks?: OutboundTrunks;
   agentName?: string;
   hasActiveLegacySubscription?: typeof hasActiveLegacySubscription;
@@ -118,6 +127,7 @@ export async function createQuickOutboundCall(
   const repository = deps.repository ?? outboundCallRepository;
   const sipClient = deps.sipClient ?? livekitSipClient;
   const dispatchClient = deps.dispatchClient ?? livekitAgentDispatchClient;
+  const roomClient = deps.roomClient ?? livekitRoomServiceClient;
   const outboundTrunks = deps.outboundTrunks ?? defaultOutboundTrunks;
   const agentName = deps.agentName ?? LIVEKIT_AGENT_NAME;
 
@@ -139,8 +149,8 @@ export async function createQuickOutboundCall(
     );
   }
 
-  const provider = args.provider ?? dialableNumber.provider;
-  const sid = args.sid ?? dialableNumber.sid;
+  const provider = dialableNumber.provider;
+  const sid = dialableNumber.sid;
   const trunkId = outboundTrunks[provider];
   const dynamicVariables = normalizeDynamicVariables(args.dynamicVariables);
   const dynamicVariableData =
@@ -151,9 +161,13 @@ export async function createQuickOutboundCall(
   }
 
   const outbound = await repository.createQuickCall({
-    ...args,
-    provider,
-    sid,
+    organizationId: args.organizationId,
+    userId: args.userId,
+    agentId: args.agentId,
+    phoneNumber: args.phoneNumber,
+    fromNumber: args.fromNumber,
+    firstMessage: args.firstMessage,
+    systemPrompt: args.systemPrompt,
     status: CallStatus.SCHEDULED,
     mode: OutboundCallMode.quick,
     optionalData: {
@@ -165,6 +179,11 @@ export async function createQuickOutboundCall(
   });
 
   try {
+    const claim = await repository.claimQuickOutboundCall?.(outbound.outboundId);
+    if (claim && !claim.claimed) {
+      throw new BadRequestError(claim.reason);
+    }
+
     const roomName = `outbound_${outbound.outboundId}`;
     const admission = await authorizeCallBilling({
       organizationId: args.organizationId,
@@ -186,10 +205,7 @@ export async function createQuickOutboundCall(
         },
       );
     }
-    const metadata = buildOutboundMetadata(
-      { ...args, provider, sid },
-      outbound.outboundId
-    );
+    const metadata = buildOutboundMetadata(args, outbound.outboundId, provider);
     const metadataJson = JSON.stringify(metadata);
     let agentDispatch: unknown;
     try {
@@ -221,6 +237,10 @@ export async function createQuickOutboundCall(
           agentDispatch: toJsonValue(agentDispatch),
         }
       );
+      if (!updated) {
+        await roomClient.deleteRoom(roomName).catch(() => undefined);
+        throw new BadRequestError("Outbound call was cancelled before dialing completed");
+      }
 
       return { outbound: updated, livekitParticipant, agentDispatch };
     } catch (error) {
@@ -248,6 +268,7 @@ export async function dispatchScheduledOutboundCall(
   const repository = deps.repository ?? outboundCallRepository;
   const sipClient = deps.sipClient ?? livekitSipClient;
   const dispatchClient = deps.dispatchClient ?? livekitAgentDispatchClient;
+  const roomClient = deps.roomClient ?? livekitRoomServiceClient;
   const outboundTrunks = deps.outboundTrunks ?? defaultOutboundTrunks;
   const agentName = deps.agentName ?? LIVEKIT_AGENT_NAME;
 
@@ -257,7 +278,7 @@ export async function dispatchScheduledOutboundCall(
 
   const outbound = await repository.getOutboundCallForDispatch(outboundId);
   if (!outbound) {
-    throw new BadRequestError("Outbound call not found or is not scheduled");
+    return;
   }
 
   try {
@@ -332,6 +353,31 @@ export async function dispatchScheduledOutboundCall(
       dynamic_variables: Object.keys(dynamicVariables).length > 0 ? dynamicVariables : null,
     };
     const metadataJson = JSON.stringify(metadata);
+    if (
+      await outboundParticipantExists(
+        roomClient,
+        roomName,
+        `outbound-${outbound.outboundId}`,
+      )
+    ) {
+      const updated = await repository.markInProgress(outbound.outboundId, {
+        ...optionalData,
+        provider,
+        sid,
+        recoveredExistingRoom: true,
+      });
+      if (!updated) {
+        await roomClient.deleteRoom(roomName).catch(() => undefined);
+        throw new BadRequestError("Outbound call was cancelled before recovery completed");
+      }
+      return {
+        outbound: updated,
+        livekitParticipant: null,
+        agentDispatch: null,
+        recovered: true,
+      };
+    }
+
     let agentDispatch: unknown;
     try {
       agentDispatch = await dispatchClient.createDispatch(roomName, agentName, {
@@ -357,6 +403,10 @@ export async function dispatchScheduledOutboundCall(
         livekitParticipant: toJsonValue(livekitParticipant),
         agentDispatch: toJsonValue(agentDispatch),
       });
+      if (!updated) {
+        await roomClient.deleteRoom(roomName).catch(() => undefined);
+        throw new BadRequestError("Outbound call was cancelled before dialing completed");
+      }
 
       return { outbound: updated, livekitParticipant, agentDispatch };
     } catch (error) {
@@ -369,12 +419,30 @@ export async function dispatchScheduledOutboundCall(
       callId: outbound.outboundId,
       reason: "scheduled_outbound_dispatch_failed",
     }).catch(() => undefined);
+    // Cancellation (or another terminal transition) is a successful no-op for
+    // the queue, not a provider failure that should consume retry attempts.
+    if (!(await repository.getOutboundCallForDispatch(outboundId))) return;
     await repository.markFailed(
       outbound.outboundId,
       error instanceof Error ? error.message : String(error)
     );
     throw error;
   }
+}
+
+async function outboundParticipantExists(
+  roomClient: RoomServiceClientLike,
+  roomName: string,
+  participantIdentity: string,
+) {
+  if (!roomClient.listRooms) return false;
+  const rooms = await roomClient.listRooms([roomName]);
+  if (!rooms.some((room) => room.name === roomName)) return false;
+  if (!roomClient.listParticipants) return true;
+  const participants = await roomClient.listParticipants(roomName);
+  return participants.some(
+    (participant) => participant.identity === participantIdentity,
+  );
 }
 
 export async function enforcePlanQuota(
@@ -424,7 +492,11 @@ function getDispatchId(agentDispatch: unknown) {
   return typeof id === "string" && id.length > 0 ? id : null;
 }
 
-function buildOutboundMetadata(args: QuickOutboundCallArgs, outboundId: string) {
+function buildOutboundMetadata(
+  args: QuickOutboundCallArgs,
+  outboundId: string,
+  provider: TelephonyProvider,
+) {
   const dynamicVariables = normalizeDynamicVariables(args.dynamicVariables);
 
   return {
@@ -436,7 +508,7 @@ function buildOutboundMetadata(args: QuickOutboundCallArgs, outboundId: string) 
     direction: "outbound",
     from_number: args.fromNumber,
     to_number: args.phoneNumber,
-    provider: args.provider,
+    provider,
     first_message: args.firstMessage ?? null,
     system_prompt: args.systemPrompt ?? null,
     username: args.username ?? null,
@@ -577,7 +649,6 @@ export async function retryOutboundCall(
   }
 
   const optionalData = jsonObject(outbound.optionalData);
-  const provider = getProvider(optionalData.provider);
   const retry = await dispatchQuickCall({
     organizationId: args.organizationId,
     userId: args.userId,
@@ -587,8 +658,9 @@ export async function retryOutboundCall(
     firstMessage: outbound.firstMessage ?? undefined,
     systemPrompt: outbound.systemPrompt ?? undefined,
     username: getOptionalString(optionalData.username) ?? undefined,
-    provider,
-    sid: getOptionalString(optionalData.sid) ?? undefined,
+    dynamicVariables: normalizeDynamicVariables(
+      optionalData.dynamicVariables ?? optionalData.dynamic_variables,
+    ),
   });
 
   return {
@@ -637,13 +709,6 @@ function jsonObject(value: Prisma.JsonValue | null | undefined): Record<string, 
 
 function getOptionalString(value: unknown) {
   return typeof value === "string" && value.length > 0 ? value : null;
-}
-
-function getProvider(value: unknown) {
-  if (value === TelephonyProvider.TWILIO || value === TelephonyProvider.TELNYX) {
-    return value;
-  }
-  return undefined;
 }
 
 function toIsoString(value: Date | null) {

@@ -127,8 +127,8 @@ export const updateAgentWidgetSchema = createAgentWidgetSchema
 export const createPublicWidgetSessionSchema = z
   .object({
     visitorId: z.string().trim().max(120).optional(),
-    dynamicVariables: z.record(z.string(), z.string()).optional(),
   })
+  .strict()
   .default({});
 
 export const endPublicWidgetSessionSchema = z.object({

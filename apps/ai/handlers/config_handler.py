@@ -3,6 +3,7 @@ import json
 import math
 import os
 from typing import Any
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
@@ -43,6 +44,9 @@ DEFAULT_CONFIG = {
     "mcp_connections": [],
 }
 
+CONFIG_LOAD_ATTEMPTS = 3
+CONFIG_RETRY_BASE_DELAY_SECONDS = 0.25
+
 
 async def get_config(
     agent_id: str | None,
@@ -64,14 +68,24 @@ async def get_config(
         if agent_number:
             encoded_agent_number = quote(agent_number or "", safe="")
             url = f"{api_base_url}/agents/number-config/{encoded_agent_number}"
-            response = await (get_json or _get_json)(url, headers)
+            response = await _get_json_with_retry(
+                get_json or _get_json,
+                url,
+                headers,
+                lookup="agent_number",
+            )
             logger.info("Config loaded by agent number: {}", _config_log_summary(response.get("data", response)))
             return normalize_config(response.get("data", response))
 
         if agent_id:
             encoded_agent_id = quote(agent_id, safe="")
             url = f"{api_base_url}/agents/internal-config/{encoded_agent_id}"
-            response = await (get_json or _get_json)(url, headers)
+            response = await _get_json_with_retry(
+                get_json or _get_json,
+                url,
+                headers,
+                lookup="agent_id",
+            )
             logger.info("Config loaded by agent id: {}", _config_log_summary(response.get("data", response)))
             return normalize_config(response.get("data", response))
 
@@ -111,6 +125,8 @@ def normalize_config(raw: dict[str, Any]) -> dict[str, Any]:
             "use_rag": bool(_pick(raw, "use_rag") or False),
             "data_needed": _pick(raw, "data_needed") or [],
             "data_evaluation": _pick(raw, "data_evaluation") or [],
+            "data_extracted": [],
+            "data_evaluated": [],
             "tools": _pick(raw, "tools") or [],
             "mcp_connections": _pick(raw, "mcpConnections", "mcp_connections") or [],
             "initiation_webhook": _pick(raw, "initiation_webhook"),
@@ -177,6 +193,48 @@ def _config_log_summary(raw: dict[str, Any]) -> dict[str, Any]:
             "use_rag": _pick(raw or {}, "use_rag"),
             "mcpConnections": len(_pick(raw or {}, "mcpConnections", "mcp_connections") or []),
         }
+    )
+
+
+async def _get_json_with_retry(
+    get_json,
+    url: str,
+    headers: dict[str, str],
+    *,
+    lookup: str,
+):
+    async with asyncio.timeout(12):
+        for attempt in range(1, CONFIG_LOAD_ATTEMPTS + 1):
+            try:
+                return await get_json(url, headers)
+            except Exception as error:
+                retryable = _is_retryable_config_error(error)
+                details = redact_sensitive(
+                    {
+                        "lookup": lookup,
+                        "attempt": attempt,
+                        "max_attempts": CONFIG_LOAD_ATTEMPTS,
+                        "error": str(error),
+                    }
+                )
+                if not retryable or attempt == CONFIG_LOAD_ATTEMPTS:
+                    logger.error("[CONFIG] agent config load failed: {}", details)
+                    raise
+                delay = CONFIG_RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1))
+                logger.warning(
+                    "[CONFIG] transient agent config load failure; retrying in {}s: {}",
+                    delay,
+                    details,
+                )
+                await asyncio.sleep(delay)
+
+
+def _is_retryable_config_error(error: Exception) -> bool:
+    if isinstance(error, HTTPError):
+        return error.code in {408, 425, 429} or error.code >= 500
+    return isinstance(
+        error,
+        (URLError, TimeoutError, ConnectionError, json.JSONDecodeError),
     )
 
 

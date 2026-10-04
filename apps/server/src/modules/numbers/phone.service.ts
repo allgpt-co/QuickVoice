@@ -104,6 +104,9 @@ export const searchAvailableNumbers = async (
     const response = await telnyxClient.availablePhoneNumbers.list({
       filter: {
         country_code: country,
+        ...(areaCode !== undefined
+          ? { national_destination_code: String(areaCode) }
+          : {}),
         phone_number_type: "local",
         features: ["voice"],
         limit: limit ?? 10,

@@ -1,5 +1,6 @@
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
+import { closeRedisClient } from "../workers/shutdown.js";
 
 export type KbJobName = "process";
 
@@ -19,6 +20,7 @@ export interface KbJobData {
   documents: KbJobDocument[];
   replaceExisting?: boolean;
   previousAgentId?: string | null;
+  enqueuedBeforeClaim?: boolean;
 }
 
 let kbQueue: Queue<KbJobData, void, KbJobName> | undefined;
@@ -35,6 +37,18 @@ export function getKbQueue() {
     },
   });
   return kbQueue;
+}
+
+export async function closeKbQueue() {
+  try {
+    await kbQueue?.close();
+  } finally {
+    kbQueue = undefined;
+    if (kbRedisConnection) {
+      await closeRedisClient(kbRedisConnection);
+      kbRedisConnection = undefined;
+    }
+  }
 }
 
 function getKbRedisConnection() {

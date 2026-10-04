@@ -5,13 +5,16 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Building2, Plus, ArrowRight, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { authClient } from "@/src/lib/auth-client";
 import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 export default function Orgs() {
     const router = useRouter();
+    const queryClient = useQueryClient();
     const { data: organizations, isPending } = authClient.useListOrganizations();
     const { data: session } = authClient.useSession();
     const activeOrgId = session?.session?.activeOrganizationId ?? null;
@@ -29,6 +32,7 @@ export default function Orgs() {
             setPendingId(null);
             return;
         }
+        clearIdentityCache(queryClient);
         router.replace("/dashboard");
     }
 

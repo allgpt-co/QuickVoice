@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import {
  BadgeCheck,
  ChevronsUpDown,
@@ -38,6 +39,7 @@ import {
  useSidebar,
 } from "@/src/components/ui/sidebar";
 import { authClient } from "@/src/lib/auth-client";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 export interface NavUserProps {
  name: string;
@@ -58,12 +60,14 @@ function initials(name: string) {
 export function NavUser({ user }: { user: NavUserProps }) {
  const { isMobile } = useSidebar();
  const router = useRouter();
+ const queryClient = useQueryClient();
  const { theme, setTheme } = useTheme();
 
  async function signOut() {
  await authClient.signOut({
  fetchOptions: {
  onSuccess: () => {
+ clearIdentityCache(queryClient);
  toast.success("Signed out");
  router.push("/login");
  },

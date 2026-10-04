@@ -133,6 +133,8 @@ export function BuyNumberDrawer() {
       setOpen(false);
       form.reset();
       setSearchParams(null);
+    } catch {
+      // The mutation hook displays the API error; keep the selected number for retry.
     } finally {
       setBuyingNumber(null);
     }

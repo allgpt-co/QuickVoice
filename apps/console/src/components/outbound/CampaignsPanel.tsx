@@ -78,6 +78,7 @@ import {
   outboundApi,
 } from "@/src/lib/api/resources/outbound";
 import type { BatchCampaign } from "@/src/lib/api/resources/outbound";
+import { downloadRowsAsCsv } from "@/src/lib/export-csv";
 
 type CampaignStatus = BatchCampaign["status"];
 
@@ -109,7 +110,9 @@ function statusVariant(status: CampaignStatus) {
 }
 
 function canCancelCampaign(status: CampaignStatus) {
-  return status === "SCHEDULED" || status === "PROCESSED";
+  return (
+    status === "SCHEDULED" || status === "PROCESSED" || status === "ACTIVE"
+  );
 }
 
 function completionPercent(campaign: BatchCampaign) {
@@ -121,49 +124,34 @@ function completionPercent(campaign: BatchCampaign) {
   );
 }
 
-function csvEscape(value: unknown) {
-  const text = String(value ?? "");
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
 function downloadCampaignCsv(
   campaigns: BatchCampaign[],
   agentName: (id: string | null) => string,
 ) {
-  const header = [
-    "Campaign",
-    "Status",
-    "Agent",
-    "From number",
-    "Scheduled at",
-    "Total recipients",
-    "Valid recipients",
-    "Invalid recipients",
-    "Source file",
-    "Created at",
-  ];
-  const rows = campaigns.map((campaign) => [
-    campaign.name,
-    campaign.status,
-    agentName(campaign.agentId),
-    campaign.fromNumber,
-    campaign.scheduledAt ?? "Instant",
-    campaign.totalRecipients,
-    campaign.validRecipients,
-    campaign.invalidRecipients,
-    campaign.sourceFileName ?? "",
-    campaign.createdAt,
+  downloadRowsAsCsv("quickvoice-campaigns.csv", campaigns, [
+    { header: "Campaign", value: (campaign) => campaign.name },
+    { header: "Status", value: (campaign) => campaign.status },
+    { header: "Agent", value: (campaign) => agentName(campaign.agentId) },
+    { header: "From number", value: (campaign) => campaign.fromNumber },
+    {
+      header: "Scheduled at",
+      value: (campaign) => campaign.scheduledAt ?? "Instant",
+    },
+    {
+      header: "Total recipients",
+      value: (campaign) => campaign.totalRecipients,
+    },
+    {
+      header: "Valid recipients",
+      value: (campaign) => campaign.validRecipients,
+    },
+    {
+      header: "Invalid recipients",
+      value: (campaign) => campaign.invalidRecipients,
+    },
+    { header: "Source file", value: (campaign) => campaign.sourceFileName ?? "" },
+    { header: "Created at", value: (campaign) => campaign.createdAt },
   ]);
-  const csv = [header, ...rows]
-    .map((row) => row.map(csvEscape).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "quickvoice-campaigns.csv";
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
 function safeJsonParse<T>(source: string, label: string): T {
@@ -663,10 +651,14 @@ export function CampaignsPanel() {
   }, [agentNames, campaigns, search, status]);
 
   async function confirmCancel() {
-    if (!cancelTarget) return;
-    await cancelCampaign.mutateAsync(cancelTarget.campaignId, {
-      onSuccess: () => setCancelTarget(null),
-    });
+    try {
+      if (!cancelTarget) return;
+      await cancelCampaign.mutateAsync(cancelTarget.campaignId, {
+        onSuccess: () => setCancelTarget(null),
+      });
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   function exportCampaignResults(campaign: BatchCampaign) {

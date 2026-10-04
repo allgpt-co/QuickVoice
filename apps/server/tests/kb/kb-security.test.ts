@@ -150,6 +150,80 @@ test("markActive derives the agent counter from active sources on every retry", 
   ]);
 });
 
+test("only the current processing job can activate a knowledge source", async () => {
+  const writes: Array<Record<string, any>> = [];
+  prisma.$transaction = (async (
+    callback: (tx: unknown) => Promise<unknown>,
+  ) => {
+    return callback({
+      knowledgeSource: {
+        updateMany: async (args: Record<string, any>) => {
+          writes.push(args);
+          return { count: args.where.kbId === "kb_current" ? 1 : 0 };
+        },
+        count: async () => 1,
+      },
+      agent: { update: async () => ({}) },
+    });
+  }) as typeof prisma.$transaction;
+
+  const activated = await kbRepository.markActive(
+    ["kb_current", "kb_deleted"],
+    "agent_123",
+    "job_123",
+    undefined,
+    "org_123",
+  );
+
+  assert.deepEqual(activated, ["kb_current"]);
+  for (const write of writes) {
+    assert.equal(write.where.status, "PROCESSING");
+    assert.deepEqual(write.where.metadata, {
+      path: ["jobId"],
+      equals: "job_123",
+    });
+  }
+});
+
+test("claiming deletion durably revokes the processing job before cleanup", async () => {
+  let deletionWrite: Record<string, any> | undefined;
+  prisma.$transaction = (async (
+    callback: (tx: unknown) => Promise<unknown>,
+  ) => {
+    return callback({
+      knowledgeSource: {
+        findFirst: async () => ({
+          kbId: "kb_1",
+          organizationId: "org_123",
+          agentId: "agent_123",
+          status: "PROCESSING",
+          metadata: { jobId: "job_123" },
+        }),
+        updateMany: async (args: Record<string, any>) => {
+          deletionWrite = args;
+          return { count: 1 };
+        },
+      },
+    });
+  }) as typeof prisma.$transaction;
+
+  const source = await kbRepository.claimKnowledgeSourceDeletion(
+    "kb_1",
+    "org_123",
+    "delete_123",
+  );
+
+  assert.equal(source?.kbId, "kb_1");
+  assert.equal(deletionWrite?.data.status, "ERROR");
+  assert.deepEqual(deletionWrite?.data.metadata, {
+    stage: "deleting",
+    deletionToken: "delete_123",
+    retryable: false,
+    updatedAt: deletionWrite?.data.metadata.updatedAt,
+  });
+  assert.equal("jobId" in deletionWrite!.data.metadata, false);
+});
+
 test("deleteKnowledgeSource synchronizes the counter instead of decrementing blindly", async () => {
   const updates: unknown[] = [];
   prisma.$transaction = (async (

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import threading
 import unittest
 from unittest.mock import AsyncMock, patch
 
@@ -11,7 +12,76 @@ from handlers import kb_handler
 from utils.pinecone_client import pinecone_api_key, pinecone_host
 
 
+class FakeRedis:
+    def __init__(self):
+        self.values = {}
+        self.expirations = {}
+
+    async def get(self, key):
+        return self.values.get(key)
+
+    async def set(self, key, value, ex=None):
+        self.values[key] = value
+        self.expirations[key] = ex
+        return True
+
+
 class KbHandlerTests(unittest.TestCase):
+    def setUp(self):
+        self.redis = FakeRedis()
+        self.original_redis = kb_handler._KB_REDIS_CLIENT
+        kb_handler._KB_REDIS_CLIENT = self.redis
+
+    def tearDown(self):
+        kb_handler._KB_REDIS_CLIENT = self.original_redis
+
+    def test_file_parsing_and_vector_writes_run_off_the_event_loop(self):
+        event_loop_thread = threading.get_ident()
+        worker_threads = {}
+
+        def fake_parse_file(_content, _source_type):
+            worker_threads["parse"] = threading.get_ident()
+            return "knowledge content"
+
+        def fake_chunk_text(_text):
+            worker_threads["chunk"] = threading.get_ident()
+            return ["knowledge content"]
+
+        async def fake_embed_chunks(chunks):
+            return [[0.1, 0.2] for _ in chunks]
+
+        def fake_upsert(*_args, **_kwargs):
+            worker_threads["upsert"] = threading.get_ident()
+
+        with (
+            patch.object(kb_handler, "download_bytes", new=AsyncMock(return_value=b"pdf")),
+            patch.object(kb_handler, "parse_file", side_effect=fake_parse_file),
+            patch.object(kb_handler, "chunk_text", side_effect=fake_chunk_text),
+            patch.object(kb_handler, "embed_chunks", side_effect=fake_embed_chunks),
+            patch.object(kb_handler, "upsert_to_pinecone", side_effect=fake_upsert),
+        ):
+            result = asyncio.run(
+                kb_handler.process_documents(
+                    {
+                        "agentId": "agent_123",
+                        "organizationId": "org_123",
+                        "documents": [
+                            {
+                                "kbId": "kb_123",
+                                "name": "Large PDF",
+                                "sourceType": "PDF",
+                                "presignedUrl": "https://example.com/large.pdf",
+                            }
+                        ],
+                    }
+                )
+            )
+
+        self.assertEqual(result[0]["status"], "ok")
+        self.assertNotEqual(worker_threads["parse"], event_loop_thread)
+        self.assertNotEqual(worker_threads["chunk"], event_loop_thread)
+        self.assertNotEqual(worker_threads["upsert"], event_loop_thread)
+
     def test_pinecone_api_key_is_trimmed_before_client_use(self):
         original = os.environ.get("PINECONE_API_KEY")
         try:
@@ -359,8 +429,8 @@ class KbHandlerTests(unittest.TestCase):
         original_process_documents = kb_handler.process_documents
         try:
             kb_handler.process_documents = fake_process_documents
-            job = kb_handler.create_kb_job(
-                {
+            job = asyncio.run(
+                kb_handler.create_kb_job({
                     "agentId": "agent_123",
                     "organizationId": "org_123",
                     "documents": [
@@ -371,10 +441,10 @@ class KbHandlerTests(unittest.TestCase):
                             "url": "https://example.com/doc",
                         }
                     ],
-                }
+                })
             )
             asyncio.run(kb_handler.run_kb_job(job["jobId"]))
-            finished = kb_handler.get_kb_job(job["jobId"])
+            finished = asyncio.run(kb_handler.get_kb_job(job["jobId"]))
         finally:
             kb_handler.process_documents = original_process_documents
 
@@ -386,8 +456,8 @@ class KbHandlerTests(unittest.TestCase):
         self.assertEqual(finished["documents"][0]["chunks"], 3)
 
     def test_cancel_kb_job_marks_queued_documents_canceled(self):
-        job = kb_handler.create_kb_job(
-            {
+        job = asyncio.run(
+            kb_handler.create_kb_job({
                 "agentId": "agent_123",
                 "organizationId": "org_123",
                 "documents": [
@@ -398,10 +468,10 @@ class KbHandlerTests(unittest.TestCase):
                         "url": "https://example.com/doc",
                     }
                 ],
-            }
+            })
         )
 
-        canceled = kb_handler.cancel_kb_job(job["jobId"])
+        canceled = asyncio.run(kb_handler.cancel_kb_job(job["jobId"]))
 
         self.assertEqual(canceled["status"], "canceled")
         self.assertEqual(canceled["stage"], "canceled")
@@ -427,8 +497,8 @@ class KbHandlerTests(unittest.TestCase):
         original_process_documents = kb_handler.process_documents
         try:
             kb_handler.process_documents = fake_process_documents
-            job = kb_handler.create_kb_job(
-                {
+            job = asyncio.run(
+                kb_handler.create_kb_job({
                     "agentId": "agent_123",
                     "organizationId": "org_123",
                     "documents": [
@@ -445,16 +515,48 @@ class KbHandlerTests(unittest.TestCase):
                             "url": "https://example.com/failed",
                         },
                     ],
-                }
+                })
             )
             asyncio.run(kb_handler.run_kb_job(job["jobId"]))
-            retry = kb_handler.retry_kb_job(job["jobId"])
+            retry = asyncio.run(kb_handler.retry_kb_job(job["jobId"]))
         finally:
             kb_handler.process_documents = original_process_documents
 
         self.assertEqual(retry["status"], "queued")
         self.assertEqual(retry["progress"]["total"], 1)
         self.assertEqual(retry["documents"][0]["kbId"], "kb_failed")
+
+    def test_kb_job_state_is_shared_and_expires(self):
+        job = asyncio.run(
+            kb_handler.create_kb_job(
+                {
+                    "agentId": "agent_123",
+                    "organizationId": "org_123",
+                    "documents": [
+                        {
+                            "kbId": "kb_123",
+                            "name": "Private file",
+                            "sourceType": "PDF",
+                            "presignedUrl": "https://example.com/private.pdf?signature=secret",
+                        }
+                    ],
+                }
+            )
+        )
+
+        key = kb_handler._kb_job_key(job["jobId"])
+        payload_key = kb_handler._kb_payload_key(job["jobId"])
+        self.assertEqual(self.redis.expirations[key], kb_handler.KB_JOB_TTL_SECONDS)
+        self.assertEqual(
+            self.redis.expirations[payload_key],
+            kb_handler.KB_JOB_PAYLOAD_TTL_SECONDS,
+        )
+        self.assertNotIn("presignedUrl", self.redis.values[key])
+        self.assertNotIn("presignedUrl", str(job))
+        self.assertEqual(
+            asyncio.run(kb_handler.get_kb_job(job["jobId"]))["jobId"],
+            job["jobId"],
+        )
 
     def test_upsert_deletes_existing_vectors_for_kb_before_replacement(self):
         calls = []
@@ -557,7 +659,7 @@ class KbHandlerTests(unittest.TestCase):
             with patch.dict(os.environ, {"VECTOR_STORE_PROVIDER": "qdrant", "EMBEDDING_PROVIDER": "google"}, clear=True):
                 with patch.object(QdrantVectorStoreAdapter, "delete_by_kb") as delete:
                     kb_handler.delete_kb_vectors(namespace="agent_123", kb_id="kb_123")
-                    delete.assert_called_once_with(namespace="agent_123", kb_id="kb_123")
+                    delete.assert_called_once_with(namespace="agent_123", kb_id="kb_123", permanent=True)
         finally:
             clear_vector_adapter_cache()
 

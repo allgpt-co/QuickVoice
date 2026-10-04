@@ -6,7 +6,6 @@ from typing import Any
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-from utils.logger import redact_sensitive
 from utils.metrics import emit_metric
 
 MAX_ARGUMENTS_JSON_BYTES = 8192
@@ -86,7 +85,7 @@ async def call_mcp_tool(
             tool_name=tool_name,
             latency_ms=int((time.perf_counter() - started) * 1000),
         )
-        return _redact_and_truncate_result(result)
+        return truncate_tool_result(result)
     except Exception:
         emit_metric(
             "mcp_tool_execution",
@@ -130,21 +129,23 @@ def _resolve_allowed_tool(
 
 
 def _tool_requires_confirmation(tool: dict[str, Any]) -> bool:
-    if bool(tool.get("requiresConfirmation")) or bool(tool.get("sideEffect")):
+    annotations = tool.get("annotations") if isinstance(tool.get("annotations"), dict) else {}
+    if (
+        tool.get("requiresConfirmation") is True
+        or tool.get("sideEffect") is True
+        or annotations.get("destructiveHint") is True
+    ):
         return True
     mode = str(tool.get("mode") or tool.get("type") or "").lower()
     if mode in {"write", "mutation", "side_effect"}:
         return True
-    if tool.get("readOnly") is True:
-        return False
-    return False
+    return tool.get("readOnly") is not True and annotations.get("readOnlyHint") is not True
 
 
-def _redact_and_truncate_result(result: Any) -> Any:
-    redacted = redact_sensitive(result)
-    serialized = json.dumps(redacted, ensure_ascii=False)
+def truncate_tool_result(result: Any) -> Any:
+    serialized = json.dumps(result, ensure_ascii=False)
     if len(serialized) <= MAX_TOOL_OUTPUT_CHARS:
-        return redacted
+        return result
     return {
         "truncated": True,
         "data": serialized[:MAX_TOOL_OUTPUT_CHARS],

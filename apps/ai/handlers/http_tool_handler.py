@@ -1,17 +1,19 @@
 import asyncio
 import json
+import socket
+import threading
 import time
 from typing import Any
-from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, quote, urlencode, urlsplit, urlunsplit
-from urllib.request import Request, urlopen
+from urllib.request import Request
 
-from handlers.mcp_handler import MAX_TOOL_OUTPUT_CHARS, parse_arguments_json
-from utils.logger import redact_sensitive
+from handlers.mcp_handler import parse_arguments_json, truncate_tool_result
 from utils.metrics import emit_metric
+from utils.safe_http import safe_https_request
 
 
 MAX_HTTP_TOOL_RESPONSE_BYTES = 256_000
+MAX_HTTP_TOOL_TIMEOUT_SECONDS = 15
 
 
 def build_http_tool_instructions(tools: list[dict[str, Any]]) -> str:
@@ -56,14 +58,14 @@ async def call_http_tool(
             config=config,
             call_context=call_context,
         )
-        result = await asyncio.to_thread(fetch or _fetch_tool_request, request)
+        result = await _run_tool_request(fetch or _fetch_tool_request, request)
         emit_metric(
             "http_tool_execution",
             status="ok",
             tool_name=tool_name,
             latency_ms=int((time.perf_counter() - started) * 1000),
         )
-        return _redact_and_truncate_result(result)
+        return truncate_tool_result(result)
     except Exception:
         emit_metric(
             "http_tool_execution",
@@ -217,23 +219,26 @@ def _value_for_param(
             return dynamic_variables[variable_key]
         if name in dynamic_variables:
             return dynamic_variables[name]
-        return arguments.get(name)
+        # A missing configured variable must not become a caller/LLM-supplied
+        # identity. Required parameters fail validation before making a request.
+        return None
     if value_type == "static value":
         for key in ("value", "staticValue", "static_value"):
             if key in param:
                 return param.get(key)
-        return arguments.get(name)
+        return None
     return arguments.get(name)
 
 
 def _dynamic_variables(config: dict[str, Any], tool: dict[str, Any]) -> dict[str, Any]:
-    merged: dict[str, Any] = {}
+    config_vars = config.get("dynamic_variables")
+    config_vars = config_vars if isinstance(config_vars, dict) else {}
+    visitor_keys = set(config.get("visitor_dynamic_variable_keys") or [])
+    merged = {key: value for key, value in config_vars.items() if key in visitor_keys}
     for pair in _list(tool.get("dynamic_variables")):
         if isinstance(pair, dict) and pair.get("key"):
             merged[str(pair["key"])] = pair.get("value")
-    config_vars = config.get("dynamic_variables")
-    if isinstance(config_vars, dict):
-        merged.update(config_vars)
+    merged.update({key: value for key, value in config_vars.items() if key not in visitor_keys})
     return merged
 
 
@@ -262,23 +267,18 @@ def _append_query_params(url: str, params: dict[str, Any]) -> str:
 def _fetch_tool_request(payload: dict[str, Any]) -> Any:
     request = payload["request"]
     timeout = payload["timeout"]
-    try:
-        with urlopen(request, timeout=timeout) as response:
-            raw_bytes = response.read(MAX_HTTP_TOOL_RESPONSE_BYTES + 1)
-            status = getattr(response, "status", 200)
-            content_type = response.headers.get("content-type", "")
-    except HTTPError as error:
-        raise RuntimeError(f"HTTP {error.code}") from error
-    except URLError as error:
-        raise RuntimeError(str(error.reason)) from error
+    response = safe_https_request(
+        request,
+        timeout=timeout,
+        max_response_bytes=MAX_HTTP_TOOL_RESPONSE_BYTES,
+        cancellation_event=payload.get("_cancellation_event"),
+        connection_observer=payload.get("_connection_observer"),
+    )
 
-    if len(raw_bytes) > MAX_HTTP_TOOL_RESPONSE_BYTES:
-        raise RuntimeError("HTTP tool response is too large")
-
-    raw = raw_bytes.decode("utf-8", errors="replace")
-    parsed = _parse_response_body(raw, content_type)
+    raw = response.body.decode("utf-8", errors="replace")
+    parsed = _parse_response_body(raw, response.content_type)
     return {
-        "status": status,
+        "status": response.status,
         "data": parsed,
     }
 
@@ -292,17 +292,6 @@ def _parse_response_body(raw: str, content_type: str) -> Any:
         return json.loads(raw)
     except Exception:
         return raw
-
-
-def _redact_and_truncate_result(result: Any) -> Any:
-    redacted = redact_sensitive(result)
-    serialized = json.dumps(redacted, ensure_ascii=False)
-    if len(serialized) <= MAX_TOOL_OUTPUT_CHARS:
-        return redacted
-    return {
-        "truncated": True,
-        "data": serialized[:MAX_TOOL_OUTPUT_CHARS],
-    }
 
 
 def _assert_allowed_value(name: str, value: Any, allowed_values: Any) -> None:
@@ -341,8 +330,42 @@ def _timeout(value: Any) -> int:
     try:
         timeout = int(value)
     except (TypeError, ValueError):
-        timeout = 30
-    return max(1, min(timeout, 300))
+        timeout = MAX_HTTP_TOOL_TIMEOUT_SECONDS
+    return max(1, min(timeout, MAX_HTTP_TOOL_TIMEOUT_SECONDS))
+
+
+async def _run_tool_request(fetch, payload: dict[str, Any]) -> Any:
+    cancellation_event = threading.Event()
+    active_connections = []
+    cancellable_payload = {
+        **payload,
+        "_cancellation_event": cancellation_event,
+        "_connection_observer": active_connections.append,
+    }
+    task = asyncio.create_task(asyncio.to_thread(fetch, cancellable_payload))
+
+    def cancel_request() -> None:
+        cancellation_event.set()
+        for connection in active_connections:
+            connection_socket = getattr(connection, "sock", None)
+            if connection_socket is not None:
+                try:
+                    connection_socket.shutdown(socket.SHUT_RDWR)
+                except Exception:
+                    pass
+            try:
+                connection.close()
+            except Exception:
+                pass
+
+    try:
+        return await asyncio.wait_for(task, timeout=payload["timeout"])
+    except TimeoutError as error:
+        cancel_request()
+        raise TimeoutError("HTTP tool request timed out") from error
+    except asyncio.CancelledError:
+        cancel_request()
+        raise
 
 
 def _is_missing(value: Any) -> bool:

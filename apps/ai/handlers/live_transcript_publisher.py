@@ -76,6 +76,7 @@ class LiveTranscriptPublisher:
         self._direction = direction if direction in {"inbound", "outbound"} else "inbound"
         self._from_number = str(call_context.get("from_number") or "")
         self._to_number = str(call_context.get("to_number") or "")
+        self._publish_transcripts = not bool(config.get("zero_pii_retention"))
         self._redis_url = redis_url or os.getenv("REDIS_URL") or "redis://localhost:6379"
         self._redis = redis_client
         self._owns_redis = redis_client is None
@@ -137,7 +138,7 @@ class LiveTranscriptPublisher:
         )
 
     def publish_transcript(self, item: dict[str, Any]) -> None:
-        if not self._enabled or self._closed:
+        if not self._enabled or self._closed or not self._publish_transcripts:
             return
         role = item.get("role")
         if role == "assistant":

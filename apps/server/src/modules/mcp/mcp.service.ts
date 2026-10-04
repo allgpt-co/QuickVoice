@@ -1,11 +1,17 @@
 import { randomUUID } from "node:crypto";
 import { BadRequestError } from "../../common/errors/badRequest.js";
+import { ForbiddenError } from "../../common/errors/forbidden.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
 import { redactJson } from "../../lib/redaction.js";
 import { findCuratedMcp, curatedMcpCatalog } from "./mcp.catalog.js";
 import * as repository from "./mcp.repository.js";
 import { resolveSmitheryNamespace } from "./smithery-namespace.js";
+import {
+  findMcpTool,
+  mcpToolRequiresConfirmation,
+  normalizeMcpTools,
+} from "./mcp-tool-policy.js";
 import type { ConnectMcpInput, ExecuteMcpToolInput } from "./mcp.schema.js";
 
 type McpStatus = "PENDING" | "CONNECTED" | "AUTH_REQUIRED" | "INPUT_REQUIRED" | "ERROR" | "DISCONNECTED";
@@ -231,16 +237,18 @@ const upsertSmitheryConnection = async (args: {
   return body;
 };
 
-const disconnectSmitheryConnection = async (namespace: string, connectionId: string) => {
-  const key = process.env.SMITHERY_API_KEY;
-  if (!key) return;
+export const disconnectSmitheryConnection = async (
+  namespace: string,
+  connectionId: string,
+) => {
+  const key = getSmitheryApiKey();
 
   const response = await fetch(connectionApiUrl(namespace, connectionId), {
     method: "DELETE",
     headers: { Authorization: `Bearer ${key}` },
   });
 
-  if (!response.ok && ![404, 405].includes(response.status)) {
+  if (!response.ok && response.status !== 404) {
     const body = await response.json().catch(() => ({}));
     throw new BadRequestError(body?.message || "Could not disconnect Smithery connection");
   }
@@ -251,6 +259,7 @@ const syncTools = async (namespace: string, connectionId: string) => {
     `${SMITHERY_API_BASE_URL.replace(/\/$/, "")}/connect/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}/.tools`,
     {
       headers: { Authorization: `Bearer ${getSmitheryApiKey()}` },
+      signal: AbortSignal.timeout(10_000),
     }
   );
   const result = await response.json().catch(() => ({}));
@@ -258,12 +267,7 @@ const syncTools = async (namespace: string, connectionId: string) => {
     throw new BadRequestError(result?.message || "Could not list MCP tools");
   }
 
-  const tools = Array.isArray(result.tools) ? result.tools : [];
-  return tools.map((tool: { name: string; description?: string; title?: string; inputSchema?: unknown }) => ({
-    name: tool.name,
-    description: tool.description ?? tool.title ?? "",
-    inputSchema: tool.inputSchema ?? null,
-  }));
+  return normalizeMcpTools(result.tools);
 };
 
 const filterCuratedCatalog = (params: CatalogListParams) => {
@@ -330,11 +334,20 @@ export const listCatalog = async (organizationId: string, params: CatalogListPar
   };
 };
 
-export const listConnections = (organizationId: string) =>
-  repository.listConnections(organizationId);
+export const listConnections = async (organizationId: string) =>
+  (await repository.listConnections(organizationId)).map((connection) => ({
+    ...connection,
+    tools: normalizeMcpTools(connection.tools),
+  }));
 
 export const listAgentConnections = async (organizationId: string, agentId: string) =>
-  repository.listAgentConnections(organizationId, agentId);
+  (await repository.listAgentConnections(organizationId, agentId)).map((connection) => ({
+    ...connection,
+    mcpConnection: {
+      ...connection.mcpConnection,
+      tools: normalizeMcpTools(connection.mcpConnection.tools),
+    },
+  }));
 
 export const connect = async (
   organizationId: string,
@@ -526,6 +539,26 @@ export const attach = async (
 ) => {
   const result = await repository.attachConnection(organizationId, agentId, mcpConnectionId, enabled);
   if (!result) throw new NotFoundError("Agent or MCP connection not found");
+  if (enabled) {
+    try {
+      const connection = await repository.findConnection(organizationId, mcpConnectionId);
+      const tools = connection?.tools;
+      const missingAnnotations = !Array.isArray(tools) || tools.length === 0 || tools.some((value) => {
+        const tool = metadataObject(value);
+        return typeof tool.readOnly !== "boolean" &&
+          typeof metadataObject(tool.annotations).readOnlyHint !== "boolean";
+      });
+      if (connection && missingAnnotations) {
+        const refreshed = await syncTools(connection.smitheryNamespace, connection.smitheryConnectionId);
+        await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
+          status: connection.status, tools: refreshed, lastSyncedAt: new Date(),
+        });
+      }
+    } catch {
+      // Keep the attachment and its existing fail-closed tool policy on outage.
+      console.warn("[mcp] could not refresh legacy tool annotations on attach", { organizationId, mcpConnectionId });
+    }
+  }
   return result;
 };
 
@@ -538,7 +571,10 @@ export const disconnect = async (organizationId: string, mcpConnectionId: string
   const connection = await repository.findConnection(organizationId, mcpConnectionId);
   if (!connection) throw new NotFoundError("MCP connection not found");
 
-  await disconnectSmitheryConnection(connection.smitheryNamespace, connection.smitheryConnectionId).catch(() => undefined);
+  await disconnectSmitheryConnection(
+    connection.smitheryNamespace,
+    connection.smitheryConnectionId,
+  );
   await repository.deleteConnection(organizationId, mcpConnectionId);
 };
 
@@ -553,7 +589,8 @@ export const executeTool = async (
   organizationId: string,
   mcpConnectionId: string,
   toolName: string,
-  input: ExecuteMcpToolInput
+  input: ExecuteMcpToolInput,
+  context: { autonomous?: boolean } = {},
 ) => {
   const connection = input.agentId
     ? await repository.findConnectionForAgent(organizationId, input.agentId, mcpConnectionId)
@@ -562,6 +599,13 @@ export const executeTool = async (
   if (!connection) throw new NotFoundError("MCP connection not attached to this agent");
   if (connection.status !== "CONNECTED") {
     throw new BadRequestError("MCP connection is not connected");
+  }
+  const tool = findMcpTool(connection.tools, toolName);
+  if (!tool) throw new NotFoundError("MCP tool is not available on this connection");
+  if (context.autonomous && mcpToolRequiresConfirmation(tool)) {
+    throw new ForbiddenError(
+      "MCP tool requires trusted user confirmation before execution",
+    );
   }
 
   const startedAt = Date.now();

@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import os
 import re
@@ -9,12 +10,15 @@ from typing import Any
 from urllib.request import Request, urlopen
 
 from handlers.post_call_metadata import build_transcript_extracted_data, merge_transcript_metadata
+from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
 
 QUEUE_DIR_ENV = "AI_CALL_LOG_QUEUE_DIR"
-DEFAULT_QUEUE_DIR = "/tmp/quickvoice-ai-calllogs"
+DEFAULT_QUEUE_DIR = "/var/lib/quickvoice/call-logs"
 DEAD_LETTER_DIR_NAME = "dead-letter"
-MAX_QUEUE_ATTEMPTS = 5
+DEFAULT_QUEUE_POLL_SECONDS = 5.0
+MAX_QUEUE_RETRY_BACKOFF_SECONDS = 300.0
+QUEUE_CLAIM_STALE_SECONDS = 300.0
 
 def build_call_log_payload(
     *,
@@ -65,6 +69,7 @@ async def post_call_log(
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
+        "Idempotency-Key": _call_log_idempotency_key(payload),
         "x-organization-id": _required(payload, "organizationId"),
     }
     user_id = payload.get("userId")
@@ -106,9 +111,10 @@ async def post_call_log_with_retry(
 def enqueue_call_log(payload: dict[str, Any], *, queue_dir: str | Path | None = None) -> Path:
     directory = _queue_dir(queue_dir)
     directory.mkdir(parents=True, exist_ok=True)
-    call_id = _safe_filename(str(payload.get("callId") or "unknown-call"))
-    path = directory / f"{int(time.time() * 1000)}-{call_id}.json"
-    path.write_text(json.dumps({"attempts": 0, "payload": payload}, sort_keys=True), encoding="utf-8")
+    call_id = _required(payload, "callId")
+    digest = hashlib.sha256(call_id.encode("utf-8")).hexdigest()[:16]
+    path = directory / f"{_safe_filename(call_id)}-{digest}.json"
+    _atomic_write_json(path, {"attempts": 0, "payload": payload})
     return path
 
 
@@ -123,39 +129,109 @@ async def flush_call_log_queue(
     if not directory.exists():
         return {"posted": 0, "failed": 0, "dead_lettered": 0}
 
+    _reclaim_stale_queue_claims(directory)
+
     posted = 0
     failed = 0
     dead_lettered = 0
     for path in sorted(directory.glob("*.json")):
-        envelope: dict[str, Any] = {}
-        payload: dict[str, Any] = {}
+        claimed_path = path.with_name(f"{path.name}.processing")
         try:
-            envelope = json.loads(path.read_text(encoding="utf-8"))
+            path.rename(claimed_path)
+        except FileNotFoundError:
+            continue
+        except OSError:
+            failed += 1
+            continue
+
+        envelope: dict[str, Any] = {}
+        try:
+            envelope = json.loads(claimed_path.read_text(encoding="utf-8"))
+            next_attempt_at = float(envelope.get("nextAttemptAtEpoch", 0) or 0)
+            if next_attempt_at > time.time():
+                claimed_path.rename(path)
+                continue
             payload = envelope.get("payload", envelope)
+            if not isinstance(payload, dict):
+                raise ValueError("queued call log has no payload")
+            _required(payload, "callId")
+            _required(payload, "organizationId")
+        except Exception:
+            dead_letter_dir = directory / DEAD_LETTER_DIR_NAME
+            dead_letter_dir.mkdir(parents=True, exist_ok=True)
+            claimed_path.replace(dead_letter_dir / path.name)
+            dead_lettered += 1
+            continue
+
+        try:
             await post_call_log(
                 payload,
                 server_api_url=server_api_url,
                 internal_api_key=internal_api_key,
                 post_json=post_json,
             )
-            path.unlink(missing_ok=True)
+            claimed_path.unlink(missing_ok=True)
             posted += 1
             emit_metric("call_log_queue", status="posted", call_id=payload.get("callId"))
-        except Exception:
+        except Exception as error:
             failed += 1
             attempts = int(envelope.get("attempts", 0)) + 1
-            if attempts >= MAX_QUEUE_ATTEMPTS:
-                dead_letter_dir = directory / DEAD_LETTER_DIR_NAME
-                dead_letter_dir.mkdir(parents=True, exist_ok=True)
-                path.replace(dead_letter_dir / path.name)
-                dead_lettered += 1
-            else:
-                path.write_text(
-                    json.dumps({"attempts": attempts, "payload": payload}, sort_keys=True),
-                    encoding="utf-8",
-                )
+            retry_delay = min(
+                MAX_QUEUE_RETRY_BACKOFF_SECONDS,
+                max(1.0, 2 ** min(attempts - 1, 10)),
+            )
+            _atomic_write_json(
+                path,
+                {
+                    "attempts": attempts,
+                    "nextAttemptAtEpoch": time.time() + retry_delay,
+                    "lastError": redact_sensitive(str(error))[:500],
+                    "payload": payload,
+                },
+            )
+            claimed_path.unlink(missing_ok=True)
 
     return {"posted": posted, "failed": failed, "dead_lettered": dead_lettered}
+
+
+async def run_call_log_queue_consumer(
+    *,
+    queue_dir: str | Path | None = None,
+    server_api_url: str | None = None,
+    internal_api_key: str | None = None,
+    post_json=None,
+    poll_seconds: float = DEFAULT_QUEUE_POLL_SECONDS,
+    stop_event: asyncio.Event | None = None,
+) -> None:
+    interval = max(0.05, float(poll_seconds))
+    while stop_event is None or not stop_event.is_set():
+        try:
+            result = await flush_call_log_queue(
+                queue_dir=queue_dir,
+                server_api_url=server_api_url,
+                internal_api_key=internal_api_key,
+                post_json=post_json,
+            )
+            if result["failed"] or result["dead_lettered"]:
+                logger.error(
+                    "[CALL_LOG] durable queue drain requires attention: {}",
+                    redact_sensitive(result),
+                )
+        except asyncio.CancelledError:
+            raise
+        except Exception as error:
+            logger.error(
+                "[CALL_LOG] durable queue consumer failed: {}",
+                redact_sensitive(str(error)),
+            )
+
+        if stop_event is None:
+            await asyncio.sleep(interval)
+            continue
+        try:
+            await asyncio.wait_for(stop_event.wait(), timeout=interval)
+        except TimeoutError:
+            pass
 
 
 def _api_base_url(server_api_url: str) -> str:
@@ -258,3 +334,36 @@ def _queue_dir(queue_dir: str | Path | None = None) -> Path:
 
 def _safe_filename(value: str) -> str:
     return re.sub(r"[^A-Za-z0-9_.-]+", "-", value).strip("-") or "call"
+
+
+def _call_log_idempotency_key(payload: dict[str, Any]) -> str:
+    digest = hashlib.sha256(_required(payload, "callId").encode("utf-8")).hexdigest()
+    return f"quickvoice-calllog-{digest}"
+
+
+def _reclaim_stale_queue_claims(directory: Path) -> None:
+    stale_before = time.time() - QUEUE_CLAIM_STALE_SECONDS
+    for claimed_path in directory.glob("*.json.processing"):
+        try:
+            if claimed_path.stat().st_mtime > stale_before:
+                continue
+            original_path = claimed_path.with_name(
+                claimed_path.name.removesuffix(".processing")
+            )
+            claimed_path.replace(original_path)
+        except FileNotFoundError:
+            continue
+
+
+def _atomic_write_json(path: Path, value: dict[str, Any]) -> None:
+    temporary_path = path.with_name(
+        f".{path.name}.{os.getpid()}.{time.time_ns()}.tmp"
+    )
+    try:
+        with temporary_path.open("w", encoding="utf-8") as handle:
+            json.dump(value, handle, allow_nan=False, sort_keys=True, separators=(",", ":"))
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(temporary_path, path)
+    finally:
+        temporary_path.unlink(missing_ok=True)

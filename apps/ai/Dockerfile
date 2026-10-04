@@ -1,24 +1,45 @@
-# This is an example Dockerfile that builds a minimal container for running LK Agents
-# For more information on the build process, see https://docs.livekit.io/agents/ops/deployment/builds/
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
 
-# Use the official Python base image with Python 3.12
-# We use the slim variant to keep the image size smaller while still having essential tools
-ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim AS base
+# Keep the release and digest together: the tag documents the Python version,
+# while the digest makes rebuilds use the exact reviewed base image.
+ARG PYTHON_IMAGE=python:3.12.14-slim-bookworm@sha256:392307d22300de8b5986851a12d9176dfc0fc073e65bf6523ebd7dcbeb23564e
 
-# Keeps Python from buffering stdout and stderr to avoid situations where
-# the application crashes without emitting any logs due to buffering.
-ENV PYTHONUNBUFFERED=1
+FROM ${PYTHON_IMAGE} AS dependencies
 
-# Disable pip version check to speed up builds
-ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1
 
-# FastAPI default port for the combined AI service.
-ENV AI_API_PORT=5555
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    gcc \
+    g++ \
+    linux-libc-dev \
+    python3-dev \
+  && rm -rf /var/lib/apt/lists/*
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user
+WORKDIR /app
+COPY requirements.lock ./
+
+RUN python -m venv /opt/venv \
+  && /opt/venv/bin/pip install \
+    --require-hashes \
+    --extra-index-url https://download.pytorch.org/whl/cpu \
+    -r requirements.lock
+
+FROM ${PYTHON_IMAGE} AS runtime
+
+ENV PATH="/opt/venv/bin:${PATH}" \
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    AI_API_PORT=5555 \
+    AI_BILLING_USAGE_QUEUE_DIR=/var/lib/quickvoice/billing-usage \
+    AI_CALL_LOG_QUEUE_DIR=/var/lib/quickvoice/call-logs
+
+# Torch/ONNX wheels need libgomp at runtime; compilers remain in the dependency stage.
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends libgomp1 \
+  && rm -rf /var/lib/apt/lists/*
+
 ARG UID=10001
 RUN adduser \
     --disabled-password \
@@ -28,53 +49,16 @@ RUN adduser \
     --uid "${UID}" \
     appuser
 
-# Install build dependencies required for Python packages with native extensions
-# gcc: C compiler needed for building Python packages with C extensions
-# g++: C++ compiler needed for building Python packages with C++ extensions
-# python3-dev: Python development headers needed for compilation
-# We clean up the apt cache after installation to keep the image size down
-RUN apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    linux-libc-dev \
-    python3-dev \
-  && rm -rf /var/lib/apt/lists/*
-
-# Create a new directory for our application code
-# And set it as the working directory
 WORKDIR /app
-
-# Copy just the dependency files first, for more efficient layer caching
-COPY requirements.txt ./
-
-# CI can validate the image with a CPU-only Torch wheel to avoid pulling CUDA
-# wheels that exceed the hosted runner's disk budget.
-ARG PREINSTALL_CPU_TORCH=false
-RUN if [ "$PREINSTALL_CPU_TORCH" = "true" ]; then \
-      pip install --no-cache-dir "torch>=2.5,<3" --index-url https://download.pytorch.org/whl/cpu; \
-      pip install --no-cache-dir "setuptools>=78.1.1,<82"; \
-    fi \
-  && pip install --no-cache-dir -r requirements.txt
-
-# Copy all remaining application files into the container
-# This includes source code, configuration files, and dependency specifications
-# (Excludes files specified in .dockerignore)
+COPY --from=dependencies /opt/venv /opt/venv
 COPY . .
 
-# Change ownership of all app files to the non-privileged user
-# This ensures the application can read/write files as needed
-RUN mkdir -p /var/lib/quickvoice/billing-usage \
+RUN mkdir -p "${AI_BILLING_USAGE_QUEUE_DIR}" "${AI_CALL_LOG_QUEUE_DIR}" \
   && chown -R appuser:appuser /app /var/lib/quickvoice
 
-# Switch to the non-privileged user for all subsequent operations
-# This improves security by not running as root
 USER appuser
 
-# Pre-download any ML models or files the agent needs
-# This ensures the container is ready to run immediately without downloading
-# dependencies at runtime, which improves startup time and reliability
+# Download models at build time so calls do not depend on runtime downloads.
 ARG SKIP_MODEL_DOWNLOAD=false
 RUN if [ "$SKIP_MODEL_DOWNLOAD" = "true" ]; then \
       echo "Skipping model download for CI Docker build validation"; \
@@ -82,12 +66,5 @@ RUN if [ "$SKIP_MODEL_DOWNLOAD" = "true" ]; then \
       python "main.py" download-files; \
     fi
 
-# FastAPI listens on this port when the combined server or API-only command runs.
 EXPOSE 5555
-
-# Run FastAPI and the LiveKit worker together.
 CMD ["python", "main.py", "serve"]
-
-# To run one service instead, override the command:
-#   python main.py api
-#   python main.py start

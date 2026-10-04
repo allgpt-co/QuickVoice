@@ -3,15 +3,26 @@ import json
 import re
 import time
 from collections.abc import Awaitable, Callable
-from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
 from typing import Any
+from urllib.request import Request
+
 from livekit import api
-from utils.logger import logger
+
+from utils.logger import logger, redact_sensitive
+from utils.safe_http import safe_https_request
 
 PREVIEW_TRANSCRIPT_TOPIC = "quickvoice.preview.transcript"
 PREVIEW_TRANSCRIPT_TYPE = "preview_user_transcript"
+MAX_INITIATION_WEBHOOK_RESPONSE_BYTES = 256_000
 DYNAMIC_VARIABLE_TOKEN_RE = re.compile(r"\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}")
+
+def log_task_failure(task: asyncio.Task) -> None:
+    """Observe background exceptions even when no shutdown waiter reaches the task."""
+    if not task.cancelled():
+        error = task.exception()
+        if error is not None:
+            logger.error("[VOICE_TASK] background task failed: {}", redact_sensitive(str(error)))
+
 
 async def delete_call_room(ctx: Any) -> None:
     """Propagate hangup failures; JobContext.delete_room logs and swallows them."""
@@ -184,6 +195,7 @@ class CallLimitGuard:
     def _request_stop(self, reason: str) -> None:
         if not self._closed and self._stop_task is None:
             self._stop_task = asyncio.create_task(self._stop_session(reason))
+            self._stop_task.add_done_callback(log_task_failure)
 
     def _on_closed(self, _event=None) -> None:
         self._request_stop("session_closed")
@@ -364,16 +376,33 @@ def build_call_context(room_name: str, metadata: dict[str, Any]) -> dict[str, An
     }
 
 
+def merge_participant_metadata(metadata: dict[str, Any], attributes: dict[str, Any]) -> dict[str, Any]:
+    # Widget participants are anonymous; their attributes cannot choose the
+    # mode, agent, organization, prompts, or tool variables of a trusted dispatch.
+    if metadata.get("mode") == "widget" or metadata.get("source") == "web_widget":
+        # Older dispatches may contain prompts already rendered with visitor
+        # input. Remove them before they can also reach an initiation webhook.
+        return {key: value for key, value in metadata.items() if key not in {
+            "dynamic_variables", "dynamicVariables", "_initiation_webhook_variables", "first_message", "firstMessage",
+            "system_prompt", "systemPrompt", "language", "agent_language",
+            "agentLanguage", "voice_id", "voiceId",
+        }}
+    return {**metadata, **attributes}
+
+
 def apply_metadata_overrides(config: dict[str, Any], metadata: dict[str, Any]) -> dict[str, Any]:
     updated = dict(config)
     mode = _pick(metadata, "mode")
+    is_widget = mode == "widget" or metadata.get("source") == "web_widget"
     direction = _pick(metadata, "direction", "callDirection")
     first_message = _pick(metadata, "first_message", "firstMessage")
     system_prompt = _pick(metadata, "system_prompt", "systemPrompt")
     language = _pick(metadata, "language", "agent_language", "agentLanguage")
     voice_id = _pick(metadata, "voice_id", "voiceId")
-    metadata_dynamic_variables = _pick(metadata, "dynamic_variables", "dynamicVariables")
-    should_apply_metadata_overrides = direction == "outbound" or mode in {"preview", "widget"}
+    # Old widget dispatches may already contain visitor-controlled values.
+    # Anonymous widgets may use saved defaults and our own initiation-webhook result.
+    metadata_dynamic_variables = metadata.get("_initiation_webhook_variables") if is_widget else _pick(metadata, "dynamic_variables", "dynamicVariables")
+    should_apply_metadata_overrides = not is_widget and (direction == "outbound" or mode == "preview")
     if should_apply_metadata_overrides:
         if first_message:
             updated["first_message"] = first_message
@@ -407,6 +436,7 @@ async def apply_initiation_webhook_metadata(
     *,
     fetch_json: Callable[[dict[str, Any], dict[str, Any], dict[str, Any]], Any] | None = None,
 ) -> dict[str, Any]:
+    metadata = merge_participant_metadata(metadata, {})
     webhook = config.get("initiation_webhook")
     if not isinstance(webhook, dict) or not webhook.get("webhook_url"):
         return metadata
@@ -435,8 +465,8 @@ async def apply_initiation_webhook_metadata(
     )
     existing_dynamic_variables = _pick(metadata, "dynamic_variables", "dynamicVariables")
     dynamic_variables = merge_dynamic_variables(
-        webhook_dynamic_variables,
         existing_dynamic_variables,
+        webhook_dynamic_variables,
     )
 
     if not dynamic_variables:
@@ -444,6 +474,7 @@ async def apply_initiation_webhook_metadata(
 
     updated = dict(metadata)
     updated["dynamic_variables"] = dynamic_variables
+    updated["_initiation_webhook_variables"] = webhook_dynamic_variables
     return updated
 
 
@@ -452,7 +483,8 @@ async def fetch_initiation_webhook_json(
     metadata: dict[str, Any],
     call_context: dict[str, Any],
 ) -> Any:
-    return await asyncio.to_thread(_fetch_initiation_webhook_json, webhook, metadata, call_context)
+    async with asyncio.timeout(4):
+        return await asyncio.to_thread(_fetch_initiation_webhook_json, webhook, metadata, call_context)
 
 
 def _fetch_initiation_webhook_json(
@@ -479,13 +511,12 @@ def _fetch_initiation_webhook_json(
         method=method,
     )
 
-    try:
-        with urlopen(request, timeout=4) as response:
-            raw = response.read().decode("utf-8")
-    except HTTPError as error:
-        raise RuntimeError(f"HTTP {error.code}") from error
-    except URLError as error:
-        raise RuntimeError(str(error.reason)) from error
+    response = safe_https_request(
+        request,
+        timeout=4,
+        max_response_bytes=MAX_INITIATION_WEBHOOK_RESPONSE_BYTES,
+    )
+    raw = response.body.decode("utf-8", errors="replace")
 
     if not raw.strip():
         return {}

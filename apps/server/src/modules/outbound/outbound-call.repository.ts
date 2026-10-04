@@ -1,3 +1,4 @@
+import { nextCampaignDailyPass } from "./campaign-time.js";
 import {
   CallStatus,
   CampaignStatus,
@@ -48,6 +49,7 @@ export async function getDialableNumber(args: {
       agent: {
         isActive: true,
         isConfigured: true,
+        deletionRequestedAt: null,
       },
     },
     select: {
@@ -63,7 +65,7 @@ export async function listForOrg(args: ListOutboundCallsArgs) {
   const [items, count] = await prisma.$transaction([
     prisma.outboundCall.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ createdAt: "desc" }, { outboundId: "desc" }],
       take: args.limit,
       ...(args.cursor ? { cursor: { outboundId: args.cursor }, skip: 1 } : {}),
       include: {
@@ -105,13 +107,18 @@ export async function markInProgress(
   outboundId: string,
   optionalData: Prisma.InputJsonObject,
 ) {
-  return prisma.outboundCall.update({
-    where: { outboundId },
+  const updated = await prisma.outboundCall.updateMany({
+    where: {
+      outboundId,
+      status: { in: [CallStatus.SCHEDULED, CallStatus.PROCESSED] },
+    },
     data: {
       status: CallStatus.IN_PROGRESS,
       optionalData,
     },
   });
+  if (updated.count !== 1) return null;
+  return prisma.outboundCall.findUnique({ where: { outboundId } });
 }
 
 export async function markFailed(outboundId: string, reason: string) {
@@ -170,7 +177,8 @@ export async function getOutboundCallForDispatch(outboundId: string) {
   return prisma.outboundCall.findFirst({
     where: {
       outboundId,
-      status: CallStatus.SCHEDULED,
+      status: CallStatus.PROCESSED,
+      campaign: { status: CampaignStatus.ACTIVE },
     },
     select: {
       outboundId: true,
@@ -184,6 +192,54 @@ export async function getOutboundCallForDispatch(outboundId: string) {
       systemPrompt: true,
       optionalData: true,
     },
+  });
+}
+
+export async function claimQuickOutboundCall(
+  outboundId: string,
+  now = new Date(),
+) {
+  return prisma.$transaction(async (tx) => {
+    const outbound = await tx.outboundCall.findUnique({
+      where: { outboundId },
+      select: { agentId: true, status: true },
+    });
+    if (!outbound?.agentId || outbound.status !== CallStatus.SCHEDULED) {
+      return { claimed: false, reason: "Outbound call is no longer scheduled" };
+    }
+
+    const limits = await lockAndReadAgentCallLimits(tx, outbound.agentId);
+    const capacity = await readAgentDispatchCapacity(
+      tx,
+      outbound.agentId,
+      limits,
+      now,
+    );
+    if (capacity.concurrentRemaining < 1) {
+      return { claimed: false, reason: "Agent concurrent call limit reached" };
+    }
+    if (capacity.dailyRemaining < 1) {
+      return { claimed: false, reason: "Agent daily call limit reached" };
+    }
+
+    const claimed = await tx.outboundCall.updateMany({
+      where: { outboundId, status: CallStatus.SCHEDULED },
+      data: { status: CallStatus.PROCESSED },
+    });
+    if (claimed.count === 1) {
+      await tx.$executeRaw`
+        UPDATE "OutboundCall"
+        SET "dispatchClaimedAt" = ${now}
+        WHERE "outboundId" = ${outboundId}
+          AND "status" = 'PROCESSED'
+      `;
+    }
+    return claimed.count === 1
+      ? { claimed: true as const, reason: null }
+      : {
+          claimed: false as const,
+          reason: "Outbound call is no longer scheduled",
+        };
   });
 }
 
@@ -400,28 +456,106 @@ export async function getCampaignForDispatch(campaignId: string) {
   });
 }
 
-export async function listScheduledOutboundIdsForCampaign(campaignId: string) {
-  const rows = await prisma.outboundCall.findMany({
-    where: {
-      campaignId,
-      status: CallStatus.SCHEDULED,
-    },
-    select: { outboundId: true },
-    orderBy: { createdAt: "asc" },
+export async function claimCampaignDispatchSlots(
+  campaignId: string,
+  now = new Date(),
+) {
+  return prisma.$transaction(async (tx) => {
+    const campaign = await tx.campaign.findFirst({
+      where: { campaignId, status: CampaignStatus.ACTIVE },
+      select: { agentId: true, timezone: true, scheduledAt: true, startedAt: true, createdAt: true },
+    });
+    if (!campaign?.agentId) return null;
+
+    const limits = await lockAndReadAgentCallLimits(tx, campaign.agentId);
+    const capacity = await readAgentDispatchCapacity(
+      tx,
+      campaign.agentId,
+      limits,
+      now,
+    );
+    const available = Math.min(
+      capacity.concurrentRemaining,
+      capacity.dailyRemaining,
+    );
+    const candidates =
+      available > 0
+        ? await tx.outboundCall.findMany({
+            where: { campaignId, status: CallStatus.SCHEDULED },
+            select: { outboundId: true },
+            orderBy: { createdAt: "asc" },
+            take: available,
+          })
+        : [];
+    const outboundIds = candidates.map((row) => row.outboundId);
+    if (outboundIds.length > 0) {
+      await tx.outboundCall.updateMany({
+        where: {
+          outboundId: { in: outboundIds },
+          campaignId,
+          status: CallStatus.SCHEDULED,
+          campaign: { status: CampaignStatus.ACTIVE },
+        },
+        data: { status: CallStatus.PROCESSED },
+      });
+      await tx.$executeRaw`
+        UPDATE "OutboundCall"
+        SET "dispatchClaimedAt" = ${now}
+        WHERE "outboundId" IN (${Prisma.join(outboundIds)})
+          AND "status" = 'PROCESSED'
+      `;
+    }
+
+    // A previous process may have committed the claim before Redis accepted
+    // the job. Re-enqueue all outstanding claims with stable BullMQ job IDs.
+    const pending = await tx.outboundCall.findMany({
+      where: { campaignId, status: CallStatus.PROCESSED },
+      select: { outboundId: true },
+      orderBy: [{ createdAt: "asc" }, { outboundId: "asc" }],
+    });
+
+    const [scheduledRemaining, campaignActiveCalls] = await Promise.all([
+      tx.outboundCall.count({
+        where: { campaignId, status: CallStatus.SCHEDULED },
+      }),
+      tx.outboundCall.count({
+        where: {
+          campaignId,
+          status: { in: [CallStatus.PROCESSED, CallStatus.IN_PROGRESS] },
+        },
+      }),
+    ]);
+    return {
+      outboundIds: pending.map((row) => row.outboundId),
+      scheduledRemaining,
+      campaignActiveCalls,
+      dailyLimitReached: capacity.dailyRemaining <= outboundIds.length,
+      ...(capacity.dailyRemaining <= outboundIds.length ? {
+        resumeAt: nextCampaignDailyPass(now, campaign.scheduledAt ?? campaign.startedAt ?? campaign.createdAt ?? now, campaign.timezone ?? "UTC"),
+      } : {}),
+    };
   });
-  return rows.map((row) => row.outboundId);
 }
 
 export async function markCampaignActive(campaignId: string) {
-  return prisma.campaign.update({
-    where: { campaignId },
+  await prisma.campaign.updateMany({
+    where: {
+      campaignId,
+      status: CampaignStatus.SCHEDULED,
+      OR: [{ scheduledAt: null }, { scheduledAt: { lte: new Date() } }],
+    },
     data: { status: CampaignStatus.ACTIVE, startedAt: new Date() },
   });
+  return (
+    (await prisma.campaign.count({
+      where: { campaignId, status: CampaignStatus.ACTIVE },
+    })) === 1
+  );
 }
 
 export async function markCampaignCompleted(campaignId: string) {
-  return prisma.campaign.update({
-    where: { campaignId },
+  return prisma.campaign.updateMany({
+    where: { campaignId, status: CampaignStatus.ACTIVE },
     data: { status: CampaignStatus.COMPLETED, completedAt: new Date() },
   });
 }
@@ -430,11 +564,64 @@ export async function markCampaignCancelled(args: {
   organizationId: string;
   campaignId: string;
 }) {
-  await prisma.campaign.update({
-    where: { campaignId: args.campaignId },
-    data: { status: CampaignStatus.CANCELLED, completedAt: new Date() },
+  const result = await prisma.$transaction(async (tx) => {
+    const campaign = await tx.campaign.findFirst({
+      where: {
+        campaignId: args.campaignId,
+        organizationId: args.organizationId,
+      },
+      select: { status: true },
+    });
+    if (!campaign) return null;
+
+    const cancellable = new Set<CampaignStatus>([
+      CampaignStatus.SCHEDULED,
+      CampaignStatus.PROCESSED,
+      CampaignStatus.ACTIVE,
+    ]);
+    if (
+      !cancellable.has(campaign.status) &&
+      campaign.status !== CampaignStatus.CANCELLED
+    ) {
+      return { cancelled: false, runningOutboundIds: [] as string[] };
+    }
+
+    if (campaign.status !== CampaignStatus.CANCELLED) {
+      const cancelled = await tx.campaign.updateMany({
+        where: {
+          campaignId: args.campaignId,
+          organizationId: args.organizationId,
+          status: campaign.status,
+        },
+        data: { status: CampaignStatus.CANCELLED, completedAt: new Date() },
+      });
+      if (cancelled.count !== 1) {
+        return { cancelled: false, runningOutboundIds: [] as string[] };
+      }
+    }
+
+    const running = await tx.outboundCall.findMany({
+      where: {
+        campaignId: args.campaignId,
+        status: CallStatus.IN_PROGRESS,
+      },
+      select: { outboundId: true },
+    });
+    await tx.outboundCall.updateMany({
+      where: {
+        campaignId: args.campaignId,
+        status: { in: [CallStatus.SCHEDULED, CallStatus.PROCESSED] },
+      },
+      data: { status: CallStatus.FAILED },
+    });
+
+    return {
+      cancelled: true,
+      runningOutboundIds: running.map((call) => call.outboundId),
+    };
   });
-  return getBatchCampaignDetail(args);
+  if (!result) return null;
+  return { ...result, campaign: await getBatchCampaignDetail(args) };
 }
 
 export async function markCampaignFailed(campaignId: string) {
@@ -480,6 +667,80 @@ export async function getMonthlyUsage(
   };
 }
 
+async function lockAndReadAgentCallLimits(
+  tx: Prisma.TransactionClient,
+  agentId: string,
+) {
+  await tx.$queryRaw`
+    SELECT "agentId"
+    FROM "Agent"
+    WHERE "agentId" = ${agentId}
+    FOR UPDATE
+  `;
+  const configuration = await tx.agentConfiguration.findUnique({
+    where: { agentId },
+    select: { concurrent_calls_limit: true, daily_calls_limit: true },
+  });
+  if (!configuration) {
+    throw new Error("Agent call limits are not configured");
+  }
+  return {
+    concurrent: Math.max(1, configuration.concurrent_calls_limit),
+    daily: Math.max(1, configuration.daily_calls_limit),
+  };
+}
+
+async function readAgentDispatchCapacity(
+  tx: Prisma.TransactionClient,
+  agentId: string,
+  limits: { concurrent: number; daily: number },
+  now: Date,
+) {
+  const startOfDay = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+  const startOfTomorrow = new Date(startOfDay.getTime() + 86_400_000);
+  const [activeRows, dailyRows] = await Promise.all([
+    tx.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int AS count
+      FROM (
+        SELECT "callId" AS id
+        FROM "CallBillingSession"
+        WHERE "agentId" = ${agentId}
+          AND "status" IN ('AUTHORIZED', 'ACTIVE')
+        UNION
+        SELECT "outboundId" AS id
+        FROM "OutboundCall"
+        WHERE "agentId" = ${agentId}
+          AND "status" IN ('PROCESSED', 'IN_PROGRESS')
+      ) AS active_calls
+    `,
+    tx.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int AS count
+      FROM (
+        SELECT "callId" AS id
+        FROM "CallBillingSession"
+        WHERE "agentId" = ${agentId}
+          AND "createdAt" >= ${startOfDay}
+          AND "createdAt" < ${startOfTomorrow}
+        UNION
+        SELECT "outboundId" AS id
+        FROM "OutboundCall"
+        WHERE "agentId" = ${agentId}
+          AND "dispatchClaimedAt" >= ${startOfDay}
+          AND "dispatchClaimedAt" < ${startOfTomorrow}
+      ) AS daily_calls
+    `,
+  ]);
+  const activeCalls = Number(activeRows[0]?.count ?? 0);
+  const dailyCalls = Number(dailyRows[0]?.count ?? 0);
+  return {
+    activeCalls,
+    concurrentRemaining: Math.max(0, limits.concurrent - activeCalls),
+    dailyRemaining: Math.max(0, limits.daily - dailyCalls),
+  };
+}
+
 function startOfUtcMonth(date: Date) {
   return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1));
 }
@@ -500,4 +761,14 @@ function jsonObject(value: Prisma.JsonValue | null | undefined) {
     return {};
   }
   return value as Prisma.InputJsonObject;
+}
+
+export async function listActiveCampaignsForRecovery(cursor?: string) {
+  return prisma.campaign.findMany({
+    where: { status: CampaignStatus.ACTIVE },
+    select: { campaignId: true },
+    orderBy: { campaignId: "asc" },
+    take: 100,
+    ...(cursor ? { cursor: { campaignId: cursor }, skip: 1 } : {}),
+  });
 }

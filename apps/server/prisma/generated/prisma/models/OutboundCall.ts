@@ -38,6 +38,7 @@ export type OutboundCallMinAggregateOutputType = {
   systemPrompt: string | null
   mode: $Enums.OutboundCallMode | null
   status: $Enums.CallStatus | null
+  dispatchClaimedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -56,6 +57,7 @@ export type OutboundCallMaxAggregateOutputType = {
   systemPrompt: string | null
   mode: $Enums.OutboundCallMode | null
   status: $Enums.CallStatus | null
+  dispatchClaimedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -75,6 +77,7 @@ export type OutboundCallCountAggregateOutputType = {
   optionalData: number
   mode: number
   status: number
+  dispatchClaimedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -95,6 +98,7 @@ export type OutboundCallMinAggregateInputType = {
   systemPrompt?: true
   mode?: true
   status?: true
+  dispatchClaimedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -113,6 +117,7 @@ export type OutboundCallMaxAggregateInputType = {
   systemPrompt?: true
   mode?: true
   status?: true
+  dispatchClaimedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -132,6 +137,7 @@ export type OutboundCallCountAggregateInputType = {
   optionalData?: true
   mode?: true
   status?: true
+  dispatchClaimedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -224,6 +230,7 @@ export type OutboundCallGroupByOutputType = {
   optionalData: runtime.JsonValue | null
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: OutboundCallCountAggregateOutputType | null
@@ -264,6 +271,7 @@ export type OutboundCallWhereInput = {
   optionalData?: Prisma.JsonNullableFilter<"OutboundCall">
   mode?: Prisma.EnumOutboundCallModeFilter<"OutboundCall"> | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFilter<"OutboundCall"> | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.DateTimeNullableFilter<"OutboundCall"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -291,6 +299,7 @@ export type OutboundCallOrderByWithRelationInput = {
   optionalData?: Prisma.SortOrderInput | Prisma.SortOrder
   mode?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  dispatchClaimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   organization?: Prisma.OrganizationOrderByWithRelationInput
@@ -321,6 +330,7 @@ export type OutboundCallWhereUniqueInput = Prisma.AtLeast<{
   optionalData?: Prisma.JsonNullableFilter<"OutboundCall">
   mode?: Prisma.EnumOutboundCallModeFilter<"OutboundCall"> | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFilter<"OutboundCall"> | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.DateTimeNullableFilter<"OutboundCall"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
   organization?: Prisma.XOR<Prisma.OrganizationScalarRelationFilter, Prisma.OrganizationWhereInput>
@@ -348,6 +358,7 @@ export type OutboundCallOrderByWithAggregationInput = {
   optionalData?: Prisma.SortOrderInput | Prisma.SortOrder
   mode?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  dispatchClaimedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.OutboundCallCountOrderByAggregateInput
@@ -373,6 +384,7 @@ export type OutboundCallScalarWhereWithAggregatesInput = {
   optionalData?: Prisma.JsonNullableWithAggregatesFilter<"OutboundCall">
   mode?: Prisma.EnumOutboundCallModeWithAggregatesFilter<"OutboundCall"> | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusWithAggregatesFilter<"OutboundCall"> | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"OutboundCall"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"OutboundCall"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"OutboundCall"> | Date | string
 }
@@ -387,6 +399,7 @@ export type OutboundCallCreateInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -414,6 +427,7 @@ export type OutboundCallUncheckedCreateInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -431,6 +445,7 @@ export type OutboundCallUpdateInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -458,6 +473,7 @@ export type OutboundCallUncheckedUpdateInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -480,6 +496,7 @@ export type OutboundCallCreateManyInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -494,6 +511,7 @@ export type OutboundCallUpdateManyMutationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -513,6 +531,7 @@ export type OutboundCallUncheckedUpdateManyInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -547,6 +566,7 @@ export type OutboundCallCountOrderByAggregateInput = {
   optionalData?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  dispatchClaimedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -565,6 +585,7 @@ export type OutboundCallMaxOrderByAggregateInput = {
   systemPrompt?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  dispatchClaimedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -583,6 +604,7 @@ export type OutboundCallMinOrderByAggregateInput = {
   systemPrompt?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   status?: Prisma.SortOrder
+  dispatchClaimedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -849,6 +871,7 @@ export type OutboundCallCreateWithoutUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -874,6 +897,7 @@ export type OutboundCallUncheckedCreateWithoutUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -925,6 +949,7 @@ export type OutboundCallScalarWhereInput = {
   optionalData?: Prisma.JsonNullableFilter<"OutboundCall">
   mode?: Prisma.EnumOutboundCallModeFilter<"OutboundCall"> | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFilter<"OutboundCall"> | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.DateTimeNullableFilter<"OutboundCall"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"OutboundCall"> | Date | string
 }
@@ -939,6 +964,7 @@ export type OutboundCallCreateWithoutOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   agent?: Prisma.AgentCreateNestedOneWithoutOutboundCallsInput
@@ -964,6 +990,7 @@ export type OutboundCallUncheckedCreateWithoutOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1007,6 +1034,7 @@ export type OutboundCallCreateWithoutAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1032,6 +1060,7 @@ export type OutboundCallUncheckedCreateWithoutAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1075,6 +1104,7 @@ export type OutboundCallCreateWithoutCallLogInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1100,6 +1130,7 @@ export type OutboundCallUncheckedCreateWithoutCallLogInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1133,6 +1164,7 @@ export type OutboundCallUpdateWithoutCallLogInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1158,6 +1190,7 @@ export type OutboundCallUncheckedUpdateWithoutCallLogInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1175,6 +1208,7 @@ export type OutboundCallCreateWithoutCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1200,6 +1234,7 @@ export type OutboundCallUncheckedCreateWithoutCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1243,6 +1278,7 @@ export type OutboundCallCreateWithoutRecipientSnapshotsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1269,6 +1305,7 @@ export type OutboundCallUncheckedCreateWithoutRecipientSnapshotsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   experimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1301,6 +1338,7 @@ export type OutboundCallUpdateWithoutRecipientSnapshotsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1327,6 +1365,7 @@ export type OutboundCallUncheckedUpdateWithoutRecipientSnapshotsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   experimentAssignments?: Prisma.CampaignExperimentAssignmentUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1343,6 +1382,7 @@ export type OutboundCallCreateWithoutExperimentAssignmentsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1369,6 +1409,7 @@ export type OutboundCallUncheckedCreateWithoutExperimentAssignmentsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1401,6 +1442,7 @@ export type OutboundCallUpdateWithoutExperimentAssignmentsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1427,6 +1469,7 @@ export type OutboundCallUncheckedUpdateWithoutExperimentAssignmentsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1443,6 +1486,7 @@ export type OutboundCallCreateWithoutAttributionResultsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   organization: Prisma.OrganizationCreateNestedOneWithoutOutboundCallsInput
@@ -1469,6 +1513,7 @@ export type OutboundCallUncheckedCreateWithoutAttributionResultsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedCreateNestedManyWithoutOutboundCallInput
@@ -1501,6 +1546,7 @@ export type OutboundCallUpdateWithoutAttributionResultsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1527,6 +1573,7 @@ export type OutboundCallUncheckedUpdateWithoutAttributionResultsInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1547,6 +1594,7 @@ export type OutboundCallCreateManyUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1561,6 +1609,7 @@ export type OutboundCallUpdateWithoutUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1586,6 +1635,7 @@ export type OutboundCallUncheckedUpdateWithoutUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1607,6 +1657,7 @@ export type OutboundCallUncheckedUpdateManyWithoutUserInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1625,6 +1676,7 @@ export type OutboundCallCreateManyOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1639,6 +1691,7 @@ export type OutboundCallUpdateWithoutOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agent?: Prisma.AgentUpdateOneWithoutOutboundCallsNestedInput
@@ -1664,6 +1717,7 @@ export type OutboundCallUncheckedUpdateWithoutOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1685,6 +1739,7 @@ export type OutboundCallUncheckedUpdateManyWithoutOrganizationInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1703,6 +1758,7 @@ export type OutboundCallCreateManyAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1717,6 +1773,7 @@ export type OutboundCallUpdateWithoutAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1742,6 +1799,7 @@ export type OutboundCallUncheckedUpdateWithoutAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1763,6 +1821,7 @@ export type OutboundCallUncheckedUpdateManyWithoutAgentInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1781,6 +1840,7 @@ export type OutboundCallCreateManyCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode: $Enums.OutboundCallMode
   status: $Enums.CallStatus
+  dispatchClaimedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -1795,6 +1855,7 @@ export type OutboundCallUpdateWithoutCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutOutboundCallsNestedInput
@@ -1820,6 +1881,7 @@ export type OutboundCallUncheckedUpdateWithoutCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   recipientSnapshots?: Prisma.CampaignRecipientSnapshotUncheckedUpdateManyWithoutOutboundCallNestedInput
@@ -1841,6 +1903,7 @@ export type OutboundCallUncheckedUpdateManyWithoutCampaignInput = {
   optionalData?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
   mode?: Prisma.EnumOutboundCallModeFieldUpdateOperationsInput | $Enums.OutboundCallMode
   status?: Prisma.EnumCallStatusFieldUpdateOperationsInput | $Enums.CallStatus
+  dispatchClaimedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -1909,6 +1972,7 @@ export type OutboundCallSelect<ExtArgs extends runtime.Types.Extensions.Internal
   optionalData?: boolean
   mode?: boolean
   status?: boolean
+  dispatchClaimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1937,6 +2001,7 @@ export type OutboundCallSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   optionalData?: boolean
   mode?: boolean
   status?: boolean
+  dispatchClaimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1961,6 +2026,7 @@ export type OutboundCallSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   optionalData?: boolean
   mode?: boolean
   status?: boolean
+  dispatchClaimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
@@ -1985,11 +2051,12 @@ export type OutboundCallSelectScalar = {
   optionalData?: boolean
   mode?: boolean
   status?: boolean
+  dispatchClaimedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type OutboundCallOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"outboundId" | "organizationId" | "agentId" | "userId" | "campaignId" | "scheduledAt" | "callLogId" | "phoneNumber" | "fromNumber" | "firstMessage" | "systemPrompt" | "optionalData" | "mode" | "status" | "createdAt" | "updatedAt", ExtArgs["result"]["outboundCall"]>
+export type OutboundCallOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"outboundId" | "organizationId" | "agentId" | "userId" | "campaignId" | "scheduledAt" | "callLogId" | "phoneNumber" | "fromNumber" | "firstMessage" | "systemPrompt" | "optionalData" | "mode" | "status" | "dispatchClaimedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["outboundCall"]>
 export type OutboundCallInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   agent?: boolean | Prisma.OutboundCall$agentArgs<ExtArgs>
@@ -2043,6 +2110,7 @@ export type $OutboundCallPayload<ExtArgs extends runtime.Types.Extensions.Intern
     optionalData: runtime.JsonValue | null
     mode: $Enums.OutboundCallMode
     status: $Enums.CallStatus
+    dispatchClaimedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["outboundCall"]>
@@ -2490,6 +2558,7 @@ export interface OutboundCallFieldRefs {
   readonly optionalData: Prisma.FieldRef<"OutboundCall", 'Json'>
   readonly mode: Prisma.FieldRef<"OutboundCall", 'OutboundCallMode'>
   readonly status: Prisma.FieldRef<"OutboundCall", 'CallStatus'>
+  readonly dispatchClaimedAt: Prisma.FieldRef<"OutboundCall", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"OutboundCall", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"OutboundCall", 'DateTime'>
 }

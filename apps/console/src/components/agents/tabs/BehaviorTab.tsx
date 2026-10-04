@@ -148,29 +148,37 @@ export function BehaviorTab({ agentId }: { agentId: string }) {
     }
 
     async function onSubmit(values: FormValues) {
-        const variables = buildAgentVariables(
-            values.firstMessage,
-            values.systemPrompt,
-            placeholderValues
-        );
-        const missingVariables = missingDynamicVariableNames(
-            variables,
-            variables.placeholders
-        );
+      try {
+          const variables = buildAgentVariables(
+              values.firstMessage,
+              values.systemPrompt,
+              placeholderValues
+          );
+          const missingVariables = missingDynamicVariableNames(
+              variables,
+              variables.placeholders
+          );
 
-        if (missingVariables.length > 0) {
-            openVariableDialog("save");
-            return;
-        }
+          if (missingVariables.length > 0) {
+              openVariableDialog("save");
+              return;
+          }
 
-        await saveValues(values);
+          await saveValues(values);
+      } catch {
+        // The mutation hook displays the API error; preserve the current state for retry.
+      }
     }
 
     async function onDialogConfirm() {
-        if (dialogIntent === "save") {
-            await saveValues(form.getValues());
-        }
-        setDialogOpen(false);
+      try {
+          if (dialogIntent === "save") {
+              await saveValues(form.getValues());
+          }
+          setDialogOpen(false);
+      } catch {
+        // The mutation hook displays the API error; preserve the current state for retry.
+      }
     }
 
     return (

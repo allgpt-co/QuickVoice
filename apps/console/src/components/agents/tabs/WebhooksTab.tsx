@@ -286,48 +286,52 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
     !secretFieldRecordsEqual(currentPostHeaders, savedPostHeaders);
 
   async function onSubmit(v: FormValues) {
-    const dynamic_variables = recordFromRows(initiationVariableRows);
-    const initiationHeaders = secretFieldsFromRows(initiationHeaderRows);
-    const initiationBody = secretFieldsFromRows(initiationBodyRows);
-    const postHeaders = secretFieldsFromRows(postHeaderRows);
-    const shouldSendInitiationBody = v.initiation_method === "POST";
-    const initiation_webhook = v.initiation_enabled
-      ? {
-          webhook_url: v.initiation_url,
-          method: v.initiation_method,
-          ...(Object.keys(initiationHeaders).length > 0
-            ? { headers: initiationHeaders }
-            : {}),
-          ...(shouldSendInitiationBody && Object.keys(initiationBody).length > 0
-            ? { body: initiationBody }
-            : {}),
-          ...(Object.keys(dynamic_variables).length > 0
-            ? { dynamic_variables }
-            : {}),
-        }
-      : null;
-    const post_call_webhook = v.post_enabled
-      ? {
-          ...config?.post_call_webhook,
-          webhook_url: v.post_url,
-          method: "POST" as const,
-          ...(Object.keys(postHeaders).length > 0
-            ? { headers: postHeaders }
-            : {}),
-          transcript: v.post_transcript,
-          audio_url: v.post_audio,
-        }
-      : null;
-    await save.mutateAsync(
-      mergeConfig(config, { initiation_webhook, post_call_webhook }),
-    );
-    form.reset(v);
-    setInitiationVariableRows(
-      rowsForVariables(detectedVariableNames, dynamic_variables),
-    );
-    setInitiationHeaderRows(rowsForSecretFields(initiationHeaders));
-    setInitiationBodyRows(rowsForSecretFields(initiationBody));
-    setPostHeaderRows(rowsForSecretFields(postHeaders));
+    try {
+      const dynamic_variables = recordFromRows(initiationVariableRows);
+      const initiationHeaders = secretFieldsFromRows(initiationHeaderRows);
+      const initiationBody = secretFieldsFromRows(initiationBodyRows);
+      const postHeaders = secretFieldsFromRows(postHeaderRows);
+      const shouldSendInitiationBody = v.initiation_method === "POST";
+      const initiation_webhook = v.initiation_enabled
+        ? {
+            webhook_url: v.initiation_url,
+            method: v.initiation_method,
+            ...(Object.keys(initiationHeaders).length > 0
+              ? { headers: initiationHeaders }
+              : {}),
+            ...(shouldSendInitiationBody && Object.keys(initiationBody).length > 0
+              ? { body: initiationBody }
+              : {}),
+            ...(Object.keys(dynamic_variables).length > 0
+              ? { dynamic_variables }
+              : {}),
+          }
+        : null;
+      const post_call_webhook = v.post_enabled
+        ? {
+            ...config?.post_call_webhook,
+            webhook_url: v.post_url,
+            method: "POST" as const,
+            ...(Object.keys(postHeaders).length > 0
+              ? { headers: postHeaders }
+              : {}),
+            transcript: v.post_transcript,
+            audio_url: v.post_audio,
+          }
+        : null;
+      await save.mutateAsync(
+        mergeConfig(config, { initiation_webhook, post_call_webhook }),
+      );
+      form.reset(v);
+      setInitiationVariableRows(
+        rowsForVariables(detectedVariableNames, dynamic_variables),
+      );
+      setInitiationHeaderRows(rowsForSecretFields(initiationHeaders));
+      setInitiationBodyRows(rowsForSecretFields(initiationBody));
+      setPostHeaderRows(rowsForSecretFields(postHeaders));
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   const initiationOn = useWatch({

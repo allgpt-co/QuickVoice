@@ -7,6 +7,7 @@ import {
 } from "../../prisma/generated/prisma/client.js";
 import {
   buildCallLogIdentityFields,
+  liveRoomBelongsToOrg,
   saveCallLogInTransaction,
 } from "../../src/modules/calllogs/calllog.repository.js";
 import {
@@ -184,5 +185,36 @@ test("duplicate call identifiers cannot cross organization boundaries", async ()
   await assert.rejects(
     saveCallLogInTransaction(tx as never, baseInput, true),
     /Call identifier is already in use/,
+  );
+});
+
+test("live room ownership requires an exact tenant-bound room record", async () => {
+  let lookup: unknown;
+
+  assert.equal(
+    await liveRoomBelongsToOrg(
+      "org-a",
+      "inbound_+15551234",
+      async (where) => {
+        lookup = where;
+        return 0;
+      },
+    ),
+    false,
+  );
+  assert.deepEqual(lookup, {
+    organizationId: "org-a",
+    roomName: "inbound_+15551234",
+  });
+});
+
+test("live room ownership accepts an exact room record for the organization", async () => {
+  assert.equal(
+    await liveRoomBelongsToOrg(
+      "org-a",
+      "inbound_room-123",
+      async () => 1,
+    ),
+    true,
   );
 });

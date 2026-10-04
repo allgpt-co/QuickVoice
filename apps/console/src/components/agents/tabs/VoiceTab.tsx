@@ -251,7 +251,11 @@ export function VoiceTab({ agentId }: { agentId: string }) {
     );
 
     async function onSubmit(values: FormValues) {
-        await save.mutateAsync(mergeConfig(config, values));
+      try {
+          await save.mutateAsync(mergeConfig(config, values));
+      } catch {
+        // The mutation hook displays the API error; preserve the current state for retry.
+      }
     }
 
     return (

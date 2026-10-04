@@ -25,6 +25,44 @@ class SecurityControlsTests(unittest.TestCase):
         self.assertFalse(is_explicit_dev_mode({"AI_ENV": "development"}))
         self.assertTrue(is_explicit_dev_mode({"AI_ALLOW_INSECURE_DEV_MODE": "true"}))
 
+    def test_log_phone_masking_handles_supported_formats(self):
+        for phone in (
+            "1-800-555-0199", "8005550199", "18005550199", "+18005550199",
+            "44 20 7946 0958", "0044 20 7946 0958", "(800) 555-0199",
+            "800.555.0199", "020 7946 0958", "919876543210",
+        ):
+            with self.subTest(phone=phone):
+                self.assertEqual(redact_sensitive(f"Call {phone} today"), "Call [REDACTED_PHONE] today")
+        self.assertEqual(redact_sensitive("Call 1-800-555-0199."), "Call [REDACTED_PHONE].")
+        self.assertEqual(
+            redact_sensitive({"phoneNumber": 8005550199, "toNumber": "5550199"}),
+            {"phoneNumber": "[REDACTED_PHONE]", "toNumber": "[REDACTED_PHONE]"},
+        )
+
+    def test_log_masking_preserves_labelled_ids_dates_and_coordinates(self):
+        identifiers = {
+            "sku": "800-555-0199", "mrn": "12345678901", "orderId": "12345678901",
+            "isbn": "978-1-4028-9462-6", "date": "2026-10-01",
+            "coordinates": "+40.71281234, -74.00601234",
+            "latitude": "40.71281234", "longitude": "-74.00601234",
+        }
+        self.assertEqual(redact_sensitive(identifiers), identifiers)
+        for text in (
+            "SKU: 800-555-0199", "MRN: 12345678901", "ISBN: 978-1-4028-9462-6",
+            "SKU-800-555-0199", "abc12345678901xyz", "12345678901234567890",
+            "2026-10-01", "+40.71281234, -74.00601234",
+        ):
+            with self.subTest(text=text):
+                self.assertEqual(redact_sensitive(text), text)
+        self.assertEqual(
+            redact_sensitive("SKU: 12345678901; call 1-800-555-0199"),
+            "SKU: 12345678901; call [REDACTED_PHONE]",
+        )
+        self.assertEqual(
+            redact_sensitive("Call 8005550199\nCall 18005550199"),
+            "Call [REDACTED_PHONE]\nCall [REDACTED_PHONE]",
+        )
+
     def test_redact_sensitive_masks_pii_prompts_headers_and_webhook_urls(self):
         redacted = redact_sensitive(
             {

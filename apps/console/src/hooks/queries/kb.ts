@@ -57,6 +57,7 @@ export function useDeleteKb() {
     mutationFn: (kbId: string) => kbApi.remove(kbId),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.kb.all });
+      qc.invalidateQueries({ queryKey: queryKeys.agents.all });
       toast.success("Document deleted");
     },
     onError: (err: Error) => {

@@ -5,11 +5,35 @@ import {
   type ErrorRequestHandler,
   type RequestHandler,
 } from "express";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 
 import { sendContactSubmission } from "../../lib/mailer.js";
+import { rateLimitStore } from "../../middleware/rate-limit-store.js";
 import { contactSubmissionSchema } from "./contact.schema.js";
 
 const router = Router();
+
+const contactDeliveryRateLimit = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: () => {
+    const configured = Number(process.env.CONTACT_RATE_LIMIT_MAX || 5);
+    return Number.isInteger(configured) && configured > 0
+      ? Math.min(configured, 100)
+      : 5;
+  },
+  store: rateLimitStore("contact-delivery"),
+  keyGenerator: (req) => {
+    const fingerprint = req.get("X-QuickVoice-Contact-Client")?.trim();
+    return fingerprint && /^[0-9a-f]{64}$/i.test(fingerprint)
+      ? `client:${fingerprint.toLowerCase()}`
+      : `ip:${ipKeyGenerator(req.ip || "")}`;
+  },
+  message: {
+    error: "Too many contact submissions. Please try again later.",
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const authenticateContact: RequestHandler = (req, res, next) => {
   const secret = process.env.CONTACT_WEBHOOK_SECRET?.trim();
@@ -32,6 +56,7 @@ const authenticateContact: RequestHandler = (req, res, next) => {
 router.post(
   "/contact-delivery",
   authenticateContact,
+  contactDeliveryRateLimit,
   json({ limit: "32kb" }),
   async (req, res) => {
     const parsed = contactSubmissionSchema.safeParse(req.body);

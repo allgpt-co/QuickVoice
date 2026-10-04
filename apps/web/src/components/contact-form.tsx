@@ -1,6 +1,7 @@
 "use client";
 
-import { useId, useRef, useState, type FormEvent } from "react";
+import Script from "next/script";
+import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { trackContactLead } from "@/lib/analytics";
 import { captureEnquiryContext } from "@/lib/enquiry-context.mjs";
@@ -18,6 +19,27 @@ const fieldClass =
   "mt-2 block min-h-12 w-full rounded-lg border border-input bg-background px-3 py-3 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-ring/30 aria-invalid:border-destructive disabled:cursor-wait disabled:opacity-70";
 const fallbackMessage =
   "We could not confirm delivery. Your message is still here. Please try again or email our team.";
+const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement,
+        options: {
+          sitekey: string;
+          action: string;
+          theme: "auto";
+          callback: (token: string) => void;
+          "expired-callback": () => void;
+          "error-callback": () => void;
+        },
+      ) => string;
+      reset: (widgetId: string) => void;
+      remove: (widgetId: string) => void;
+    };
+  }
+}
 
 export function ContactForm({
   location,
@@ -27,6 +49,10 @@ export function ContactForm({
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
+  const honeypotRef = useRef<HTMLInputElement>(null);
+  const turnstileContainerRef = useRef<HTMLDivElement>(null);
+  const turnstileWidgetId = useRef<string | undefined>(undefined);
+  const formStartedAt = useRef(Date.now());
   const inFlight = useRef(false);
   const submissionId = useRef<string | undefined>(undefined);
   const [fields, setFields] = useState(emptyContactFields);
@@ -35,7 +61,47 @@ export function ContactForm({
     "idle" | "submitting" | "success" | "error"
   >("idle");
   const [deliveryError, setDeliveryError] = useState("");
+  const [turnstileReady, setTurnstileReady] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
   const fieldId = (field: ContactField) => `${id}-${field}`;
+
+  useEffect(() => {
+    if (
+      !turnstileReady ||
+      !turnstileSiteKey ||
+      !window.turnstile ||
+      !turnstileContainerRef.current ||
+      turnstileWidgetId.current
+    ) {
+      return;
+    }
+
+    turnstileWidgetId.current = window.turnstile.render(
+      turnstileContainerRef.current,
+      {
+        sitekey: turnstileSiteKey,
+        action: "contact",
+        theme: "auto",
+        callback: setTurnstileToken,
+        "expired-callback": () => setTurnstileToken(""),
+        "error-callback": () => setTurnstileToken(""),
+      },
+    );
+
+    return () => {
+      if (turnstileWidgetId.current && window.turnstile) {
+        window.turnstile.remove(turnstileWidgetId.current);
+      }
+      turnstileWidgetId.current = undefined;
+    };
+  }, [turnstileReady]);
+
+  function resetTurnstile() {
+    setTurnstileToken("");
+    if (turnstileWidgetId.current && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetId.current);
+    }
+  }
 
   function focusField(field: ContactField) {
     requestAnimationFrame(() => {
@@ -59,6 +125,12 @@ export function ContactForm({
       focusField(firstError);
       return;
     }
+    if (!turnstileToken) {
+      setDeliveryError("Complete the verification challenge before sending.");
+      setStatus("error");
+      requestAnimationFrame(() => turnstileContainerRef.current?.focus());
+      return;
+    }
 
     inFlight.current = true;
     setStatus("submitting");
@@ -75,6 +147,9 @@ export function ContactForm({
           submissionId: submissionId.current,
           formLocation: location,
           attribution: captureEnquiryContext(),
+          turnstileToken,
+          formStartedAt: formStartedAt.current,
+          website: honeypotRef.current?.value || "",
         }),
       });
       const result = await response.json().catch(() => null);
@@ -101,6 +176,7 @@ export function ContactForm({
             : fallbackMessage,
         );
         setStatus("error");
+        resetTurnstile();
       } else {
         trackContactLead(location, submissionId.current);
         setStatus("success");
@@ -109,6 +185,7 @@ export function ContactForm({
     } catch {
       setDeliveryError(fallbackMessage);
       setStatus("error");
+      resetTurnstile();
       requestAnimationFrame(() => statusRef.current?.focus());
     } finally {
       inFlight.current = false;
@@ -117,10 +194,12 @@ export function ContactForm({
 
   function startAnotherMessage() {
     submissionId.current = undefined;
+    formStartedAt.current = Date.now();
     setFields(emptyContactFields());
     setErrors({});
     setDeliveryError("");
     setStatus("idle");
+    resetTurnstile();
     focusField("name");
   }
 
@@ -168,6 +247,13 @@ export function ContactForm({
       aria-label="Contact the QuickVoice team"
       className="min-w-0"
     >
+      {turnstileSiteKey ? (
+        <Script
+          src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
+          strategy="afterInteractive"
+          onReady={() => setTurnstileReady(true)}
+        />
+      ) : null}
       <div aria-live="polite" aria-atomic="true">
         {status === "success" && (
           <div
@@ -248,6 +334,20 @@ export function ContactForm({
         className="min-w-0 space-y-5"
       >
         <legend className="sr-only">Your enquiry</legend>
+        <div
+          className="pointer-events-none absolute left-[-10000px] top-auto h-px w-px overflow-hidden"
+          aria-hidden="true"
+        >
+          <label htmlFor={`${id}-website`}>Website</label>
+          <input
+            ref={honeypotRef}
+            id={`${id}-website`}
+            name="website"
+            type="text"
+            tabIndex={-1}
+            autoComplete="off"
+          />
+        </div>
         <p className="text-sm text-muted-foreground">
           Fields marked optional can be left blank.
         </p>
@@ -346,9 +446,23 @@ export function ContactForm({
           </a>
           .
         </p>
+        <div>
+          <div
+            ref={turnstileContainerRef}
+            tabIndex={-1}
+            aria-label="Spam protection verification"
+            className="min-h-[65px] outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          />
+          {!turnstileSiteKey ? (
+            <p role="alert" className="mt-2 text-sm text-destructive">
+              Contact verification is temporarily unavailable. Please email
+              info@quickvoice.co.
+            </p>
+          ) : null}
+        </div>
         <button
           type="submit"
-          disabled={status === "submitting"}
+          disabled={status === "submitting" || !turnstileToken}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 py-3 font-semibold text-primary-foreground transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring disabled:cursor-wait disabled:opacity-70"
         >
           {status === "submitting" ? "Sending…" : "Send enquiry"}

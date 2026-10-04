@@ -68,10 +68,10 @@ COPY --from=build --chown=server:nodejs /app/apps/server/dist ./dist
 COPY --from=build --chown=server:nodejs /app/apps/server/prisma ./prisma
 COPY --from=build --chown=server:nodejs /app/apps/server/prisma.config.ts ./prisma.config.ts
 COPY --from=build --chown=server:nodejs /app/apps/widget/dist /app/apps/widget/dist
-RUN test -x /app/node_modules/.bin/prisma
+RUN test -x /app/apps/server/node_modules/.bin/prisma
 RUN test -f /app/apps/server/dist/src/index.js
 RUN test -f /app/apps/widget/dist/quickvoice-widget.js
 
 USER server
 EXPOSE 8000
-CMD ["sh", "-c", "../../node_modules/.bin/prisma migrate deploy && node dist/src/index.js"]
+CMD ["sh", "-c", "./node_modules/.bin/prisma migrate deploy && node dist/src/index.js"]

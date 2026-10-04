@@ -1,3 +1,4 @@
+import { assertSafeWebhookSecretDestinationUpdate } from "../tools/tool-secret-destination.js";
 import { randomUUID } from "node:crypto";
 import { Prisma } from "../../../prisma/generated/prisma/client.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
@@ -6,6 +7,7 @@ import { NotFoundError } from "../../common/errors/notFound.js";
 import { generateSlug } from "../../common/utils/generateSlug.js";
 import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
 import {
+  containsReservedSecretEnvelope,
   redactSecretFields,
   restoreRedactedSecretReferences,
 } from "../../lib/secrets.js";
@@ -27,7 +29,10 @@ import type {
   UpdateAgentInput,
 } from "./agent.schema.js";
 import { estimateConfiguredMinuteMicros } from "../billing/call-pricing.service.js";
-import { getCallAdmissionCatalog, PricingUnavailableError } from "../billing/database-rate-catalog.service.js";
+import {
+  getCallAdmissionCatalog,
+  PricingUnavailableError,
+} from "../billing/database-rate-catalog.service.js";
 import {
   authorizeCallBilling,
   callAdmissionMessage,
@@ -35,6 +40,7 @@ import {
 } from "../billing/call-metering.service.js";
 import { assertSupportedBillingModels } from "../billing/call-pricing.service.js";
 import { PaymentRequiredError } from "../../common/errors/paymentRequired.js";
+import { enqueueAgentDeletion } from "../../queues/agent-deletion.queue.js";
 
 export type VoiceCatalog = {
   version: string;
@@ -89,7 +95,10 @@ export type VoiceSessionMetadata = {
   [key: string]: unknown;
 };
 
-export type VoiceSessionPayload = Omit<AgentPreviewSessionPayload, "metadata"> & {
+export type VoiceSessionPayload = Omit<
+  AgentPreviewSessionPayload,
+  "metadata"
+> & {
   metadata: VoiceSessionMetadata;
 };
 
@@ -170,19 +179,19 @@ export const createAgentPreviewSession = async (
 ): Promise<AgentPreviewSession> => {
   const configuration = await getAgentConfig(organizationId, agentId);
   const payload = buildAgentPreviewSessionPayload({
-      agentId,
-      organizationId,
-      agent_language: configuration.agent_language,
-      timezone: configuration.timezone,
-      sttModel: configuration.sttModel,
-      llmModel: configuration.llmModel,
-      ttsModel: configuration.ttsModel,
-      voiceId: configuration.voiceId,
-      firstMessage: configuration.firstMessage,
-      systemPrompt: configuration.systemPrompt,
-      variables: configuration.variables,
-      dynamicVariables,
-    });
+    agentId,
+    organizationId,
+    agent_language: configuration.agent_language,
+    timezone: configuration.timezone,
+    sttModel: configuration.sttModel,
+    llmModel: configuration.llmModel,
+    ttsModel: configuration.ttsModel,
+    voiceId: configuration.voiceId,
+    firstMessage: configuration.firstMessage,
+    systemPrompt: configuration.systemPrompt,
+    variables: configuration.variables,
+    dynamicVariables,
+  });
   const admission = await authorizeCallBilling({
     organizationId,
     callId: payload.room.name,
@@ -190,10 +199,16 @@ export const createAgentPreviewSession = async (
     agentId,
   });
   if (admission.action === "stop") {
-    throw new PaymentRequiredError(callAdmissionMessage(admission, "Add credit before starting a preview call"), {
-      reason: admission.reason,
-      requiredMicros: admission.reserveMicros?.toString() ?? null,
-    });
+    throw new PaymentRequiredError(
+      callAdmissionMessage(
+        admission,
+        "Add credit before starting a preview call",
+      ),
+      {
+        reason: admission.reason,
+        requiredMicros: admission.reserveMicros?.toString() ?? null,
+      },
+    );
   }
   try {
     return await requestAgentPreviewSession(payload);
@@ -332,6 +347,7 @@ export const requestVoiceSession = async (
         "x-internal-key": internalApiKey,
       },
       body: JSON.stringify(payload),
+      signal: AbortSignal.timeout(15_000),
     },
   );
 
@@ -425,6 +441,7 @@ export const deleteAgent = async (
   agentId: string,
   dependencies: {
     cleanupKnowledgeSourceAssetsImpl?: typeof cleanupKnowledgeSourceAssets;
+    claimKnowledgeSourceDeletionImpl?: typeof kbRepository.claimKnowledgeSourceDeletion;
     deleteKnowledgeSourceImpl?: typeof kbRepository.deleteKnowledgeSource;
     getAgentDeletionContextImpl?: typeof agentRepository.getAgentDeletionContext;
     deleteAgentImpl?: typeof agentRepository.deleteAgent;
@@ -455,8 +472,16 @@ export const deleteAgent = async (
     dependencies.deleteKnowledgeSourceImpl ??
     kbRepository.deleteKnowledgeSource;
   for (const source of context.knowledgeSources) {
-    await cleanupAssets(source);
-    await deleteKnowledgeSource(source.kbId, organizationId);
+    const deletionToken = randomUUID();
+    const claimed = await (
+      dependencies.claimKnowledgeSourceDeletionImpl ??
+      kbRepository.claimKnowledgeSourceDeletion
+    )(source.kbId, organizationId, deletionToken);
+    if (!claimed) {
+      throw new NotFoundError("Knowledge source not found");
+    }
+    await cleanupAssets(claimed);
+    await deleteKnowledgeSource(source.kbId, organizationId, deletionToken);
   }
 
   const deleteAgentImpl =
@@ -468,7 +493,49 @@ export const deleteAgent = async (
   }
 };
 
+export const requestAgentDeletion = async (
+  organizationId: string,
+  agentId: string,
+  dependencies: {
+    requestAgentDeletionImpl?: typeof agentRepository.requestAgentDeletion;
+    enqueueAgentDeletionImpl?: typeof enqueueAgentDeletion;
+  } = {},
+) => {
+  const requested = await (
+    dependencies.requestAgentDeletionImpl ??
+    agentRepository.requestAgentDeletion
+  )(organizationId, agentId);
+  if (!requested) throw new NotFoundError("Agent not found");
+
+  try {
+    await (dependencies.enqueueAgentDeletionImpl ?? enqueueAgentDeletion)({
+      organizationId,
+      agentId,
+    });
+  } catch (error) {
+    // The durable database marker is the source of truth. Startup and periodic
+    // recovery will recreate a job lost during a Redis outage.
+    console.error(
+      "[agent-deletion] initial enqueue failed; recovery will retry",
+      {
+        organizationId,
+        agentId,
+        error: error instanceof Error ? error.message : String(error),
+      },
+    );
+  }
+
+  return {
+    agentId,
+    status: "deleting" as const,
+    requestedAt: requested.deletionRequestedAt,
+  };
+};
+
 export const configureAgent = async (args: ConfigureAgentArgs) => {
+  if (containsReservedSecretEnvelope(args)) {
+    throw new BadRequestError("Encrypted secret envelopes cannot be submitted");
+  }
   const { organizationId, userId, agentId, ...data } = args;
   try {
     assertSupportedBillingModels({
@@ -492,6 +559,10 @@ export const configureAgent = async (args: ConfigureAgentArgs) => {
     organizationId,
     agentId,
   );
+
+  for (const field of ["initiation_webhook", "post_call_webhook"] as const) {
+    assertSafeWebhookSecretDestinationUpdate(existingConfiguration?.[field], data[field]);
+  }
 
   const createdSecretIds: string[] = [];
   let persisted = false;
@@ -551,16 +622,19 @@ export const getAgentConfig = async (
   return withEstimatedPrice(redactAgentConfigSecrets(configuration));
 };
 
-async function withEstimatedPrice<T extends {
-  sttModel?: string | null;
-  llmModel?: string | null;
-  ttsModel?: string | null;
-}>(configuration: T) {
+async function withEstimatedPrice<
+  T extends {
+    sttModel?: string | null;
+    llmModel?: string | null;
+    ttsModel?: string | null;
+  },
+>(configuration: T) {
   const resolved = await getCallAdmissionCatalog({}).catch((error: unknown) => {
     if (error instanceof PricingUnavailableError) return null;
     throw error;
   });
-  if (!resolved) return { ...configuration, estimatedPricePerMinuteMicros: null };
+  if (!resolved)
+    return { ...configuration, estimatedPricePerMinuteMicros: null };
   const { catalog } = resolved;
   return {
     ...configuration,

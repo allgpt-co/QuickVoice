@@ -18,6 +18,12 @@ export type ApiDefinition = {
   params?: string[];
   queryKeys?: string[];
   toolSchema?: z.ZodRawShape;
+  toolAnnotations?: {
+    readOnlyHint?: boolean;
+    destructiveHint?: boolean;
+    idempotentHint?: boolean;
+    openWorldHint?: boolean;
+  };
 };
 
 const pathParams = (path: string) => [...path.matchAll(/:([A-Za-z0-9_]+)/g)].map((match) => match[1] as string);
@@ -114,7 +120,7 @@ export const apiDefinitions: ApiDefinition[] = [
   withParams({ name: "list_agent_mcp_connections", kind: "resource", method: "GET", path: "/mcp/agent/:agentId", file: "apps/server/src/modules/mcp/mcp.route.ts", auth: "x-api-key/session; tools:read", requestSchema: "params agentId", responseSchema: "McpConnection[]", description: "List MCP connections attached to an agent.", mappingReason: "Read-only list." }),
   withParams({ name: "attach_mcp_connection_to_agent", kind: "tool", method: "POST", path: "/mcp/connections/:mcpConnectionId/attach/:agentId", file: "apps/server/src/modules/mcp/mcp.route.ts", auth: "x-api-key/session; tools:update", requestSchema: "params mcpConnectionId, agentId; body { enabled? }", responseSchema: "result", description: "Attach a connected MCP server to an agent.", mappingReason: "Mutates relationship.", toolSchema: { mcpConnectionId: z.string().min(1), agentId: z.string().min(1), body } }),
   withParams({ name: "detach_mcp_connection_from_agent", kind: "tool", method: "DELETE", path: "/mcp/connections/:mcpConnectionId/detach/:agentId", file: "apps/server/src/modules/mcp/mcp.route.ts", auth: "x-api-key/session; tools:update", requestSchema: "params mcpConnectionId, agentId", responseSchema: "null", description: "Detach a connected MCP server from an agent.", mappingReason: "Mutates relationship.", toolSchema: { mcpConnectionId: z.string().min(1), agentId: z.string().min(1) } }),
-  withParams({ name: "execute_connected_mcp_tool", kind: "tool", method: "POST", path: "/mcp/connections/:mcpConnectionId/tools/:toolName/execute", file: "apps/server/src/modules/mcp/mcp.route.ts", auth: "x-api-key/session; tools:read", requestSchema: "params mcpConnectionId, toolName; body { agentId?, callId?, arguments }", responseSchema: "tool result", description: "Execute a tool on a connected remote MCP server through QuickVoice.", mappingReason: "Executes remote action.", toolSchema: { mcpConnectionId: z.string().min(1), toolName: z.string().min(1), body } }),
+  withParams({ name: "execute_connected_mcp_tool", kind: "tool", method: "POST", path: "/mcp/connections/:mcpConnectionId/tools/:toolName/execute", file: "apps/server/src/modules/mcp/mcp.route.ts", auth: "session; tools:execute (organization API keys denied)", requestSchema: "params mcpConnectionId, toolName; body { agentId?, callId?, arguments }", responseSchema: "tool result", description: "Execute a connected remote MCP tool. Requires tools:execute; organization API keys are denied.", mappingReason: "Executes remote action.", toolSchema: { mcpConnectionId: z.string().min(1), toolName: z.string().min(1), body } }),
 
   // Excluded APIs
   withParams({ name: "ingest_call_log", kind: "excluded", method: "POST", path: "/calls", file: "apps/server/src/modules/calllogs/calllog.route.ts", auth: "internal bearer only", requestSchema: "callLogSchema", responseSchema: "CallLog", description: "Internal LiveKit/AI call-log ingestion.", mappingReason: "Excluded", excludedReason: "Internal-only server-to-server ingest; unsafe to expose to external MCP clients." }),

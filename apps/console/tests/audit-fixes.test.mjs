@@ -206,7 +206,7 @@ test("console API key creation uses organization keys without client-only fields
 
   assert.match(page, /organizationId:\s*orgId/);
   assert.match(page, /ApiKeyListResponse/);
-  assert.match(page, /setKeys\(res\.data\?\.apiKeys \?\? \[\]\)/);
+  assert.match(page, /return res\.data\?\.apiKeys \?\? \[\]/);
   assert.doesNotMatch(page, /setKeys\(res\.data \?\? \[\]\)/);
   assert.match(page, /MCP-ready/);
   assert.match(page, /x-api-key/);

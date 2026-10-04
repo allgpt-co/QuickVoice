@@ -11,6 +11,7 @@ type ScalarApiReference = {
       layout: "modern";
       showSidebar: boolean;
       hideDarkModeToggle: boolean;
+      withDefaultFonts: boolean;
       theme: "default" | "moon";
       metaData: {
         title: string;
@@ -27,6 +28,10 @@ declare global {
 }
 
 const containerId = "quickvoice-scalar-api-reference";
+const scalarScript =
+  "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3";
+const scalarIntegrity =
+  "sha384-HWi/QCSPi64AQ0xBXFGDk+7gmvZ4hJ/7sZMIXqWVz6Ikb6+Cxej/hWKaomOStyFb";
 
 function getDocsTheme() {
   if (typeof document === "undefined") return "dark";
@@ -48,13 +53,14 @@ export function ScalarApiReference() {
       layout: "modern",
       showSidebar: true,
       hideDarkModeToggle: true,
+      withDefaultFonts: false,
       theme: theme === "dark" ? "moon" : "default",
       metaData: {
         title: "QuickVoice REST API reference",
-        description: "QuickVoice endpoint reference. In Ask AI, explain the selected operation first, including its method, path, use case, auth, request fields, response, and side effects.",
+        description:
+          "QuickVoice endpoint reference. In Ask AI, explain the selected operation first, including its method, path, use case, auth, request fields, response, and side effects.",
       },
     });
-
   }, [theme]);
 
   useEffect(() => {
@@ -63,23 +69,37 @@ export function ScalarApiReference() {
   }, [mountScalar, scriptReady]);
 
   useEffect(() => {
-    const observer = new MutationObserver(() => {
-      setTheme(getDocsTheme());
+    const observer = new MutationObserver(() => setTheme(getDocsTheme()));
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
     });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     return () => observer.disconnect();
   }, []);
 
   return (
     <main className="api-reference-surface min-h-screen bg-[var(--qv-bg)] text-[var(--qv-ink)]">
-      <Script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference" strategy="afterInteractive" onReady={() => setScriptReady(true)} />
+      <Script
+        src={scalarScript}
+        integrity={scalarIntegrity}
+        crossOrigin="anonymous"
+        strategy="afterInteractive"
+        onReady={() => setScriptReady(true)}
+      />
       <div className="border-b border-[var(--qv-border)] bg-[var(--qv-card)] px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 pr-24">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--qv-blue)]">API reference</p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-[var(--qv-ink)]">QuickVoice REST API</h1>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-[var(--qv-blue)]">
+              API reference
+            </p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-[-0.035em] text-[var(--qv-ink)]">
+              QuickVoice REST API
+            </h1>
           </div>
-          <a className="rounded-full border border-[var(--qv-border)] px-4 py-2 text-sm font-semibold text-[var(--qv-muted)] transition hover:border-[var(--qv-blue)] hover:text-[var(--qv-blue)]" href="/openapi.json">
+          <a
+            className="rounded-full border border-[var(--qv-border)] px-4 py-2 text-sm font-semibold text-[var(--qv-muted)] transition hover:border-[var(--qv-blue)] hover:text-[var(--qv-blue)]"
+            href="/openapi.json"
+          >
             View OpenAPI JSON
           </a>
         </div>

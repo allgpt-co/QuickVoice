@@ -8,6 +8,7 @@ import prisma from "../../src/config/prisma.js";
 import errorMiddleware from "../../src/middleware/error.middleware.js";
 import notFound from "../../src/middleware/notFound.middleware.js";
 import { createPublicWidgetCors } from "../../src/modules/widgets/public-widget-cors.js";
+import { createPublicWidgetSessionSchema } from "../../src/modules/widgets/widget.schema.js";
 
 const allowedOrigin = "https://customer.example";
 const widgetId = "wgt_test";
@@ -171,6 +172,26 @@ test("report preview returns 404 for a missing or another organization's campaig
   );
 });
 
+test("batch campaign detail returns 404 instead of successful null data", async (t) => {
+  stubMethod(t, prisma.campaign, "findFirst", async (args: any) => {
+    assert.deepEqual(args.where, {
+      organizationId: "org_test",
+      campaignId: "missing",
+    });
+    return null;
+  });
+
+  const response = await fetch(`${baseUrl}/outbound-calls/batches/missing`, {
+    headers: internalHeaders,
+  });
+
+  assert.equal(response.status, 404);
+  const body = (await response.json()) as any;
+  assert.equal(body.code, "NOT_FOUND");
+  assert.equal(body.message, "Batch campaign not found");
+  assert.equal(body.data, undefined);
+});
+
 test("report preview uses stored campaign data and accepts an omitted optional body", async (t) => {
   stubMethod(t, prisma.campaign, "findFirst", async () => ({
     campaignId: "campaign_test",
@@ -211,6 +232,7 @@ test("documented public config path returns widget config without authentication
     response.headers.get("access-control-allow-origin"),
     allowedOrigin,
   );
+  assert.equal(response.headers.get("access-control-allow-credentials"), null);
   assert.equal(((await response.json()) as any).data.widgetId, widgetId);
 });
 
@@ -221,7 +243,7 @@ test("nonexistent widget is distinguished from an unregistered route", async (t)
   assert.equal(((await response.json()) as any).message, "Widget not found");
 });
 
-test("allowed customer origin can preflight config, start and end with API-client headers", async (t) => {
+test("allowed customer origin can preflight config, start and end without credentials", async (t) => {
   stubMethod(t, prisma.agentWidget, "findUnique", async () => widget());
   for (const suffix of ["config", "sessions", `sessions/${sessionId}/end`]) {
     const response = await fetch(
@@ -231,8 +253,7 @@ test("allowed customer origin can preflight config, start and end with API-clien
         headers: {
           origin: allowedOrigin,
           "access-control-request-method": suffix === "config" ? "GET" : "POST",
-          "access-control-request-headers":
-            "content-type,x-api-key,authorization",
+          "access-control-request-headers": "content-type",
         },
       },
     );
@@ -241,13 +262,13 @@ test("allowed customer origin can preflight config, start and end with API-clien
       response.headers.get("access-control-allow-origin"),
       allowedOrigin,
     );
-    assert.match(
-      response.headers.get("access-control-allow-headers") ?? "",
-      /x-api-key/i,
+    assert.equal(
+      response.headers.get("access-control-allow-headers"),
+      "Content-Type",
     );
-    assert.match(
-      response.headers.get("access-control-allow-headers") ?? "",
-      /authorization/i,
+    assert.equal(
+      response.headers.get("access-control-allow-credentials"),
+      null,
     );
   }
 });
@@ -282,6 +303,54 @@ test("CORS survives body-parser, validation and rate-limit errors", async (t) =>
       allowedOrigin,
     );
   }
+});
+
+test("public widget input accepts tracking only, including an omitted body", () => {
+  assert.deepEqual(createPublicWidgetSessionSchema.parse(undefined), {});
+  assert.deepEqual(createPublicWidgetSessionSchema.parse({}), {});
+  assert.deepEqual(
+    createPublicWidgetSessionSchema.parse({ visitorId: "visitor-1" }),
+    { visitorId: "visitor-1" },
+  );
+});
+
+test("a forged allowed Origin cannot authorize widget prompt or variable overrides", async (t) => {
+  stubMethod(t, prisma.agentWidget, "findUnique", async () => widget());
+  const createSession = stubMethod(
+    t,
+    prisma.agentWidgetSession,
+    "create",
+    async () => {
+      throw new Error("must not create a session");
+    },
+  );
+  for (const input of [
+    { dynamicVariables: { customer_id: "victim" } },
+    { dynamic_variables: { customer_id: "victim" } },
+    { system_prompt: "untrusted instruction" },
+    {
+      metadata: {
+        mode: "preview",
+        dynamic_variables: { customer_id: "victim" },
+      },
+    },
+  ]) {
+    const response = await fetch(
+      `${baseUrl}/public/widgets/${widgetId}/sessions`,
+      {
+        method: "POST",
+        headers: { origin: allowedOrigin, "content-type": "application/json" },
+        body: JSON.stringify({ visitorId: "visitor-1", ...input }),
+      },
+    );
+    assert.equal(response.status, 400);
+    assert.equal(((await response.json()) as any).code, "VALIDATION_ERROR");
+    assert.equal(
+      response.headers.get("access-control-allow-origin"),
+      allowedOrigin,
+    );
+  }
+  assert.equal(createSession.mock.callCount(), 0);
 });
 
 test("disabled widgets return readable errors and allow existing sessions to end", async (t) => {

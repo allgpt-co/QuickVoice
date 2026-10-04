@@ -55,6 +55,14 @@ if (options.checkSuppressionsOnly) {
   process.exit(0);
 }
 
+if (activeSuppressions.some((entry) => entry.module === "braces" && entry.id === "GHSA-vfj7-8cjw-p6xm")) {
+  const verification = spawnSync(process.execPath, ["scripts/verify-braces-patch.mjs"], { stdio: "inherit", timeout: 10_000 });
+  if (verification.status !== 0) {
+    console.error("Refusing braces advisory exception: installed mitigation is missing or failed");
+    process.exit(1);
+  }
+}
+
 function parseArgs(rawArgs) {
   const parsed = {
     auditLevel: "low",

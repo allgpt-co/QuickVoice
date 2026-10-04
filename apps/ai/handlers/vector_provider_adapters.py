@@ -10,6 +10,7 @@ import abc
 import asyncio
 import math
 import os
+import threading
 import uuid
 from dataclasses import dataclass
 from typing import Any, Optional
@@ -17,6 +18,7 @@ from typing import Any, Optional
 import httpx
 
 from utils.logger import logger, redact_sensitive
+from utils import kb_index_state
 
 
 class VectorAdapterError(RuntimeError):
@@ -59,7 +61,7 @@ class BaseVectorStoreAdapter(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def delete_by_kb(self, *, namespace: str, kb_id: str) -> None:
+    def delete_by_kb(self, *, namespace: str, kb_id: str, permanent: bool = True) -> None:
         """Delete all vectors matching a specific kb_id under the given namespace."""
         pass
 
@@ -480,14 +482,18 @@ class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
         embeddings: list[list[float]],
     ) -> None:
         index = self._index()
-        self.delete_by_kb(namespace=namespace, kb_id=kb_id)
+        if not embeddings:
+            return
+        expected = kb_index_state.assert_not_deleted(namespace, kb_id)
+        version = uuid.uuid4().hex
         vectors = [
             {
-                "id": f"{kb_id}#{i}",
+                "id": f"{kb_id}#{version}#{i}",
                 "values": emb,
                 "metadata": {
                     "agentId": namespace,
                     "kbId": kb_id,
+                    "indexVersion": version,
                     "name": doc_name,
                     "chunkIdx": i,
                     "text": chunk,
@@ -495,14 +501,33 @@ class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
             }
             for i, (chunk, emb) in enumerate(zip(chunks, embeddings))
         ]
-        batch_size = 100
-        for start in range(0, len(vectors), batch_size):
-            index.upsert(vectors=vectors[start : start + batch_size], namespace=namespace)
+        version_filter = {"kbId": {"$eq": kb_id}, "indexVersion": {"$eq": version}}
+        try:
+            for start in range(0, len(vectors), 100):
+                index.upsert(vectors=vectors[start : start + 100], namespace=namespace)
+        except Exception:
+            index.delete(filter=version_filter, namespace=namespace)
+            raise
+        # Leave staged data intact on an ambiguous Redis publication failure.
+        accepted, previous = kb_index_state.publish(namespace, kb_id, version, expected)
+        if not accepted:
+            index.delete(filter=version_filter, namespace=namespace)
+            raise VectorAdapterError("Knowledge source was deleted or changed during indexing")
+        if previous.startswith("!"):
+            return
+        index.delete(filter={"kbId": {"$eq": kb_id}, "indexVersion":
+                     {"$eq": previous} if previous else {"$exists": False}}, namespace=namespace)
 
-    def delete_by_kb(self, *, namespace: str, kb_id: str) -> None:
+    def delete_by_kb(self, *, namespace: str, kb_id: str, permanent: bool = True) -> None:
+        previous = kb_index_state.delete(namespace, kb_id, permanent=permanent)
+        if not permanent and previous.startswith("!"):
+            return
+        removal_filter = {"kbId": {"$eq": kb_id}}
+        if not permanent:
+            removal_filter["indexVersion"] = {"$eq": previous} if previous else {"$exists": False}
         try:
             index = self._index()
-            index.delete(filter={"kbId": {"$eq": kb_id}}, namespace=namespace)
+            index.delete(filter=removal_filter, namespace=namespace)
         except Exception as exc:
             msg = str(exc).lower()
             if "namespace not found" in msg or "404" in msg:
@@ -518,13 +543,21 @@ class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
         top_k: int = 5,
     ) -> list[VectorMatch]:
         index = self._index()
-        resp = await asyncio.to_thread(
-            index.query,
-            vector=vector,
-            top_k=top_k,
-            namespace=namespace,
-            include_metadata=True,
-        )
+        for attempt in range(3):
+            state = await asyncio.to_thread(kb_index_state.snapshot, namespace)
+            legacy = {"indexVersion": {"$exists": False}}
+            if state:
+                legacy["kbId"] = {"$nin": list(state)}
+            filters = [legacy] + [
+                {"kbId": {"$eq": kb_id}, "indexVersion": {"$eq": version}}
+                for kb_id, version in state.items() if not version.startswith("!")
+            ]
+            resp = await asyncio.to_thread(index.query, vector=vector, top_k=top_k,
+                                           namespace=namespace, include_metadata=True, filter={"$or": filters})
+            if state == await asyncio.to_thread(kb_index_state.snapshot, namespace):
+                break
+        else:
+            raise VectorAdapterError("Knowledge index changed during retrieval; retry the query")
         matches = resp.get("matches", []) if isinstance(resp, dict) else getattr(resp, "matches", [])
         results: list[VectorMatch] = []
         for m in matches:
@@ -555,6 +588,8 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
         self._api_key = api_key or os.environ.get("QDRANT_API_KEY")
         self._collection_name = collection_name or os.environ.get("QDRANT_COLLECTION_NAME", "quickvoice-kb")
         self._client = None
+        self._collection_vector_size: Optional[int] = None
+        self._collection_lock = threading.Lock()
 
     def _get_client(self):
         if self._client is None:
@@ -562,38 +597,77 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
             self._client = QdrantClient(url=self._url, api_key=self._api_key or None)
         return self._client
 
-    def _ensure_collection(self, vector_size: int):
-        from qdrant_client import models
-        client = self._get_client()
-        collections = client.get_collections().collections
-        exists = any(col.name == self._collection_name for col in collections)
-        if exists:
-            collection = client.get_collection(self._collection_name)
-            vectors = collection.config.params.vectors
-            configured_size = getattr(vectors, "size", None)
-            if isinstance(configured_size, int) and configured_size != vector_size:
-                raise VectorAdapterError(
-                    f"Qdrant collection '{self._collection_name}' expects {configured_size}-dimensional "
-                    f"vectors, but the configured embedding provider returned {vector_size}. "
-                    "Use a new collection or reindex it with the selected embedding model."
-                )
+    def _validate_collection_size(self, collection, vector_size: int) -> None:
+        vectors = collection.config.params.vectors
+        configured_size = getattr(vectors, "size", None)
+        if isinstance(configured_size, int) and configured_size != vector_size:
+            raise VectorAdapterError(
+                f"Qdrant collection '{self._collection_name}' expects {configured_size}-dimensional "
+                f"vectors, but the configured embedding provider returned {vector_size}. "
+                "Use a new collection or reindex it with the selected embedding model."
+            )
+
+    def _collection_is_ready(self, vector_size: int) -> bool:
+        if self._collection_vector_size is None:
+            return False
+        if self._collection_vector_size != vector_size:
+            raise VectorAdapterError(
+                f"Qdrant collection '{self._collection_name}' expects "
+                f"{self._collection_vector_size}-dimensional vectors, but the configured "
+                f"embedding provider returned {vector_size}. Use a new collection or reindex "
+                "it with the selected embedding model."
+            )
+        return True
+
+    @staticmethod
+    def _is_collection_missing(exc: Exception) -> bool:
+        status = getattr(exc, "status", None) or getattr(exc, "status_code", None)
+        message = str(exc).lower()
+        return status in {404, "404"} or "not found" in message or "doesn't exist" in message
+
+    def _ensure_collection(self, vector_size: int) -> None:
+        if self._collection_is_ready(vector_size):
             return
 
-        client.create_collection(
-            collection_name=self._collection_name,
-            vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
-        )
-        # Create payload indexes for fast filtered searches
-        client.create_payload_index(
-            collection_name=self._collection_name,
-            field_name="agentId",
-            field_schema=models.PayloadSchemaType.KEYWORD,
-        )
-        client.create_payload_index(
-            collection_name=self._collection_name,
-            field_name="kbId",
-            field_schema=models.PayloadSchemaType.KEYWORD,
-        )
+        from qdrant_client import models
+        client = self._get_client()
+        with self._collection_lock:
+            if self._collection_is_ready(vector_size):
+                return
+
+            try:
+                collection = client.get_collection(self._collection_name)
+            except Exception as exc:
+                if not self._is_collection_missing(exc):
+                    raise
+                try:
+                    client.create_collection(
+                        collection_name=self._collection_name,
+                        vectors_config=models.VectorParams(size=vector_size, distance=models.Distance.COSINE),
+                    )
+                except Exception as create_exc:
+                    # Another process may have created the collection after our 404.
+                    try:
+                        collection = client.get_collection(self._collection_name)
+                    except Exception:
+                        raise create_exc
+                    self._validate_collection_size(collection, vector_size)
+                else:
+                    # Create payload indexes for fast filtered searches.
+                    client.create_payload_index(
+                        collection_name=self._collection_name,
+                        field_name="agentId",
+                        field_schema=models.PayloadSchemaType.KEYWORD,
+                    )
+                    client.create_payload_index(
+                        collection_name=self._collection_name,
+                        field_name="kbId",
+                        field_schema=models.PayloadSchemaType.KEYWORD,
+                    )
+            else:
+                self._validate_collection_size(collection, vector_size)
+
+            self._collection_vector_size = vector_size
 
     def upsert(
         self,
@@ -606,18 +680,21 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
     ) -> None:
         if not embeddings:
             return
+        expected = kb_index_state.assert_not_deleted(namespace, kb_id)
         from qdrant_client import models
         client = self._get_client()
         self._ensure_collection(len(embeddings[0]))
-        self.delete_by_kb(namespace=namespace, kb_id=kb_id)
+        index_version = uuid.uuid4().hex
 
         points = [
             models.PointStruct(
-                id=str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{namespace}#{kb_id}#{i}")),
+                id=str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{namespace}#{kb_id}#{index_version}#{i}")),
                 vector=emb,
                 payload={
                     "agentId": namespace,
                     "kbId": kb_id,
+                    "indexVersion": index_version,
+                    "active": False,
                     "name": doc_name,
                     "chunkIdx": i,
                     "text": chunk,
@@ -626,25 +703,77 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
             for i, (chunk, emb) in enumerate(zip(chunks, embeddings))
         ]
         batch_size = 100
-        for start in range(0, len(points), batch_size):
-            client.upsert(
-                collection_name=self._collection_name,
-                points=points[start : start + batch_size],
-            )
+        version_filter = models.Filter(
+            must=[
+                models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace)),
+                models.FieldCondition(key="kbId", match=models.MatchValue(value=kb_id)),
+                models.FieldCondition(key="indexVersion", match=models.MatchValue(value=index_version)),
+            ]
+        )
+        try:
+            for start in range(0, len(points), batch_size):
+                client.upsert(
+                    collection_name=self._collection_name,
+                    points=points[start : start + batch_size],
+                    wait=True,
+                )
+        except Exception:
+            try:
+                client.delete(
+                    collection_name=self._collection_name,
+                    points_selector=version_filter,
+                    wait=True,
+                )
+            except Exception as cleanup_exc:
+                logger.warning(
+                    "[kb] failed to clean staged Qdrant vectors {}",
+                    redact_sensitive({"namespace": namespace, "kbId": kb_id, "error": str(cleanup_exc)}),
+                )
+            raise
 
-    def delete_by_kb(self, *, namespace: str, kb_id: str) -> None:
+        # Do not roll back an ambiguous Redis result: publication may have
+        # committed. Unpublished staged vectors are never query-visible.
+        accepted, previous = kb_index_state.publish(namespace, kb_id, index_version, expected)
+        if not accepted:
+            client.delete(collection_name=self._collection_name, points_selector=version_filter, wait=True)
+            raise VectorAdapterError("Knowledge source was deleted or changed during indexing")
+        # Delete exactly what this atomic publication replaced, never another
+        # concurrent writer's generation. Legacy vectors predate the manifest.
+        if previous.startswith("!"):
+            return
+        previous_filter = models.Filter(must=[
+            models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace)),
+            models.FieldCondition(key="kbId", match=models.MatchValue(value=kb_id)),
+        ])
+        if previous:
+            previous_filter.must.append(models.FieldCondition(key="indexVersion", match=models.MatchValue(value=previous)))
+        else:
+            previous_filter.should = [
+                models.FieldCondition(key="active", match=models.MatchValue(value=True)),
+                models.IsEmptyCondition(is_empty=models.PayloadField(key="active")),
+            ]
+        client.delete(collection_name=self._collection_name, points_selector=previous_filter, wait=True)
+
+    def delete_by_kb(self, *, namespace: str, kb_id: str, permanent: bool = True) -> None:
+        previous = kb_index_state.delete(namespace, kb_id, permanent=permanent)
+        if not permanent and previous.startswith("!"):
+            return
         from qdrant_client import models
         client = self._get_client()
+        removal_filter = models.Filter(must=[
+            models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace)),
+            models.FieldCondition(key="kbId", match=models.MatchValue(value=kb_id)),
+        ])
+        if not permanent:
+            if previous:
+                removal_filter.must.append(models.FieldCondition(key="indexVersion", match=models.MatchValue(value=previous)))
+            else:
+                removal_filter.should = [
+                    models.FieldCondition(key="active", match=models.MatchValue(value=True)),
+                    models.IsEmptyCondition(is_empty=models.PayloadField(key="active")),
+                ]
         try:
-            client.delete(
-                collection_name=self._collection_name,
-                points_selector=models.Filter(
-                    must=[
-                        models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace)),
-                        models.FieldCondition(key="kbId", match=models.MatchValue(value=kb_id)),
-                    ]
-                ),
-            )
+            client.delete(collection_name=self._collection_name, points_selector=removal_filter, wait=True)
         except Exception as exc:
             msg = str(exc).lower()
             if "not found" in msg or "doesn't exist" in msg:
@@ -661,7 +790,20 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
         from qdrant_client import models
         client = self._get_client()
 
-        def _search():
+        def _search(state):
+            legacy = models.Filter(should=[
+                models.FieldCondition(key="active", match=models.MatchValue(value=True)),
+                models.IsEmptyCondition(is_empty=models.PayloadField(key="active")),
+            ])
+            if state:
+                legacy.must_not = [models.FieldCondition(key="kbId", match=models.MatchAny(any=list(state)))]
+            query_filter = models.Filter(
+                must=[models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace))],
+                should=[legacy] + [models.Filter(must=[
+                    models.FieldCondition(key="kbId", match=models.MatchValue(value=kb_id)),
+                    models.FieldCondition(key="indexVersion", match=models.MatchValue(value=version)),
+                ]) for kb_id, version in state.items() if not version.startswith("!")],
+            )
             try:
                 # Use query_points (newer API) or search (compatible)
                 if hasattr(client, "query_points"):
@@ -669,9 +811,7 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
                         collection_name=self._collection_name,
                         query=vector,
                         limit=top_k,
-                        query_filter=models.Filter(
-                            must=[models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace))]
-                        ),
+                        query_filter=query_filter,
                         with_payload=True,
                     ).points
                 else:
@@ -679,18 +819,24 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
                         collection_name=self._collection_name,
                         query_vector=vector,
                         limit=top_k,
-                        query_filter=models.Filter(
-                            must=[models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace))]
-                        ),
+                        query_filter=query_filter,
                         with_payload=True,
                     )
             except Exception as exc:
-                msg = str(exc).lower()
-                if "not found" in msg or "doesn't exist" in msg:
-                    return []
+                if self._is_collection_missing(exc):
+                    raise VectorAdapterError(
+                        f"Qdrant collection '{self._collection_name}' was not found. "
+                        "Check QDRANT_COLLECTION_NAME and run the knowledge-base reindex."
+                    ) from exc
                 raise
 
-        points = await asyncio.to_thread(_search)
+        for attempt in range(3):
+            state = await asyncio.to_thread(kb_index_state.snapshot, namespace)
+            points = await asyncio.to_thread(_search, state)
+            if state == await asyncio.to_thread(kb_index_state.snapshot, namespace):
+                break
+        else:
+            raise VectorAdapterError("Knowledge index changed during retrieval; retry the query")
         results: list[VectorMatch] = []
         for p in points:
             payload = getattr(p, "payload", {}) or {}

@@ -74,6 +74,8 @@ type WidgetState =
   | "error";
 
 const loaderScript = document.currentScript as HTMLScriptElement | null;
+// Read the property: browsers hide nonce values from getAttribute("nonce").
+const loaderNonce = loaderScript?.nonce ?? "";
 
 const DEFAULT_THEME: WidgetTheme = {
   primaryColor: "#002FA7",
@@ -380,9 +382,10 @@ class QuickVoiceWidgetElement extends HTMLElement {
     const avatarMarkup = theme.showAvatar
       ? avatarHtml({ theme, avatarOrbColor1, avatarOrbColor2 })
       : "";
+    const styleNonce = this.nonce || loaderNonce;
 
     this.root.innerHTML = `
-      <style>
+      <style${styleNonce ? ` nonce="${escapeAttribute(styleNonce)}"` : ""}>
         :host {
           all: initial;
           color-scheme: light;
@@ -647,8 +650,25 @@ async function unwrapResponse<T>(response: Response): Promise<T> {
   throw new Error("Malformed widget response.");
 }
 
-function normalizeTheme(value?: Partial<WidgetTheme> | null): WidgetTheme {
-  return { ...DEFAULT_THEME, ...(value ?? {}) };
+function normalizeTheme(value?: unknown): WidgetTheme {
+  const theme = { ...DEFAULT_THEME };
+  if (!value || typeof value !== "object" || Array.isArray(value)) return theme;
+  const fields = value as Record<string, unknown>;
+  for (const key of Object.keys(DEFAULT_THEME) as (keyof WidgetTheme)[]) {
+    const field = fields[key];
+    if (
+      field !== null &&
+      typeof field === typeof DEFAULT_THEME[key] &&
+      (typeof field !== "number" || Number.isFinite(field)) &&
+      (typeof field !== "string" || field.trim().length > 0)
+    ) {
+      Object.assign(theme, { [key]: field });
+    }
+  }
+  theme.position = isWidgetPosition(theme.position) ? theme.position : DEFAULT_THEME.position;
+  theme.launcherSize = isLauncherSize(theme.launcherSize) ? theme.launcherSize : DEFAULT_THEME.launcherSize;
+  theme.avatarImageUrl = safeImageUrl(typeof fields.avatarImageUrl === "string" ? fields.avatarImageUrl : null);
+  return theme;
 }
 
 function themeWithAttributeOverrides(

@@ -136,6 +136,7 @@ class BillingUsageReporter:
         self._last_success_monotonic: float | None = None
         self._report_lock = asyncio.Lock()
         self._periodic_task: asyncio.Task[None] | None = None
+        self._close_task: asyncio.Task[None] | None = None
         self._stop_event = asyncio.Event()
         self._closed = False
         self._closing = False
@@ -272,8 +273,18 @@ class BillingUsageReporter:
     async def close(self, final_usage: Any = None) -> None:
         """Stop periodic work and make one best-effort final cumulative export."""
 
-        if self._closed or self._closing:
+        if self._closed:
             return
+        if final_usage is not None:
+            self.update_usage(final_usage)
+        if self._close_task is None:
+            self._close_task = asyncio.create_task(
+                self._close(),
+                name=f"billing-usage-close-{self._identifiers.session_id}",
+            )
+        await asyncio.shield(self._close_task)
+
+    async def _close(self) -> None:
         self.mark_ended()
         self._closing = True
         self._stop_event.set()
@@ -282,9 +293,6 @@ class BillingUsageReporter:
         if periodic_task and periodic_task is not asyncio.current_task() and not periodic_task.done():
             periodic_task.cancel()
             await asyncio.gather(periodic_task, return_exceptions=True)
-
-        if final_usage is not None:
-            self.update_usage(final_usage)
 
         try:
             await self.report_now(final=True)

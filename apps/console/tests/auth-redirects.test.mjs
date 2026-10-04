@@ -135,6 +135,7 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
     let signInBody;
     let socialBody;
     const elements = [];
+    let cacheClears = 0;
     const noop = () => {};
     const signIn = {
       email: async (body) => {
@@ -155,8 +156,14 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
       }) },
       "react-hook-form": { useForm: () => ({ handleSubmit: (handler) => { submit = handler; } }) },
       "@hookform/resolvers/zod": { zodResolver: noop },
+      "@tanstack/react-query": {
+        useQueryClient: () => ({ clear: () => { cacheClears++; } }),
+      },
       sonner: { toast: { success: noop, error: (message) => { throw new Error(message); } } },
       "@/src/lib/links": links.exports,
+      "@/src/lib/query-cache": {
+        clearIdentityCache: (client) => client.clear(),
+      },
       "@/src/lib/auth-client": { authClient: { signIn }, signIn },
     };
     function loadComponent(path) {
@@ -174,6 +181,7 @@ test("invited email and Google sign-in preserve the invitation and use fixed int
     const destination = invitationId ? `/accept-invitation?invitationId=${encodeURIComponent(invitationId)}` : "/dashboard";
     assert.equal(nextPage, destination);
     assert.equal(refreshed, true);
+    assert.equal(cacheClears, 1);
     assert.equal(signInBody.rememberMe, remember);
     assert.ok(elements.some(({ props }) => props?.href === links.exports.invitationPath(invitationId, "/register")));
     elements.find(({ props }) => props?.name === "password" && props.render).props.render({ field: {} });

@@ -1,11 +1,15 @@
+import { nextCampaignDailyPass } from "../../src/modules/outbound/campaign-time.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  buildBatchCampaignResultsCsv,
+  cancelBatchCampaign,
   createBatchCampaign,
   createBatchUploadUrl,
   dispatchBatchCampaign,
   exportBatchCampaignResultsCsv,
+  getBatchCampaignDetail,
   importBatchCampaignRecipients,
 } from "../../src/modules/outbound/outbound-batch.service.js";
 
@@ -103,6 +107,47 @@ test("createBatchCampaign queues the import job with a BullMQ-safe custom id", a
       removeOnFail: 200,
     },
   ]);
+});
+
+test("createBatchCampaign requires a literal dot before the storage-key extension", async () => {
+  let repositoryUsed = false;
+
+  await assert.rejects(
+    createBatchCampaign(
+      {
+        organizationId: "org_123",
+        userId: "user_123",
+        name: "Invalid upload reference",
+        agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+        fromNumber: "+15551230000",
+        sourceFileKey: `outbound-batches/org_123/${TEST_UPLOAD_ID}xcsv`,
+        sourceFileName: "file.csv",
+        scheduledAt: null,
+        timezone: "UTC",
+        ringingTimeoutSeconds: 45,
+      },
+      {
+        repository: {
+          getMonthlyUsage: async () => {
+            repositoryUsed = true;
+            throw new Error("repository must not be called");
+          },
+          getDialableNumber: async () => null,
+          createBatchCampaign: async () => {
+            throw new Error("repository must not be called");
+          },
+        },
+        queue: {
+          add: async () => {
+            throw new Error("queue must not be called");
+          },
+        },
+      },
+    ),
+    /Batch file reference is invalid for the active organization/,
+  );
+
+  assert.equal(repositoryUsed, false);
 });
 
 test("importBatchCampaignRecipients persists valid and invalid file rows and schedules dispatch", async () => {
@@ -295,19 +340,21 @@ test("importBatchCampaignRecipients rejects oversized recipient sets and marks t
   assert.equal(failedCampaignId, "campaign_oversized");
 });
 
-test("dispatchBatchCampaign queues dispatch-call jobs with BullMQ-safe custom ids", async () => {
+test("dispatchBatchCampaign queues only the database-reserved call slots and schedules another pump", async () => {
   const calls: unknown[] = [];
   const repo = {
-    getCampaignForDispatch: async (campaignId: string) => {
-      calls.push(["loadCampaign", campaignId]);
-      return { campaignId };
-    },
-    listScheduledOutboundIdsForCampaign: async (campaignId: string) => {
-      calls.push(["listOutboundIds", campaignId]);
-      return ["outbound_123", "outbound_456"];
+    claimCampaignDispatchSlots: async (campaignId: string, now: Date) => {
+      calls.push(["claimSlots", campaignId, now]);
+      return {
+        outboundIds: ["outbound_123", "outbound_456"],
+        scheduledRemaining: 9_998,
+        campaignActiveCalls: 2,
+        dailyLimitReached: false,
+      };
     },
     markCampaignActive: async (campaignId: string) => {
       calls.push(["markActive", campaignId]);
+      return true;
     },
     markCampaignCompleted: async (campaignId: string) => {
       calls.push(["markCompleted", campaignId]);
@@ -321,7 +368,11 @@ test("dispatchBatchCampaign queues dispatch-call jobs with BullMQ-safe custom id
 
   await dispatchBatchCampaign(
     { campaignId: "campaign_123" },
-    { repository: repo, queue },
+    {
+      repository: repo,
+      queue,
+      now: () => new Date("2026-10-01T12:00:00.000Z"),
+    },
   );
 
   const queueCalls = calls.filter((call) => (call as unknown[])[0] === "queue");
@@ -332,7 +383,7 @@ test("dispatchBatchCampaign queues dispatch-call jobs with BullMQ-safe custom id
       { outboundId: "outbound_123" },
       {
         jobId: "outbound-call-dispatch-outbound_123",
-        removeOnComplete: 100,
+        removeOnComplete: true,
         removeOnFail: 200,
       },
     ],
@@ -342,11 +393,156 @@ test("dispatchBatchCampaign queues dispatch-call jobs with BullMQ-safe custom id
       { outboundId: "outbound_456" },
       {
         jobId: "outbound-call-dispatch-outbound_456",
-        removeOnComplete: 100,
+        removeOnComplete: true,
+        removeOnFail: 200,
+      },
+    ],
+    [
+      "queue",
+      "dispatch-campaign",
+      { campaignId: "campaign_123" },
+      {
+        delay: 5_000,
+        jobId: "outbound-batch-pump-campaign_123-1790856005000",
+        removeOnComplete: true,
         removeOnFail: 200,
       },
     ],
   ]);
+});
+
+test("dispatch does nothing when cancellation wins the campaign claim", async () => {
+  const calls: string[] = [];
+
+  await dispatchBatchCampaign(
+    { campaignId: "campaign_cancelled" },
+    {
+      repository: {
+        markCampaignActive: async () => false,
+        claimCampaignDispatchSlots: async () => {
+          calls.push("list");
+          return null;
+        },
+        markCampaignCompleted: async () => {
+          calls.push("complete");
+          return {} as never;
+        },
+      },
+      queue: {
+        add: async () => {
+          calls.push("queue");
+        },
+      },
+    },
+  );
+
+  assert.deepEqual(calls, []);
+});
+
+test("dispatchBatchCampaign waits until the next UTC day after reaching the daily limit", async () => {
+  const calls: unknown[] = [];
+  const now = new Date("2026-10-01T23:59:30.000Z");
+
+  await dispatchBatchCampaign(
+    { campaignId: "campaign_daily_limit" },
+    {
+      repository: {
+        markCampaignActive: async () => true,
+        claimCampaignDispatchSlots: async () => ({
+          outboundIds: [],
+          scheduledRemaining: 50,
+          campaignActiveCalls: 0,
+          dailyLimitReached: true,
+        }),
+        markCampaignCompleted: async () => {
+          throw new Error("campaign must remain active");
+        },
+      },
+      queue: {
+        add: async (...args: unknown[]) => {
+          calls.push(args);
+        },
+      },
+      now: () => now,
+    },
+  );
+
+  assert.deepEqual(calls, [
+    [
+      "dispatch-campaign",
+      { campaignId: "campaign_daily_limit" },
+      {
+        delay: 30_000,
+        jobId: `outbound-batch-pump-campaign_daily_limit-${Date.parse("2026-10-02T00:00:00.000Z")}`,
+        removeOnComplete: true,
+        removeOnFail: 200,
+      },
+    ],
+  ]);
+});
+
+test("active campaign cancellation stops running rooms", async () => {
+  const stopped: string[] = [];
+  const campaign = {
+    campaignId: "campaign_active",
+    status: "ACTIVE",
+  };
+
+  const result = await cancelBatchCampaign(
+    { organizationId: "org_123", campaignId: campaign.campaignId },
+    {
+      repository: {
+        getBatchCampaignDetail: async () => campaign as never,
+        markCampaignCancelled: async () =>
+          ({
+            cancelled: true,
+            runningOutboundIds: ["outbound_1", "outbound_2"],
+            campaign: { ...campaign, status: "CANCELLED" },
+          }) as never,
+      },
+      stopCall: async (outboundId) => {
+        stopped.push(outboundId);
+      },
+    },
+  );
+
+  assert.equal(result.status, "CANCELLED");
+  assert.deepEqual(stopped, ["outbound_1", "outbound_2"]);
+});
+
+test("missing batch campaigns consistently raise 404 errors", async () => {
+  const isNotFound = (error: unknown) => {
+    assert.equal((error as { statusCode?: number }).statusCode, 404);
+    assert.equal((error as Error).message, "Batch campaign not found");
+    return true;
+  };
+
+  await assert.rejects(
+    getBatchCampaignDetail(
+      { organizationId: "org_123", campaignId: "missing" },
+      { repository: { getBatchCampaignDetail: async () => null } },
+    ),
+    isNotFound,
+  );
+  await assert.rejects(
+    cancelBatchCampaign(
+      { organizationId: "org_123", campaignId: "missing" },
+      {
+        repository: {
+          getBatchCampaignDetail: async () => null,
+          markCampaignCancelled: async () => null,
+        },
+      },
+    ),
+    isNotFound,
+  );
+  await assert.rejects(
+    exportBatchCampaignResultsCsv(
+      { organizationId: "org_123", campaignId: "missing" },
+      { repository: { getBatchCampaignResults: async () => null } },
+    ),
+    isNotFound,
+  );
 });
 
 test("exportBatchCampaignResultsCsv flattens source questions and extracted answers", async () => {
@@ -459,6 +655,51 @@ test("exportBatchCampaignResultsCsv flattens source questions and extracted answ
   );
 });
 
+test("campaign CSV neutralizes formulas and quotes carriage returns", () => {
+  const content = buildBatchCampaignResultsCsv({
+    campaignId: "campaign_unsafe",
+    name: "Unsafe values",
+    sourceFileName: "unsafe.csv",
+    outboundCalls: [
+      {
+        outboundId: "outbound_unsafe",
+        phoneNumber: "+15550001111",
+        fromNumber: "+15551230000",
+        firstMessage: null,
+        systemPrompt: null,
+        status: "FAILED",
+        scheduledAt: null,
+        createdAt: new Date("2026-08-04T09:00:00.000Z"),
+        updatedAt: new Date("2026-08-04T09:00:00.000Z"),
+        optionalData: {
+          rowNumber: 2,
+          importError: "@SUM(1+1)",
+          dynamicVariables: {
+            customer_id: "=HYPERLINK(\"https://evil.example\")",
+            notes: "first\rsecond",
+            international_phone: "+919876543210",
+            max_length_phone: "+123456789012345",
+            formula_phone: "+15550001111+1",
+            function_phone: "+SUM(1+1)",
+            too_long_phone: "+1234567890123456",
+            newline_phone: "+15550001111\n=1+1",
+          },
+        },
+        callLog: null,
+      },
+    ],
+  } as any);
+
+  assert.match(content, /2,\+15550001111,FAILED/);
+  assert.match(content, /,'@SUM\(1\+1\),/);
+  assert.match(content, /"'=HYPERLINK\(""https:\/\/evil\.example""\)"/);
+  assert.match(content, /"first\rsecond"/);
+  assert.match(content, /,\+919876543210,\+123456789012345,/);
+  assert.match(content, /,'\+15550001111\+1,'\+SUM\(1\+1\),/);
+  assert.match(content, /,\+1234567890123456,/);
+  assert.match(content, /"'\+15550001111\n=1\+1"/);
+});
+
 test("createBatchCampaign rejects immediately when plan minutes are exhausted", async () => {
   const calls: unknown[] = [];
   const repo = {
@@ -509,4 +750,81 @@ test("createBatchCampaign rejects immediately when plan minutes are exhausted", 
   );
 
   assert.deepEqual(calls, []);
+});
+
+
+test("10,000 capacity-blocked recipients create one campaign retry and no per-call retries", async () => {
+  const queued: { name: string; data: unknown; options: any }[] = [];
+  await dispatchBatchCampaign({ campaignId: "large_campaign" }, {
+    repository: {
+      markCampaignActive: async () => true,
+      claimCampaignDispatchSlots: async () => ({
+        outboundIds: [], scheduledRemaining: 10_000, campaignActiveCalls: 10,
+        dailyLimitReached: false,
+      }),
+      markCampaignCompleted: async () => { throw new Error("campaign still has recipients"); },
+    },
+    queue: { add: async (name, data, options) => { queued.push({ name, data, options }); } },
+    now: () => new Date("2026-10-03T12:00:00Z"),
+  });
+  assert.equal(queued.length, 1);
+  assert.equal(queued[0]?.name, "dispatch-campaign");
+  assert.deepEqual(queued[0]?.data, { campaignId: "large_campaign" });
+  assert.ok(queued[0]?.options.delay > 0, "retry is delayed instead of busy-looping");
+});
+
+for (const [timezone, start, expected] of [
+  ["America/New_York", "2026-09-29T14:00:00Z", "2026-10-02T14:00:00.000Z"],
+  ["Asia/Kolkata", "2026-09-29T03:30:00Z", "2026-10-02T03:30:00.000Z"],
+]) test(`daily quota resumes at campaign local clock in ${timezone}`, async () => {
+  const now = new Date("2026-10-01T23:59:30Z");
+  const resumeAt = nextCampaignDailyPass(now, new Date(start!), timezone!);
+  assert.equal(resumeAt.toISOString(), expected);
+  const queued: any[] = [];
+  await dispatchBatchCampaign({ campaignId: "daily" }, {
+    now: () => now,
+    repository: {
+      markCampaignActive: async () => true,
+      claimCampaignDispatchSlots: async () => ({ outboundIds: [], scheduledRemaining: 10000, campaignActiveCalls: 0, dailyLimitReached: true, resumeAt }),
+      markCampaignCompleted: async () => { throw new Error("must remain active"); },
+    },
+    queue: { add: async (...args: any[]) => { queued.push(args); } },
+  });
+  assert.equal(queued.length, 1);
+  assert.equal(now.getTime() + queued[0][2].delay, Date.parse(expected!));
+});
+
+test("campaign retry recovers committed claims after Redis rejected the enqueue", async () => {
+  let fail = true;
+  const queued = new Set<string>();
+  const repository = {
+    markCampaignActive: async () => true,
+    markCampaignCompleted: async () => { throw new Error("not complete"); },
+    claimCampaignDispatchSlots: async () => ({ outboundIds: ["claimed-before-crash"], scheduledRemaining: 0, campaignActiveCalls: 1, dailyLimitReached: false }),
+  };
+  const queue = { add: async (name: string, _data: unknown, opts: any) => {
+    if (fail) throw new Error("Redis unavailable");
+    if (name === "dispatch-call") queued.add(opts.jobId);
+  } };
+  await assert.rejects(dispatchBatchCampaign({ campaignId: "c" }, { repository: repository as any, queue: queue as any }));
+  fail = false;
+  await dispatchBatchCampaign({ campaignId: "c" }, { repository: repository as any, queue: queue as any, reschedule: false });
+  assert.deepEqual([...queued], ["outbound-call-dispatch-claimed-before-crash"]);
+});
+
+test("recovery retries a failed BullMQ job when its database claim still exists", async () => {
+  let retried = 0;
+  await dispatchBatchCampaign({ campaignId: "c" }, {
+    repository: {
+      markCampaignActive: async () => true,
+      markCampaignCompleted: async () => { throw new Error("not complete"); },
+      claimCampaignDispatchSlots: async () => ({ outboundIds: ["pending"], scheduledRemaining: 0, campaignActiveCalls: 1, dailyLimitReached: false }),
+    } as any,
+    reschedule: false,
+    queue: {
+      add: async () => { throw new Error("existing failed job must be retried, not added again"); },
+      getJob: async () => ({ getState: async () => "failed", retry: async () => { retried++; } }),
+    },
+  });
+  assert.equal(retried, 1);
 });

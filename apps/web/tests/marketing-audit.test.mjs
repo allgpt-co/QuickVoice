@@ -216,6 +216,49 @@ test("conversion CTA clicks have analytics instrumentation without hard dependen
   assert.match(analytics, /REGISTER_URL/);
 });
 
+test("bot-specific robots groups retain all private-route restrictions", () => {
+  const groups = [];
+  for (const line of read("public/robots.txt").split(/\r?\n/)) {
+    const match = line.replace(/#.*/, "").trim().match(/^(user-agent|allow|disallow):\s*(.*)$/i);
+    if (!match) continue;
+    const [, directive, value] = match;
+    let group = groups.at(-1);
+    if (directive.toLowerCase() === "user-agent") {
+      if (!group || group.rules.length) {
+        group = { agents: [], rules: [] };
+        groups.push(group);
+      }
+      group.agents.push(value.toLowerCase());
+    } else {
+      assert.ok(group, "rules must belong to a user-agent group");
+      group.rules.push(`${directive.toLowerCase()}: ${value}`);
+    }
+  }
+
+  const privatePaths = [
+    "/dashboard", "/agents", "/phone-numbers", "/call-history",
+    "/knowledge-base", "/outbound-calls", "/campaigns", "/settings",
+    "/my-account", "/billing", "/upgrade", "/checkout",
+    "/under-construction", "/api/", "/login", "/forgot-password",
+    "/reset-password", "/verify",
+  ];
+  const agents = new Set(groups.flatMap((group) => group.agents));
+  for (const agent of ["*", "gptbot", "claudebot", "perplexitybot", "google-extended",
+    "googleother", "anthropic-ai", "facebookbot", "applebot-extended", "ccbot", "bytespider"]) {
+    assert.ok(agents.has(agent), `${agent} policy must remain explicit`);
+  }
+  for (const agent of agents) {
+    // RFC 9309: matching specific groups combine; the wildcard is only a fallback.
+    const rules = groups.filter((group) => group.agents.includes(agent))
+      .flatMap((group) => group.rules).sort();
+    const expected = agent === "bytespider"
+      ? ["disallow: /"]
+      : ["allow: /", ...privatePaths.map((path) => `disallow: ${path}`)].sort();
+    assert.deepEqual(rules, expected, `${agent} must retain its crawl policy`);
+  }
+  assert.match(read("public/robots.txt"), /^Sitemap: https:\/\/quickvoice\.co\/sitemap\.xml$/m);
+});
+
 test("legacy /register conversion paths resolve to the external console signup", () => {
   const nextConfig = read("next.config.ts");
   const robots = read("public/robots.txt");

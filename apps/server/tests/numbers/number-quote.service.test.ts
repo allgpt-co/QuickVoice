@@ -79,3 +79,36 @@ test("country and number-type billing metadata are covered by the quote signatur
     /Invalid number price quote/,
   );
 });
+
+test("number quotes require their dedicated shared signing secret", () => {
+  const signingSecret = process.env.NUMBER_QUOTE_SIGNING_SECRET;
+  const internalApiKey = process.env.INTERNAL_API_KEY;
+  delete process.env.NUMBER_QUOTE_SIGNING_SECRET;
+  process.env.INTERNAL_API_KEY = "must-not-sign-number-quotes";
+
+  try {
+    assert.throws(
+      () =>
+        createNumberQuote({
+          organizationId: "org_a",
+          phoneNumber: "+14155550100",
+          provider: TelephonyProvider.TWILIO,
+          providerMonthlyCostMicros: 1_000_000n,
+          billingCountryIso: "US",
+          billingNumberType: "local",
+        }),
+      { statusCode: 503, code: "NUMBER_QUOTE_SIGNING_SECRET_MISSING" },
+    );
+  } finally {
+    if (signingSecret === undefined) {
+      delete process.env.NUMBER_QUOTE_SIGNING_SECRET;
+    } else {
+      process.env.NUMBER_QUOTE_SIGNING_SECRET = signingSecret;
+    }
+    if (internalApiKey === undefined) {
+      delete process.env.INTERNAL_API_KEY;
+    } else {
+      process.env.INTERNAL_API_KEY = internalApiKey;
+    }
+  }
+});

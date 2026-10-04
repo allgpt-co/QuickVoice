@@ -91,6 +91,7 @@ export function AgentPreviewPanel({
   const { data: config } = useAgentConfig(agentId);
   const roomRef = useRef<Room | null>(null);
   const localTrackRef = useRef<LocalAudioTrack | null>(null);
+  const previewAttemptRef = useRef(0);
   const remoteAudioRef = useRef<HTMLDivElement | null>(null);
   const [preview, setPreview] = useState<AgentPreviewSession | null>(null);
   const [state, setState] = useState<PreviewState>("idle");
@@ -212,6 +213,7 @@ export function AgentPreviewPanel({
   }, []);
 
   const disconnectPreview = useCallback(() => {
+    previewAttemptRef.current += 1;
     localTrackRef.current?.stop();
     localTrackRef.current = null;
     cleanupAudioElements();
@@ -232,12 +234,20 @@ export function AgentPreviewPanel({
     };
   }, [disconnectPreview]);
 
+  useEffect(() => {
+    if (!open) disconnectPreview();
+  }, [disconnectPreview, open]);
+
   async function startPreview() {
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("This browser does not expose microphone access.");
       setState("error");
       return;
     }
+
+    const attemptId = previewAttemptRef.current + 1;
+    previewAttemptRef.current = attemptId;
+    const wasCancelled = () => previewAttemptRef.current !== attemptId;
 
     setError(null);
     setEvents([]);
@@ -259,6 +269,7 @@ export function AgentPreviewPanel({
           previewVariableValues,
         ),
       });
+      if (wasCancelled()) return;
       setPreview(session);
       setState("connecting");
       addEvent("Session", "Temporary LiveKit room created.");
@@ -280,6 +291,11 @@ export function AgentPreviewPanel({
           track.detach().forEach((element) => element.remove());
         })
         .on(RoomEvent.Disconnected, () => {
+          if (roomRef.current !== room) return;
+          previewAttemptRef.current += 1;
+          localTrackRef.current?.stop();
+          localTrackRef.current = null;
+          roomRef.current = null;
           cleanupAudioElements();
           setState((current) => (current === "live" ? "ended" : current));
         })
@@ -301,16 +317,31 @@ export function AgentPreviewPanel({
       room.on(RoomEvent.DataReceived, handleLiveKitData);
 
       await room.connect(session.livekitUrl, session.participant.token);
+      if (wasCancelled()) {
+        room.disconnect();
+        return;
+      }
       const localTrack = await createLocalAudioTrack({
         echoCancellation: true,
         noiseSuppression: true,
         autoGainControl: true,
       });
+      if (wasCancelled()) {
+        localTrack.stop();
+        room.disconnect();
+        return;
+      }
       localTrackRef.current = localTrack;
       await room.localParticipant.publishTrack(localTrack);
+      if (wasCancelled()) {
+        localTrack.stop();
+        room.disconnect();
+        return;
+      }
       setState("live");
       addEvent("Live", "Speak naturally. The agent can hear your microphone.");
     } catch (err) {
+      if (wasCancelled()) return;
       await endPreview();
       setState("error");
       setError(
