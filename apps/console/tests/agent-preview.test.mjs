@@ -21,7 +21,10 @@ test("agent preview API and hook are wired", () => {
   assert.ok(agentsResource.includes("`/agents/${id}/preview-session`"));
   assert.match(agentsResource, /interface CreatePreviewSessionInput/);
   assert.match(agentsResource, /dynamicVariables\?: Record<string, string>/);
-  assert.match(agentsResource, /apiClient\.post<ApiEnvelope<AgentPreviewSession>>\(\s*`\/agents\/\$\{id\}\/preview-session`,\s*input \?\? \{\}/s);
+  assert.match(
+    agentsResource,
+    /apiClient\.post<ApiEnvelope<AgentPreviewSession>>\(\s*`\/agents\/\$\{id\}\/preview-session`,\s*input \?\? \{\}/s,
+  );
   assert.match(hooks, /useCreateAgentPreviewSession/);
   assert.match(hooks, /mutationFn: \(input\?: CreatePreviewSessionInput\)/);
   assert.match(queryKeys, /previewSession/);
@@ -64,4 +67,20 @@ test("agent preview renders a conversation view with LiveKit transcript hooks", 
   assert.match(panel, /TextDecoder/);
   assert.match(panel, /TranscriptionReceived/);
   assert.match(panel, /DataReceived/);
+});
+
+test("agent preview cancels in-flight microphone acquisition and stops every acquired track", () => {
+  const panel = read("src/components/agents/AgentPreviewPanel.tsx");
+
+  assert.match(panel, /previewAttemptRef\.current \+= 1/);
+  assert.match(panel, /const wasCancelled = \(\) =>/);
+  assert.match(panel, /if \(!open\) disconnectPreview\(\)/);
+  assert.match(
+    panel,
+    /const localTrack = await createLocalAudioTrack[\s\S]*if \(wasCancelled\(\)\) \{[\s\S]*localTrack\.stop\(\)/,
+  );
+  assert.match(
+    panel,
+    /RoomEvent\.Disconnected[\s\S]*localTrackRef\.current\?\.stop\(\)/,
+  );
 });

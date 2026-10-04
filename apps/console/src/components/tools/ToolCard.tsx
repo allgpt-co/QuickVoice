@@ -38,9 +38,13 @@ export function ToolCard({ tool }: { tool: Tool }) {
   const deleteTool = useDeleteTool();
 
   const handleDelete = async () => {
-    await deleteTool.mutateAsync(tool.toolId, {
-      onSuccess: () => toast.success("Tool deleted"),
-    });
+    try {
+      await deleteTool.mutateAsync(tool.toolId, {
+        onSuccess: () => toast.success("Tool deleted"),
+      });
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   };
 
   return (

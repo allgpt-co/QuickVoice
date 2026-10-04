@@ -1,4 +1,14 @@
+# Named bots share these rules; specific groups do not inherit from '*'.
 User-agent: *
+User-agent: GPTBot
+User-agent: ClaudeBot
+User-agent: PerplexityBot
+User-agent: Google-Extended
+User-agent: GoogleOther
+User-agent: anthropic-ai
+User-agent: FacebookBot
+User-agent: Applebot-Extended
+User-agent: CCBot
 Allow: /
 
 # Block authenticated app routes
@@ -22,88 +32,6 @@ Disallow: /login
 Disallow: /forgot-password
 Disallow: /reset-password
 Disallow: /verify
-
-# AI crawler directives
-User-agent: GPTBot
-Allow: /
-Disallow: /dashboard
-Disallow: /agents
-Disallow: /phone-numbers
-Disallow: /call-history
-Disallow: /knowledge-base
-Disallow: /outbound-calls
-Disallow: /campaigns
-Disallow: /settings
-Disallow: /my-account
-Disallow: /billing
-Disallow: /upgrade
-Disallow: /checkout
-Disallow: /under-construction
-Disallow: /api/
-Disallow: /login
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /verify
-
-User-agent: ClaudeBot
-Allow: /
-Disallow: /dashboard
-Disallow: /agents
-Disallow: /phone-numbers
-Disallow: /call-history
-Disallow: /knowledge-base
-Disallow: /outbound-calls
-Disallow: /campaigns
-Disallow: /settings
-Disallow: /my-account
-Disallow: /billing
-Disallow: /upgrade
-Disallow: /checkout
-Disallow: /under-construction
-Disallow: /api/
-Disallow: /login
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /verify
-
-User-agent: PerplexityBot
-Allow: /
-Disallow: /dashboard
-Disallow: /agents
-Disallow: /phone-numbers
-Disallow: /call-history
-Disallow: /knowledge-base
-Disallow: /outbound-calls
-Disallow: /campaigns
-Disallow: /settings
-Disallow: /my-account
-Disallow: /billing
-Disallow: /upgrade
-Disallow: /checkout
-Disallow: /under-construction
-Disallow: /api/
-Disallow: /login
-Disallow: /forgot-password
-Disallow: /reset-password
-Disallow: /verify
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: GoogleOther
-Allow: /
-
-User-agent: anthropic-ai
-Allow: /
-
-User-agent: FacebookBot
-Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
-
-User-agent: CCBot
-Allow: /
 
 User-agent: Bytespider
 Disallow: /

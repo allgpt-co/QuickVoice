@@ -4,8 +4,8 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm install -g pnpm
-            - pnpm install
+            - npm install -g pnpm@9.0.0
+            - pnpm install --frozen-lockfile
         build:
           commands:
             - pnpm turbo run build --filter=web...
@@ -23,8 +23,8 @@ applications:
       phases:
         preBuild:
           commands:
-            - npm install -g pnpm
-            - pnpm install
+            - npm install -g pnpm@9.0.0
+            - pnpm install --frozen-lockfile
         build:
           commands:
             - pnpm turbo run build --filter=console...

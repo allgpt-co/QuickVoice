@@ -13,7 +13,7 @@
     "lint": "tsc --noEmit --pretty false",
     "start": "node dist/src/index.js",
     "check-types": "tsc --noEmit",
-    "test": "tsx --test tests/**/*.test.ts",
+    "test": "tsx --test tests/*.test.ts tests/*/*.test.ts",
     "seed": "tsx prisma/seed.ts",
     "import:smithery-catalog": "tsx prisma/import-smithery-catalog.ts",
     "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts",
@@ -51,13 +51,15 @@
     "twilio": "^6.0.2",
     "ws": "^8.21.0",
     "zod": "^4.4.3",
-    "zeptomail": "^6.2.1"
+    "zeptomail": "^6.2.1",
+    "temporal-polyfill": "0.2.5"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.0",
+    "@types/express-serve-static-core": "^5.1.1",
     "@types/morgan": "^1.9.10",
     "@types/node": "^20",
     "@types/swagger-ui-express": "^4.1.8",

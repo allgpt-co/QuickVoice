@@ -38,6 +38,7 @@ coverage
 .vercel
 
 # Build Outputs
+*.tsbuildinfo
 .next/
 out/
 build

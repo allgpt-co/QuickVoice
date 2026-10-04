@@ -12,6 +12,7 @@ const noLocalResources = {
   listRecordings: async () => [],
   listCampaignFiles: async () => [],
   listSubscriptions: async () => [],
+  listMcpConnections: async () => [],
 };
 
 test("Stripe preflight and customer detachment happen before local cleanup and suppress the later Better Auth check", async () => {
@@ -58,6 +59,15 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
       operations.push("discover-local-subscriptions");
       return [{ status: "active", stripeSubscriptionId: "sub_local" }];
     },
+    listMcpConnections: async () => {
+      operations.push("discover-mcp-connections");
+      return [
+        {
+          smitheryNamespace: "quickvoice-prod",
+          smitheryConnectionId: "org-123-gmail",
+        },
+      ];
+    },
     listStripeSubscriptions: async (customerId) => {
       operations.push(`stripe-list:${customerId}`);
       return [
@@ -90,6 +100,9 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
     clearCampaignFile: async (campaignId) => {
       operations.push(`campaign:${campaignId}`);
     },
+    revokeMcpConnection: async (namespace, connectionId) => {
+      operations.push(`mcp:${namespace}:${connectionId}`);
+    },
     deleteSubscriptions: async () => {
       operations.push("subscription-rows");
     },
@@ -109,6 +122,7 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
     "discover-recordings",
     "discover-campaign-files",
     "discover-local-subscriptions",
+    "discover-mcp-connections",
     "stripe-list:cus_123",
     "discover-financial-history",
     "discover-pending-topups",
@@ -117,6 +131,7 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
     "stripe-cancel:sub_checkout",
     "stripe-customer:cus_123",
     "phone:phone_1",
+    "mcp:quickvoice-prod:org-123-gmail",
     "kb-assets:kb_1",
     "kb-row:kb_1",
     "recording:call_1",
@@ -130,6 +145,7 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
     recordingsDeleted: 1,
     campaignFilesDeleted: 1,
     subscriptionsDeleted: 1,
+    mcpConnectionsRevoked: 1,
     stripeCustomerDetached: true,
   });
 });
@@ -335,6 +351,7 @@ test("organization cleanup stops local deletion when Stripe customer deletion fa
         listRecordings: async () => [],
         listCampaignFiles: async () => [],
         listSubscriptions: async () => [],
+        listMcpConnections: async () => [],
         listStripeSubscriptions: async () => [],
         deleteCustomer: async () => {
           operations.push("stripe-customer");
@@ -352,4 +369,36 @@ test("organization cleanup stops local deletion when Stripe customer deletion fa
   );
 
   assert.deepEqual(operations, ["stripe-customer"]);
+});
+
+test("organization cleanup blocks deletion when Smithery revocation fails", async () => {
+  const operations: string[] = [];
+
+  await assert.rejects(
+    cleanupOrganizationBeforeDeletion(
+      { organizationId: "org_123" },
+      {
+        hostedBilling: false,
+        hasFinancialHistory: async () => false,
+        hasPendingTopUps: async () => false,
+        ...noLocalResources,
+        listMcpConnections: async () => [
+          {
+            smitheryNamespace: "quickvoice-prod",
+            smitheryConnectionId: "org-123-gmail",
+          },
+        ],
+        revokeMcpConnection: async () => {
+          operations.push("mcp-revoke");
+          throw new Error("Smithery unavailable");
+        },
+        deleteSubscriptions: async () => {
+          operations.push("local-delete");
+        },
+      },
+    ),
+    /Smithery unavailable/,
+  );
+
+  assert.deepEqual(operations, ["mcp-revoke"]);
 });

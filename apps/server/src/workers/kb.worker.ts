@@ -36,27 +36,34 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
       previousAgentId,
     } = job.data;
     const jobId = job.id ?? "unknown";
-    await kbRepository.markProcessing(kbIds, jobId, {
-      attempt: job.attemptsMade + 1,
-      organizationId,
-    });
-
     const internalApiKey = process.env.INTERNAL_API_KEY?.trim();
     if (!internalApiKey) {
       throw new Error("INTERNAL_API_KEY is required for KB processing");
     }
 
-    // Edited sources must remove their earlier vectors first. This also clears
-    // the old namespace when the source is reassigned to another agent.
-    if (replaceExisting) {
-      const namespaceToReplace = previousAgentId ?? agentId;
+    const claimedKbIds = await kbRepository.markProcessing(kbIds, jobId, {
+      attempt: job.attemptsMade + 1,
+      organizationId,
+    });
+    // A stale job owns no vectors. Explicit source deletion is fenced by the
+    // AI publication manifest; never erase another job's published generation.
+    if (claimedKbIds.length === 0) return;
+    const claimedDocuments = documents.filter((document) =>
+      claimedKbIds.includes(document.kbId),
+    );
+
+    // Reassignment revokes the old namespace. Same-agent edits keep their
+    // published generation until its complete replacement is ready.
+    if (replaceExisting && previousAgentId && previousAgentId !== agentId) {
+      const namespaceToReplace = previousAgentId;
       await Promise.all(
-        kbIds.map((kbId) =>
+        claimedKbIds.map((kbId) =>
           deleteKbDocumentVectors({
             aiApiUrl: AI_API_URL,
             internalApiKey,
             agentId: namespaceToReplace,
             kbId,
+            permanent: false,
           }),
         ),
       );
@@ -64,7 +71,7 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
 
     // 1. Generate presigned download URLs for S3-backed documents
     const enriched = await Promise.all(
-      documents.map(async (doc) => ({
+      claimedDocuments.map(async (doc) => ({
         ...doc,
         presignedUrl: doc.s3Key
           ? await generateDownloadUrl(doc.s3Key)
@@ -79,16 +86,23 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
       payload: { agentId, organizationId, documents: enriched },
       pollIntervalMs: KB_PROCESSING_POLL_INTERVAL_MS,
       timeoutMs: KB_PROCESSING_TIMEOUT_MS,
-      onStatus: (processorStatus) =>
-        kbRepository.markProcessing(kbIds, jobId, {
+      onStatus: async (processorStatus) => {
+        await kbRepository.markProcessing(claimedKbIds, jobId, {
           organizationId,
           processorStatus,
-        }),
+        });
+      },
     });
-    assertKbProcessingSucceeded(body, kbIds);
+    assertKbProcessingSucceeded(body, claimedKbIds);
 
     // 3. Mark all sources as ACTIVE and clear earlier retry diagnostics.
-    await kbRepository.markActive(kbIds, agentId, jobId, body, organizationId);
+    await kbRepository.markActive(
+      claimedKbIds,
+      agentId,
+      jobId,
+      body,
+      organizationId,
+    );
   },
   {
     connection: redisConnection,
@@ -144,6 +158,14 @@ kbWorker.on("failed", async (job, err) => {
 kbWorker.on("completed", (job) => {
   console.log(`[kb-worker] job ${job.id} completed`);
 });
+
+kbWorker.on("error", (error) => {
+  console.error("[kb-worker] worker error", error);
+});
+
+export async function closeKbWorker() {
+  await kbWorker.close();
+}
 
 function numberFromEnv(name: string, fallback: number) {
   const raw = process.env[name];

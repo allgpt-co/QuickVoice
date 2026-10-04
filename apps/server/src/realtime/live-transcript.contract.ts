@@ -66,7 +66,12 @@ export type WatchCallRequest = { callId: string };
 export type UnwatchCallRequest = { callId: string };
 
 export type SocketCommandError = {
-  code: "BAD_REQUEST" | "NOT_FOUND" | "UNAVAILABLE" | "INTERNAL_ERROR";
+  code:
+    | "BAD_REQUEST"
+    | "FORBIDDEN"
+    | "NOT_FOUND"
+    | "UNAVAILABLE"
+    | "INTERNAL_ERROR";
   message: string;
 };
 
@@ -93,11 +98,11 @@ export interface ServerToClientEvents {
 export interface ClientToServerEvents {
   "live-call:watch": (
     payload: WatchCallRequest,
-    acknowledge?: (result: WatchCallAck) => void
+    acknowledge?: (result: WatchCallAck) => void,
   ) => void;
   "live-call:unwatch": (
     payload: UnwatchCallRequest,
-    acknowledge?: (result: UnwatchCallAck) => void
+    acknowledge?: (result: UnwatchCallAck) => void,
   ) => void;
 }
 
@@ -145,7 +150,7 @@ const ENDED_KEYS = new Set<string>([
  */
 export function parseLiveTranscriptEvent(
   value: unknown,
-  options: { eventId?: string } = {}
+  options: { eventId?: string } = {},
 ): LiveTranscriptEvent | null {
   const record = jsonRecord(value);
   if (!record) return null;
@@ -225,7 +230,7 @@ export function parseWatchCallRequest(value: unknown): WatchCallRequest | null {
 
 function parseBase(
   record: Record<string, unknown>,
-  eventId: string
+  eventId: string,
 ): LiveEventBase | null {
   const organizationId = requiredString(record.organizationId);
   const callId = requiredString(record.callId);
@@ -243,7 +248,7 @@ function parseBase(
 }
 
 function parseLifecycle(
-  record: Record<string, unknown>
+  record: Record<string, unknown>,
 ): LifecycleFields | null {
   const agentId = stringValue(record.agentId);
   const direction = record.direction;
@@ -280,10 +285,10 @@ function objectRecord(value: unknown): Record<string, unknown> | null {
 function hasOnlyKeys(
   record: Record<string, unknown>,
   allowed: Set<string>,
-  eventIdOverride: boolean
+  eventIdOverride: boolean,
 ) {
   return Object.keys(record).every(
-    (key) => allowed.has(key) || (eventIdOverride && key === "eventId")
+    (key) => allowed.has(key) || (eventIdOverride && key === "eventId"),
   );
 }
 

@@ -127,24 +127,40 @@ export function AdvancedTab({ agentId }: { agentId: string }) {
   }, [config, form]);
 
   async function onSubmit(values: FormValues) {
-    await save.mutateAsync(mergeConfig(config, values));
-    form.reset(values);
+    try {
+      await save.mutateAsync(mergeConfig(config, values));
+      form.reset(values);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   async function pauseAgent() {
-    await update.mutateAsync({ isActive: false });
-    toast.success("Agent paused");
+    try {
+      await update.mutateAsync({ isActive: false });
+      toast.success("Agent paused");
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   async function resumeAgent() {
-    await update.mutateAsync({ isActive: true });
-    toast.success("Agent resumed");
+    try {
+      await update.mutateAsync({ isActive: true });
+      toast.success("Agent resumed");
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   async function confirmDelete() {
-    await deleteAgent.mutateAsync(agentId);
-    setConfirming(false);
-    router.push("/agents");
+    try {
+      await deleteAgent.mutateAsync(agentId);
+      setConfirming(false);
+      router.push("/agents");
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   return (

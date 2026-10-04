@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -28,9 +29,11 @@ import {
 } from "@/src/components/ui/input-group";
 import OAuthButtons from "@/src/components/oauth-buttons";
 import { invitationPath } from "@/src/lib/links";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 export function LoginForm({ invitationId = "" }: { invitationId?: string } = {}) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -52,6 +55,7 @@ export function LoginForm({ invitationId = "" }: { invitationId?: string } = {})
         rememberMe: data.remember === true,
         fetchOptions: {
           onSuccess: () => {
+            clearIdentityCache(queryClient);
             toast.success("Login successful");
             router.push(invitationId ? invitationPath(invitationId) : "/dashboard");
             router.refresh();

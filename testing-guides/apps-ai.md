@@ -27,10 +27,11 @@ Important scope files:
 
 Primary FastAPI routes:
 
-- `GET /health`: unauthenticated health check.
+- `GET /health`: cheap unauthenticated process-liveness check.
+- `GET /ready`: authenticated runtime readiness, including durable queues and the server billing-mode handshake.
 - `GET /agents/{agent_id}/config`: fetches normalized runtime config from the server.
-- `POST /kb/process`: creates an async KB ingestion job.
-- `GET /kb/jobs/{job_id}`: reads KB job state.
+- `POST /kb/process`: creates an async KB ingestion job in shared Redis.
+- `GET /kb/jobs/{job_id}`: reads shared, expiring KB job state.
 - `DELETE /kb/jobs/{job_id}`: cancels queued/running KB jobs.
 - `POST /kb/jobs/{job_id}/retry`: retries failed KB documents.
 - `DELETE /kb/{agent_id}/{kb_id}`: deletes Pinecone vectors for one KB source in one agent namespace.
@@ -53,7 +54,8 @@ Core dependencies and providers:
 
    Pass:
    - `GET /health` works without auth and returns `{"ok": true, "service": "ai"}`.
-   - Every non-health route rejects missing or wrong credentials with `401`.
+   - `GET /health` performs no filesystem or upstream-service probes and discloses no configuration status.
+   - `GET /ready` and every other non-health route reject missing or wrong credentials with `401`.
    - Missing `INTERNAL_API_KEY` outside `AI_ALLOW_INSECURE_DEV_MODE=true` fails closed with a startup/runtime error.
 
    Fail:
@@ -93,7 +95,7 @@ Core dependencies and providers:
 
 4. **KB ingestion flow**
 
-   Data flow: server KB worker -> `POST /kb/process` -> in-memory job state -> download/extract -> chunk -> Google embeddings -> Pinecone upsert in namespace `agentId`.
+   Data flow: server KB worker -> `POST /kb/process` -> expiring Redis job state -> download/extract -> chunk -> embedding provider -> vector-store upsert in namespace `agentId`.
 
    Pass:
    - Invalid payloads return structured `detail.code` values such as `KB_AGENT_ID_REQUIRED`, `KB_ORGANIZATION_ID_REQUIRED`, `KB_DOCUMENTS_REQUIRED`, or `KB_DOCUMENT_LIMIT_EXCEEDED`.
@@ -135,8 +137,9 @@ Core dependencies and providers:
    Pass:
    - Payload includes `organizationId`, `userId`, UUID `agentId`, `callId`, UTC `startTime`/`endTime`, `durationSeconds`, `direction`, `status=COMPLETED`, `recordingSid`, normalized transcripts, numbers, provider, extracted/evaluated data.
    - Headers include `Authorization: Bearer $INTERNAL_API_KEY`, `x-organization-id`, and `x-user-id` when available.
-   - Failed delivery retries, then writes durable JSON to `AI_CALL_LOG_QUEUE_DIR` or `/tmp/quickvoice-ai-calllogs`.
-   - Queue flush posts saved files, deletes successful files, and moves records to `dead-letter` after 5 failed attempts.
+   - Failed delivery retries, then atomically writes durable JSON to `AI_CALL_LOG_QUEUE_DIR`.
+   - A worker-level consumer drains saved files independently of call startup. It atomically claims each file and applies exponential backoff for transient failures.
+   - Only malformed queue records move to `dead-letter`; backend or network outages remain queued.
 
    Fail:
    - Duplicate call logs are posted for one call.
@@ -213,7 +216,7 @@ Required AI environment variables proven from code/templates:
 - `KB_MAX_DOCUMENTS_PER_JOB`, default `50`
 - `KB_ALLOWED_HOSTS`
 - `KB_AGENT_BUDGETS_JSON`
-- `AI_CALL_LOG_QUEUE_DIR`
+- `AI_CALL_LOG_QUEUE_DIR` — required in hosted mode; use an absolute, non-temporary path such as `/var/lib/quickvoice/call-logs` and mount it on persistent storage.
 
 Related server environment variables to verify during integration:
 
@@ -655,8 +658,8 @@ Blocked:
 
    Pass:
    - Call logs retry and queue after repeated server failure.
-   - Queue flush on next call startup posts old payloads.
-   - Dead-lettering occurs after 5 failed flush attempts.
+   - Background queue replay posts old payloads; call startup never awaits a queue flush.
+   - Transient failures retain queued payloads for later background replay; inspect the durable queue after recovery.
    - Recording startup failure logs a warning and does not end the call.
    - RAG provider failure tells the assistant the KB is temporarily unavailable.
 
@@ -851,7 +854,7 @@ Blocked:
 - Provider failure during RAG: unavailable message.
 - Call-log server outage: payload queued locally.
 - Queue repeated failure: file moves to `dead-letter`.
-- Python process restart: in-memory KB job state is lost; status route cannot recover old jobs.
+- Redis outage: new KB jobs fail closed until the shared job store is available.
 - Multi-tenant vector namespace risk: namespace is `agentId`, not `organizationId/agentId`; verify agent IDs are globally unique.
 
 ## Test Data, Fixtures, Accounts, And Roles
@@ -969,9 +972,8 @@ Mark these checks **Blocked** when credentials/services are unavailable.
 
 ## Regression Risks
 
-- `POST /kb/process` async response currently does not match the server worker’s expected synchronous `processed` response.
 - Server KB cleanup uses optional `KB_OPS_URL/delete`, while AI exposes `DELETE /kb/{agent_id}/{kb_id}`.
-- KB jobs are stored in `_KB_JOBS` in memory; process restart loses job status.
+- KB job status expires after `KB_JOB_TTL_SECONDS`; payloads containing presigned URLs expire after `KB_JOB_PAYLOAD_TTL_SECONDS`.
 - RAG namespace is only `agentId`; tenant safety depends on globally unique agent IDs and server-side config isolation.
 - Call-log server schema requires UUID `agentId`; non-UUID test IDs must not leak into production data.
 - Internal call-log auth requires org and user context; missing `user_id` can cause server rejection.
@@ -999,3 +1001,27 @@ Mark these checks **Blocked** when credentials/services are unavailable.
 - [ ] Console KB, agent Advanced/Knowledge, and Calls pages show correct loading, empty, error, success, and destructive-action states.
 - [ ] Owner/admin/member RBAC behavior is verified for AI-related server/console features.
 - [ ] Logs and metrics contain no raw phone numbers, prompts, transcripts, webhooks, or secrets.
+
+HTTP tools have a 15-second total deadline; the initiation webhook has a 4-second deadline. Agent config retries share one 12-second budget. Redirects are rejected, including same-origin redirects. Anonymous widgets cannot supply prompt or tool variables.
+
+### Knowledge-index publication rollout
+
+The AI service now uses `quickvoice:kb:index:*` Redis hashes to publish complete
+vector generations and fence deleted source IDs. All AI replicas must use the
+same `REDIS_URL`. Enable Redis persistence (AOF and backups) and avoid eviction
+of these hashes; they deliberately have no TTL. Existing legacy vectors remain
+readable until replaced. Losing publication metadata requires a KB reindex;
+newly staged vectors fail closed instead of becoming visible accidentally.
+
+Roll out this change with ingestion paused and drain old AI ingestion jobs before
+replacing every AI replica. Old workers do not understand publication fences and
+must not remain alongside new workers during ingestion. Upgrade the API worker
+at the same time: stale jobs no longer delete vectors, and same-agent edits keep
+the previous generation until replacement succeeds. Verify an edited document,
+a failed edit, concurrent reindexes, and deletion while ingestion is running.
+
+Permanent deletion and reassignment are distinct: reassignment revokes the old
+namespace's current generation but allows moving the document back later.
+Publication uses compare-and-set: if another writer wins or revocation occurs,
+the losing writer removes only its own staged generation and retries through
+the ingestion queue. Test moving A → B → A and deleting while a job is staged.

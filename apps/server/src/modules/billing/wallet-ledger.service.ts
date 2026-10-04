@@ -14,8 +14,7 @@ import {
   assertNonNegativeMicros,
   assertPositiveMicros,
 } from "./money.js";
-
-const MAX_SERIALIZABLE_ATTEMPTS = 3;
+import { withTransactionConflictRetries } from "./transaction-conflict.js";
 
 type Database = typeof prisma;
 type TransactionClient = Prisma.TransactionClient;
@@ -922,20 +921,11 @@ export class WalletLedgerService {
   private async serializable<T>(
     work: (tx: TransactionClient) => Promise<T>,
   ): Promise<T> {
-    for (let attempt = 1; ; attempt += 1) {
-      try {
-        return await this.database.$transaction(work, {
-          isolationLevel: "Serializable",
-        });
-      } catch (error) {
-        if (
-          attempt >= MAX_SERIALIZABLE_ATTEMPTS ||
-          !isRetryableTransactionError(error)
-        ) {
-          throw error;
-        }
-      }
-    }
+    return withTransactionConflictRetries(() =>
+      this.database.$transaction(work, {
+        isolationLevel: "Serializable",
+      }),
+    );
   }
 }
 
@@ -1099,16 +1089,6 @@ function operationKey(operation: string, idempotencyKey: string): string {
 
 function minBigInt(left: bigint, right: bigint): bigint {
   return left < right ? left : right;
-}
-
-function isRetryableTransactionError(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const candidate = error as { code?: unknown; message?: unknown };
-  return (
-    candidate.code === "P2034" ||
-    (typeof candidate.message === "string" &&
-      candidate.message.includes("SQLSTATE 40001"))
-  );
 }
 
 export function toBillingSummary(account: BillingAccount): BillingSummary {

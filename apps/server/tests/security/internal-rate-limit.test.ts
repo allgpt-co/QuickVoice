@@ -22,6 +22,7 @@ let server: Server;
 let baseUrl: string;
 let limits: typeof import("../../src/middleware/rateLimit.middleware.js");
 let sessionLookups = 0;
+const officeUsers = Array.from({ length: 80 }, (_, index) => `office-user-${index}`);
 let restorePrisma = () => {};
 
 before(async () => {
@@ -45,7 +46,8 @@ before(async () => {
     sessionLookups++;
     const cookie = headers.get("cookie");
     const userId = cookie === "session=alice" || cookie === "session=alice-other-device"
-      ? "alice" : cookie === "session=bob" ? "bob" : null;
+      ? "alice" : cookie === "session=bob" ? "bob"
+        : officeUsers.find((id) => cookie === `session=${id}`) ?? null;
     return userId ? { user: { id: userId }, session: { activeOrganizationId: "org" } } : null;
   });
   mock.method(auth.api, "verifyApiKey", async ({ body }: { body: { key: string } }) => (
@@ -66,10 +68,11 @@ before(async () => {
   // Exercise the production ordering and auth without invoking live providers.
   app.use(limits.default);
   app.use(express.json());
+  app.all("/api/inngest", (_req, res) => res.sendStatus(204));
   const router = express.Router();
   router.get("/public-test", (_req, res) => res.sendStatus(204));
   router.get(["/health", "/ready"], (_req, res) => res.sendStatus(204));
-  router.get("/protected", authMiddleware, (req, res) => res.json({ userId: req.auth?.userId }));
+  router.get(["/protected", "/calls/live"], authMiddleware, (req, res) => res.json({ userId: req.auth?.userId }));
   router.get(
     ["/agents/internal-config/:agentId", "/agents/number-config/:phoneNumber"],
     requireInternalApiKey,
@@ -98,7 +101,7 @@ beforeEach(async () => {
   process.env.INTERNAL_API_KEY = internalKey;
   await limits.publicRateLimitMiddleware.resetKey("127.0.0.1");
   await limits.internalCallbackRateLimitMiddleware.resetKey("127.0.0.1");
-  for (const key of ["user:alice", "user:bob", "api-key:key-a", "api-key:key-b"]) {
+  for (const key of ["user:alice", "user:bob", "api-key:key-a", "api-key:key-b", ...officeUsers.map((id) => `user:${id}`)]) {
     await limits.authenticatedRateLimitMiddleware.resetKey(key);
   }
   sessionLookups = 0;
@@ -149,6 +152,26 @@ test("one user's quota cannot block another user, anonymous traffic, or AI callb
   assert.equal((await requestJson(`${baseUrl}${callbacks[0]!.path}`, { headers: internalHeaders })).status, 204);
 });
 
+test("office users polling live calls share an IP but never share their request budgets", async () => {
+  // All 1,200 requests come from the same socket IP within one minute. This
+  // exceeds even the anonymous allowance without exhausting any user's quota.
+  for (let poll = 1; poll <= 15; poll++) {
+    for (const userId of officeUsers) {
+      const response = await requestJson(`${baseUrl}/calls/live`, {
+        headers: { cookie: `session=${userId}` },
+      });
+      assert.equal(response.status, 200, `${userId}, poll ${poll}`);
+      assert.equal((await response.json()).userId, userId);
+      assert.equal(response.headers["ratelimit-limit"], "300");
+      assert.equal(response.headers["ratelimit-remaining"], String(300 - poll));
+    }
+  }
+  assert.equal(sessionLookups, 1200, "one authentication lookup per request");
+  const anonymous = await requestJson(`${baseUrl}/public-test`);
+  assert.equal(anonymous.status, 204);
+  assert.equal(anonymous.headers["ratelimit-remaining"], "999", "console polling never spends the NAT's anonymous quota");
+});
+
 test("API key quotas use verified key IDs separately from the owner's browser session", async () => {
   for (let i = 0; i < 300; i++) {
     assert.equal((await requestJson(`${baseUrl}/protected`, { headers: { "x-api-key": "key-a" } })).status, 200);
@@ -178,6 +201,17 @@ test("health probes do not consume anonymous quota", async () => {
     assert.equal((await requestJson(`${baseUrl}/health`)).status, 204);
   }
   await exhaustPublicAllowance();
+});
+
+test("Inngest callbacks bypass an exhausted public bucket without exempting lookalike paths", async () => {
+  await exhaustPublicAllowance();
+  const origin = new URL(baseUrl).origin;
+
+  for (const method of ["GET", "POST", "PUT"]) {
+    const response = await requestJson(`${origin}/api/inngest`, { method });
+    assert.equal(response.status, 204, method);
+  }
+  assert.equal((await requestJson(`${origin}/api/inngest/other`)).status, 429);
 });
 
 test("AI callbacks exceed 100 requests without consuming the shared IP's public allowance", async () => {

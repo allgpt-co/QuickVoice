@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -41,6 +42,7 @@ import { Skeleton } from "@/src/components/ui/skeleton";
 import { EmptyState } from "@/src/components/common/EmptyState";
 import { PermissionMatrix } from "@/src/components/settings/PermissionMatrix";
 import { authClient } from "@/src/lib/auth-client";
+import { queryKeys } from "@/src/lib/query-keys";
 import { BUILTIN_ROLES, type Permissions, type ResourceId } from "@/src/lib/permissions";
 
 const schema = z.object({
@@ -92,9 +94,6 @@ export default function RolesPage() {
 
  const [createOpen, setCreateOpen] = useState(false);
  const [permissions, setPermissions] = useState<Permissions>({});
- const [roles, setRoles] = useState<Role[]>([]);
- const [loading, setLoading] = useState(true);
- const [loadError, setLoadError] = useState<string | null>(null);
  const [saving, setSaving] = useState(false);
  const [editRole, setEditRole] = useState<Role | null>(null);
  const [editPermissions, setEditPermissions] = useState<Permissions>({});
@@ -109,40 +108,28 @@ export default function RolesPage() {
  defaultValues: { role: "" },
  });
 
- const customRoles = useMemo(
- () => roles.filter((role) => !builtInRoleSet.has(role.role)),
- [roles]
- );
-
- async function refreshRoles() {
- if (!orgId) {
- setRoles([]);
- setLoading(false);
- return;
- }
- setLoading(true);
- setLoadError(null);
- try {
+ const { data: roles, isFetching: loading, error: loadError, refetch } = useQuery({
+ queryKey: queryKeys.org.roles(orgId),
+ enabled: !!orgId,
+ queryFn: async () => {
+ if (!orgId) return [];
  const api = roleApi();
  if (!api.listRoles) throw new Error("Custom role listing is not available");
  const { data, error } = await api.listRoles({
  query: { organizationId: orgId },
  });
  if (error) throw new Error(error.message || "Could not load roles");
- setRoles(toRoleList(data));
- } catch (err) {
- const message = err instanceof Error ? err.message : "Could not load roles";
- setLoadError(message);
- toast.error(message);
- } finally {
- setLoading(false);
- }
- }
+ return toRoleList(data);
+ },
+ });
+ const customRoles = useMemo(
+ () => (roles ?? []).filter((role) => !builtInRoleSet.has(role.role)),
+ [roles]
+ );
 
- useEffect(() => {
- refreshRoles();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [orgId]);
+ async function refreshRoles() {
+ await refetch();
+ }
 
  function openEdit(role: Role) {
  setEditRole(role);
@@ -327,7 +314,7 @@ export default function RolesPage() {
  <EmptyState
  icon={Shield}
  title="Could not load custom roles"
- description={loadError}
+ description={loadError.message}
  action={
  <Button variant="outline" onClick={refreshRoles}>
  <RefreshCw /> Retry

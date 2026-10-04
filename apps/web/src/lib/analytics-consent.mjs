@@ -22,7 +22,9 @@ export function applyConsent(browser, choice) {
       ad_storage: "denied", ad_user_data: "denied", ad_personalization: "denied",
     });
   }
-  if (value !== "granted") {
+  // Unanswered consent disables collection but is not a request to delete
+  // shared-domain cookies created by another QuickVoice site.
+  if (value === "denied") {
     const host = browser.location.hostname;
     const domains = ["", host, `.${host}`];
     if (host === "quickvoice.co" || host.endsWith(".quickvoice.co")) domains.push(".quickvoice.co");

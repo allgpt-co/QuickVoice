@@ -84,19 +84,21 @@ export async function deleteKbDocumentVectors({
   internalApiKey,
   agentId,
   kbId,
+  permanent = true,
   fetchImpl = fetch,
 }: {
   aiApiUrl: string;
   internalApiKey: string;
   agentId: string;
   kbId: string;
+  permanent?: boolean;
   fetchImpl?: FetchLike;
 }) {
   const baseUrl = trimTrailingSlashes(aiApiUrl);
   try {
     await fetchJson(
       fetchImpl,
-      `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}`,
+      `${baseUrl}/kb/${encodeURIComponent(agentId)}/${encodeURIComponent(kbId)}${permanent ? "" : "?permanent=false"}`,
       {
         method: "DELETE",
         headers: { "x-internal-key": internalApiKey },

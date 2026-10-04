@@ -22,16 +22,16 @@ concurrency:
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
-  deploy:
-    name: Build and deploy docs
+  build:
+    name: Build docs artifact
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
       name: production-docs
     if: >-
+      vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true' && (
       (
         github.event_name == 'workflow_dispatch' &&
         github.ref == 'refs/heads/main'
@@ -40,6 +40,7 @@ jobs:
         github.event.workflow_run.conclusion == 'success' &&
         github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.head_branch == 'main'
+      )
       )
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -51,15 +52,15 @@ jobs:
 
     steps:
       - name: Checkout tested commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
           cache: pnpm
@@ -89,8 +90,39 @@ jobs:
             exit 1
           fi
 
+      - name: Upload verified docs artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: quickvoice-docs-${{ github.event.workflow_run.head_sha || github.sha }}
+          path: apps/docs/out
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    name: Deploy verified docs artifact
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: build
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: production-docs
+    env:
+      AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      DOCS_S3_BUCKET: ${{ vars.DOCS_S3_BUCKET }}
+      DOCS_S3_PREFIX: ${{ vars.DOCS_S3_PREFIX || 'quickvoice/docs/prod' }}
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ vars.CLOUDFRONT_DISTRIBUTION_ID }}
+    steps:
+      - name: Download verified docs artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: quickvoice-docs-${{ github.event.workflow_run.head_sha || github.sha }}
+          path: apps/docs/out
+
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c # v4
         with:
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}

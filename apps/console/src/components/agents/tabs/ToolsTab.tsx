@@ -7,6 +7,7 @@ import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { EmptyState } from "@/src/components/common/EmptyState";
 import { ToolPickerDialog } from "@/src/components/tools/ToolPickerDialog";
+import { McpToolBadges } from "@/src/components/tools/McpToolBadges";
 import { McpPickerDialog } from "@/src/components/tools/McpPickerDialog";
 import { useAgentMcpConnections, useDetachMcpConnection } from "@/src/hooks/queries/mcp";
 import { useAgentTools, useDetachTool } from "@/src/hooks/queries/tools";
@@ -178,6 +179,7 @@ export function ToolsTab({ agentId }: { agentId: string }) {
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {(item.mcpConnection.tools?.length ?? 0)} tools · {item.mcpConnection.mcpUrl}
                   </p>
+                  <McpToolBadges tools={item.mcpConnection.tools} />
                 </div>
                 <Button
                   variant="ghost"

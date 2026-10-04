@@ -85,8 +85,26 @@ export function promotionalIdentityHash(email: string) {
     throw new Error("PROMOTIONAL_IDENTITY_SECRET is required in hosted mode");
   }
   return createHmac("sha256", secret)
-    .update(email.trim().toLowerCase())
+    .update(canonicalPromotionalEmail(email))
     .digest("hex");
+}
+
+export function canonicalPromotionalEmail(email: string) {
+  const normalized = email.trim().toLowerCase();
+  const separator = normalized.lastIndexOf("@");
+  if (separator <= 0 || separator === normalized.length - 1) return normalized;
+
+  let local = normalized.slice(0, separator);
+  let domain = normalized.slice(separator + 1);
+  const tag = local.indexOf("+");
+  if (tag >= 0) local = local.slice(0, tag);
+
+  if (domain === "gmail.com" || domain === "googlemail.com") {
+    domain = "gmail.com";
+    local = local.replaceAll(".", "");
+  }
+
+  return `${local}@${domain}`;
 }
 
 export function signupPromotionLaunchAt(): Date | null {

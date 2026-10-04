@@ -15,9 +15,13 @@ import secrets
 import socket
 import time
 from datetime import datetime, timezone
-from threading import RLock
 from typing import Optional
 from urllib.parse import urlparse, urlunparse
+
+try:
+    import redis.asyncio as redis_asyncio
+except ImportError:  # Lightweight unit-test environments install no Redis client.
+    redis_asyncio = None
 
 from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
@@ -69,8 +73,90 @@ ALLOWED_CONTENT_TYPES = (
 
 TERMINAL_JOB_STATUSES = {"succeeded", "partial_failed", "failed", "canceled"}
 PROCESSED_DOCUMENT_STATUSES = {"ok", "error", "canceled"}
-_KB_JOBS: dict[str, dict] = {}
-_KB_JOB_LOCK = RLock()
+KB_JOB_TTL_SECONDS = max(60, int(os.environ.get("KB_JOB_TTL_SECONDS", "3600")))
+KB_JOB_PAYLOAD_TTL_SECONDS = max(
+    60,
+    min(
+        KB_JOB_TTL_SECONDS,
+        int(os.environ.get("KB_JOB_PAYLOAD_TTL_SECONDS", "900")),
+    ),
+)
+KB_JOB_KEY_PREFIX = "quickvoice:kb:job:"
+_KB_REDIS_CLIENT = None
+
+
+def _kb_redis():
+    global _KB_REDIS_CLIENT
+    if _KB_REDIS_CLIENT is None:
+        if redis_asyncio is None:
+            raise RuntimeError("Redis is required for knowledge processing jobs")
+        _KB_REDIS_CLIENT = redis_asyncio.from_url(
+            os.environ.get("REDIS_URL", "redis://localhost:6379"),
+            decode_responses=True,
+            socket_connect_timeout=2,
+            socket_timeout=2,
+            health_check_interval=30,
+        )
+    return _KB_REDIS_CLIENT
+
+
+def _kb_job_key(job_id: str) -> str:
+    return f"{KB_JOB_KEY_PREFIX}{job_id}"
+
+
+def _kb_cancel_key(job_id: str) -> str:
+    return f"{_kb_job_key(job_id)}:cancel"
+
+
+def _kb_payload_key(job_id: str) -> str:
+    return f"{_kb_job_key(job_id)}:payload"
+
+
+async def _load_job(job_id: str) -> dict:
+    value = await _kb_redis().get(_kb_job_key(job_id))
+    if not value:
+        raise KeyError(job_id)
+    return json.loads(value)
+
+
+async def _save_job(job: dict) -> None:
+    await _kb_redis().set(
+        _kb_job_key(job["jobId"]),
+        json.dumps(job, separators=(",", ":")),
+        ex=KB_JOB_TTL_SECONDS,
+    )
+
+
+async def _load_job_payload(job_id: str) -> dict:
+    value = await _kb_redis().get(_kb_payload_key(job_id))
+    if not value:
+        raise KeyError(job_id)
+    return json.loads(value)
+
+
+async def _save_job_payload(job_id: str, payload: dict) -> None:
+    await _kb_redis().set(
+        _kb_payload_key(job_id),
+        json.dumps(payload, separators=(",", ":")),
+        ex=KB_JOB_PAYLOAD_TTL_SECONDS,
+    )
+
+
+async def _is_job_cancel_requested(job_id: str) -> bool:
+    return bool(await _kb_redis().get(_kb_cancel_key(job_id)))
+
+
+async def close_kb_job_store() -> None:
+    global _KB_REDIS_CLIENT
+    client = _KB_REDIS_CLIENT
+    _KB_REDIS_CLIENT = None
+    if client is None:
+        return
+    close = getattr(client, "aclose", None) or getattr(client, "close", None)
+    if close:
+        result = close()
+        if inspect.isawaitable(result):
+            await result
 
 
 class KbJobValidationError(ValueError):
@@ -101,7 +187,7 @@ class KbJobValidationError(ValueError):
 
 # ── KB job state ─────────────────────────────────────────────────────────────
 
-def create_kb_job(payload: dict) -> dict:
+async def create_kb_job(payload: dict) -> dict:
     normalized = _validate_process_payload(payload)
     job_id = _new_job_id()
     now = _now_iso()
@@ -118,13 +204,12 @@ def create_kb_job(payload: dict) -> dict:
         "updatedAt": now,
         "finishedAt": None,
         "error": None,
-        "_payload": copy.deepcopy(normalized),
         "_cancelRequested": False,
     }
     job["progress"] = _progress_for_documents(job["documents"])
 
-    with _KB_JOB_LOCK:
-        _KB_JOBS[job_id] = job
+    await _save_job_payload(job_id, normalized)
+    await _save_job(job)
 
     emit_metric(
         "kb_job_created",
@@ -140,107 +225,113 @@ def create_kb_job(payload: dict) -> dict:
     return _public_job(job)
 
 
-def get_kb_job(job_id: str) -> dict:
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS.get(job_id)
-        if not job:
-            raise KeyError(job_id)
+async def get_kb_job(job_id: str) -> dict:
+    return _public_job(await _load_job(job_id))
+
+
+async def cancel_kb_job(job_id: str) -> dict:
+    job = await _load_job(job_id)
+    if job["status"] in TERMINAL_JOB_STATUSES:
         return _public_job(job)
 
-
-def cancel_kb_job(job_id: str) -> dict:
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS.get(job_id)
-        if not job:
-            raise KeyError(job_id)
-        if job["status"] in TERMINAL_JOB_STATUSES:
-            return _public_job(job)
-
-        job["_cancelRequested"] = True
-        if job["status"] == "queued":
-            _mark_remaining_documents_canceled_locked(job)
-            _finalize_job_locked(job, canceled=True)
-        else:
-            job["status"] = "canceling"
-            job["stage"] = "canceling"
-            job["updatedAt"] = _now_iso()
-        return _public_job(job)
+    job["_cancelRequested"] = True
+    await _kb_redis().set(
+        _kb_cancel_key(job_id),
+        "1",
+        ex=KB_JOB_TTL_SECONDS,
+    )
+    if job["status"] == "queued":
+        _mark_remaining_documents_canceled_locked(job)
+        _finalize_job_locked(job, canceled=True)
+    else:
+        job["status"] = "canceling"
+        job["stage"] = "canceling"
+        job["updatedAt"] = _now_iso()
+    await _save_job(job)
+    return _public_job(job)
 
 
-def retry_kb_job(job_id: str) -> dict:
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS.get(job_id)
-        if not job:
-            raise KeyError(job_id)
-        failed_ids = {doc["kbId"] for doc in job["documents"] if doc.get("status") == "error"}
-        if not failed_ids:
-            raise KbJobValidationError(
-                status_code=400,
-                code="KB_JOB_HAS_NO_FAILED_DOCUMENTS",
-                user_message="There are no failed knowledge sources to retry for this job.",
-                retryable=False,
-            )
-        payload = copy.deepcopy(job["_payload"])
+async def retry_kb_job(job_id: str) -> dict:
+    job = await _load_job(job_id)
+    failed_ids = {doc["kbId"] for doc in job["documents"] if doc.get("status") == "error"}
+    if not failed_ids:
+        raise KbJobValidationError(
+            status_code=400,
+            code="KB_JOB_HAS_NO_FAILED_DOCUMENTS",
+            user_message="There are no failed knowledge sources to retry for this job.",
+            retryable=False,
+        )
+    try:
+        payload = await _load_job_payload(job_id)
+    except KeyError as exc:
+        raise KbJobValidationError(
+            status_code=410,
+            code="KB_JOB_RETRY_EXPIRED",
+            user_message="This processing attempt is too old to retry. Upload or save the knowledge source again.",
+            retryable=False,
+        ) from exc
 
     payload["documents"] = [doc for doc in payload["documents"] if doc.get("kbId") in failed_ids]
-    return create_kb_job(payload)
+    return await create_kb_job(payload)
 
 
 async def run_kb_job(job_id: str) -> dict:
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS.get(job_id)
-        if not job:
-            raise KeyError(job_id)
-        if job["status"] in TERMINAL_JOB_STATUSES:
-            return _public_job(job)
-        if job.get("_cancelRequested"):
-            _mark_remaining_documents_canceled_locked(job)
-            _finalize_job_locked(job, canceled=True)
-            return _public_job(job)
+    job = await _load_job(job_id)
+    if job["status"] in TERMINAL_JOB_STATUSES:
+        return _public_job(job)
+    if job.get("_cancelRequested") or await _is_job_cancel_requested(job_id):
+        _mark_remaining_documents_canceled_locked(job)
+        _finalize_job_locked(job, canceled=True)
+        await _save_job(job)
+        return _public_job(job)
 
-        job["status"] = "running"
-        job["stage"] = "processing"
-        job["updatedAt"] = _now_iso()
-        payload = copy.deepcopy(job["_payload"])
+    job["status"] = "running"
+    job["stage"] = "processing"
+    job["updatedAt"] = _now_iso()
+    await _save_job(job)
 
     async def progress(event: dict) -> None:
-        _apply_job_progress(job_id, event)
+        await _apply_job_progress(job_id, event)
 
-    def should_cancel() -> bool:
-        with _KB_JOB_LOCK:
-            current = _KB_JOBS.get(job_id)
-            return bool(current and current.get("_cancelRequested"))
+    async def should_cancel() -> bool:
+        return await _is_job_cancel_requested(job_id)
 
+    payload = {}
     try:
+        payload = await _load_job_payload(job_id)
         results = await process_documents(payload, progress=progress, should_cancel=should_cancel)
     except Exception as exc:
         detail = _job_error_detail(exc)
-        with _KB_JOB_LOCK:
-            job = _KB_JOBS[job_id]
-            job["status"] = "failed"
-            job["stage"] = "failed"
-            job["error"] = detail
-            job["updatedAt"] = _now_iso()
-            job["finishedAt"] = job["updatedAt"]
-            for doc in job["documents"]:
-                if doc.get("status") not in PROCESSED_DOCUMENT_STATUSES:
-                    doc.update(_document_error_fields(exc, budget=_budget_for_agent(job["agentId"], job["_payload"])))
-            job["progress"] = _progress_for_documents(job["documents"])
-            public = _public_job(job)
+        job = await _load_job(job_id)
+        job["status"] = "failed"
+        job["stage"] = "failed"
+        job["error"] = detail
+        job["updatedAt"] = _now_iso()
+        job["finishedAt"] = job["updatedAt"]
+        for doc in job["documents"]:
+            if doc.get("status") not in PROCESSED_DOCUMENT_STATUSES:
+                doc.update(_document_error_fields(exc, budget=_budget_for_agent(job["agentId"], payload)))
+        job["progress"] = _progress_for_documents(job["documents"])
+        await _save_job(job)
+        public = _public_job(job)
         emit_metric("kb_job_completed", status="failed", job_id=job_id, error_code=detail["code"])
         logger.error("[kb] job failed {}", redact_sensitive({"jobId": job_id, "code": detail["code"]}))
         return public
 
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS[job_id]
-        for result in results:
-            _apply_document_result_locked(job, result)
-        if job.get("_cancelRequested") or any(result.get("status") == "canceled" for result in results):
-            _mark_remaining_documents_canceled_locked(job)
-            _finalize_job_locked(job, canceled=True)
-        else:
-            _finalize_job_locked(job)
-        public = _public_job(job)
+    job = await _load_job(job_id)
+    for result in results:
+        _apply_document_result_locked(job, result)
+    if (
+        job.get("_cancelRequested")
+        or await _is_job_cancel_requested(job_id)
+        or any(result.get("status") == "canceled" for result in results)
+    ):
+        _mark_remaining_documents_canceled_locked(job)
+        _finalize_job_locked(job, canceled=True)
+    else:
+        _finalize_job_locked(job)
+    await _save_job(job)
+    public = _public_job(job)
 
     emit_metric(
         "kb_job_completed",
@@ -377,16 +468,14 @@ def _find_job_document(job: dict, kb_id: str) -> dict | None:
     return None
 
 
-def _apply_job_progress(job_id: str, event: dict) -> None:
-    with _KB_JOB_LOCK:
-        job = _KB_JOBS.get(job_id)
-        if not job:
-            return
-        if job["status"] != "canceling":
-            job["status"] = "running"
-            job["stage"] = "processing"
-        _apply_document_result_locked(job, event)
-        job["updatedAt"] = _now_iso()
+async def _apply_job_progress(job_id: str, event: dict) -> None:
+    job = await _load_job(job_id)
+    if job["status"] != "canceling":
+        job["status"] = "running"
+        job["stage"] = "processing"
+    _apply_document_result_locked(job, event)
+    job["updatedAt"] = _now_iso()
+    await _save_job(job)
 
 
 def _apply_document_result_locked(job: dict, result: dict) -> None:
@@ -556,14 +645,26 @@ async def _notify_progress(progress, event: dict) -> None:
         await result
 
 
+async def _cancel_requested(should_cancel) -> bool:
+    if not should_cancel:
+        return False
+    result = should_cancel()
+    if inspect.isawaitable(result):
+        result = await result
+    return bool(result)
+
+
 # ── text extraction ──────────────────────────────────────────────────────────
 
 async def fetch_url(url: str) -> str:
     """Download a web page and extract visible text via BeautifulSoup."""
-    import httpx  # type: ignore
+    content = await download_bytes(url, max_bytes=MAX_DOWNLOAD_BYTES, expected_content="html")
+    return await asyncio.to_thread(_extract_html, content)
+
+
+def _extract_html(content: bytes) -> str:
     from bs4 import BeautifulSoup  # type: ignore
 
-    content = await download_bytes(url, max_bytes=MAX_DOWNLOAD_BYTES, expected_content="html")
     soup = BeautifulSoup(content, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "header"]):
         tag.decompose()
@@ -578,7 +679,7 @@ async def download_bytes(
 ) -> bytes:
     import httpx  # type: ignore
 
-    safe_url = validate_ingest_url(url)
+    safe_url = await asyncio.to_thread(validate_ingest_url, url)
     async with httpx.AsyncClient(follow_redirects=False, timeout=60) as client:
         current_url = safe_url
         for _ in range(5):
@@ -587,7 +688,10 @@ async def download_bytes(
                     redirect_url = resp.headers.get("location")
                     if not redirect_url:
                         raise ValueError("Redirect response missing Location header")
-                    current_url = validate_ingest_url(str(resp.url.join(redirect_url)))
+                    current_url = await asyncio.to_thread(
+                        validate_ingest_url,
+                        str(resp.url.join(redirect_url)),
+                    )
                     continue
 
                 resp.raise_for_status()
@@ -812,12 +916,12 @@ def upsert_kb_vectors(
     )
 
 
-def delete_kb_vectors(*, namespace: str, kb_id: str) -> None:
+def delete_kb_vectors(*, namespace: str, kb_id: str, permanent: bool = True) -> None:
     if _pinecone != _default_pinecone or _index != _default_index:
         _delete_kb_vectors(index=_index(), namespace=namespace, kb_id=kb_id)
         return
 
-    get_vector_store_adapter().delete_by_kb(namespace=namespace, kb_id=kb_id)
+    get_vector_store_adapter().delete_by_kb(namespace=namespace, kb_id=kb_id, permanent=permanent)
 
 
 def _delete_kb_vectors(*, index, namespace: str, kb_id: str) -> None:
@@ -869,7 +973,7 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
         presigned_url: Optional[str] = doc.get("presignedUrl")
         result_base = {"kbId": kb_id, "name": name, "sourceType": source_type}
 
-        if should_cancel and should_cancel():
+        if await _cancel_requested(should_cancel):
             result = {**result_base, **_canceled_document_fields()}
             await _notify_progress(progress, result)
             results.append(result)
@@ -883,20 +987,18 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
             if source_type.upper() == "URL":
                 if not url:
                     raise ValueError("url is required for URL source type")
-                validate_ingest_url(url)
                 text = await fetch_url(url)
             else:
                 if not presigned_url:
                     raise ValueError("presignedUrl is required for file source types")
-                validate_ingest_url(presigned_url)
                 content = await download_bytes(presigned_url)
-                text = parse_file(content, source_type)
+                text = await asyncio.to_thread(parse_file, content, source_type)
 
             if not text.strip():
                 raise ValueError("Extracted text is empty")
 
             # 2. Chunk
-            if should_cancel and should_cancel():
+            if await _cancel_requested(should_cancel):
                 result = {**result_base, **_canceled_document_fields()}
                 await _notify_progress(progress, result)
                 results.append(result)
@@ -909,7 +1011,7 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
                 raise ValueError(f"Document exceeds chunk budget of {budget['max_chunks_per_document']}")
 
             # 3. Embed
-            if should_cancel and should_cancel():
+            if await _cancel_requested(should_cancel):
                 result = {**result_base, **_canceled_document_fields()}
                 await _notify_progress(progress, result)
                 results.append(result)
@@ -921,7 +1023,7 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
             embeddings = await embed_chunks(chunks)
 
             # 4. Upsert to Pinecone (namespace = agentId for per-agent isolation)
-            if should_cancel and should_cancel():
+            if await _cancel_requested(should_cancel):
                 result = {**result_base, **_canceled_document_fields()}
                 await _notify_progress(progress, result)
                 results.append(result)
@@ -930,7 +1032,14 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
                 progress,
                 {**result_base, "status": "running", "stage": "indexing", "chunks": len(chunks)},
             )
-            upsert_to_pinecone(chunks, embeddings, namespace=agent_id, kb_id=kb_id, doc_name=name)
+            await asyncio.to_thread(
+                upsert_to_pinecone,
+                chunks,
+                embeddings,
+                namespace=agent_id,
+                kb_id=kb_id,
+                doc_name=name,
+            )
 
             emit_metric(
                 "kb_document_processed",

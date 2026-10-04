@@ -177,30 +177,38 @@ export const markActive = async (
   processorStatus?: Record<string, unknown>,
   organizationId?: string,
 ) => {
-  if (kbIds.length === 0) return;
+  if (kbIds.length === 0) return [];
 
   return prisma.$transaction(async (tx) => {
-    await tx.knowledgeSource.updateMany({
-      where: {
-        kbId: { in: kbIds },
-        agentId,
-        ...(organizationId && { organizationId }),
-      },
-      data: {
-        status: kbStatus.ACTIVE,
-        lastIndexedAt: new Date(),
-        errorCode: null,
-        errorMessage: null,
-        errorRetryable: null,
-        ...(jobId && {
-          metadata: asJsonObject(
-            createCompletedKbMetadata(jobId, processorStatus),
-          ),
-        }),
-      },
-    });
+    const activated = await Promise.all(
+      kbIds.map(async (kbId) => {
+        const result = await tx.knowledgeSource.updateMany({
+          where: {
+            kbId,
+            agentId,
+            status: kbStatus.PROCESSING,
+            ...(organizationId && { organizationId }),
+            ...(jobId && { metadata: jobMetadataMatches(jobId) }),
+          },
+          data: {
+            status: kbStatus.ACTIVE,
+            lastIndexedAt: new Date(),
+            errorCode: null,
+            errorMessage: null,
+            errorRetryable: null,
+            ...(jobId && {
+              metadata: asJsonObject(
+                createCompletedKbMetadata(jobId, processorStatus),
+              ),
+            }),
+          },
+        });
+        return result.count === 1 ? kbId : null;
+      }),
+    );
 
     await syncKnowledgeSourcesCount(tx, agentId);
+    return activated.filter((kbId): kbId is string => kbId !== null);
   });
 };
 
@@ -214,10 +222,15 @@ export const markProcessing = async (
   } = {},
 ) => {
   const { organizationId, ...metadataOptions } = options;
-  await Promise.all(
-    kbIds.map((kbId) =>
-      prisma.knowledgeSource.updateMany({
-        where: { kbId, ...(organizationId && { organizationId }) },
+  const claimed = await Promise.all(
+    kbIds.map(async (kbId) => {
+      const result = await prisma.knowledgeSource.updateMany({
+        where: {
+          kbId,
+          status: kbStatus.PROCESSING,
+          metadata: jobMetadataMatches(jobId),
+          ...(organizationId && { organizationId }),
+        },
         data: {
           status: kbStatus.PROCESSING,
           lastIndexedAt: null,
@@ -231,9 +244,11 @@ export const markProcessing = async (
             }),
           ),
         },
-      }),
-    ),
+      });
+      return result.count === 1 ? kbId : null;
+    }),
   );
+  return claimed.filter((kbId): kbId is string => kbId !== null);
 };
 
 export const markRetrying = async (
@@ -249,6 +264,8 @@ export const markRetrying = async (
   await prisma.knowledgeSource.updateMany({
     where: {
       kbId: { in: kbIds },
+      status: kbStatus.PROCESSING,
+      metadata: jobMetadataMatches(jobId),
       ...(options.organizationId && {
         organizationId: options.organizationId,
       }),
@@ -285,6 +302,8 @@ export const markError = async (
   await prisma.knowledgeSource.updateMany({
     where: {
       kbId: { in: kbIds },
+      status: kbStatus.PROCESSING,
+      metadata: jobMetadataMatches(jobId),
       ...(organizationId && { organizationId }),
     },
     data: {
@@ -317,6 +336,8 @@ export const applyProcessingSummary = async (
         where: {
           kbId: { in: summary.successfulKbIds },
           agentId,
+          status: kbStatus.PROCESSING,
+          metadata: jobMetadataMatches(jobId),
           ...(organizationId && { organizationId }),
         },
         data: {
@@ -338,6 +359,8 @@ export const applyProcessingSummary = async (
           where: {
             kbId: failure.kbId,
             agentId,
+            status: kbStatus.PROCESSING,
+            metadata: jobMetadataMatches(jobId),
             ...(organizationId && { organizationId }),
           },
           data: {
@@ -379,16 +402,56 @@ export const claimRetry = async (
   return result.count === 1;
 };
 
+export const claimKnowledgeSourceDeletion = async (
+  kbId: string,
+  organizationId: string,
+  deletionToken: string,
+) => {
+  return prisma.$transaction(async (tx) => {
+    const source = await tx.knowledgeSource.findFirst({
+      where: { kbId, organizationId },
+    });
+    if (!source) return null;
+
+    const claimed = await tx.knowledgeSource.updateMany({
+      where: { kbId, organizationId },
+      data: {
+        status: kbStatus.ERROR,
+        errorCode: null,
+        errorMessage: null,
+        errorRetryable: false,
+        metadata: asJsonObject({
+          stage: "deleting",
+          deletionToken,
+          retryable: false,
+          updatedAt: new Date().toISOString(),
+        }),
+      },
+    });
+    return claimed.count === 1 ? source : null;
+  });
+};
+
 // Hard delete and synchronize the owning agent's count from remaining rows.
 // External asset cleanup is handled by kb.service.ts before this DB delete.
 export const deleteKnowledgeSource = async (
   kbId: string,
   organizationId: string,
+  deletionToken?: string,
 ) => {
   return prisma.$transaction(async (tx) => {
     // Tenant-safe fetch — ensures the row belongs to this org.
     const row = await tx.knowledgeSource.findFirst({
-      where: { kbId, organizationId },
+      where: {
+        kbId,
+        organizationId,
+        ...(deletionToken && {
+          metadata: {
+            path: ["deletionToken"],
+            equals: deletionToken,
+          },
+        }),
+      },
     });
     if (!row) return null;
 
@@ -417,6 +480,10 @@ async function syncKnowledgeSourcesCount(
 
 function asJsonObject(value: Record<string, unknown>) {
   return value as Prisma.InputJsonObject;
+}
+
+function jobMetadataMatches(jobId: string): Prisma.JsonNullableFilter<"KnowledgeSource"> {
+  return { path: ["jobId"], equals: jobId };
 }
 
 function normalizeProcessingFailure(

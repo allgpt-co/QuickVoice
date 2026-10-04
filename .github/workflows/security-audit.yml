@@ -8,12 +8,17 @@ on:
   schedule:
     - cron: "0 3 * * 1" # Every Monday 3am UTC
 
+permissions:
+  contents: read
+
 jobs:
   audit:
     name: Dependency Security Audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

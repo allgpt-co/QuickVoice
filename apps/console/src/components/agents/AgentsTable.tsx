@@ -120,9 +120,13 @@ export function AgentsTable({ agents, isLoading }: Props) {
   );
 
   async function confirmDelete() {
-    if (!deleteTarget) return;
-    await deleteAgent.mutateAsync(deleteTarget.agentId);
-    setDeleteTarget(null);
+    try {
+      if (!deleteTarget) return;
+      await deleteAgent.mutateAsync(deleteTarget.agentId);
+      setDeleteTarget(null);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   if (isLoading) {

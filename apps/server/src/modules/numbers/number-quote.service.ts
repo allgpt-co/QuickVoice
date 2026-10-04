@@ -1,6 +1,7 @@
 import { createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 
 import { TelephonyProvider } from "../../../prisma/generated/prisma/client.js";
+import CustomApiError from "../../common/errors/customApiError.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import {
   calculateNumberRentalPriceMicros,
@@ -8,7 +9,6 @@ import {
 } from "../billing/rate-catalog.service.js";
 
 const QUOTE_TTL_MS = 10 * 60 * 1_000;
-const ephemeralDevelopmentSecret = randomBytes(32).toString("base64url");
 
 export type NumberQuote = {
   quoteId: string;
@@ -208,11 +208,14 @@ function sign(body: string): string {
 }
 
 function quoteSecret(): string {
-  return (
-    process.env.NUMBER_QUOTE_SIGNING_SECRET?.trim() ||
-    process.env.INTERNAL_API_KEY?.trim() ||
-    ephemeralDevelopmentSecret
-  );
+  const secret = process.env.NUMBER_QUOTE_SIGNING_SECRET?.trim();
+  if (!secret) {
+    throw new CustomApiError(
+      "NUMBER_QUOTE_SIGNING_SECRET is required to sign phone number quotes",
+      503, { code: "NUMBER_QUOTE_SIGNING_SECRET_MISSING" },
+    );
+  }
+  return secret;
 }
 
 function invalidQuote() {

@@ -1,6 +1,7 @@
 "use client";
 
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, ServerCrash, Trash2 } from "lucide-react";
+import { McpToolBadges } from "@/src/components/tools/McpToolBadges";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -171,20 +172,7 @@ export function McpConnectionsList() {
                 </AlertDialog>
               </div>
             </div>
-            {!!connection.tools?.length && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {connection.tools.slice(0, 8).map((tool) => (
-                  <Badge key={tool.name} variant="secondary" className="text-[10px]">
-                    {tool.name}
-                  </Badge>
-                ))}
-                {connection.tools.length > 8 && (
-                  <Badge variant="outline" className="text-[10px]">
-                    +{connection.tools.length - 8}
-                  </Badge>
-                )}
-              </div>
-            )}
+            <McpToolBadges tools={connection.tools} />
           </div>
         );
       })}

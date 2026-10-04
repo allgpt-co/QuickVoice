@@ -606,8 +606,17 @@ export const swaggerSpec = {
             type: "string",
             format: "date-time",
             nullable: true,
+            description:
+              "Absolute RFC 3339 timestamp with Z or an explicit UTC offset.",
+            example: "2026-10-01T09:00:00-05:00",
           },
-          timezone: { type: "string", default: "UTC" },
+          timezone: {
+            type: "string",
+            default: "UTC",
+            description:
+              "Valid IANA timezone retained for displaying the campaign schedule.",
+            example: "America/Chicago",
+          },
           ringingTimeoutSeconds: {
             type: "integer",
             minimum: 10,
@@ -616,7 +625,8 @@ export const swaggerSpec = {
           },
           campaignIntelligence: {
             type: "object",
-            description: "Optional campaign-level personalization, experiment, and goal configuration.",
+            description:
+              "Optional campaign-level personalization, experiment, and goal configuration.",
             properties: {
               personalizationSchema: {
                 type: "object",
@@ -740,7 +750,7 @@ export const swaggerSpec = {
           response_timeout_secs: {
             type: "integer",
             minimum: 1,
-            maximum: 300,
+            maximum: 15,
             nullable: true,
           },
           dynamic_variables: {
@@ -898,9 +908,9 @@ export const swaggerSpec = {
     "/ready": {
       get: {
         tags: ["Readiness"],
-        summary: "Readiness and integration diagnostics",
+        summary: "Readiness probe",
         description:
-          "Returns core dependency and optional integration checks so operators can tell whether the API is usable and which integrations need attention.",
+          "Returns only whether required server dependencies are ready. It does not expose integration configuration.",
         responses: {
           200: { description: "Core server dependencies are ready" },
           503: {
@@ -913,11 +923,27 @@ export const swaggerSpec = {
                   properties: {
                     success: { type: "boolean" },
                     message: { type: "string" },
-                    data: { type: "object", additionalProperties: true },
                   },
                 },
               },
             },
+          },
+        },
+      },
+    },
+    "/ready/details": {
+      get: {
+        tags: ["Readiness"],
+        summary: "Readiness and integration diagnostics",
+        description:
+          "Returns detailed core dependency and optional integration checks to authenticated internal operators.",
+        security: [{ bearerAuth: [] }],
+        responses: {
+          200: { description: "Core server dependencies are ready" },
+          401: { description: "Internal authentication is required" },
+          503: {
+            description:
+              "One or more required core dependencies are unavailable",
           },
         },
       },
@@ -1037,7 +1063,7 @@ export const swaggerSpec = {
         tags: ["Agents"],
         summary: "Delete an agent and its external resources",
         description:
-          "Unlinks provider phone numbers, deletes knowledge assets and agent-scoped secrets, then removes the agent.",
+          "Disables the agent immediately and starts a durable, retryable cleanup of provider phone bindings, knowledge assets, agent-scoped secrets, and the agent row.",
         security: userAuthSecurity,
         parameters: [
           {
@@ -1048,7 +1074,7 @@ export const swaggerSpec = {
           },
         ],
         responses: {
-          200: { description: "Agent deleted" },
+          202: { description: "Agent deletion accepted" },
           401: { $ref: "#/components/responses/Unauthorized" },
           403: { $ref: "#/components/responses/Forbidden" },
           404: { $ref: "#/components/responses/NotFound" },
@@ -1819,14 +1845,17 @@ export const swaggerSpec = {
       post: {
         tags: ["Outbound Calls"],
         summary: "Ingest campaign conversion event",
-        description: "Validates, persists, and attributes a conversion event for the campaign. Conversion events can be rejected when validation fails.",
+        description:
+          "Validates, persists, and attributes a conversion event for the campaign. Conversion events can be rejected when validation fails.",
         security: userAuthSecurity,
-        parameters: [{
-          name: "campaignId",
-          in: "path",
-          required: true,
-          schema: { type: "string", format: "uuid" },
-        }],
+        parameters: [
+          {
+            name: "campaignId",
+            in: "path",
+            required: true,
+            schema: { type: "string", format: "uuid" },
+          },
+        ],
         requestBody: {
           required: true,
           content: {
@@ -1862,12 +1891,16 @@ export const swaggerSpec = {
           required: false,
           content: {
             "application/json": {
-              schema: { $ref: "#/components/schemas/CampaignReportBuildRequest" },
+              schema: {
+                $ref: "#/components/schemas/CampaignReportBuildRequest",
+              },
             },
           },
         },
         responses: {
-          200: { description: "Campaign report preview from saved campaign data" },
+          200: {
+            description: "Campaign report preview from saved campaign data",
+          },
           404: { description: "Campaign not found in the active organization" },
           400: { $ref: "#/components/responses/BadRequest" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -1990,9 +2023,17 @@ export const swaggerSpec = {
       get: {
         tags: ["Billing"],
         summary: "Get a call's wallet cost breakdown",
-        description: "Requires billing read permission in the active organization. Amounts are USD micro-dollar strings. Returns measured STT/LLM/TTS base lines, total AI charge, platform, estimated and finalized telephony, LiveKit connection estimate, adjustments, shutdown tail, total settled and optional shadow pricing comparison. LiveKit estimates do not represent the complete provider invoice.",
+        description:
+          "Requires billing read permission in the active organization. Amounts are USD micro-dollar strings. Returns measured STT/LLM/TTS base lines, total AI charge, platform, estimated and finalized telephony, LiveKit connection estimate, adjustments, shutdown tail, total settled and optional shadow pricing comparison. LiveKit estimates do not represent the complete provider invoice.",
         security: userAuthSecurity,
-        parameters: [{ name: "callId", in: "path", required: true, schema: { type: "string" } }],
+        parameters: [
+          {
+            name: "callId",
+            in: "path",
+            required: true,
+            schema: { type: "string" },
+          },
+        ],
         responses: {
           200: { description: "Call cost breakdown" },
           401: { $ref: "#/components/responses/Unauthorized" },
@@ -2364,6 +2405,8 @@ export const swaggerSpec = {
       post: {
         tags: ["MCP Integrations"],
         summary: "Execute an MCP tool",
+        description:
+          "Requires tools:execute (built-in owner/admin roles). Read-only members and organization API keys cannot execute remote tools. Trusted internal AI calls retain their existing authorization path.",
         security: userAuthSecurity,
         parameters: [
           {

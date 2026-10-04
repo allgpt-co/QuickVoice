@@ -89,3 +89,21 @@ test("listLiveCalls merges Redis registry and LiveKit room entries by call id", 
   assert.equal(calls[0]?.participantCount, 2);
   assert.equal(calls[0]?.fromNumber, "+15550000001");
 });
+
+test("repeated foreign-room polls never enumerate LiveKit participants", async (t) => {
+  const { default: prisma } = await import("../../src/config/prisma.js");
+  const original = prisma.callBillingSession.count;
+  prisma.callBillingSession.count = (async ({ where }: any) => {
+    assert.deepEqual(where, { organizationId: "org_123", roomName: "foreign_room" });
+    return 0;
+  }) as any;
+  t.after(() => { prisma.callBillingSession.count = original; });
+  let lookups = 0;
+  const roomClient = {
+    listRooms: async () => [{ name: "foreign_room", numParticipants: 2 }],
+    listParticipants: async () => { lookups++; return []; },
+    deleteRoom: async () => {},
+  };
+  for (let poll = 0; poll < 2; poll++) assert.deepEqual(await listLiveCalls("org_123", roomClient), []);
+  assert.equal(lookups, 0);
+});

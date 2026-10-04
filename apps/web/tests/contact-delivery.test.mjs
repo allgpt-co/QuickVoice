@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
-import test from "node:test";
+import test, { after } from "node:test";
 
 const require = createRequire(import.meta.url);
 const ts = require("typescript");
@@ -36,7 +36,63 @@ const payload = {
   lookingFor: "Evaluation",
   message: "Please discuss our requirements.",
 };
-const request = (body = payload) => ({ json: async () => body });
+const TURNSTILE_VERIFY_URL =
+  "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+const originalTurnstileSecret = process.env.TURNSTILE_SECRET_KEY;
+const originalTurnstileHostnames = process.env.TURNSTILE_EXPECTED_HOSTNAMES;
+process.env.TURNSTILE_SECRET_KEY = "turnstile-test-secret";
+process.env.TURNSTILE_EXPECTED_HOSTNAMES = "quickvoice.co";
+after(() => {
+  if (originalTurnstileSecret === undefined)
+    delete process.env.TURNSTILE_SECRET_KEY;
+  else process.env.TURNSTILE_SECRET_KEY = originalTurnstileSecret;
+  if (originalTurnstileHostnames === undefined)
+    delete process.env.TURNSTILE_EXPECTED_HOSTNAMES;
+  else process.env.TURNSTILE_EXPECTED_HOSTNAMES = originalTurnstileHostnames;
+});
+
+function request(body = payload, { secure = true, raw = false } = {}) {
+  const securedBody =
+    secure && body && typeof body === "object" && !Array.isArray(body)
+      ? {
+          turnstileToken: "verified-turnstile-token",
+          formStartedAt: Date.now() - 3_000,
+          website: "",
+          ...body,
+        }
+      : body;
+  return new Request("https://quickvoice.co/api/contact", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "CF-Connecting-IP": "203.0.113.10",
+    },
+    body: raw ? body : JSON.stringify(securedBody),
+  });
+}
+
+function mockDeliveryFetch(t, implementation) {
+  let deliveryImplementation = implementation;
+  const deliveries = [];
+  const fetch = t.mock.method(globalThis, "fetch", async (url, init) => {
+    if (String(url) === TURNSTILE_VERIFY_URL) {
+      return Response.json({
+        success: true,
+        action: "contact",
+        hostname: "quickvoice.co",
+      });
+    }
+    deliveries.push({ url, init });
+    return deliveryImplementation(url, init);
+  });
+  return {
+    fetch,
+    deliveries,
+    setDeliveryImplementation(next) {
+      deliveryImplementation = next;
+    },
+  };
+}
 
 test("contact success requires acknowledged webhook delivery", async (t) => {
   const previous = process.env.CONTACT_WEBHOOK_URL;
@@ -52,9 +108,8 @@ test("contact success requires acknowledged webhook delivery", async (t) => {
       : (process.env.CONTACT_WEBHOOK_SECRET = previousSecret),
   );
   delete process.env.CONTACT_WEBHOOK_SECRET;
-  const fetch = t.mock.method(
-    globalThis,
-    "fetch",
+  const { deliveries, setDeliveryImplementation } = mockDeliveryFetch(
+    t,
     async () => new Response(null, { status: 204 }),
   );
   t.mock.method(console, "error", () => {});
@@ -62,27 +117,27 @@ test("contact success requires acknowledged webhook delivery", async (t) => {
   delete process.env.CONTACT_WEBHOOK_URL;
   let response = await POST(request());
   assert.equal(response.status, 503);
-  assert.equal(fetch.mock.callCount(), 0);
+  assert.equal(deliveries.length, 0);
   assert.notEqual((await response.json()).ok, true);
 
   process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
   response = await POST(request());
   assert.equal(response.status, 200);
   assert.equal((await response.json()).ok, true);
-  assert.equal(fetch.mock.callCount(), 1);
-  assert.deepEqual(fetch.mock.calls[0].arguments[1].headers, {
-    "Content-Type": "application/json",
-  });
-  assert.equal(fetch.mock.calls[0].arguments[1].redirect, undefined);
-
-  fetch.mock.mockImplementation(
-    async () => new Response(null, { status: 500 }),
+  assert.equal(deliveries.length, 1);
+  assert.equal(deliveries[0].init.headers["Content-Type"], "application/json");
+  assert.match(
+    deliveries[0].init.headers["X-QuickVoice-Contact-Client"],
+    /^[0-9a-f]{64}$/,
   );
+  assert.equal(deliveries[0].init.redirect, undefined);
+
+  setDeliveryImplementation(async () => new Response(null, { status: 500 }));
   response = await POST(request());
   assert.equal(response.status, 502);
   assert.notEqual((await response.json()).ok, true);
 
-  fetch.mock.mockImplementation(async () => {
+  setDeliveryImplementation(async () => {
     throw new Error("Network unavailable");
   });
   assert.equal((await POST(request())).status, 502);
@@ -90,16 +145,7 @@ test("contact success requires acknowledged webhook delivery", async (t) => {
     (await POST(request({ ...payload, email: "invalid" }))).status,
     400,
   );
-  assert.equal(
-    (
-      await POST({
-        json: async () => {
-          throw new SyntaxError("bad JSON");
-        },
-      })
-    ).status,
-    400,
-  );
+  assert.equal((await POST(request("{bad JSON", { raw: true }))).status, 400);
 });
 
 test("contact forwarding adds only the server-configured secret and rejects authenticated redirects", async (t) => {
@@ -119,9 +165,8 @@ test("contact forwarding adds only the server-configured secret and rejects auth
     "https://api.example.com/api/v1/contact-delivery";
   process.env.CONTACT_WEBHOOK_SECRET =
     " server-configured-contact-secret-32chars ";
-  const fetch = t.mock.method(
-    globalThis,
-    "fetch",
+  const { deliveries, setDeliveryImplementation } = mockDeliveryFetch(
+    t,
     async () => new Response(null, { status: 200 }),
   );
   t.mock.method(console, "error", () => {});
@@ -133,7 +178,7 @@ test("contact forwarding adds only the server-configured secret and rejects auth
     }),
   );
   assert.equal(response.status, 200);
-  const [url, init] = fetch.mock.calls[0].arguments;
+  const [{ url, init }] = deliveries;
   assert.equal(url, process.env.CONTACT_WEBHOOK_URL);
   assert.equal(
     init.headers["X-QuickVoice-Contact-Secret"],
@@ -149,13 +194,11 @@ test("contact forwarding adds only the server-configured secret and rejects auth
     false,
   );
 
-  fetch.mock.mockImplementation(
-    async () => new Response(null, { status: 401 }),
-  );
+  setDeliveryImplementation(async () => new Response(null, { status: 401 }));
   const failed = await POST(request());
   assert.equal(failed.status, 502);
   assert.notEqual((await failed.json()).ok, true);
-  assert.equal(fetch.mock.callCount(), 2);
+  assert.equal(deliveries.length, 2);
 });
 
 test("lead analytics sends only fixed form context and remains optional", (t) => {
@@ -207,9 +250,8 @@ test("contact API rejects oversized or invalid fields before forwarding and keep
       : (process.env.CONTACT_WEBHOOK_URL = previous),
   );
   process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
-  const fetch = t.mock.method(
-    globalThis,
-    "fetch",
+  const { deliveries } = mockDeliveryFetch(
+    t,
     async () => new Response(null, { status: 204 }),
   );
   for (const [field, value] of [
@@ -223,7 +265,7 @@ test("contact API rejects oversized or invalid fields before forwarding and keep
     assert.equal(response.status, 400);
     assert.ok((await response.json()).fieldErrors[field]);
   }
-  assert.equal(fetch.mock.callCount(), 0);
+  assert.equal(deliveries.length, 0);
   const response = await POST(
     request({
       ...payload,
@@ -233,10 +275,62 @@ test("contact API rejects oversized or invalid fields before forwarding and keep
     }),
   );
   assert.equal(response.status, 200);
-  const forwarded = JSON.parse(fetch.mock.calls[0].arguments[1].body);
+  const forwarded = JSON.parse(deliveries[0].init.body);
   assert.equal(forwarded.email, "test@example.com");
   assert.equal(forwarded.phone, "+1 (218) 452-5998");
   assert.equal(forwarded.message.length, 5000);
+});
+
+test("contact API requires fresh bot verification and rejects oversized bodies before forwarding", async (t) => {
+  const previous = process.env.CONTACT_WEBHOOK_URL;
+  t.after(() =>
+    previous === undefined
+      ? delete process.env.CONTACT_WEBHOOK_URL
+      : (process.env.CONTACT_WEBHOOK_URL = previous),
+  );
+  process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
+  const fetch = t.mock.method(globalThis, "fetch", async (url) => {
+    if (String(url) === TURNSTILE_VERIFY_URL) {
+      return Response.json({
+        success: false,
+        action: "contact",
+        hostname: "quickvoice.co",
+      });
+    }
+    throw new Error("Contact delivery must not run");
+  });
+
+  const missingTokenRequest = request(
+    {
+      ...payload,
+      turnstileToken: "",
+      formStartedAt: Date.now() - 3_000,
+      website: "",
+    },
+    { secure: false },
+  );
+  assert.equal((await missingTokenRequest.clone().json()).turnstileToken, "");
+  let response = await POST(missingTokenRequest);
+  assert.equal(
+    response.status,
+    400,
+    JSON.stringify(await response.clone().json()),
+  );
+
+  response = await POST(request({ ...payload, website: "spam.example" }));
+  assert.equal(response.status, 400);
+
+  response = await POST(
+    request({ ...payload, formStartedAt: Date.now() - 100 }),
+  );
+  assert.equal(response.status, 400);
+
+  response = await POST(request(payload));
+  assert.equal(response.status, 403);
+
+  response = await POST(request({ ...payload, message: "x".repeat(30_000) }));
+  assert.equal(response.status, 413);
+  assert.equal(fetch.mock.callCount(), 1);
 });
 
 test("contact response waits for delivery acknowledgement without retrying", async (t) => {
@@ -248,9 +342,8 @@ test("contact response waits for delivery acknowledgement without retrying", asy
   );
   process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
   let acknowledge;
-  const fetch = t.mock.method(
-    globalThis,
-    "fetch",
+  const { deliveries } = mockDeliveryFetch(
+    t,
     () =>
       new Promise((resolve) => {
         acknowledge = resolve;
@@ -263,10 +356,10 @@ test("contact response waits for delivery acknowledgement without retrying", asy
   });
   await new Promise((resolve) => setImmediate(resolve));
   assert.equal(returned, false);
-  assert.equal(fetch.mock.callCount(), 1);
+  assert.equal(deliveries.length, 1);
   acknowledge(new Response(null, { status: 204 }));
   assert.equal((await pending).status, 200);
-  assert.equal(fetch.mock.callCount(), 1);
+  assert.equal(deliveries.length, 1);
 });
 
 test("attribution rollout preserves old receivers until enabled, then forwards bounded context", async (t) => {
@@ -275,41 +368,73 @@ test("attribution rollout preserves old receivers until enabled, then forwards b
   t.after(() => {
     if (previousUrl === undefined) delete process.env.CONTACT_WEBHOOK_URL;
     else process.env.CONTACT_WEBHOOK_URL = previousUrl;
-    if (previousFlag === undefined) delete process.env.CONTACT_ATTRIBUTION_ENABLED;
+    if (previousFlag === undefined)
+      delete process.env.CONTACT_ATTRIBUTION_ENABLED;
     else process.env.CONTACT_ATTRIBUTION_ENABLED = previousFlag;
   });
   process.env.CONTACT_WEBHOOK_URL = "https://contact.example/webhook";
-  const fetch = t.mock.method(globalThis, "fetch", async () => new Response(null, { status: 204 }));
+  const { deliveries } = mockDeliveryFetch(
+    t,
+    async () => new Response(null, { status: 204 }),
+  );
   const submissionId = "894c976a-b9cd-487c-9e6d-fc0ce42f9143";
   const extra = {
-    ...payload, submissionId, formLocation: "contact_page",
-    attribution: { method: "browser_observed", landingPage: "/blog/vapi-alternatives?email=private@example.com", source: "google", medium: "organic", email: "private@example.com" },
+    ...payload,
+    submissionId,
+    formLocation: "contact_page",
+    attribution: {
+      method: "browser_observed",
+      landingPage: "/blog/vapi-alternatives?email=private@example.com",
+      source: "google",
+      medium: "organic",
+      email: "private@example.com",
+    },
   };
   delete process.env.CONTACT_ATTRIBUTION_ENABLED;
   let response = await POST(request(extra));
   assert.equal((await response.json()).submissionId, undefined);
-  let delivered = JSON.parse(fetch.mock.calls[0].arguments[1].body);
+  let delivered = JSON.parse(deliveries[0].init.body);
   assert.equal(delivered.attribution, undefined);
   assert.equal(delivered.submissionId, undefined);
 
   process.env.CONTACT_ATTRIBUTION_ENABLED = "true";
   response = await POST(request(extra));
   assert.equal((await response.json()).submissionId, submissionId);
-  delivered = JSON.parse(fetch.mock.calls[1].arguments[1].body);
+  delivered = JSON.parse(deliveries[1].init.body);
   assert.equal(delivered.submissionId, submissionId);
   assert.equal(delivered.formLocation, "contact_page");
-  assert.deepEqual(delivered.attribution, { method: "browser_observed", landingPage: "/blog/vapi-alternatives", source: "google", medium: "organic" });
+  assert.deepEqual(delivered.attribution, {
+    method: "browser_observed",
+    landingPage: "/blog/vapi-alternatives",
+    source: "google",
+    medium: "organic",
+  });
 
-  response = await POST(request({ ...payload, submissionId: "person@example.com", formLocation: "injected" }));
+  response = await POST(
+    request({
+      ...payload,
+      submissionId: "person@example.com",
+      formLocation: "injected",
+    }),
+  );
   assert.match((await response.json()).submissionId, /^[0-9a-f-]{36}$/);
-  assert.equal(JSON.parse(fetch.mock.calls[2].arguments[1].body).formLocation, undefined);
+  assert.equal(JSON.parse(deliveries[2].init.body).formLocation, undefined);
 
   // Optional malformed metadata must not break an otherwise valid enquiry or
   // reach the strict receiver as an array/object coerced to an allowed string.
-  for (const formLocation of [["homepage"], { toString: null }, { toString: "contact_page" }, null, 123]) {
+  for (const formLocation of [
+    ["homepage"],
+    { toString: null },
+    { toString: "contact_page" },
+    null,
+    123,
+  ]) {
     response = await POST(request({ ...payload, formLocation }));
     assert.equal(response.status, 200);
-    assert.equal(JSON.parse(fetch.mock.calls.at(-1).arguments[1].body).formLocation, undefined);
+    assert.equal(
+      JSON.parse(deliveries.at(-1).init.body).formLocation,
+      undefined,
+    );
   }
 });
 
@@ -320,12 +445,28 @@ test("a successfully acknowledged submission is counted once per page, without s
     else globalThis.window = previousWindow;
   });
   const calls = [];
-  globalThis.window = { quickvoiceAnalyticsConsent: "granted", quickvoiceAnalyticsPageAllowed: () => true, location: { pathname: "/company/contact" } };
-  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), false);
+  globalThis.window = {
+    quickvoiceAnalyticsConsent: "granted",
+    quickvoiceAnalyticsPageAllowed: () => true,
+    location: { pathname: "/company/contact" },
+  };
+  assert.equal(
+    trackContactLead("contact_page", "repeatable-test-receipt"),
+    false,
+  );
   window.gtag = (...args) => calls.push(args);
-  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), true);
-  assert.equal(trackContactLead("contact_page", "repeatable-test-receipt"), false);
+  assert.equal(
+    trackContactLead("contact_page", "repeatable-test-receipt"),
+    true,
+  );
+  assert.equal(
+    trackContactLead("contact_page", "repeatable-test-receipt"),
+    false,
+  );
   assert.equal(calls.length, 1);
-  assert.equal(JSON.stringify(calls).includes("repeatable-test-receipt"), false);
+  assert.equal(
+    JSON.stringify(calls).includes("repeatable-test-receipt"),
+    false,
+  );
   assert.equal(trackContactLead("homepage", "another-test-receipt"), true);
 });

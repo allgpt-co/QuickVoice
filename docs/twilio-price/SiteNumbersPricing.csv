@@ -1,0 +1,100 @@
+ISO,Country,Country Code,Phone Number Type,Voice Enabled,Trunking Enabled,SMS Enabled,MMS Enabled,Domestic Voice Only,Domestic SMS Only,Phone Number Price / month,Inbound Voice Price / min,Inbound Trunking Price / min,Inbound SMS Price / msg,Inbound MMS Price / msg,Beta Status,Address Required,Inbound Voice From Landline Price / min,Inbound Voice From Mobile Price / min,Inbound Trunking From Landline Price / min,Inbound Trunking From Mobile Price / min
+AR,Argentina,54,Local,Yes,Yes,No,No,Yes,N/A,8.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+AR,Argentina,54,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.25820,0.25420,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+AT,Austria,43,Local,Yes,Yes,No,No,No,N/A,1.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+AT,Austria,43,Mobile,No,No,Yes,No,N/A,No,6.00,N/A,N/A,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+AT,Austria,43,National,Yes,Yes,No,No,No,N/A,1.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+AT,Austria,43,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.33930,0.33530,N/A,N/A,No,Yes,0.33930,0.33930,0.33530,0.33530
+AU,Australia,61,Local,Yes,Yes,No,No,No,N/A,3.00,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+AU,Australia,61,Mobile,Yes,Yes,Yes,No,No,No,8.25,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+AU,Australia,61,Toll Free,Yes,Yes,No,No,Yes,N/A,20.00,0.05000,0.04600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+BB,Barbados,1,Local,Yes,Yes,No,No,Yes,N/A,27.00,0.03760,0.03360,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+BE,Belgium,32,Mobile,Yes,Yes,Yes,No,No,No,1.25,0.01130,0.00730,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+BE,Belgium,32,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.58950,0.58550,N/A,N/A,No,Yes,0.58950,0.58950,0.58550,0.58550
+BJ,Benin,229,Mobile,Yes,Yes,No,No,No,N/A,27.00,0.17670,0.17270,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+BR,Brazil,55,Local,Yes,Yes,No,No,No,N/A,4.25,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+CA,Canada,1,Local,Yes,Yes,Yes,No,No,No,1.15,0.00850,0.00450,0.00830,N/A,No,No,N/A,N/A,N/A,N/A
+CA,Canada,1,Toll Free,Yes,Yes,Yes,No,No,No,2.15,0.02200,0.01300,0.00830,N/A,No,No,N/A,N/A,N/A,N/A
+CH,Switzerland,41,Local,Yes,Yes,No,No,No,N/A,1.15,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+CH,Switzerland,41,Mobile,No,No,Yes,No,N/A,No,9.00,N/A,N/A,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+CL,Chile,56,Local,Yes,Yes,Yes,No,No,No,7.00,0.01070,0.00670,0.02000,N/A,No,Yes,N/A,N/A,N/A,N/A
+CO,Colombia,57,Local,Yes,Yes,No,No,No,N/A,14.00,0.09450,0.09050,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+CO,Colombia,57,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.17920,0.17520,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+CZ,Czech Republic,420,Mobile,No,No,Yes,No,N/A,No,12.00,N/A,N/A,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+CZ,Czech Republic,420,National,Yes,Yes,No,No,No,N/A,1.50,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+CZ,Czech Republic,420,Toll Free,Yes,Yes,No,No,No,N/A,35.00,0.31730,0.31330,N/A,N/A,No,Yes,0.31730,0.31730,0.31330,0.31330
+DE,Germany,49,Local,Yes,Yes,No,No,No,N/A,1.35,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+DE,Germany,49,Mobile,Yes,Yes,Yes,No,Yes,Yes,30.00,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+DK,Denmark,45,Mobile,Yes,Yes,Yes,No,No,No,15.00,0.01070,0.00670,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+DZ,Algeria,213,Local,Yes,Yes,No,No,No,N/A,33.00,0.22400,0.22000,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+EC,Ecuador,593,Local,Yes,Yes,No,No,Yes,N/A,34.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+EE,Estonia,372,Local,Yes,Yes,No,No,Yes,N/A,1.00,0.01240,0.00840,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+EE,Estonia,372,Mobile,Yes,Yes,Yes,No,No,No,3.00,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+EE,Estonia,372,National,Yes,Yes,No,No,Yes,N/A,1.00,0.01240,0.00840,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+EE,Estonia,372,Toll Free,Yes,Yes,No,No,No,N/A,38.00,0.49000,0.48600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+FI,Finland,358,Mobile,Yes,Yes,Yes,No,No,No,5.00,0.01070,0.00670,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+FI,Finland,358,Toll Free,Yes,Yes,No,No,No,N/A,40.00,0.35580,0.35180,N/A,N/A,No,Yes,0.35580,0.35580,0.35180,0.35180
+FR,France,33,Local,Yes,Yes,Yes,No,No,No,1.35,0.01000,0.00600,0.02000,N/A,No,Yes,N/A,N/A,N/A,N/A
+FR,France,33,National,Yes,Yes,Yes,No,No,No,1.35,0.01000,0.00600,0.02000,N/A,No,Yes,N/A,N/A,N/A,N/A
+GB,Jersey,44,Mobile,Yes,Yes,Yes,No,No,No,2.50,0.01000,0.00600,0.00750,N/A,Yes,No,N/A,N/A,N/A,N/A
+GB,United Kingdom,44,Local,Yes,Yes,Yes,No,No,No,1.15,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+GB,United Kingdom,44,Mobile,Yes,Yes,Yes,No,No,No,2.50,0.01000,0.00600,0.00750,N/A,No,No,N/A,N/A,N/A,N/A
+GB,United Kingdom,44,National,Yes,Yes,Yes,No,No,No,1.15,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+GB,United Kingdom,44,Toll Free,Yes,Yes,No,No,Yes,N/A,2.70,0.07980,0.07580,N/A,N/A,No,Yes,0.07980,0.07980,0.07580,0.07580
+GD,Grenada,1473,Local,Yes,Yes,No,No,No,N/A,27.00,0.01300,0.00900,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+GE,Georgia,995,Local,No,No,No,No,N/A,N/A,18.00,N/A,N/A,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+GN,Guinea,224,Mobile,Yes,Yes,No,No,No,N/A,27.00,0.17990,0.17590,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+GR,Greece,30,Local,Yes,Yes,No,No,No,N/A,1.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+HK,Hong Kong,852,Mobile,No,No,Yes,No,N/A,No,15.00,N/A,N/A,0.04000,N/A,No,Yes,N/A,N/A,N/A,N/A
+HK,Hong Kong,852,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.07060,0.06660,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+HR,Croatia,385,Toll Free,Yes,Yes,No,No,No,N/A,19.00,0.31500,0.31100,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+HU,Hungary,36,Mobile,No,No,Yes,No,N/A,No,35.00,N/A,N/A,0.00750,N/A,No,No,N/A,N/A,N/A,N/A
+ID,Indonesia,62,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.43070,0.42670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+IE,Ireland,353,Local,Yes,Yes,No,No,No,N/A,1.80,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+IL,Israel,972,Local,Yes,Yes,No,No,No,N/A,5.50,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+IL,Israel,972,Mobile,Yes,Yes,Yes,No,No,No,15.00,0.03500,0.03100,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+IL,Israel,972,National,Yes,Yes,No,No,No,N/A,5.50,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+IL,Israel,972,Toll Free,Yes,Yes,No,No,Yes,N/A,22.00,0.13440,0.13040,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+IT,Italy,39,Mobile,Yes,Yes,Yes,No,Yes,Yes,45.00,0.01000,0.00600,0.02000,N/A,No,Yes,N/A,N/A,N/A,N/A
+IT,Italy,39,Toll Free,Yes,Yes,No,No,No,N/A,27.00,0.46140,0.45740,N/A,N/A,No,Yes,0.46140,0.46140,0.45740,0.45740
+JP,Japan,81,Local,Yes,Yes,No,No,No,N/A,4.75,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+JP,Japan,81,National,Yes,Yes,No,No,No,N/A,4.75,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+JP,Japan,81,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.18540,0.18140,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+LT,Lithuania,370,Mobile,No,No,Yes,No,N/A,No,4.00,N/A,N/A,0.00750,N/A,No,No,N/A,N/A,N/A,N/A
+LU,Luxembourg,352,Local,Yes,Yes,No,No,No,N/A,3.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+LU,Luxembourg,352,Toll Free,No,No,No,No,N/A,N/A,63.00,N/A,N/A,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+MX,Mexico,52,Local,Yes,Yes,Yes,No,No,No,6.25,0.01000,0.00600,0.02000,N/A,No,Yes,N/A,N/A,N/A,N/A
+MX,Mexico,52,Mobile,Yes,Yes,Yes,No,No,No,15.00,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+MX,Mexico,52,Toll Free,Yes,Yes,No,No,Yes,N/A,30.00,0.21610,0.21210,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+MY,Malaysia,60,Local,No,No,No,No,N/A,N/A,4.00,N/A,N/A,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+MY,Malaysia,60,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.18720,0.18320,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+NA,Namibia,264,Local,Yes,Yes,No,No,Yes,N/A,33.00,0.38460,0.38060,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+NL,Netherlands,31,Mobile,Yes,Yes,Yes,No,No,No,7.70,0.01000,0.00600,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+NZ,New Zealand,64,Local,Yes,Yes,No,No,No,N/A,3.15,0.01000,0.00600,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+NZ,New Zealand,64,Toll Free,Yes,Yes,No,No,Yes,N/A,40.00,0.25560,0.25160,N/A,N/A,No,Yes,0.25560,0.25560,0.25160,0.25160
+PA,Panama,507,Local,Yes,Yes,No,No,No,N/A,8.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+PE,Peru,51,Toll Free,Yes,Yes,No,No,Yes,N/A,135.00,0.39860,0.39460,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+PH,Philippines,63,Local,Yes,Yes,No,No,No,N/A,15.00,0.33330,0.32930,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+PH,Philippines,63,Mobile,No,No,Yes,No,N/A,Yes,120.00,N/A,N/A,0.02400,N/A,No,Yes,N/A,N/A,N/A,N/A
+PH,Philippines,63,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.48190,0.47790,N/A,N/A,No,Yes,0.48190,0.48190,0.47790,0.47790
+PL,Poland,48,Toll Free,Yes,Yes,No,No,Yes,N/A,20.00,0.15960,0.15560,N/A,N/A,No,Yes,0.15960,0.15960,0.15560,0.15560
+PR,Puerto Rico,1,Local,Yes,Yes,Yes,No,No,No,3.25,0.01050,0.00650,0.00830,N/A,No,No,N/A,N/A,N/A,N/A
+RO,Romania,40,Local,Yes,Yes,No,No,No,N/A,3.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+RO,Romania,40,National,Yes,Yes,No,No,No,N/A,3.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+RO,Romania,40,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.24060,0.23660,N/A,N/A,No,Yes,0.24060,0.24060,0.23660,0.23660
+SD,Sudan,249,Local,Yes,Yes,No,No,No,N/A,130.00,0.33470,0.33070,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+SE,Sweden,46,Mobile,No,No,Yes,No,N/A,No,3.00,N/A,N/A,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+SK,Slovakia,421,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.37380,0.36980,N/A,N/A,No,Yes,0.37380,0.37380,0.36980,0.36980
+TH,Thailand,66,Local,Yes,Yes,No,No,No,N/A,25.00,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+TH,Thailand,66,Mobile,Yes,Yes,Yes,No,Yes,Yes,22.00,0.01070,N/A,0.01000,N/A,No,Yes,N/A,N/A,N/A,N/A
+TH,Thailand,66,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.32250,0.31850,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+TN,Tunisia,216,Local,Yes,Yes,No,No,No,N/A,120.00,0.76920,0.76520,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+TN,Tunisia,216,National,Yes,Yes,No,No,No,N/A,120.00,0.76920,0.76520,N/A,N/A,No,No,N/A,N/A,N/A,N/A
+UG,Uganda,256,Local,Yes,Yes,No,No,Yes,N/A,40.00,0.12000,0.11600,N/A,N/A,Yes,Yes,N/A,N/A,N/A,N/A
+UG,Uganda,256,Toll Free,Yes,Yes,No,No,Yes,N/A,25.00,0.32440,0.32040,N/A,N/A,Yes,Yes,N/A,N/A,N/A,N/A
+US,United States,1,Local,Yes,Yes,Yes,No,No,No,1.15,0.00850,0.00340,0.00830,N/A,No,No,N/A,N/A,N/A,N/A
+US,United States,1,Toll Free,Yes,Yes,Yes,No,No,No,2.15,0.02200,0.01300,0.00830,N/A,No,Yes,N/A,N/A,N/A,N/A
+VE,Venezuela,58,Toll Free,Yes,Yes,No,No,Yes,N/A,60.00,0.43500,0.43100,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A
+VI,"Virgin Islands, U.S.",1340,Local,Yes,Yes,Yes,No,No,No,1.15,0.00850,0.00340,0.00830,N/A,No,No,N/A,N/A,N/A,N/A
+ZA,South Africa,27,Mobile,Yes,Yes,Yes,No,No,No,4.00,0.01070,0.00670,0.00750,N/A,No,Yes,N/A,N/A,N/A,N/A
+ZA,South Africa,27,National,Yes,Yes,No,No,No,N/A,1.50,0.01070,0.00670,N/A,N/A,No,Yes,N/A,N/A,N/A,N/A

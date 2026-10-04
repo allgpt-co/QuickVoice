@@ -91,10 +91,24 @@ test("billing state and query caches are scoped to the active organization", () 
 
   assert.match(billing, /key=\{organizationId \?\? "no-organization"\}/);
   assert.match(billing, /isActiveRef\.current = false/);
+  assert.match(
+    billing,
+    /useEffect\(\(\) => \{\s*isActiveRef\.current = true;\s*return \(\) => \{/,
+  );
   assert.match(billing, /if \(!isActiveRef\.current\) return/);
   assert.match(hooks, /queryKeys\.billing\.summary\(organizationId\)/);
   assert.match(hooks, /queryKeys\.billing\.transactions\(organizationId\)/);
   assert.match(keys, /summary: \(organizationId: string \| null\)/);
+});
+
+test("console denies framing and limits microphone access to itself", () => {
+  const config = read("next.config.ts");
+
+  assert.match(config, /Content-Security-Policy/);
+  assert.match(config, /frame-ancestors 'none'/);
+  assert.match(config, /X-Frame-Options/);
+  assert.match(config, /value: "DENY"/);
+  assert.match(config, /microphone=\(self\)/);
 });
 
 test("console auth no longer exposes the legacy Better Auth Stripe client", () => {

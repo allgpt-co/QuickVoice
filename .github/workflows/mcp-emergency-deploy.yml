@@ -1,0 +1,71 @@
+name: Emergency MCP Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Full 40-character SHA already merged into main
+        required: true
+        type: string
+      reason:
+        description: Incident or ticket URL and reason for bypassing the aggregate CI gate
+        required: true
+        type: string
+      bypass_quality_summary:
+        description: Confirm bypass of Quality Summary (MCP validation and dependency audit still required)
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  validate-request:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true'
+    outputs:
+      source_sha: ${{ steps.validate.outputs.source_sha }}
+    steps:
+      - name: Checkout main history
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate and record emergency request
+        id: validate
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+          REASON: ${{ inputs.reason }}
+          CONFIRMED: ${{ inputs.bypass_quality_summary }}
+          REQUESTED_BY: ${{ github.actor }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRMED" != "true" ] || [[ ! "$SOURCE_SHA" =~ ^[a-f0-9]{40}$ ]] || [[ ! "$REASON" =~ [^[:space:]] ]]; then
+            echo "[fail] Explicit confirmation, full commit SHA and incident reason are required."
+            exit 1
+          fi
+          git cat-file -e "${SOURCE_SHA}^{commit}"
+          git merge-base --is-ancestor "$SOURCE_SHA" HEAD
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          {
+            echo "## Emergency MCP deployment request"
+            echo "- Requested by: $REQUESTED_BY"
+            echo "- Source SHA: $SOURCE_SHA"
+            echo "- Reason: $REASON"
+            echo "- Bypassed: aggregate CI Quality Summary"
+            echo "- Required: MCP lint/types, build, transport tests, dependency audit and production environment approval"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    needs: validate-request
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-mcp-server.yml
+    with:
+      source_sha: ${{ needs.validate-request.outputs.source_sha }}
+    secrets: inherit

@@ -22,6 +22,7 @@ import {
 } from "@/src/components/ui/sidebar";
 import { Skeleton } from "@/src/components/ui/skeleton";
 import { authClient } from "@/src/lib/auth-client";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 export function OrgSwitcher({ activeOrgId }: { activeOrgId: string }) {
  const { isMobile } = useSidebar();
@@ -40,7 +41,7 @@ export function OrgSwitcher({ activeOrgId }: { activeOrgId: string }) {
  toast.error(error.message || "Could not switch organization");
  return;
  }
- queryClient.clear();
+ clearIdentityCache(queryClient);
  router.refresh();
  }
 

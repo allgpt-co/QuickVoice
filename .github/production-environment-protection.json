@@ -1,0 +1,21 @@
+{
+  "repository": "allgpt-co/QuickVoice",
+  "environments": ["production-backend", "production-mcp-server", "production-web", "production-docs", "production-ai", "production-server"],
+  "reviewerLogins": ["rahuliitk", "harprasad", "reshamrout"],
+  "environmentSettings": {
+    "wait_timer": 0,
+    "prevent_self_review": true,
+    "reviewers": [
+      {"type": "User", "id": 1323845},
+      {"type": "User", "id": 11507564},
+      {"type": "User", "id": 121541495}
+    ],
+    "deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}
+  },
+  "branchPolicy": {"name": "main", "type": "branch"},
+  "secretMigration": {
+    "name": "COOLIFY_API_TOKEN",
+    "environments": ["production-backend", "production-mcp-server", "production-web"],
+    "instructions": "An administrator must enter the token in each environment's secrets. GitHub cannot reveal the existing repository secret. Delete the repository-scoped token only after verifying every environment secret exists. Keep PRODUCTION_ENVIRONMENTS_PROTECTED unset/false until reviewers, main-only branch policies, and secret migration are verified."
+  }
+}

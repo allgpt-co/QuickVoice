@@ -35,11 +35,10 @@ export function setPublicWidgetCorsHeaders(res: Response, origin: string) {
   res.setHeader("Access-Control-Allow-Origin", origin);
   res.vary("Origin");
   res.setHeader("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
   res.setHeader(
-    "Access-Control-Allow-Headers",
-    "Content-Type, X-Requested-With, X-API-Key, Authorization, X-Request-ID",
+    "Access-Control-Expose-Headers",
+    "Retry-After, RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset",
   );
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Expose-Headers", "Retry-After, RateLimit-Limit, RateLimit-Remaining, RateLimit-Reset");
   res.setHeader("Access-Control-Max-Age", "600");
 }

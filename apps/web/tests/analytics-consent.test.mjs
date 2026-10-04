@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFileSync } from "node:fs";
+import { createGoogleAnalyticsScript } from "../src/lib/google-analytics-config.mjs";
 import { applyConsent, CONSENT_KEY, readConsent } from "../src/lib/analytics-consent.mjs";
 import { captureEnquiryContext } from "../src/lib/enquiry-context.mjs";
 
@@ -64,4 +66,33 @@ test("enquiry context is omitted without consent and discarded on revocation", (
   window.location.href = "https://quickvoice.co/company/contact";
   window.quickvoiceAnalyticsConsent = "granted";
   assert.equal(captureEnquiryContext().landingPage, "/company/contact");
+});
+
+
+test("unanswered consent keeps shared GA cookies while collection remains disabled", () => {
+  for (const hostname of ["quickvoice.co", "www.quickvoice.co", "docs.quickvoice.co"]) {
+    for (const choice of [undefined, "unknown", "corrupt"]) {
+      const deleted = [];
+      const commands = [];
+      const browser = {
+        location: { hostname },
+        quickvoiceAnalyticsMeasurementId: "G-TEST123",
+        document: {
+          get cookie() { return "_ga=marketing-visitor; _ga_TEST123=marketing-session; essential=keep"; },
+          set cookie(value) { deleted.push(value); },
+        },
+        gtag: (...args) => commands.push(args),
+      };
+      for (let visit = 0; visit < 3; visit++) applyConsent(browser, choice);
+      assert.deepEqual(deleted, [], `${hostname}: ${choice}`);
+      assert.equal(browser["ga-disable-G-TEST123"], true);
+      assert.ok(commands.every((args) => args[0] === "consent" && args[2].analytics_storage === "denied"));
+    }
+  }
+});
+
+test("disabled marketing analytics does not mount consent or subscribe to cookie cleanup", () => {
+  assert.equal(createGoogleAnalyticsScript("off"), null);
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.match(layout, /googleAnalyticsScript && \(\s*<Suspense[^>]*>\s*<AnalyticsConsent/);
 });

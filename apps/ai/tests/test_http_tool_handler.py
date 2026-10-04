@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import sys
+import threading
 import unittest
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -125,6 +126,84 @@ class HttpToolHandlerTests(unittest.TestCase):
         self.assertEqual(result["status"], 200)
         self.assertEqual(result["data"]["customer"], "cust_123")
 
+    def test_call_http_tool_preserves_confirmation_fields_for_the_llm(self):
+        tool_result = {
+            "status": 200,
+            "data": {
+                "message": "Booked for 2026-10-01",
+                "date": "2026-10-01",
+                "order_id": "12345678901",
+                "phones": ["1-800-555-0199", "8005550199", "18005550199", "44 20 7946 0958"],
+                "sku": "800-555-0199",
+                "mrn": "12345678901",
+                "isbn": "978-1-4028-9462-6",
+                "coordinates": "+40.71281234, -74.00601234",
+            },
+        }
+
+        result = asyncio.run(
+            call_http_tool(
+                tool_name="Lookup customer",
+                arguments={"customerId": "cust_123", "reason": "Book appointment"},
+                config={"tools": [sample_tool()]},
+                call_context={},
+                fetch=lambda _payload: tool_result,
+            )
+        )
+
+        self.assertEqual(result, tool_result)
+
+    def test_call_http_tool_clamps_timeout_and_cancels_active_request(self):
+        started = threading.Event()
+        connection_closed = threading.Event()
+
+        class FakeConnection:
+            def close(self):
+                connection_closed.set()
+
+        def hanging_fetch(payload):
+            payload["_connection_observer"](FakeConnection())
+            started.set()
+            connection_closed.wait(1)
+            return {"status": 200}
+
+        async def run_and_cancel():
+            task = asyncio.create_task(
+                call_http_tool(
+                    tool_name="Lookup customer",
+                    arguments={"customerId": "cust_123", "reason": "lookup"},
+                    config={"tools": [sample_tool(response_timeout_secs=300)]},
+                    call_context={},
+                    fetch=hanging_fetch,
+                )
+            )
+            while not started.is_set():
+                await asyncio.sleep(0)
+            task.cancel()
+            with self.assertRaises(asyncio.CancelledError):
+                await task
+
+        asyncio.run(run_and_cancel())
+
+        self.assertTrue(connection_closed.is_set())
+
+        captured = {}
+
+        def capture_timeout(payload):
+            captured["timeout"] = payload["timeout"]
+            return {"status": 200}
+
+        asyncio.run(
+            call_http_tool(
+                tool_name="Lookup customer",
+                arguments={"customerId": "cust_123", "reason": "lookup"},
+                config={"tools": [sample_tool(response_timeout_secs=300)]},
+                call_context={},
+                fetch=capture_timeout,
+            )
+        )
+        self.assertEqual(captured["timeout"], 15)
+
     def test_call_http_tool_rejects_missing_required_argument(self):
         with self.assertRaisesRegex(ValueError, "customerId"):
             asyncio.run(
@@ -141,6 +220,32 @@ class HttpToolHandlerTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "decode to an object"):
             parse_http_tool_arguments("[1,2,3]")
 
+    def test_missing_dynamic_identity_cannot_fall_back_to_llm_arguments(self):
+        requests = []
+        with self.assertRaisesRegex(ValueError, "accountId"):
+            asyncio.run(call_http_tool(
+                tool_name="Lookup customer",
+                arguments={"customerId": "cust_123", "reason": "lookup", "accountId": "victim"},
+                config={"tools": [sample_tool(dynamic_variables=[])]},
+                call_context={},
+                fetch=lambda payload: requests.append(payload),
+            ))
+        self.assertEqual(requests, [])
+
 
 if __name__ == "__main__":
     unittest.main()
+
+class ParameterTrustTests(unittest.TestCase):
+    def test_static_parameters_never_fall_back_to_llm_arguments(self):
+        from handlers.http_tool_handler import _param_values
+        param = {"name": "account", "valueType": "Static Value"}
+        self.assertEqual(_param_values([param], {"account": "victim"}, {}, {}), {})
+        with self.assertRaisesRegex(ValueError, "Missing required"):
+            _param_values([{**param, "required": True}], {"account": "victim"}, {}, {})
+
+    def test_visitor_tool_and_trusted_runtime_precedence(self):
+        from handlers.http_tool_handler import _dynamic_variables
+        tool = {"dynamic_variables": [{"key": "customer_id", "value": "tenant"}]}
+        self.assertEqual(_dynamic_variables({"dynamic_variables": {"customer_id": "victim"}, "visitor_dynamic_variable_keys": ["customer_id"]}, tool)["customer_id"], "tenant")
+        self.assertEqual(_dynamic_variables({"dynamic_variables": {"customer_id": "trusted"}}, tool)["customer_id"], "trusted")

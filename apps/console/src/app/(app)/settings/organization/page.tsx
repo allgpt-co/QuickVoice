@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -51,6 +52,7 @@ import {
  SelectValue,
 } from "@/src/components/ui/select";
 import { authClient } from "@/src/lib/auth-client";
+import { queryKeys } from "@/src/lib/query-keys";
 import { generateSlug } from "@/src/utils/generateSlug";
 
 const orgSchema = z.object({
@@ -91,6 +93,10 @@ interface Organization {
 }
 
 type OrgRoleApi = {
+ hasPermission?: (input: {
+ organizationId: string;
+ permissions: Record<string, string[]>;
+ }) => Promise<{ data?: boolean | { success?: boolean } | null; error?: { message?: string } | null }>;
  inviteMember?: (input: {
  resend?: boolean;
  email: string;
@@ -114,8 +120,6 @@ export default function OrganizationPage() {
  const { data: session } = authClient.useSession();
  const activeOrgId = session?.session?.activeOrganizationId ?? null;
 
- const [org, setOrg] = useState<Organization | null>(null);
- const [loading, setLoading] = useState(true);
  const [saving, setSaving] = useState(false);
 
  const orgForm = useForm<z.infer<typeof orgSchema>>({
@@ -123,33 +127,29 @@ export default function OrganizationPage() {
  defaultValues: { name: "", slug: "" },
  });
 
- async function refresh() {
- if (!activeOrgId) return;
- setLoading(true);
- try {
+ const { data: org, isFetching: loading, error: loadError, refetch } = useQuery({
+ queryKey: queryKeys.org.detail(activeOrgId),
+ enabled: !!activeOrgId,
+ queryFn: async () => {
+ if (!activeOrgId) return null;
  const { data, error } = await authClient.organization.getFullOrganization({
  query: { organizationId: activeOrgId },
  });
- if (error) throw new Error(error.message);
- setOrg(data as Organization);
- orgForm.reset({
- name: (data as Organization).name,
- slug: (data as Organization).slug,
+ if (error) throw new Error(error.message || "Could not load organization");
+ return data as Organization | null;
+ },
  });
- } catch (err) {
- toast.error(err instanceof Error ? err.message : "Could not load organization");
- } finally {
- setLoading(false);
- }
+
+ async function refresh() {
+ await refetch();
  }
 
  useEffect(() => {
- refresh();
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [activeOrgId]);
+ orgForm.reset({ name: org?.name ?? "", slug: org?.slug ?? "" });
+ }, [org, orgForm]);
 
  async function onSaveOrg(values: z.infer<typeof orgSchema>) {
- if (!activeOrgId) return;
+ if (!activeOrgId || !org || loadError) return;
  setSaving(true);
  try {
  const { error } = await authClient.organization.update({
@@ -168,6 +168,7 @@ export default function OrganizationPage() {
 
  return (
  <div className="space-y-6 pb-24">
+ {loadError && <p role="alert" className="text-sm text-destructive">{loadError.message}</p>}
  <section className="border bg-card p-6">
  <div className="mb-5 space-y-1">
  <h2 className="text-base font-semibold">Workspace details</h2>
@@ -226,7 +227,7 @@ export default function OrganizationPage() {
  <div className="flex justify-end">
  <Button
  type="submit"
- disabled={saving || !orgForm.formState.isDirty}
+ disabled={saving || !org || !!loadError || !orgForm.formState.isDirty}
  >
  {saving ? (
  <>
@@ -246,6 +247,7 @@ export default function OrganizationPage() {
 
  <MembersSection
  orgId={activeOrgId}
+ currentUserId={session?.user?.id}
  members={org?.members ?? []}
  invitations={(org?.invitations ?? []).filter((invitation) => invitation.status === "pending" && new Date(invitation.expiresAt).getTime() > Date.now())}
  loading={loading}
@@ -257,12 +259,14 @@ export default function OrganizationPage() {
 
 function MembersSection({
  orgId,
+ currentUserId,
  members,
  invitations,
  loading,
  refresh,
 }: {
  orgId: string | null;
+ currentUserId: string | undefined;
  members: Member[];
  invitations: Invitation[];
  loading: boolean;
@@ -271,7 +275,6 @@ function MembersSection({
  const [inviteOpen, setInviteOpen] = useState(false);
  const [inviting, setInviting] = useState(false);
  const [resendingId, setResendingId] = useState<string | null>(null);
- const [roles, setRoles] = useState(["member", "admin", "owner"]);
  const [updatingMemberId, setUpdatingMemberId] = useState<string | null>(null);
  const [removeTarget, setRemoveTarget] = useState<Member | null>(null);
  const [cancelTarget, setCancelTarget] = useState<Invitation | null>(null);
@@ -281,29 +284,43 @@ function MembersSection({
  defaultValues: { email: "", role: "member" },
  });
 
- useEffect(() => {
- async function loadRoles() {
- if (!orgId) return;
- const builtIn = ["member", "admin", "owner"];
- try {
+ const { data: customRoles = [] } = useQuery({
+ queryKey: queryKeys.org.roles(orgId),
+ enabled: !!orgId,
+ queryFn: async () => {
  const orgApi = authClient.organization as unknown as OrgRoleApi;
- if (!orgApi.listRoles) {
- setRoles(builtIn);
- return;
- }
- const { data } = await orgApi.listRoles({
- query: { organizationId: orgId },
+ if (!orgId || !orgApi.listRoles) return [];
+ const { data, error } = await orgApi.listRoles({ query: { organizationId: orgId } });
+ if (error) throw new Error(error.message || "Could not load roles");
+ return data ?? [];
+ },
  });
- setRoles([...new Set([...builtIn, ...(data ?? []).map((role) => role.role)])]);
- } catch {
- setRoles(builtIn);
+ const roles = [...new Set(["member", "admin", "owner", ...customRoles.map((role) => role.role)])];
+ const isOwner = members.some((member) =>
+ member.user.id === currentUserId && member.role.split(",").map((role) => role.trim()).includes("owner")
+ );
+ const inviteRoles = roles.filter((role) => isOwner || role !== "owner");
+ const { data: canInvite = false } = useQuery({
+ queryKey: queryKeys.org.invitePermission(orgId, currentUserId),
+ enabled: !!orgId && !!currentUserId,
+ queryFn: async () => {
+ const orgApi = authClient.organization as unknown as OrgRoleApi;
+ if (!orgId || !orgApi.hasPermission) return false;
+ const { data, error } = await orgApi.hasPermission({
+ organizationId: orgId,
+ permissions: { invitation: ["create"] },
+ });
+ if (error) throw new Error(error.message || "Could not check invitation permission");
+ return data === true || (typeof data === "object" && data?.success === true);
+ },
+ });
+
+ function canInviteRole(role: string) {
+ return canInvite && (isOwner || !role.split(",").map((value) => value.trim()).includes("owner"));
  }
- }
- loadRoles();
- }, [orgId]);
 
  async function onInvite(values: z.infer<typeof inviteSchema>, invitationId?: string) {
- if (!orgId) return;
+ if (!orgId || !canInviteRole(values.role)) return;
  setInviting(true);
  setResendingId(invitationId ?? null);
  try {
@@ -394,7 +411,7 @@ function MembersSection({
  </div>
  <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
  <DialogTrigger asChild>
- <Button>
+ <Button disabled={!canInvite}>
  <UserPlus /> Invite member
  </Button>
  </DialogTrigger>
@@ -439,7 +456,7 @@ function MembersSection({
  </SelectTrigger>
  </FormControl>
  <SelectContent>
- {roles.map((role) => (
+ {inviteRoles.map((role) => (
  <SelectItem key={role} value={role}>
  {role}
  </SelectItem>
@@ -458,7 +475,7 @@ function MembersSection({
  >
  Cancel
  </Button>
- <Button type="submit" disabled={inviting}>
+ <Button type="submit" disabled={inviting || !canInvite}>
  {inviting ? (
  <>
  <Loader2 className="animate-spin" /> Sending…
@@ -561,7 +578,7 @@ function MembersSection({
  variant="outline"
  size="sm"
  className="min-h-11 scroll-mb-24"
- disabled={inviting}
+ disabled={inviting || !canInviteRole(invitation.role)}
  aria-label={`Resend invitation to ${invitation.email}`}
  onClick={() => onInvite({ email: invitation.email, role: invitation.role }, invitation.id)}
  >

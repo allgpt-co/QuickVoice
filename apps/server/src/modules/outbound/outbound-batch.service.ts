@@ -8,6 +8,7 @@ import { randomUUID } from "node:crypto";
 import { extname } from "node:path";
 
 import { generateUploadUrl, readObjectBuffer } from "../../config/s3.js";
+import { livekitRoomServiceClient } from "../../config/livekit.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { getOutboundBatchQueue } from "../../queues/outbound-batch.queue.js";
@@ -49,10 +50,12 @@ type BatchRepository = {
   markCampaignCompleted: typeof outboundCallRepository.markCampaignCompleted;
   markCampaignCancelled: typeof outboundCallRepository.markCampaignCancelled;
   markCampaignFailed: typeof outboundCallRepository.markCampaignFailed;
-  listScheduledOutboundIdsForCampaign: typeof outboundCallRepository.listScheduledOutboundIdsForCampaign;
+  claimCampaignDispatchSlots: typeof outboundCallRepository.claimCampaignDispatchSlots;
 };
 
 type BatchQueueLike = {
+  getJob?: (id: string) => Promise<{ getState(): Promise<string>; retry(state?: "failed"): Promise<void> } | undefined>;
+
   add: (
     name: "import" | "dispatch-campaign" | "dispatch-call",
     data: Record<string, string>,
@@ -75,20 +78,24 @@ type ImportBatchDeps = {
 };
 
 type DispatchCampaignDeps = {
+  reschedule?: boolean;
   repository?: Pick<
     BatchRepository,
-    | "getCampaignForDispatch"
     | "markCampaignActive"
     | "markCampaignCompleted"
-    | "listScheduledOutboundIdsForCampaign"
+    | "claimCampaignDispatchSlots"
   >;
   queue?: BatchQueueLike;
+  now?: () => Date;
 };
 
 type CreateBatchCampaignDeps = {
   repository?: Pick<
     BatchRepository,
-    "getMonthlyUsage" | "getDialableNumber" | "createBatchCampaign" | "markCampaignFailed"
+    | "getMonthlyUsage"
+    | "getDialableNumber"
+    | "createBatchCampaign"
+    | "markCampaignFailed"
   >;
   queue?: BatchQueueLike;
   now?: () => Date;
@@ -113,6 +120,7 @@ type CancelBatchCampaignDeps = {
     BatchRepository,
     "getBatchCampaignDetail" | "markCampaignCancelled"
   >;
+  stopCall?: (outboundId: string) => Promise<unknown>;
 };
 
 type CreateBatchOutboundCallInput = {
@@ -139,13 +147,13 @@ export async function createBatchUploadUrl(
   const filePolicy = inspectBatchFile(args.fileName, args.contentType);
   if (!filePolicy) {
     throw new BadRequestError(
-      "Batch file type does not match a supported CSV or XLSX format"
+      "Batch file type does not match a supported CSV or XLSX format",
     );
   }
   const maxUploadBytes = readPositiveInteger(
     "OUTBOUND_BATCH_MAX_UPLOAD_BYTES",
     5 * 1024 * 1024,
-    50 * 1024 * 1024
+    50 * 1024 * 1024,
   );
   if (args.fileSize > maxUploadBytes) {
     throw new BadRequestError("Batch file exceeds the configured upload limit");
@@ -155,7 +163,7 @@ export async function createBatchUploadUrl(
   const uploadUrl = await createUploadUrl(
     s3Key,
     filePolicy.contentType,
-    args.fileSize
+    args.fileSize,
   );
   return {
     uploadUrl,
@@ -176,11 +184,11 @@ export async function createBatchCampaign(
     !isValidBatchStorageKey(
       args.sourceFileKey,
       args.sourceFileName,
-      args.organizationId
+      args.organizationId,
     )
   ) {
     throw new BadRequestError(
-      "Batch file reference is invalid for the active organization"
+      "Batch file reference is invalid for the active organization",
     );
   }
 
@@ -198,7 +206,7 @@ export async function createBatchCampaign(
 
   if (!dialableNumber) {
     throw new BadRequestError(
-      "From number must belong to this organization and be linked to the selected agent"
+      "From number must belong to this organization and be linked to the selected agent",
     );
   }
 
@@ -230,7 +238,7 @@ export async function createBatchCampaign(
       jobId: `outbound-batch-import-${campaign.campaignId}`,
       removeOnComplete: 100,
       removeOnFail: 200,
-    }
+    },
   );
 
   return campaign;
@@ -238,7 +246,7 @@ export async function createBatchCampaign(
 
 export async function listBatchCampaigns(
   args: ListBatchCampaignsArgs,
-  deps: ListBatchCampaignsDeps = {}
+  deps: ListBatchCampaignsDeps = {},
 ) {
   const repository = deps.repository ?? outboundCallRepository;
   return repository.listBatchCampaigns(args);
@@ -246,32 +254,55 @@ export async function listBatchCampaigns(
 
 export async function getBatchCampaignDetail(
   args: { organizationId: string; campaignId: string },
-  deps: GetBatchCampaignDeps = {}
-) {
-  const repository = deps.repository ?? outboundCallRepository;
-  return repository.getBatchCampaignDetail(args);
-}
-
-export async function cancelBatchCampaign(
-  args: { organizationId: string; campaignId: string },
-  deps: CancelBatchCampaignDeps = {}
+  deps: GetBatchCampaignDeps = {},
 ) {
   const repository = deps.repository ?? outboundCallRepository;
   const campaign = await repository.getBatchCampaignDetail(args);
   if (!campaign) {
-    throw new BadRequestError("Batch campaign not found");
+    throw new NotFoundError("Batch campaign not found");
+  }
+  return campaign;
+}
+
+export async function cancelBatchCampaign(
+  args: { organizationId: string; campaignId: string },
+  deps: CancelBatchCampaignDeps = {},
+) {
+  const repository = deps.repository ?? outboundCallRepository;
+  const campaign = await repository.getBatchCampaignDetail(args);
+  if (!campaign) {
+    throw new NotFoundError("Batch campaign not found");
   }
 
-  if (campaign.status !== CampaignStatus.SCHEDULED && campaign.status !== CampaignStatus.PROCESSED) {
-    throw new BadRequestError("Only scheduled campaigns can be cancelled");
+  if (
+    campaign.status !== CampaignStatus.SCHEDULED &&
+    campaign.status !== CampaignStatus.PROCESSED &&
+    campaign.status !== CampaignStatus.ACTIVE &&
+    campaign.status !== CampaignStatus.CANCELLED
+  ) {
+    throw new BadRequestError(
+      "Only scheduled or active campaigns can be cancelled",
+    );
   }
 
-  return repository.markCampaignCancelled(args);
+  const result = await repository.markCampaignCancelled(args);
+  if (!result?.cancelled || !result.campaign) {
+    throw new BadRequestError(
+      "Campaign status changed before it could be cancelled",
+    );
+  }
+
+  const stopCall =
+    deps.stopCall ??
+    ((outboundId: string) =>
+      livekitRoomServiceClient.deleteRoom(`outbound_${outboundId}`));
+  await Promise.all(result.runningOutboundIds.map(stopCall));
+  return result.campaign;
 }
 
 export async function importBatchCampaignRecipients(
   args: { campaignId: string },
-  deps: ImportBatchDeps = {}
+  deps: ImportBatchDeps = {},
 ) {
   const repository = deps.repository ?? outboundCallRepository;
   const campaignIntelligenceRepo =
@@ -280,8 +311,9 @@ export async function importBatchCampaignRecipients(
   const readFile = deps.readFile ?? readObjectBuffer;
   const now = deps.now ?? (() => new Date());
 
-  const campaign =
-    await campaignIntelligenceRepo.getCampaignForImport(args.campaignId);
+  const campaign = await campaignIntelligenceRepo.getCampaignForImport(
+    args.campaignId,
+  );
   if (!campaign) {
     throw new NotFoundError("Batch campaign not found");
   }
@@ -295,7 +327,7 @@ export async function importBatchCampaignRecipients(
     const file = await readFile(campaign.sourceFileKey);
     parsed = parseBatchRecipients(
       file,
-      campaign.sourceFileName ?? "recipients.csv"
+      campaign.sourceFileName ?? "recipients.csv",
     );
   } catch (error) {
     await repository.markCampaignFailed?.(campaign.campaignId);
@@ -306,12 +338,12 @@ export async function importBatchCampaignRecipients(
   const maxRecipients = readPositiveInteger(
     "OUTBOUND_BATCH_MAX_RECIPIENTS",
     10_000,
-    100_000
+    100_000,
   );
   if (recipientCount > maxRecipients) {
     await repository.markCampaignFailed?.(campaign.campaignId);
     throw new BadRequestError(
-      `Batch campaign exceeds the ${maxRecipients} recipient limit`
+      `Batch campaign exceeds the ${maxRecipients} recipient limit`,
     );
   }
 
@@ -412,16 +444,19 @@ export async function importBatchCampaignRecipients(
   ];
 
   const validRecipients = outboundRows.filter(
-    (row) => row.status === CallStatus.SCHEDULED
+    (row) => row.status === CallStatus.SCHEDULED,
   ).length;
   const invalidRecipients = parsed.invalidRows.length + skippedRecipients;
 
   await Promise.all([
     repository.createBatchOutboundCalls(outboundRows),
     campaignIntelligenceRepository.createCampaignRecipientSnapshots(
-      recipientSnapshots
+      recipientSnapshots,
     ),
-    createCampaignAssignments(campaign, parsed.validRows.map((row) => row.recipientKey)),
+    createCampaignAssignments(
+      campaign,
+      parsed.validRows.map((row) => row.recipientKey),
+    ),
   ]);
 
   await repository.markBatchImported(campaign.campaignId, {
@@ -438,15 +473,21 @@ export async function importBatchCampaignRecipients(
       jobId: `outbound-batch-dispatch-${campaign.campaignId}`,
       removeOnComplete: 100,
       removeOnFail: 200,
-    }
+    },
   );
 }
 
 async function createCampaignAssignments(
-  campaign: Awaited<ReturnType<typeof campaignIntelligenceRepository.getCampaignForImport>>,
+  campaign: Awaited<
+    ReturnType<typeof campaignIntelligenceRepository.getCampaignForImport>
+  >,
   recipientKeys: string[],
 ) {
-  if (!campaign || campaign.experiments.length === 0 || recipientKeys.length === 0) {
+  if (
+    !campaign ||
+    campaign.experiments.length === 0 ||
+    recipientKeys.length === 0
+  ) {
     return { count: 0 };
   }
 
@@ -458,10 +499,11 @@ async function createCampaignAssignments(
   for (const experiment of campaign.experiments) {
     const experimentDefinition =
       experiment.definition as unknown as CampaignExperimentDefinition;
-    const assignmentPlan = campaignIntelligenceRepository.buildRecipientAssignments(
-      experimentDefinition,
-      uniqueKeys,
-    );
+    const assignmentPlan =
+      campaignIntelligenceRepository.buildRecipientAssignments(
+        experimentDefinition,
+        uniqueKeys,
+      );
 
     const variantIdByKey = new Map(
       experiment.variants.map((variant) => [variant.key, variant.variantId]),
@@ -485,7 +527,9 @@ async function createCampaignAssignments(
   }
 
   if (assignments.length === 0) return { count: 0 };
-  return campaignIntelligenceRepository.createCampaignExperimentAssignments(assignments);
+  return campaignIntelligenceRepository.createCampaignExperimentAssignments(
+    assignments,
+  );
 }
 
 export async function ingestCampaignConversionEvent(
@@ -497,7 +541,7 @@ export async function ingestCampaignConversionEvent(
   const campaign =
     await campaignIntelligenceRepository.getCampaignForConversion(
       args.campaignId,
-      args.organizationId
+      args.organizationId,
     );
   if (!campaign) {
     throw new NotFoundError("Batch campaign not found");
@@ -505,9 +549,12 @@ export async function ingestCampaignConversionEvent(
 
   const existing = await campaignIntelligenceRepository.hasConversionDedupeKey(
     args.organizationId,
-    args.dedupeKey
+    args.dedupeKey,
   );
-  const validation = validateConversionEvent(args, existing ? new Set([args.dedupeKey]) : undefined);
+  const validation = validateConversionEvent(
+    args,
+    existing ? new Set([args.dedupeKey]) : undefined,
+  );
   if (!validation.accepted) {
     return {
       campaignId: args.campaignId,
@@ -519,31 +566,35 @@ export async function ingestCampaignConversionEvent(
 
   const goal = campaign.goals.find((entry) => entry.key === args.goalKey);
 
-  const conversion = await campaignIntelligenceRepository.createCampaignConversionEvent({
-    organizationId: args.organizationId,
-    campaignId: args.campaignId,
-    goalId: goal?.goalId ?? null,
-    goalKey: args.goalKey,
-    dedupeKey: args.dedupeKey,
-    externalCustomerId: args.externalCustomerId,
-    occurredAt: args.occurredAt,
-    valueCents: args.valueCents,
-    currency: args.currency,
-    source: args.source,
-    evidence: args.evidence,
-    rejected: false,
-    rejectionReason: null,
-  });
+  const conversion =
+    await campaignIntelligenceRepository.createCampaignConversionEvent({
+      organizationId: args.organizationId,
+      campaignId: args.campaignId,
+      goalId: goal?.goalId ?? null,
+      goalKey: args.goalKey,
+      dedupeKey: args.dedupeKey,
+      externalCustomerId: args.externalCustomerId,
+      occurredAt: args.occurredAt,
+      valueCents: args.valueCents,
+      currency: args.currency,
+      source: args.source,
+      evidence: args.evidence,
+      rejected: false,
+      rejectionReason: null,
+    });
 
-  const assignments = await campaignIntelligenceRepository.getAssignmentsForUnit(
-    args.campaignId,
-    args.externalCustomerId
-  );
+  const assignments =
+    await campaignIntelligenceRepository.getAssignmentsForUnit(
+      args.campaignId,
+      args.externalCustomerId,
+    );
 
   await campaignIntelligenceRepository.createCampaignConversionAttributions(
     assignments.map((assignment) => {
       const experimentDefinition =
-        (assignment.experiment.definition as { version?: number } | undefined) ?? {};
+        (assignment.experiment.definition as
+          | { version?: number }
+          | undefined) ?? {};
       return {
         organizationId: args.organizationId,
         campaignId: args.campaignId,
@@ -570,7 +621,7 @@ export async function ingestCampaignConversionEvent(
           },
         },
       };
-    })
+    }),
   );
 
   return {
@@ -583,17 +634,15 @@ export async function ingestCampaignConversionEvent(
   };
 }
 
-export async function buildBatchCampaignReport(
-  args: {
-    organizationId: string;
-    campaignId: string;
-    randomized: boolean;
-    persistReport: boolean;
-  },
-) {
+export async function buildBatchCampaignReport(args: {
+  organizationId: string;
+  campaignId: string;
+  randomized: boolean;
+  persistReport: boolean;
+}) {
   const campaign = await campaignIntelligenceRepository.getCampaignForReport(
     args.campaignId,
-    args.organizationId
+    args.organizationId,
   );
   if (!campaign) {
     throw new NotFoundError("Batch campaign not found");
@@ -617,7 +666,8 @@ export async function buildBatchCampaignReport(
   }
 
   const attempts = campaign.outboundCalls.flatMap((outbound) => {
-    const unitKey = parseRecipientKey(outbound.optionalData) ?? outbound.outboundId;
+    const unitKey =
+      parseRecipientKey(outbound.optionalData) ?? outbound.outboundId;
     const statusForAttempt = outbound.callLog?.status ?? outbound.status;
     const connected =
       statusForAttempt === CallStatus.COMPLETED ||
@@ -656,7 +706,9 @@ export async function buildBatchCampaignReport(
   });
 
   const conversions = campaign.conversionEvents.flatMap((conversion) => {
-    const assignedVariants = assignmentsByUnit.get(conversion.externalCustomerId);
+    const assignedVariants = assignmentsByUnit.get(
+      conversion.externalCustomerId,
+    );
     if (!assignedVariants || assignedVariants.length === 0) {
       return [
         {
@@ -688,22 +740,24 @@ export async function buildBatchCampaignReport(
     };
   }
 
-  const definitionsVersion = Math.max(
-    campaign.personalizationSchemas
-      .map((schema) => Number(schema.version))
-      .reduce((current, next) => Math.max(current, next), 0),
-    ...campaign.experiments.map((experiment) => Number(experiment.version)),
-    ...campaign.goals.map((goal) => Number(goal.version)),
-  ) || 1;
+  const definitionsVersion =
+    Math.max(
+      campaign.personalizationSchemas
+        .map((schema) => Number(schema.version))
+        .reduce((current, next) => Math.max(current, next), 0),
+      ...campaign.experiments.map((experiment) => Number(experiment.version)),
+      ...campaign.goals.map((goal) => Number(goal.version)),
+    ) || 1;
 
-  const snapshot = await campaignIntelligenceRepository.createCampaignReportSnapshot({
-    organizationId: args.organizationId,
-    campaignId: args.campaignId,
-    scope: "batch-campaign-report",
-    definitionsVersion,
-    report: campaignReport as Record<string, unknown>,
-    dataFreshnessAt: new Date(campaignReport.dataFreshnessAt),
-  });
+  const snapshot =
+    await campaignIntelligenceRepository.createCampaignReportSnapshot({
+      organizationId: args.organizationId,
+      campaignId: args.campaignId,
+      scope: "batch-campaign-report",
+      definitionsVersion,
+      report: campaignReport as Record<string, unknown>,
+      dataFreshnessAt: new Date(campaignReport.dataFreshnessAt),
+    });
 
   return {
     campaignId: args.campaignId,
@@ -714,34 +768,54 @@ export async function buildBatchCampaignReport(
 
 export async function dispatchBatchCampaign(
   args: { campaignId: string },
-  deps: DispatchCampaignDeps = {}
+  deps: DispatchCampaignDeps = {},
 ) {
   const repository = deps.repository ?? outboundCallRepository;
   const queue = deps.queue ?? getOutboundBatchQueue();
-  const campaign = await repository.getCampaignForDispatch(args.campaignId);
-  if (!campaign) return;
+  const now = deps.now?.() ?? new Date();
+  const claimed = await repository.markCampaignActive(args.campaignId);
+  if (!claimed) return;
 
-  const outboundIds = await repository.listScheduledOutboundIdsForCampaign(
-    campaign.campaignId
+  const dispatch = await repository.claimCampaignDispatchSlots(
+    args.campaignId,
+    now,
   );
-  if (outboundIds.length === 0) {
-    await repository.markCampaignCompleted(campaign.campaignId);
+  if (!dispatch) return;
+
+  await Promise.all(
+    dispatch.outboundIds.map(async (outboundId) => {
+      const jobId = `outbound-call-dispatch-${outboundId}`;
+      const existing = await queue.getJob?.(jobId);
+      if (existing && await existing.getState() === "failed") {
+        await existing.retry("failed");
+        return;
+      }
+      await queue.add("dispatch-call", { outboundId }, {
+        jobId, removeOnComplete: true, removeOnFail: 200,
+      });
+    }),
+  );
+
+  if (dispatch.scheduledRemaining === 0 && dispatch.campaignActiveCalls === 0) {
+    await repository.markCampaignCompleted(args.campaignId);
     return;
   }
 
-  await repository.markCampaignActive(campaign.campaignId);
-  await Promise.all(
-    outboundIds.map((outboundId) =>
-      queue.add(
-        "dispatch-call",
-        { outboundId },
-        {
-          jobId: `outbound-call-dispatch-${outboundId}`,
-          removeOnComplete: 100,
-          removeOnFail: 200,
-        }
-      )
-    )
+  if (deps.reschedule === false) return;
+
+  const delay =
+    dispatch.scheduledRemaining > 0 && dispatch.dailyLimitReached
+      ? (dispatch.resumeAt ? Math.max(0, dispatch.resumeAt.getTime() - now.getTime()) : millisecondsUntilNextUtcDay(now))
+      : readPositiveInteger("OUTBOUND_BATCH_DISPATCH_POLL_MS", 5_000, 60_000);
+  await queue.add(
+    "dispatch-campaign",
+    { campaignId: args.campaignId },
+    {
+      delay,
+      jobId: `outbound-batch-pump-${args.campaignId}-${now.getTime() + delay}`,
+      removeOnComplete: true,
+      removeOnFail: 200,
+    },
   );
 }
 
@@ -750,7 +824,9 @@ export async function dispatchBatchOutboundCall(args: { outboundId: string }) {
 }
 
 function pickPersonalizationSchema(
-  campaign: Awaited<ReturnType<typeof campaignIntelligenceRepository.getCampaignForImport>>,
+  campaign: Awaited<
+    ReturnType<typeof campaignIntelligenceRepository.getCampaignForImport>
+  >,
 ) {
   const [schema] = campaign?.personalizationSchemas ?? [];
   if (!schema) return null;
@@ -790,6 +866,13 @@ function dispatchDelay(scheduledAt: Date | null, now: Date) {
   return Math.max(0, scheduledAt.getTime() - now.getTime());
 }
 
+function millisecondsUntilNextUtcDay(now: Date) {
+  return (
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1) -
+    now.getTime()
+  );
+}
+
 function inspectBatchFile(fileName: string, contentType: string) {
   const extension = extname(fileName).slice(1).toLowerCase();
   const normalizedContentType =
@@ -812,7 +895,7 @@ function inspectBatchFile(fileName: string, contentType: string) {
 function isValidBatchStorageKey(
   key: string,
   fileName: string,
-  organizationId: string
+  organizationId: string,
 ) {
   const extension = extname(fileName).slice(1).toLowerCase();
   if (extension !== "csv" && extension !== "xlsx") return false;
@@ -821,13 +904,17 @@ function isValidBatchStorageKey(
   const objectName = key.slice(prefix.length);
 
   return new RegExp(
-    `^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.${extension}$`,
-    "i"
+    `^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}[.]${extension}$`,
+    "i",
   ).test(objectName);
 }
 
 function parseRecipientKey(optionalData: Prisma.JsonValue | null | undefined) {
-  if (!optionalData || typeof optionalData !== "object" || Array.isArray(optionalData)) {
+  if (
+    !optionalData ||
+    typeof optionalData !== "object" ||
+    Array.isArray(optionalData)
+  ) {
     return null;
   }
 
@@ -847,14 +934,12 @@ function valueString(value: unknown) {
 }
 
 function valueNumberString(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? String(value) : null;
+  return typeof value === "number" && Number.isFinite(value)
+    ? String(value)
+    : null;
 }
 
-function readPositiveInteger(
-  name: string,
-  fallback: number,
-  maximum: number
-) {
+function readPositiveInteger(name: string, fallback: number, maximum: number) {
   const value = Number(process.env[name]);
   return Number.isInteger(value) && value > 0 && value <= maximum
     ? value
@@ -862,10 +947,7 @@ function readPositiveInteger(
 }
 
 type ExportBatchCampaignResultsDeps = {
-  repository?: Pick<
-    typeof outboundCallRepository,
-    "getBatchCampaignResults"
-  >;
+  repository?: Pick<typeof outboundCallRepository, "getBatchCampaignResults">;
 };
 
 export async function exportBatchCampaignResultsCsv(
@@ -875,7 +957,7 @@ export async function exportBatchCampaignResultsCsv(
   const repository = deps.repository ?? outboundCallRepository;
   const campaign = await repository.getBatchCampaignResults(args);
   if (!campaign) {
-    throw new BadRequestError("Batch campaign not found");
+    throw new NotFoundError("Batch campaign not found");
   }
 
   return {
@@ -1153,7 +1235,16 @@ function uniqueCsvHeader(header: string, usedHeaders: Set<string>) {
 
 function csvEscape(value: unknown) {
   const text = stringifyCsvValue(value);
-  return /[",\n\r]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
+  // Plain signed integers and decimals are numeric literals, not executable formulas.
+  // Keep the leading + intact for CRM imports; expressions still get escaped.
+  const isNumber = /^[+-]?\d+(\.\d+)?$/.test(text);
+  const safeText =
+    typeof value === "string" && !isNumber && /^[=+\-@\t\r\n]/.test(text)
+      ? `'${text}`
+      : text;
+  return /[",\n\r]/.test(safeText)
+    ? `"${safeText.replaceAll('"', '""')}"`
+    : safeText;
 }
 
 function stringifyCsvValue(value: unknown) {
@@ -1186,4 +1277,18 @@ function stringValue(value: unknown) {
 
 function toIsoString(value: Date | null) {
   return value ? value.toISOString() : "";
+}
+
+export async function recoverActiveCampaignDispatches() {
+  let cursor: string | undefined;
+  do {
+    const campaigns = await outboundCallRepository.listActiveCampaignsForRecovery(cursor);
+    if (campaigns.length === 0) return;
+    // Bounded recovery also works after the normal pump exhausted its retries.
+    for (const campaign of campaigns) {
+      try { await dispatchBatchCampaign(campaign, { reschedule: false }); }
+      catch { console.error("[outbound] campaign dispatch recovery failed", { campaignId: campaign.campaignId }); }
+    }
+    cursor = campaigns[campaigns.length - 1]!.campaignId;
+  } while (true);
 }

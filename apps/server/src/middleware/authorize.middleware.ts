@@ -16,6 +16,7 @@
 
 import type { IncomingHttpHeaders } from "node:http";
 import { Request, Response, NextFunction, RequestHandler } from "express";
+import { APIError } from "better-auth";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../lib/auth.js";
 import { UnauthenticatedError } from "../common/errors/unauthenticated.js";
@@ -38,7 +39,7 @@ export type AuthorizedRequest = Request & {
 type AuthorizedHandler = (
   req: AuthorizedRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => Promise<unknown> | unknown;
 
 // Wrap a handler that runs behind `requirePermission` so it sees a narrowed
@@ -77,7 +78,7 @@ export const requirePermission =
         !(await hasSessionPermission(
           req.headers,
           req.auth.activeOrganizationId,
-          permissions
+          permissions,
         ))
       ) {
         throw new ForbiddenError("Insufficient permissions");
@@ -97,18 +98,78 @@ export const requirePermission =
 export async function hasSessionPermission(
   headers: IncomingHttpHeaders,
   organizationId: string,
-  permissions: Permissions
+  permissions: Permissions,
 ) {
-  const result = await auth.api.hasPermission({
-    headers: fromNodeHeaders(headers),
-    body: { organizationId, permissions },
-  });
-  return result?.success === true;
+  try {
+    const result = await auth.api.hasPermission({
+      headers: fromNodeHeaders(headers),
+      body: { organizationId, permissions },
+    });
+    return result?.success === true;
+  } catch (error) {
+    // Better Auth throws when membership/session/org is gone instead of
+    // returning success:false. Treat that as denial, not an auth outage.
+    if (error instanceof APIError && [400, 401, 403, 404].includes(error.statusCode)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+type CurrentSessionPermissionDependencies = {
+  getSession: (headers: IncomingHttpHeaders) => Promise<{
+    user: { id: string };
+    session?: { activeOrganizationId?: string | null };
+  } | null>;
+  hasPermission: (
+    headers: IncomingHttpHeaders,
+    organizationId: string,
+    permissions: Permissions,
+  ) => Promise<boolean>;
+};
+
+const currentSessionPermissionDependencies: CurrentSessionPermissionDependencies =
+  {
+    getSession: async (headers) =>
+      (await auth.api.getSession({
+        headers: fromNodeHeaders(headers),
+      })) as Awaited<
+        ReturnType<CurrentSessionPermissionDependencies["getSession"]>
+      >,
+    hasPermission: hasSessionPermission,
+  };
+
+/**
+ * Revalidates a long-lived connection against current server-side session
+ * state. Matching the user and active organization prevents a socket from
+ * retaining access after membership removal, sign-out, or an organization
+ * switch.
+ */
+export async function hasCurrentSessionPermission(
+  headers: IncomingHttpHeaders,
+  expectedUserId: string,
+  expectedOrganizationId: string,
+  permissions: Permissions,
+  dependencies: CurrentSessionPermissionDependencies = currentSessionPermissionDependencies,
+) {
+  const session = await dependencies.getSession(headers);
+  if (
+    !session ||
+    session.user.id !== expectedUserId ||
+    session.session?.activeOrganizationId !== expectedOrganizationId
+  ) {
+    return false;
+  }
+  return dependencies.hasPermission(
+    headers,
+    expectedOrganizationId,
+    permissions,
+  );
 }
 
 export function hasApiKeyPermission(
   granted: Record<string, string[]> | undefined,
-  requested: Permissions
+  requested: Permissions,
 ) {
   if (!granted) return false;
 
@@ -118,7 +179,7 @@ export function hasApiKeyPermission(
       (action) =>
         resourceActions.includes(action) ||
         resourceActions.includes("*") ||
-        granted["*"]?.includes("*") === true
+        granted["*"]?.includes("*") === true,
     );
   });
 }

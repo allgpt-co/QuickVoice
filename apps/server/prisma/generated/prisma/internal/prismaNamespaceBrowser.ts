@@ -576,6 +576,9 @@ export const AgentScalarFieldEnum = {
   name: 'name',
   templateId: 'templateId',
   isActive: 'isActive',
+  deletionRequestedAt: 'deletionRequestedAt',
+  deletionAttemptedAt: 'deletionAttemptedAt',
+  deletionError: 'deletionError',
   isConfigured: 'isConfigured',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -746,6 +749,7 @@ export const OutboundCallScalarFieldEnum = {
   optionalData: 'optionalData',
   mode: 'mode',
   status: 'status',
+  dispatchClaimedAt: 'dispatchClaimedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

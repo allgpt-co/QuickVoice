@@ -76,6 +76,7 @@ def _server_url_check(raw_url: str, *, required: bool) -> dict[str, Any]:
 def _queue_check(
     raw_queue_dir: str,
     *,
+    variable_name: str,
     required: bool,
     queue_probe: QueueProbe,
 ) -> dict[str, Any]:
@@ -84,7 +85,7 @@ def _queue_check(
             "not_configured" if required else "skipped",
             required=required,
             message=(
-                "AI_BILLING_USAGE_QUEUE_DIR is required for hosted billing mode"
+                f"{variable_name} is required for hosted billing mode"
                 if required
                 else None
             ),
@@ -95,7 +96,7 @@ def _queue_check(
         return _check(
             "error",
             required=required,
-            message="AI_BILLING_USAGE_QUEUE_DIR must be an absolute path",
+            message=f"{variable_name} must be an absolute path",
         )
 
     resolved = directory.resolve(strict=False)
@@ -106,7 +107,7 @@ def _queue_check(
         return _check(
             "error",
             required=required,
-            message="AI_BILLING_USAGE_QUEUE_DIR must not use a temporary filesystem",
+            message=f"{variable_name} must not use a temporary filesystem",
         )
 
     probe_error = queue_probe(resolved)
@@ -121,7 +122,7 @@ def _probe_writable_queue(directory: Path) -> str | None:
     try:
         directory.mkdir(parents=True, exist_ok=True)
         if not directory.is_dir():
-            return "AI_BILLING_USAGE_QUEUE_DIR must reference a directory"
+            return "Queue path must reference a directory"
         file_descriptor = os.open(
             probe_path,
             os.O_CREAT | os.O_EXCL | os.O_WRONLY,
@@ -131,7 +132,7 @@ def _probe_writable_queue(directory: Path) -> str | None:
         os.fsync(file_descriptor)
         return None
     except OSError:
-        return "AI_BILLING_USAGE_QUEUE_DIR is not writable"
+        return "Queue directory is not writable"
     finally:
         if file_descriptor is not None:
             os.close(file_descriptor)
@@ -150,6 +151,7 @@ def evaluate_local_runtime_config(
     raw_server_url = str(env.get("SERVER_API_URL", "")).strip()
     raw_internal_key = str(env.get("INTERNAL_API_KEY", "")).strip()
     raw_queue_dir = str(env.get("AI_BILLING_USAGE_QUEUE_DIR", "")).strip()
+    raw_call_log_queue_dir = str(env.get("AI_CALL_LOG_QUEUE_DIR", "")).strip()
 
     try:
         billing_mode = resolve_billing_mode(env)
@@ -181,6 +183,13 @@ def evaluate_local_runtime_config(
         ),
         "billingUsageQueue": _queue_check(
             raw_queue_dir,
+            variable_name="AI_BILLING_USAGE_QUEUE_DIR",
+            required=hosted,
+            queue_probe=queue_probe,
+        ),
+        "callLogQueue": _queue_check(
+            raw_call_log_queue_dir,
+            variable_name="AI_CALL_LOG_QUEUE_DIR",
             required=hosted,
             queue_probe=queue_probe,
         ),

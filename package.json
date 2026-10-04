@@ -32,16 +32,17 @@
     "claims:audit:launch": "node scripts/audit-public-claims.mjs --target apps/web/src/app/open-source --target apps/web/src/components/open-source"
   },
   "devDependencies": {
+    "gray-matter": "^4.0.3",
+    "js-yaml": "^4.3.2",
+    "minimatch": "10.2.5",
     "prettier": "^3.7.4",
     "turbo": "^2.10.7",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "yaml": "^2.8.3"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
     "node": "^20.19 || ^22.13 || >=24"
-  },
-  "dependencies": {
-    "better-auth": "^1.6.22"
   },
   "pnpm": {
     "overrides": {
@@ -85,7 +86,8 @@
       "valibot": "1.4.2"
     },
     "patchedDependencies": {
-      "minimatch@10.2.5": "patches/minimatch@10.2.5.patch"
+      "minimatch@10.2.5": "patches/minimatch@10.2.5.patch",
+      "braces@3.0.3": "patches/braces@3.0.3.patch"
     }
   }
 }

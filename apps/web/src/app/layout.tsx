@@ -80,13 +80,15 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-        <Suspense fallback={null}>
-          <AnalyticsConsent
-            script={googleAnalyticsScript}
-            configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
-            manualPageviews={manualPageviews}
-          />
-        </Suspense>
+        {googleAnalyticsScript && (
+          <Suspense fallback={null}>
+            <AnalyticsConsent
+              script={googleAnalyticsScript}
+              configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
+              manualPageviews={manualPageviews}
+            />
+          </Suspense>
+        )}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"

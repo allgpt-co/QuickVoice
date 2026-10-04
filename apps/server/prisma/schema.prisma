@@ -277,9 +277,9 @@ model Apikey {
   refillAmount        Int?
   lastRefillAt        DateTime?
   enabled             Boolean?  @default(true)
-  rateLimitEnabled    Boolean?  @default(true)
-  rateLimitTimeWindow Int?      @default(86400000)
-  rateLimitMax        Int?      @default(10)
+  rateLimitEnabled    Boolean?  @default(false)
+  rateLimitTimeWindow Int?      @default(60000)
+  rateLimitMax        Int?      @default(300)
   requestCount        Int?      @default(0)
   remaining           Int?
   lastRequest         DateTime?
@@ -524,8 +524,7 @@ model PromotionalGrant {
   reason               String              @default("signup")
   grantedAt            DateTime            @default(now())
 
-  @@index([organizationId])
-  @@index([billingAccountId])
+  // The @unique fields above already provide indexes for both lookups.
 }
 
 model TopUp {
@@ -571,7 +570,7 @@ model TopUp {
   @@index([organizationId, createdAt])
   @@index([status, createdAt])
   @@index([kind, status, reconciliationNextAt])
-  @@index([financialReconciliationPending, financialProcessingExpiresAt])
+  @@index([financialReconciliationPending, financialProcessingExpiresAt], map: "TopUp_financial_reconciliation_idx")
 }
 
 model CallBillingSession {
@@ -767,6 +766,9 @@ model Agent {
   name                  String
   templateId            String?
   isActive              Boolean             @default(true)
+  deletionRequestedAt   DateTime?
+  deletionAttemptedAt   DateTime?
+  deletionError         String?
   // Tracks whether an AgentConfiguration has been created.
   isConfigured          Boolean             @default(false)
   createdAt             DateTime            @default(now())
@@ -791,6 +793,7 @@ model Agent {
   @@unique([organizationId, agentSlug])
   @@index([userId])
   @@index([organizationId, createdAt])
+  @@index([deletionRequestedAt])
 }
 
 model AgentConfiguration {
@@ -987,6 +990,7 @@ model OutboundCall {
   attributionResults    CampaignAttributionResult[]
   mode                  OutboundCallMode
   status                CallStatus
+  dispatchClaimedAt     DateTime?
   createdAt             DateTime                       @default(now())
   updatedAt             DateTime                       @updatedAt
 
@@ -995,6 +999,7 @@ model OutboundCall {
   @@index([campaignId])
   @@index([userId])
   @@index([status, scheduledAt])
+  @@index([agentId, dispatchClaimedAt])
 }
 
 model Campaign {
@@ -1072,7 +1077,7 @@ model CampaignRecipientSnapshot {
   skipReason           String?
   createdAt            DateTime      @default(now())
 
-  @@unique([campaignId, recipientKey, schemaVersion])
+  @@unique([campaignId, recipientKey, schemaVersion], map: "CampaignRecipientSnapshot_recipient_version_key")
   @@index([organizationId])
   @@index([campaignId])
   @@index([outboundId])

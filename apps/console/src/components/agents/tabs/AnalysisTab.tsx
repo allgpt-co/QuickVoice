@@ -171,12 +171,16 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
   }
 
   async function saveAnalysis() {
-    await save.mutateAsync(
-      mergeConfig(config, {
-        data_needed: dataNeeded,
-        data_evaluation: evaluations,
-      })
-    );
+    try {
+      await save.mutateAsync(
+        mergeConfig(config, {
+          data_needed: dataNeeded,
+          data_evaluation: evaluations,
+        })
+      );
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   if (isLoading) {
