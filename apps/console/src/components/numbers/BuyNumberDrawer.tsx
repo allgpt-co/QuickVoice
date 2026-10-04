@@ -207,7 +207,8 @@ export function BuyNumberDrawer() {
                 render={({ field }) => (
                   <FormItem className="min-w-0">
                     <FormLabel>Country</FormLabel>
-                    <Popover open={countryOpen} onOpenChange={setCountryOpen}>
+                    {/* Give the portaled list its own scroll lock inside the modal sheet. */}
+                    <Popover modal open={countryOpen} onOpenChange={setCountryOpen}>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
