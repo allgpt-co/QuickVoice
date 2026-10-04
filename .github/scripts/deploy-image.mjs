@@ -18,7 +18,7 @@ export async function deployImage({ apiUrl, token, resourceUuid, imageTag }, {
   }
   const appPath = `/applications/${resourceUuid}`;
   const app = await request(appPath);
-  if (app.uuid !== resourceUuid || app.id == null) throw new Error('Unexpected Coolify application');
+  if (app?.uuid !== resourceUuid) throw new Error('Unexpected Coolify application');
   await request(appPath, 'PATCH', { docker_registry_image_name: imageName, docker_registry_image_tag: tag });
   // Never automatically repeat an ambiguous deployment POST.
   const queued = await request(`/deploy?uuid=${resourceUuid}&force=false`, 'POST');
@@ -33,8 +33,19 @@ export async function deployImage({ apiUrl, token, resourceUuid, imageTag }, {
       if (attempt + 1 === pollAttempts) throw error;
       await sleep(pollIntervalMs); continue;
     }
-    if (deployment.deployment_uuid !== deploymentUuid || String(deployment.application_id) !== String(app.id)) {
+    if (deployment.deployment_uuid !== deploymentUuid || (app.id != null && String(deployment.application_id) !== String(app.id))) {
       throw new Error('Deployment does not belong to the expected application');
+    }
+    if (app.id == null) {
+      // Coolify hides numeric application IDs; verify through UUID-scoped history.
+      // ponytail: fail closed outside the ten latest deployments; paginate for busier apps.
+      const history = await request(`/deployments/applications/${resourceUuid}?take=10`);
+      const rows = Array.isArray(history) ? history : history?.deployments;
+      const matches = Array.isArray(rows) ? rows.filter(row => row?.deployment_uuid === deploymentUuid) : [];
+      if (matches.length !== 1 || (matches[0].application_id != null &&
+          deployment.application_id != null && String(matches[0].application_id) !== String(deployment.application_id))) {
+        throw new Error('Deployment does not belong to the expected application');
+      }
     }
     if (['failed', 'cancelled', 'canceled', 'cancelled-by-user'].includes(deployment.status)) throw new Error(`Coolify deployment ${deployment.status}`);
     if (deployment.status === 'finished') {
