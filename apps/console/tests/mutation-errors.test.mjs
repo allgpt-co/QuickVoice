@@ -179,6 +179,7 @@ for (const [file, name, overrides] of cases) {
       toast: { success: effect },
       window: { confirm: () => true },
       searchParams: { provider: "TWILIO" },
+      buyingNumber: null,
       isQuoteExpired: () => false,
       setBuyingNumber: (value) => buying.push(value),
       ...overrides,
@@ -224,3 +225,20 @@ for (const [file, name, overrides] of cases) {
     }
   });
 }
+
+
+test("number purchase ignores another submission while buying a number", async () => {
+  let requests = 0;
+  const callback = loadHandler("components/numbers/BuyNumberDrawer.tsx", "onBuy", {
+    searchParams: { provider: "TWILIO" },
+    buyingNumber: "+15551234567",
+    isQuoteExpired: () => false,
+    setBuyingNumber: () => {},
+    buy: { mutateAsync: async () => { requests++; } },
+    setOpen: () => {},
+    form: { reset: () => {} },
+    setSearchParams: () => {},
+  });
+  await callback({ phoneNumber: "+15557654321", quoteId: "signed-quote" });
+  assert.equal(requests, 0, "must not start a second purchase");
+});
