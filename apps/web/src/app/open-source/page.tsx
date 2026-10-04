@@ -133,11 +133,11 @@ export const metadata: Metadata = {
   description:
     "Inspect, run, and extend QuickVoice: an MIT-licensed AI phone-agent stack with a console, Express API, LiveKit worker, telephony integrations, and local development tooling.",
   alternates: {
-    canonical: "/open-source",
+    canonical: "https://quickvoice.co/open-source",
   },
   openGraph: {
     type: "website",
-    url: "/open-source",
+    url: "https://quickvoice.co/open-source",
     title: "QuickVoice Open Source",
     description:
       "Inspect, run, and extend the QuickVoice AI phone-agent stack.",

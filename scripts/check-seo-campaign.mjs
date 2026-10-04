@@ -8,6 +8,12 @@ import {
   computeContentHash,
   isValidEvidenceReview,
 } from "../apps/web/src/lib/blog-review.mjs";
+import { findUnreviewedScheduledPosts } from "../apps/web/src/lib/blog-schedule.mjs";
+
+// A published post without a valid evidence review is live for readers but
+// noindex for search engines: that fails the check. Posts whose date falls
+// within this many days are reported as warnings so the review can land in time.
+const REVIEW_WINDOW_DAYS = 7;
 
 const root = fileURLToPath(new URL("../", import.meta.url));
 const require = createRequire(
@@ -137,11 +143,17 @@ try {
     visit(join(scenariosDirectory, name));
   const contentDirectory = resolve(root, "apps/web/content/blog");
   const found = new Set();
+  const scheduled = [];
   for (const name of readdirSync(contentDirectory).filter((name) =>
     name.endsWith(".md"),
   )) {
     const file = join(contentDirectory, name);
     const { data, content } = matter(readFileSync(file, "utf8"));
+    scheduled.push({
+      ...data,
+      file,
+      contentHash: computeContentHash(data, content),
+    });
     if (!selected.has(data.slug) && !data.evidenceReview) continue;
     if (
       !isValidEvidenceReview(
@@ -158,6 +170,32 @@ try {
   }
   for (const slug of selected)
     if (!found.has(slug)) throw new Error(`Missing campaign article: ${slug}`);
+  const due = findUnreviewedScheduledPosts(scheduled, {
+    windowDays: REVIEW_WINDOW_DAYS,
+  });
+  const describe = (entry) =>
+    `  ${relative(root, entry.file)} [${entry.slug ?? "no slug"}] dated ${entry.date}: ${entry.reason}`;
+  const upcoming = due.filter((entry) => !entry.pastDue);
+  if (upcoming.length > 0) {
+    process.stderr.write(
+      [
+        `SEO campaign warning: ${upcoming.length} scheduled article(s) within ${REVIEW_WINDOW_DAYS} days still need an evidence review (they will go live as noindex):`,
+        ...upcoming.map(describe),
+        "Complete the factual review and run scripts/review-seo-article.mjs, or move the date / set draft: true.",
+        "",
+      ].join("\n"),
+    );
+  }
+  const pastDue = due.filter((entry) => entry.pastDue);
+  if (pastDue.length > 0) {
+    throw new Error(
+      [
+        "Published articles are live but noindex because they have no valid evidence review:",
+        ...pastDue.map(describe),
+        "Complete the factual review and run scripts/review-seo-article.mjs for each file, or move the date forward / set draft: true.",
+      ].join("\n"),
+    );
+  }
   const result = spawnSync(
     process.execPath,
     [

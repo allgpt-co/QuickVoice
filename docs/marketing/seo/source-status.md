@@ -15,6 +15,26 @@ Prepared 2026-09-06; current follow-up checked 2026-09-27. The [September 27 rev
 
 ## Work and ownership
 
+### October 2 SEO audit and Phase 0 fixes
+
+[Audit record](audit-2026-10-02.md) and [demand map](demand-map-2026-10-02.csv):
+Search Console, GA4 and DataForSEO were read on 2026-10-02. Four weeks after
+the September 6 release, 164 clicks and 7,949 impressions over 90 days are 71%
+brand; roughly half the sitemap is not indexed because Google still holds
+pre-release noindex verdicts or never fetched the URLs; the largest page ranks
+for calendar-assistant intent; and the September 21 consent gate removed about
+90% of GA4 sessions. Local fixes in this change (worktree based on `7576139`,
+uncommitted): static sitemap `lastmod` from version history with a generator
+script and the root URL in Search Console's trailing-slash form, an absolute
+canonical on `/open-source` and removal of the ignored `keywords` tag, evidence
+reviews for the three past-due or imminent scheduled articles, a CI guard that
+fails when a published article has no valid review and warns seven days ahead,
+`llms.txt` refresh, and one new blog journey (`quickvoice-vs-synthflow`); cross-
+links for the other comparison and industry guides need body edits plus
+re-reviews and move to Phase 1. Search Console indexing requests, GA4 key-event
+registration and the consent-model decision remain owner actions and are listed
+in the audit record and the growth backlog.
+
 ### September 27 completion review
 
 [Current status](follow-up-2026-09-27.md): live consent, compatible receiver and

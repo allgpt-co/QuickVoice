@@ -28,14 +28,6 @@ export const metadata: Metadata = {
   },
   description:
     "Run, inspect, and extend the QuickVoice stack for AI phone agents, including the console, API, LiveKit worker, telephony integrations, knowledge bases, campaigns, and call logs.",
-  keywords: [
-    "AI voice agents",
-    "open-source voice AI",
-    "AI voice automation",
-    "self-hosted voice agents",
-    "voice agent platform",
-    "conversational AI",
-  ],
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",

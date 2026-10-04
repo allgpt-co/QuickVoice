@@ -213,6 +213,7 @@ test("lead analytics sends only fixed form context and remains optional", (t) =>
   const calls = [];
   globalThis.window = {
     quickvoiceAnalyticsConsent: "granted",
+    quickvoiceAnalyticsPageAllowed: () => true,
     location: {
       pathname: "/company/contact",
       search: "?email=private@example.com",
@@ -446,6 +447,7 @@ test("a successfully acknowledged submission is counted once per page, without s
   const calls = [];
   globalThis.window = {
     quickvoiceAnalyticsConsent: "granted",
+    quickvoiceAnalyticsPageAllowed: () => true,
     location: { pathname: "/company/contact" },
   };
   assert.equal(

@@ -169,6 +169,16 @@ export const BLOG_JOURNEYS = {
       "after-hours-leasing-call-handling",
     ],
   },
+
+  "quickvoice-vs-synthflow": {
+    title: "Turn the comparison into a scoped pilot.",
+    description:
+      "Pick one call type, the receiving system, and a named implementation owner. Agree which outcomes the pilot must demonstrate before any live traffic moves.",
+    href: "/open-source",
+    label: "Review QuickVoice's implementation scope",
+    contactLabel: "Discuss a QuickVoice evaluation",
+    relatedSlugs: ["synthflow-alternatives", "quickvoice-vs-vapi", "ai-voice-agent-security-data-privacy"],
+  },
 };
 
 export function getBlogJourney(slug) {

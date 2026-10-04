@@ -1,15 +1,30 @@
 ---
-title: "QuickVoice vs Retell AI: A Source and Deployment Ownership Review"
-slug: "quickvoice-vs-retell-ai"
-date: "2026-09-21"
-author: "Rahul Agarwal"
-category: "Comparisons"
-tags: ["QuickVoice vs Retell AI", "open-source voice agents", "deployment ownership"]
-metaTitle: "QuickVoice vs Retell AI: A Source and Deployment Ownership Review"
-metaDescription: "Compare Retell’s documented dashboard workflow with QuickVoice’s inspectable stack, then evaluate debugging, deployment, action delivery, and migration."
-canonical: "https://quickvoice.co/blog/quickvoice-vs-retell-ai"
-ogImage: "/og-image.png"
-readTime: "3 min"
+title: 'QuickVoice vs Retell AI: A Source and Deployment Ownership Review'
+slug: quickvoice-vs-retell-ai
+date: '2026-09-21'
+author: Rahul Agarwal
+category: Comparisons
+tags:
+  - QuickVoice vs Retell AI
+  - open-source voice agents
+  - deployment ownership
+metaTitle: 'QuickVoice vs Retell AI: A Source and Deployment Ownership Review'
+metaDescription: >-
+  Compare Retell’s documented dashboard workflow with QuickVoice’s inspectable
+  stack, then evaluate debugging, deployment, action delivery, and migration.
+canonical: 'https://quickvoice.co/blog/quickvoice-vs-retell-ai'
+ogImage: /og-image.png
+readTime: 3 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-10-02T07:44:20.006Z'
+  reviewer: Claude (primary-source and repository review)
+  sources:
+    - 'https://docs.retellai.com/get-started/quick-start'
+    - 'https://github.com/allgpt-co/QuickVoice'
+    - >-
+      https://github.com/allgpt-co/QuickVoice/blob/main/apps/ai/handlers/mcp_handler.py
+  contentHash: 0bacb1496dfebcc0ae42b5756f2e95da9b45f05df950e708bd7be5771568dfae
 ---
 
 # QuickVoice vs Retell AI: A Source and Deployment Ownership Review

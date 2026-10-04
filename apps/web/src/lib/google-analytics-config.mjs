@@ -36,12 +36,16 @@ export function createGoogleAnalyticsScript(configuredId = "", manualPageviews =
 
   return `(() => {
     const publicPaths = new Set(${JSON.stringify(publicPaths)});
+    // Recheck the current URL for custom events even after the tag has loaded.
+    window.quickvoiceAnalyticsPageAllowed = () => {
+      if (${!configuredId.trim()} && !["quickvoice.co", "www.quickvoice.co"].includes(window.location.hostname)) return false;
+      const pathname = window.location.pathname.replace(/\\/$/, "") || "/";
+      return publicPaths.has(pathname);
+    };
     window.quickvoiceStartAnalytics = () => {
       if (window.quickvoiceAnalyticsConsent !== "granted") return;
-      if (${!configuredId.trim()} && !["quickvoice.co", "www.quickvoice.co"].includes(window.location.hostname)) return;
       // Consent alone must not load the tag on a private route or an unknown 404.
-      const pathname = window.location.pathname.replace(/\\/$/, "") || "/";
-      if (!publicPaths.has(pathname)) return;
+      if (!window.quickvoiceAnalyticsPageAllowed()) return;
       if (document.getElementById("quickvoice-google-tag")) return;
       window.dataLayer = window.dataLayer || [];
       window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
