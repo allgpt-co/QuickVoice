@@ -613,13 +613,14 @@ jobs:
           ai=false
           mcp=false
 
-          if echo "$changed_files" | grep -Eq '^(apps/server/|packages/typescript-config/|scripts/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)'; then
+          # Avoid grep -q closing a pipe early and hiding matches under pipefail.
+          if grep -Eq '^(apps/server/|packages/typescript-config/|scripts/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)' <<< "$changed_files"; then
             server=true
           fi
-          if echo "$changed_files" | grep -Eq '^(apps/ai/|scripts/|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)'; then
+          if grep -Eq '^(apps/ai/|scripts/|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)' <<< "$changed_files"; then
             ai=true
           fi
-          if echo "$mcp_changed_files" | grep -Eq '^(apps/mcp-server/|packages/typescript-config/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/deploy-mcp-server\.yml$)'; then
+          if grep -Eq '^(apps/mcp-server/|packages/typescript-config/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/deploy-mcp-server\.yml$)' <<< "$mcp_changed_files"; then
             mcp=true
           fi
 
