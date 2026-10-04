@@ -454,3 +454,21 @@ test("forbidden diagnostics classify access restrictions without disclosing resp
     assert.equal(context.calls.length, 1);
   }
 });
+
+
+test("web deployment uses UUID-scoped history when Coolify omits the application ID", async () => {
+  const context = fixture(({ url }, calls) => {
+    if (url.pathname === applicationPath) return json(application({ id: undefined }));
+    if (url.pathname === listPath) return json({ deployments: calls.some(call => call.method === 'POST') ? [deployment()] : [] });
+  });
+  await context.run();
+  assert.equal(posts(context).length, 1);
+});
+
+test("hidden application ID cannot authorize a deployment absent from that application's history", async () => {
+  const context = fixture(({ url }) => {
+    if (url.pathname === applicationPath) return json(application({ id: undefined }));
+    if (url.pathname === listPath) return json([]);
+  });
+  await assert.rejects(context.run(), /does not belong/);
+});
