@@ -2,12 +2,17 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createPageviewCoordinator } from "../src/lib/google-analytics-pageviews.mjs";
 
+const policy = {
+  isActive: () => true,
+  isAllowed: (url) => new URL(url).origin === "https://quickvoice.co" && ["/", "/blog"].includes(new URL(url).pathname),
+};
+
 test("initial, committed path/query, back and forward visits count once; duplicate and hash changes do not", () => {
   const events = [];
-  const tracker = createPageviewCoordinator("G-TEST123", (event) => { events.push(event); return true; });
+  const tracker = createPageviewCoordinator("G-TEST123", (event) => { events.push(event); return true; }, policy);
   const home = { url: "https://quickvoice.co/", title: "Home", referrer: "https://example.com/search#result" };
   const blog = { url: "https://quickvoice.co/blog", title: "Blog" };
-  const filtered = { url: "https://quickvoice.co/blog?category=scheduling", title: "Blog" };
+  const filtered = { url: "https://quickvoice.co/blog?utm_content=scheduling", title: "Blog" };
 
   assert.equal(tracker.record(home), true);
   assert.equal(tracker.record(home), false); // Strict Mode effect replay.
@@ -20,7 +25,7 @@ test("initial, committed path/query, back and forward visits count once; duplica
   tracker.flush();
 
   assert.deepEqual(events.map((event) => event.page_location), [home.url, blog.url, filtered.url, blog.url, filtered.url]);
-  assert.deepEqual(events.map((event) => event.page_referrer), ["https://example.com/search", home.url, blog.url, filtered.url, blog.url]);
+  assert.deepEqual(events.map((event) => event.page_referrer), ["https://example.com", ...Array(4).fill("https://quickvoice.co")]);
   assert.deepEqual(events.map((event) => event.page_title), ["Home", "Blog", "Blog", "Blog", "Blog"]);
   assert.ok(events.every((event) => event.send_to === "G-TEST123"));
 });
@@ -32,7 +37,7 @@ test("late tag readiness preserves each completed visit's title and referrer wit
     if (!ready) return false;
     events.push(event);
     return true;
-  });
+  }, policy);
   tracker.record({ url: "https://quickvoice.co/", title: "Initial title" });
   tracker.record({ url: "https://quickvoice.co/blog?sort=new", title: "Updated title" });
   assert.equal(events.length, 0);
@@ -43,7 +48,7 @@ test("late tag readiness preserves each completed visit's title and referrer wit
   assert.equal(events.length, 2);
   assert.equal(events[0].page_title, "Initial title");
   assert.equal(events[1].page_title, "Updated title");
-  assert.equal(events[1].page_referrer, "https://quickvoice.co/");
+  assert.equal(events[1].page_referrer, "https://quickvoice.co");
 });
 
 test("an unavailable sender does not crash navigation or discard an unsent view", () => {
@@ -53,7 +58,7 @@ test("an unavailable sender does not crash navigation or discard an unsent view"
     if (unavailable) throw new Error("Tag not ready");
     events.push(event);
     return true;
-  });
+  }, policy);
   assert.doesNotThrow(() => tracker.record({ url: "https://quickvoice.co/blog", title: "Blog" }));
   unavailable = false;
   tracker.flush();
