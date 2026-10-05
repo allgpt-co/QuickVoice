@@ -459,10 +459,7 @@ export function BatchCallForm() {
         fromNumber: parsed.data.fromNumber,
         sourceFileKey: upload.s3Key,
         sourceFileName: parsed.data.file.name,
-        scheduledAt:
-          parsed.data.scheduleMode === "later" && parsed.data.scheduledAt
-            ? new Date(parsed.data.scheduledAt).toISOString()
-            : null,
+        scheduledAt: parsed.data.scheduledAt ?? null,
         timezone: parsed.data.timezone,
         ringingTimeoutSeconds: parsed.data.ringingTimeoutSeconds,
         campaignIntelligence,

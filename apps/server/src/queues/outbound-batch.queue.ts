@@ -1,7 +1,9 @@
 import { Queue } from "bullmq";
 import { Redis } from "ioredis";
+import { closeRedisClient } from "../workers/shutdown.js";
 
 export type OutboundBatchJobName =
+  | "recover-campaigns"
   | "import"
   | "dispatch-campaign"
   | "dispatch-call";
@@ -29,6 +31,18 @@ export function getOutboundBatchQueue() {
     },
   });
   return outboundBatchQueue;
+}
+
+export async function closeOutboundBatchQueue() {
+  try {
+    await outboundBatchQueue?.close();
+  } finally {
+    outboundBatchQueue = undefined;
+    if (outboundBatchRedisConnection) {
+      await closeRedisClient(outboundBatchRedisConnection);
+      outboundBatchRedisConnection = undefined;
+    }
+  }
 }
 
 function getOutboundBatchRedisConnection() {

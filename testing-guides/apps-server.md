@@ -106,7 +106,7 @@ Required env from `apps/server/.env.dev.example`:
 - Email: `SMTP_HOST`, `SMTP_PORT`, `SMTP_USERNAME`, `SMTP_PASSWORD`, `FROM_EMAIL`, optional `ZEPTOMAIL_TOKEN`, `ZEPTOMAIL_URL`
 - MCP: `SMITHERY_NAMESPACE`, `SMITHERY_API_KEY`, optional `SMITHERY_RUN_BASE_URL`, `SMITHERY_API_BASE_URL`
 - Privacy/retention: `SECRET_ENCRYPTION_KEY`; optional `CALL_LOG_PII_REDACTION`, `TRANSCRIPT_RETENTION_DAYS`, `RECORDING_RETENTION_DAYS`, `MCP_LOG_RETENTION_DAYS`, `FAILED_KB_RETENTION_DAYS`, `RETENTION_CLEANUP_BATCH_SIZE`
-- AI/KB and batch limits: optional `AI_API_URL`, `KB_OPS_URL`, `KB_MAX_UPLOAD_BYTES`, `OUTBOUND_BATCH_MAX_UPLOAD_BYTES`, `OUTBOUND_BATCH_MAX_RECIPIENTS`
+- AI/KB and batch limits: optional `AI_API_URL`, `KB_OPS_URL`, `KB_MAX_UPLOAD_BYTES`, `OUTBOUND_BATCH_MAX_UPLOAD_BYTES`, `OUTBOUND_BATCH_MAX_RECIPIENTS`, `OUTBOUND_BATCH_DISPATCH_POLL_MS`
 
 ## Automated Test Commands
 
@@ -131,7 +131,8 @@ Useful read-only checks:
 pnpm --filter server exec prisma validate
 curl -i http://localhost:5000/api/v1/health
 curl -i http://localhost:5000/api/v1/ready
-curl -i http://localhost:5000/api/v1/docs.json
+curl -i -H "Authorization: Bearer $INTERNAL_API_KEY" http://localhost:5000/api/v1/ready/details
+curl -i -H "Authorization: Bearer $INTERNAL_API_KEY" http://localhost:5000/api/v1/docs.json
 ```
 
 Blocked/conditional commands:
@@ -150,7 +151,8 @@ Use an `owner`, `admin`, and `member` in the same organization, plus a second or
   - Fail: docs are stale, missing mounted routes, or Swagger UI stores auth unexpectedly.
 
 - Readiness:
-  - Test `GET /api/v1/ready`.
+  - Test public `GET /api/v1/ready` (summary only), and `GET /api/v1/ready/details` with `Authorization: Bearer <INTERNAL_API_KEY>`.
+  - Detailed readiness without the key must return `401`.
   - Pass: returns `200` only when DB, Redis, S3, Stripe, Twilio, Telnyx, LiveKit, and Smithery checks are `ok`; otherwise returns `503` with per-check `status` and `message`.
   - Fail: dependency failures are hidden or response has no actionable check names.
 
@@ -389,12 +391,12 @@ Recommended role matrix:
 Mark a check blocked instead of guessing when credentials are unavailable.
 
 - Postgres:
-  - Pass: `/ready` `db.status` is `ok`.
+  - Pass: authenticated `/ready/details` `db.status` is `ok`.
   - Blocked: Docker/Postgres unavailable.
   - Fail: DB check errors or times out.
 
 - Redis:
-  - Pass: `/ready` `redis.status` is `ok`; BullMQ jobs process.
+  - Pass: authenticated `/ready/details` `redis.status` is `ok`; BullMQ jobs process.
   - Blocked: Docker/Redis unavailable.
   - Fail: queues cannot enqueue or workers cannot connect.
 

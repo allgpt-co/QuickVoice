@@ -1,4 +1,15 @@
 {
   "$schema": "./audit-suppressions.schema.json",
-  "suppressions": []
+  "suppressions": [
+    {
+      "id": "GHSA-vfj7-8cjw-p6xm",
+      "module": "braces",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "No upstream fixed version exists. patches/braces@3.0.3.patch bounds parser nesting and recursive compile/expand/stringify walkers to 100 levels. scripts/verify-braces-patch.mjs must pass on installed dependency copies before this exception is accepted. Replace with upstream fix when released.",
+      "expires": "2026-11-03"
+    }
+  ]
 }

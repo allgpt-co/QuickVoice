@@ -16,7 +16,7 @@ on:
       compatible_api_commit:
         description: Full deployed compatible API revision (required to enable contact attribution)
         type: string
-        default: ''
+        default: ""
       prerequisites_verified:
         description: Required for enable actions; prerequisite checks recorded in release evidence
         type: boolean
@@ -32,13 +32,18 @@ concurrency:
 
 jobs:
   deploy-web:
-    if: github.repository == 'allgpt-co/QuickVoice' && github.ref == 'refs/heads/main'
+    if: >-
+      vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true' &&
+      github.repository == 'allgpt-co/QuickVoice' &&
+      github.ref == 'refs/heads/main'
     # Use the same established deployment network as Backend Build and Deploy.
     runs-on: self-hosted
     timeout-minutes: 30
+    environment:
+      name: production-web
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
       - name: Confirm this run still targets current main

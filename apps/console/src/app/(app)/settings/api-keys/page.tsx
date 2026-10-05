@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -49,6 +50,7 @@ import {
   FormMessage,
 } from "@/src/components/ui/form";
 import { authClient } from "@/src/lib/auth-client";
+import { queryKeys } from "@/src/lib/query-keys";
 
 type ApiKey = {
   id: string;
@@ -73,8 +75,6 @@ export default function ApiKeysPage() {
   const { data: session } = authClient.useSession();
   const orgId = session?.session?.activeOrganizationId ?? null;
 
-  const [keys, setKeys] = useState<ApiKey[]>([]);
-  const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
   const [newKey, setNewKey] = useState<{ key: string; name: string } | null>(
     null,
@@ -87,36 +87,26 @@ export default function ApiKeysPage() {
     defaultValues: { name: "" },
   });
 
-  async function refresh() {
-    if (!orgId) {
-      setKeys([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    try {
+  const { data: keys = [], isFetching: loading, refetch, error: loadError } = useQuery({
+    queryKey: queryKeys.apiKeys.list(orgId),
+    enabled: !!orgId,
+    queryFn: async () => {
       const api = authClient.apiKey as {
         list?: (input: {
           query?: { organizationId?: string };
-        }) => Promise<{ data?: ApiKeyListResponse }>;
+        }) => Promise<{ data?: ApiKeyListResponse; error?: { message?: string } }>;
       };
-      if (api.list) {
-        const res = await api.list({ query: { organizationId: orgId } });
-        setKeys(res.data?.apiKeys ?? []);
-      }
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Could not load API keys",
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+      if (!orgId) return [];
+      if (!api.list) throw new Error("API key listing is not available");
+      const res = await api.list({ query: { organizationId: orgId } });
+      if (res.error) throw new Error(res.error.message || "Could not load API keys");
+      return res.data?.apiKeys ?? [];
+    },
+  });
 
-  useEffect(() => {
-    refresh();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [orgId]);
+  async function refresh() {
+    await refetch();
+  }
 
   async function onCreate(values: z.infer<typeof schema>) {
     if (!orgId) return;
@@ -172,6 +162,7 @@ export default function ApiKeysPage() {
 
   return (
     <div className="space-y-6">
+      {loadError ? <p role="alert" className="text-sm text-destructive">{loadError.message}</p> : null}
       <section className="border bg-card p-6">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="space-y-1">

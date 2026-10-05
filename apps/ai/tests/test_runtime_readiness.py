@@ -22,7 +22,12 @@ class RuntimeConfigTests(unittest.TestCase):
 
         self.assertFalse(result["ok"])
         self.assertEqual(result["billingMode"], "hosted")
-        for name in ("serverApiUrl", "internalApiKey", "billingUsageQueue"):
+        for name in (
+            "serverApiUrl",
+            "internalApiKey",
+            "billingUsageQueue",
+            "callLogQueue",
+        ):
             self.assertTrue(result["checks"][name]["required"])
             self.assertEqual(
                 result["checks"][name]["status"],
@@ -34,6 +39,7 @@ class RuntimeConfigTests(unittest.TestCase):
             "QUICKVOICE_BILLING_MODE": "hosted",
             "SERVER_API_URL": "https://api.quickvoice.example/api/v1",
             "INTERNAL_API_KEY": "internal-secret",
+            "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
         }
 
         relative = evaluate_local_runtime_config(
@@ -46,6 +52,7 @@ class RuntimeConfigTests(unittest.TestCase):
             {
                 **base_env,
                 "AI_BILLING_USAGE_QUEUE_DIR": "/var/lib/quickvoice/billing-queue",
+                "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
             },
             queue_probe=lambda _path: "AI_BILLING_USAGE_QUEUE_DIR is not writable",
         )
@@ -82,11 +89,16 @@ class RuntimeHandshakeTests(unittest.IsolatedAsyncioTestCase):
                 "SERVER_API_URL": "https://api.quickvoice.example/api/v1",
                 "INTERNAL_API_KEY": "internal-secret",
                 "AI_BILLING_USAGE_QUEUE_DIR": "/var/lib/quickvoice/billing-queue",
+                "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
             },
             get_json=get_json,
             queue_probe=lambda path: (
                 None
-                if path == Path("/var/lib/quickvoice/billing-queue")
+                if path
+                in {
+                    Path("/var/lib/quickvoice/billing-queue"),
+                    Path("/var/lib/quickvoice/call-logs"),
+                }
                 else "unexpected path"
             ),
         )

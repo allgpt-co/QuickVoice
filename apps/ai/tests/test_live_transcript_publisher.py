@@ -39,12 +39,12 @@ class FakeRedis:
         return stream_id
 
 
-def publisher(redis_client):
+def publisher(redis_client, *, zero_pii_retention=False):
     return LiveTranscriptPublisher(
         config={
             "organization_id": "org-1",
             "agent_id": "agent-1",
-            "zero_pii_retention": True,
+            "zero_pii_retention": zero_pii_retention,
         },
         call_context={
             "call_id": "call-1",
@@ -91,8 +91,31 @@ class LiveTranscriptPublisherTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(redis.calls[2]["payload"]["speaker"], "agent")
         self.assertEqual(redis.calls[-1]["ttl"], "3600")
         self.assertTrue(all(call["channel"] == LIVE_TRANSCRIPT_CHANNEL for call in redis.calls))
-        # A zero-PII configuration intentionally still has an ephemeral live stream.
         self.assertEqual(redis.calls[1]["payload"]["text"], "Hello")
+
+    async def test_zero_pii_retention_never_publishes_transcript_text(self):
+        redis = FakeRedis()
+        live = publisher(redis, zero_pii_retention=True)
+
+        await live.start("2024-01-01T00:00:00Z")
+        live.publish_transcript(
+            {
+                "id": "user-1",
+                "role": "user",
+                "content": "My social security number is 123-45-6789",
+                "time": "2024-01-01T00:00:01Z",
+            }
+        )
+        await live.close(reason="participant_disconnected")
+
+        self.assertEqual(
+            [call["payload"]["type"] for call in redis.calls],
+            ["call.started", "call.ended"],
+        )
+        self.assertNotIn(
+            "123-45-6789",
+            json.dumps(redis.calls),
+        )
 
     async def test_redis_failure_is_fail_open(self):
         live = publisher(FakeRedis(RuntimeError("redis unavailable")))

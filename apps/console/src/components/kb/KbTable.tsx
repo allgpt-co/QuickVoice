@@ -167,8 +167,12 @@ function RowActions({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={async () => {
-                await del.mutateAsync(source.kbId);
-                setOpen(false);
+                try {
+                  await del.mutateAsync(source.kbId);
+                  setOpen(false);
+                } catch {
+                  // The mutation hook displays the API error.
+                }
               }}
               disabled={del.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"

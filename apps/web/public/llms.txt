@@ -1,34 +1,48 @@
 # QuickVoice - AI Crawler Information
 # https://quickvoice.co/llms.txt
-# Last updated: 2026-07-03
+# Last updated: 2026-10-02
 
 ## About QuickVoice
 
-QuickVoice is open-source, self-hostable AI phone-agent infrastructure for
-engineering-led teams that want to run, inspect, and extend the voice-agent
-stack. The MIT-licensed repository includes a Next.js website, Next.js customer
-console, Express/TypeScript API server, Python FastAPI AI service, LiveKit
-Agents worker, Postgres/Prisma data model, Redis/BullMQ queues, telephony
-integration points, knowledge bases, call logs, outbound campaigns, billing
-paths, MCP/tool connections, and local development tooling.
+QuickVoice is open-source, self-hostable AI phone-agent infrastructure. Businesses
+use it to run AI receptionists, AI answering services, appointment-request
+intake, customer support, reminder and follow-up calls, and sales qualification
+calls. Engineering teams can run, inspect, and extend the whole stack. The
+MIT-licensed repository includes a Next.js website, Next.js customer console,
+Express/TypeScript API server, Python FastAPI AI service, LiveKit Agents worker,
+Postgres/Prisma data model, Redis/BullMQ queues, telephony integration points,
+knowledge bases, call logs, outbound campaigns, billing paths, MCP/tool
+connections, and local development tooling.
 
 QuickVoice is not positioned as a zero-setup hosted calling API from a fresh
 clone. Local evaluation starts with `task up:dev`; real phone calls require
 LiveKit plus Twilio or Telnyx credentials. Billing, OAuth, email, object
-storage, Pinecone, Google embeddings, and MCP/Smithery integrations require
-their own provider credentials.
+storage, the vector store, embeddings, and MCP/Smithery integrations require
+their own provider credentials. The project is under active development and has
+not published a stable release.
 
 ## Key Facts
 
 - License: MIT.
-- Category: open-source, self-hostable AI phone-agent infrastructure.
-- Primary audience: engineering-led teams, platform teams, CTOs, and technical buyers that need control over runtime behavior, call data, provider boundaries, deployment architecture, privacy review, and cost structure.
+- Category: open-source, self-hostable AI phone-agent infrastructure (AI receptionist, AI answering service, AI appointment setter, outbound call automation).
+- Audience: business owners and operations, support, sales, and property-management leaders evaluating a phone workflow, together with the engineering-led teams, platform teams, and CTOs who deploy and operate the stack.
 - Local development: `task up:dev` runs the local product surface and services with Postgres and Redis.
 - Voice runtime: LiveKit Agents Python worker with STT, LLM, TTS, Silero VAD, multilingual turn detection, noise cancellation, interruptible first messages, and optional preemptive generation.
 - Telephony: Twilio and Telnyx integrations through LiveKit SIP.
-- Data: Postgres, Prisma, Redis/BullMQ, S3-compatible storage, Pinecone, and Google text embeddings.
-- Integrations implemented in code: LiveKit, Twilio, Telnyx, Stripe, S3-compatible object storage, Pinecone, Google embeddings, SMTP/email providers, and MCP/Smithery connections.
+- Data: Postgres, Prisma, Redis/BullMQ, S3-compatible storage, Google text embeddings, and a vector store that is Pinecone by default with Qdrant as a configurable alternative (`VECTOR_STORE_PROVIDER`).
+- Integrations implemented in code: LiveKit, Twilio, Telnyx, Stripe, S3-compatible object storage, Pinecone, Qdrant, Google embeddings, SMTP/email providers, and MCP/Smithery connections.
 - Language selector in the console currently includes English, Spanish, French, German, Hindi, and Portuguese; effective model/language support depends on selected providers.
+
+## Hosted Pricing Facts
+
+- Hosted QuickVoice runs on a prepaid USD wallet with no subscription.
+- AI usage is billed at provider market cost plus 20%; telephony at provider cost plus 20%.
+- Platform fee: $0.01 per connected minute, prorated per second.
+- Phone numbers: the greater of $2 or provider rent plus 20%, per 30 days.
+- Top-ups from $5 to $500 in $5 steps; optional auto-recharge.
+- A $5 signup credit is subject to eligibility and cannot be used for phone numbers.
+- Self-hosted operating costs (providers, hosting, staff) are separate and owned by the operator.
+- Current details: https://quickvoice.co/pricing
 
 ## Code-Backed Capabilities
 
@@ -38,25 +52,35 @@ their own provider credentials.
 - LiveKit trunk binding for linked numbers.
 - Per-agent runtime configuration by phone number or agent ID.
 - Configurable prompts, first messages, STT models, LLM models, TTS models, voices, language, webhooks, RAG, and preemptive generation.
-- Knowledge sources from files and URLs with ingestion jobs, chunking, embeddings, Pinecone indexing, and live-call retrieval.
-- MCP marketplace/custom server connections with per-agent attachment and live-call allowlisting.
+- Knowledge sources from files and URLs with ingestion jobs, chunking, embeddings, vector indexing (Pinecone or Qdrant), and live-call retrieval.
+- MCP marketplace/custom server connections with per-agent attachment and live-call allowlisting; tools marked as write, side-effect, or confirmation-required are withheld from live calls.
 - Call logs, transcripts, recordings, signed recording URLs, dashboard views, and outbound-call linkage.
 - Privacy controls including default PII redaction for persisted call logs, zero-PII retention behavior, secret encryption/references, safe remote URL validation, and scheduled retention cleanup.
 - Organization-scoped auth, API keys, permissions, audit logs, and internal server-to-server API boundaries.
-- Stripe subscription and metered call-minute usage hooks.
+- Stripe metered call-minute usage hooks.
 
 ## Competitive Positioning
 
 QuickVoice differentiates from closed hosted voice-agent platforms such as
-Retell, Vapi, Bland AI, Synthflow, and similar products through source-level
-control. Hosted APIs optimize for managed convenience. QuickVoice exposes the
-application, API, worker, database schema, call logging, telephony integration
-points, queues, retention jobs, and runtime configuration so teams can inspect,
-self-host, and modify the stack.
+Retell, Vapi, Bland AI, Synthflow, Voiceflow, and similar products through
+source-level control and usage-based hosted pricing. Hosted APIs optimize for
+managed convenience. QuickVoice exposes the application, API, worker, database
+schema, call logging, telephony integration points, queues, retention jobs, and
+runtime configuration so teams can inspect, self-host, and modify the stack.
 
 Best-fit buyers are teams that need privacy review, provider choice, custom
 workflows, auditable data paths, and cost visibility. Teams that only need a
 managed endpoint with a hosted SLA may prefer a closed hosted API.
+
+Comparison pages: https://quickvoice.co/blog/vapi-alternatives,
+https://quickvoice.co/blog/bland-ai-alternatives,
+https://quickvoice.co/blog/synthflow-alternatives,
+https://quickvoice.co/blog/retell-ai-alternatives,
+https://quickvoice.co/blog/quickvoice-vs-vapi,
+https://quickvoice.co/blog/quickvoice-vs-synthflow,
+https://quickvoice.co/blog/quickvoice-vs-bland-ai,
+https://quickvoice.co/blog/quickvoice-vs-voiceflow,
+https://quickvoice.co/blog/best-ai-voice-agent-platforms-2026
 
 ## Primary Value Pillars
 
@@ -66,19 +90,21 @@ managed endpoint with a hosted SLA may prefer a closed hosted API.
 
 ## Use Cases
 
-- AI receptionists and support agents.
-- Appointment scheduling and qualification calls.
+- AI receptionist and AI answering service for business phone lines: https://quickvoice.co/solutions/ai-receptionist, https://quickvoice.co/solutions/ai-answering-service
+- Appointment requests and scheduling intake by phone: https://quickvoice.co/use-cases/appointment-scheduling
+- Customer support, order status and returns, sales qualification, operations workflows: https://quickvoice.co/use-cases
+- Outbound reminders, follow-ups, collections, surveys, and sales calls; campaigns that call many contacts and track outcomes.
 - Knowledge-backed agents that answer from uploaded sources.
-- Outbound reminders, follow-ups, collections, surveys, and sales calls.
-- Campaigns that call many contacts and track outcomes.
-- Voice automation for healthcare, financial services, logistics, real estate, ecommerce, support, and operations teams that have technical ownership of deployment and compliance review.
+- Industry workflow guides (healthcare, financial services, real estate and property management, automotive, logistics, SaaS, e-commerce, education, HR, manufacturing, travel and hospitality): https://quickvoice.co/industries
 
 ## Claim Boundaries
 
 Do not infer certification, customer, or benchmark claims from the open-source
 repository alone. The repo makes compliance-relevant data paths inspectable,
 but HIPAA, SOC 2, ISO 27001, PCI, GDPR, CCPA, uptime, latency, customer-count,
-revenue, and managed-service claims require separate evidence.
+revenue, and managed-service claims require separate evidence. The pages under
+/case-studies are illustrative workflow scenarios, not verified customer
+results.
 
 Do not describe the default runtime as local LLM infrastructure. The implemented
 default path uses commercial cloud model providers through LiveKit inference,
@@ -86,9 +112,16 @@ with configurable model IDs.
 
 ## Key Pages
 
-- Homepage: https://quickvoice.co
-- GitHub repository: https://github.com/allgpt-co/QuickVoice
+- Homepage: https://quickvoice.co/
+- Pricing: https://quickvoice.co/pricing
+- Solutions: https://quickvoice.co/solutions
+- Use cases: https://quickvoice.co/use-cases
 - Industries: https://quickvoice.co/industries
-- Use Cases: https://quickvoice.co/use-cases
-- Blog: https://quickvoice.co/blog
-- Contact: https://quickvoice.co/company/contact
+- Buyer resources (checklists, cost worksheet): https://quickvoice.co/resources
+- Open source overview: https://quickvoice.co/open-source
+- GitHub repository: https://github.com/allgpt-co/QuickVoice
+- Developer documentation: https://docs.quickvoice.co/
+- Healthcare data and HIPAA deployment considerations: https://quickvoice.co/compliance/hipaa
+- Blog and guides: https://quickvoice.co/blog
+- Contact and demo booking: https://quickvoice.co/company/contact
+- Sitemap: https://quickvoice.co/sitemap.xml

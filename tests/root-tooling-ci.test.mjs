@@ -28,6 +28,8 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /web:/);
   assert.match(ci, /docs:/);
   assert.match(ci, /server:/);
+  assert.match(ci, /mcp-server:/);
+  assert.match(ci, /widget:/);
   assert.match(ci, /ai-python:/);
   assert.match(ci, /docker-server:/);
   assert.match(ci, /docker-ai:/);
@@ -38,6 +40,15 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /pnpm --filter web build/);
   assert.match(ci, /pnpm --filter docs build/);
   assert.match(ci, /pnpm --filter server test/);
+  assert.match(ci, /pnpm --filter quickvoice-mcp-server lint/);
+  assert.match(ci, /pnpm --filter quickvoice-mcp-server check-types/);
+  assert.match(ci, /pnpm --filter quickvoice-mcp-server build/);
+  assert.match(ci, /pnpm --filter quickvoice-mcp-server test:transport/);
+  assert.match(ci, /pnpm --filter quickvoice-widget lint/);
+  assert.match(ci, /pnpm --filter quickvoice-widget check-types/);
+  assert.match(ci, /pnpm --filter quickvoice-widget build/);
+  assert.match(ci, /pnpm --filter quickvoice-widget test/);
+  assert.match(ci, /needs\.widget\.result/);
   assert.match(ci, /node --test tests\/\*\.test\.mjs/);
   assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
   assert.match(ci, /python -m pip install -r requirements-dev\.txt/);
@@ -53,6 +64,31 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /Write quality gate summary/);
   assert.match(ci, /## Quality gate/);
   assert.match(ci, /GITHUB_STEP_SUMMARY/);
+});
+
+test("Amplify pins the repository package manager and freezes both app installs", async () => {
+  const { load } = require("js-yaml");
+  const amplify = load(await text("amplify.yml"));
+  const { packageManager } = JSON.parse(await text("package.json"));
+  assert.match(packageManager, /^pnpm@\d+\.\d+\.\d+$/);
+  assert.deepEqual(amplify.applications.map((app) => app.appRoot), ["apps/web", "apps/console"]);
+  for (const app of amplify.applications) {
+    assert.deepEqual(app.frontend.phases.preBuild.commands, [
+      `npm install -g ${packageManager}`,
+      "pnpm install --frozen-lockfile",
+    ], app.appRoot);
+  }
+});
+
+test("security audit explicitly limits token permissions and does not persist checkout credentials", async () => {
+  const workflow = require("js-yaml").load(await text(".github/workflows/security-audit.yml"));
+  assert.deepEqual(workflow.permissions, { contents: "read" });
+  for (const job of Object.values(workflow.jobs)) {
+    assert.deepEqual(job.permissions ?? workflow.permissions, { contents: "read" });
+    const checkout = job.steps.find((step) => step.uses?.startsWith("actions/checkout@"));
+    assert.equal(checkout?.with?.["persist-credentials"], false);
+    assert.ok(job.steps.some((step) => step.run === "pnpm install --frozen-lockfile"));
+  }
 });
 
 test("security audit fails on any advisory without a blanket suppression baseline", async () => {
@@ -177,8 +213,12 @@ test("security overrides keep legacy glob callers on patched modern dependencies
 
 test("deploy workflows are gated, immutable, scanned, signed, and environment protected", async () => {
   const workflow = await text(".github/workflows/backend-build.yml");
+  const ci = await text(".github/workflows/ci.yml");
 
   assert.match(workflow, /concurrency:/);
+  assert.match(workflow, /workflow_call:/);
+  assert.doesNotMatch(workflow, /^  push:/m);
+  assert.doesNotMatch(workflow, /^  workflow_dispatch:/m);
   assert.match(workflow, /runs-on: self-hosted/);
   assert.match(workflow, /build-server:/);
   assert.match(workflow, /build-ai:/);
@@ -195,11 +235,15 @@ test("deploy workflows are gated, immutable, scanned, signed, and environment pr
   assert.match(workflow, /REQUIRED_AI_ECR_REPOSITORY/);
   assert.match(workflow, /GITHUB_STEP_SUMMARY/);
   assert.match(workflow, /GitHub repository variables/);
-  assert.match(workflow, /github\.sha/);
+  assert.match(workflow, /inputs\.source_sha/);
+  assert.match(ci, /deployment-changes:/);
+  assert.match(ci, /needs: quality-summary/);
+  assert.match(ci, /uses: \.\/\.github\/workflows\/backend-build\.yml/);
+  assert.match(ci, /uses: \.\/\.github\/workflows\/deploy-mcp-server\.yml/);
   assert.match(workflow, /COOLIFY_API_URL/);
   assert.match(workflow, /COOLIFY_QUICKVOICE_SERVER_RESOURCE_UUID/);
   assert.match(workflow, /COOLIFY_QUICKVOICE_AI_RESOURCE_UUID/);
-  assert.match(workflow, /deploy\?uuid=\$\{resource_uuid\}&force=false/);
+  assert.match(workflow, /node \.github\/scripts\/deploy-image\.mjs/);
   assert.doesNotMatch(workflow, /aws ecs/);
   assert.doesNotMatch(workflow, /ECS_CLUSTER/);
   assert.doesNotMatch(workflow, /ECS_SERVICE/);

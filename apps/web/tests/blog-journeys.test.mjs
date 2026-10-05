@@ -219,7 +219,7 @@ test("priority article edits keep exact reviews and contextual workflow/pricing 
         "2026-09-27",
         "the substantive AI IVR explanation uses its actual revision date",
       );
-    else if (slug !== "quickvoice-vs-vapi")
+    else if (slug !== "quickvoice-vs-vapi" && slug !== "quickvoice-vs-synthflow")
       assert.equal(
         post.updatedAt,
         "2026-09-06",

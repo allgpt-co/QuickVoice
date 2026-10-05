@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 import os
 import sys
 from types import SimpleNamespace
@@ -125,7 +126,7 @@ class TranscriptCollectorTests(unittest.TestCase):
         self.assertEqual(collector.read()[0]["role"], "agent")
         self.assertEqual(activity, [])
 
-    def test_committed_user_item_ignores_recent_agent_echo_fragment(self):
+    def test_committed_user_item_preserves_caller_repeating_agent_speech(self):
         collector = TranscriptCollector()
         collector.on_agent_transcription_final(
             "I'm here to assist you.", time=1704067201.0
@@ -134,7 +135,7 @@ class TranscriptCollectorTests(unittest.TestCase):
             SimpleNamespace(
                 created_at=1704067202.0,
                 item=SimpleNamespace(
-                    id="user-echo-1",
+                    id="user-confirmation-1",
                     role="user",
                     text_content="I'm here to assist you.",
                     created_at=1704067202.0,
@@ -142,8 +143,23 @@ class TranscriptCollectorTests(unittest.TestCase):
             )
         )
 
-        self.assertEqual(len(collector.read()), 1)
-        self.assertEqual(collector.read()[0]["role"], "agent")
+        self.assertEqual(
+            collector.read(),
+            [
+                {
+                    "id": "agent-transcript-0",
+                    "role": "agent",
+                    "content": "I'm here to assist you.",
+                    "time": 1704067201.0,
+                },
+                {
+                    "id": "user-confirmation-1",
+                    "role": "user",
+                    "content": "I'm here to assist you.",
+                    "time": 1704067202.0,
+                },
+            ],
+        )
 
     def test_notifies_live_publisher_only_for_new_final_items(self):
         published = []
@@ -168,3 +184,17 @@ class TranscriptCollectorTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class EchoWindowTests(unittest.TestCase):
+    def test_repeated_agent_utterance_refreshes_window_but_later_confirmation_survives(self):
+        collector = TranscriptCollector()
+        phrase = "Your appointment is confirmed for tomorrow"
+        with patch("handlers.transcript_collector.time.monotonic", return_value=10):
+            collector.on_agent_transcription_final(phrase)
+        with patch("handlers.transcript_collector.time.monotonic", return_value=100):
+            collector.on_agent_transcription_final(phrase)
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=phrase, is_final=True))
+        self.assertFalse(any(item["role"] == "user" for item in collector.read()))
+        with patch("handlers.transcript_collector.time.monotonic", return_value=104):
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=phrase, is_final=True))
+        self.assertEqual(collector.read()[-1]["role"], "user")

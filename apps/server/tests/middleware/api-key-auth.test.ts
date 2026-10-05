@@ -23,6 +23,7 @@ test("client metadata cannot select another tenant, actor, or permissions", asyn
         agent: ["read", "delete"],
         billing: ["read", "manage"],
         secrets: ["read"],
+        agentPreview: ["create"],
         "*": ["*"],
       },
     },

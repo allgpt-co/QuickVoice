@@ -13,6 +13,7 @@ from handlers.worker_handler import (
     apply_initiation_webhook_metadata,
     apply_metadata_overrides,
     build_call_context,
+    merge_participant_metadata,
     parse_metadata,
     parse_preview_user_transcript_packet,
     consume_preview_user_transcript_stream,
@@ -145,7 +146,10 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertIsNotNone(connected_at.tzinfo)
 
     def test_build_agent_instructions_mentions_livekit_dtmf_tool_when_ivr_navigation_enabled(self):
-        instructions = build_agent_instructions({"ivr_navigation_enabled": True})
+        instructions = build_agent_instructions(
+            {"ivr_navigation_enabled": True},
+            {"direction": "outbound"},
+        )
 
         self.assertIn("IVR navigation", instructions)
         self.assertIn("send_dtmf_events", instructions)
@@ -171,6 +175,26 @@ class WorkerHandlerTests(unittest.TestCase):
         )
 
         self.assertIn("send_dtmf_events", [tool.id for tool in agent.tools])
+
+    def test_assistant_keeps_livekit_dtmf_tool_off_for_inbound_calls(self):
+        agent = Assistant(
+            system_prompt="Use available tools.",
+            config={"ivr_navigation_enabled": True},
+            call_context={"direction": "inbound"},
+        )
+
+        self.assertNotIn("send_dtmf_events", [tool.id for tool in agent.tools])
+
+    def test_assistant_keeps_livekit_dtmf_tool_off_for_non_telephony_sessions(self):
+        for metadata in ({"mode": "preview"}, {"mode": "widget"}, {"source": "web_widget"}):
+            with self.subTest(metadata=metadata):
+                agent = Assistant(
+                    system_prompt="Use available tools.",
+                    config={"ivr_navigation_enabled": True},
+                    call_context={"direction": "outbound", "metadata": metadata},
+                )
+
+                self.assertNotIn("send_dtmf_events", [tool.id for tool in agent.tools])
 
     def test_assistant_keeps_livekit_dtmf_tool_off_when_ivr_navigation_disabled(self):
         agent = Assistant(
@@ -542,7 +566,7 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(result["system_prompt"], "Use the saved agent behavior in preview.")
         self.assertEqual(config["first_message"], "Default greeting.")
 
-    def test_apply_metadata_overrides_uses_widget_prompt_and_first_message(self):
+    def test_apply_metadata_overrides_ignores_legacy_widget_prompt_and_first_message(self):
         config = {
             "first_message": "Default greeting.",
             "system_prompt": "Default prompt.",
@@ -558,8 +582,41 @@ class WorkerHandlerTests(unittest.TestCase):
             },
         )
 
-        self.assertEqual(result["first_message"], "Website hello.")
-        self.assertEqual(result["system_prompt"], "Help the website visitor.")
+        self.assertEqual(result["first_message"], "Default greeting.")
+        self.assertEqual(result["system_prompt"], "Default prompt.")
+
+    def test_widget_metadata_cannot_replace_saved_variables_even_with_outbound_direction(self):
+        config = {
+            "first_message": "Hi {{name}}.",
+            "system_prompt": "Customer {{customer_id}}: {{note}}.",
+            "variables": {"placeholders": {"name": "visitor", "customer_id": "saved", "note": "saved instructions"}},
+        }
+        for marker in ({"mode": "widget"}, {"source": "web_widget", "mode": "preview"}):
+            for alias in ("dynamic_variables", "dynamicVariables"):
+                with self.subTest(marker=marker, alias=alias):
+                    result = apply_metadata_overrides(config, {
+                        **marker, "direction": "outbound",
+                        "systemPrompt": "untrusted prompt", "firstMessage": "untrusted greeting",
+                        alias: {"customer_id": "victim", "note": "untrusted instruction", "extra": "injected"},
+                    })
+                    self.assertEqual(result["first_message"], "Hi visitor.")
+                    self.assertEqual(result["system_prompt"], "Customer saved: saved instructions.")
+                    self.assertEqual(result["dynamic_variables"], config["variables"]["placeholders"])
+        self.assertEqual(config["system_prompt"], "Customer {{customer_id}}: {{note}}.")
+
+    def test_widget_participant_attributes_cannot_change_dispatch_identity_or_mode(self):
+        for marker in ({"mode": "widget"}, {"source": "web_widget"}):
+            metadata = {**marker, "agent_id": "saved-agent", "organization_id": "saved-org"}
+            result = merge_participant_metadata(metadata, {
+                "mode": "preview", "source": "preview", "direction": "outbound",
+                "agent_id": "other-agent", "organization_id": "other-org",
+                "dynamic_variables": {"customer_id": "victim"}, "system_prompt": "injected",
+            })
+            self.assertEqual(result, metadata)
+        self.assertEqual(
+            merge_participant_metadata({"direction": "inbound"}, {"sip.callID": "sip-call"}),
+            {"direction": "inbound", "sip.callID": "sip-call"},
+        )
 
     def test_apply_metadata_overrides_uses_batch_language_voice_and_dynamic_variables(self):
         config = {
@@ -594,6 +651,29 @@ class WorkerHandlerTests(unittest.TestCase):
             },
         )
         self.assertEqual(config["first_message"], "Hi {{city}} customer.")
+
+    def test_legacy_widget_overrides_are_removed_before_the_initiation_webhook(self):
+        metadata = {
+            "mode": "widget", "agent_id": "saved-agent", "visitor_id": "tracking-only",
+            "dynamicVariables": {"customer_id": "victim"},
+            "dynamic_variables": {"customer_id": "victim"},
+            "system_prompt": "visitor-rendered instructions", "firstMessage": "injected",
+        }
+        async def fake_fetch(webhook, safe_metadata, call_context):
+            self.assertEqual(safe_metadata, {
+                "mode": "widget", "agent_id": "saved-agent", "visitor_id": "tracking-only",
+            })
+            return {"customer_id": "webhook-value"}
+
+        config = {
+            "initiation_webhook": {"webhook_url": "https://example.invalid/init"},
+            "system_prompt": "Use {{customer_id}}.",
+            "variables": {"placeholders": {"customer_id": "saved"}},
+        }
+        resolved = asyncio.run(apply_initiation_webhook_metadata(config, metadata, {}, fetch_json=fake_fetch))
+        result = apply_metadata_overrides(config, resolved)
+        self.assertEqual(result["system_prompt"], "Use webhook-value.")
+        self.assertEqual(result["dynamic_variables"], {"customer_id": "webhook-value"})
 
     def test_apply_initiation_webhook_metadata_resolves_mapped_paths_before_call_values(self):
         async def fake_fetch(webhook, metadata, call_context):
@@ -630,7 +710,7 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(
             result["dynamic_variables"],
             {
-                "city": "Call City",
+                "city": "Webhook City",
                 "tier": "Gold",
             },
         )
@@ -729,3 +809,32 @@ class WorkerHandlerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class RenderingBoundaryTests(unittest.TestCase):
+    def test_variable_replacement_is_single_pass(self):
+        from handlers.worker_handler import render_dynamic_variables
+        result = render_dynamic_variables("Hi {{name}}", {"name": "{{internal_note}}", "internal_note": "private"})
+        self.assertEqual(result, "Hi {{internal_note}}")
+
+    def test_startup_does_not_await_queue_replay(self):
+        import ast
+        from pathlib import Path
+        module = ast.parse((Path(ROOT) / "main.py").read_text())
+        entry = next(node for node in module.body if isinstance(node, ast.AsyncFunctionDef) and node.name == "entrypoint")
+        calls = [node.func for node in ast.walk(entry) if isinstance(node, ast.Call)]
+        for call in calls:
+            name = call.id if isinstance(call, ast.Name) else getattr(call, "attr", "")
+            self.assertNotIn(name, {"flush_call_log_queue", "flush_billing_usage_queue"})
+
+class WidgetWebhookTrustTests(unittest.IsolatedAsyncioTestCase):
+    async def test_only_server_webhook_variables_render_widget_templates(self):
+        config = {"system_prompt": "Hello {{customer_id}} {{note}}", "first_message": "{{note}}",
+            "initiation_webhook": {"webhook_url": "https://tenant.example"}}
+        visitor = {"mode": "widget", "dynamic_variables": {"customer_id": "victim"},
+            "_initiation_webhook_variables": {"customer_id": "forged"}}
+        async def webhook(*_):
+            return {"customer_id": "tenant", "note": "{{customer_id}}"}
+        metadata = await apply_initiation_webhook_metadata(config, visitor, {}, fetch_json=webhook)
+        rendered = apply_metadata_overrides(config, metadata)
+        self.assertEqual(rendered["system_prompt"], "Hello tenant {{customer_id}}")
+        self.assertEqual(rendered["dynamic_variables"]["customer_id"], "tenant")

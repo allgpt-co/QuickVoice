@@ -28,14 +28,6 @@ export const metadata: Metadata = {
   },
   description:
     "Run, inspect, and extend the QuickVoice stack for AI phone agents, including the console, API, LiveKit worker, telephony integrations, knowledge bases, campaigns, and call logs.",
-  keywords: [
-    "AI voice agents",
-    "open-source voice AI",
-    "AI voice automation",
-    "self-hosted voice agents",
-    "voice agent platform",
-    "conversational AI",
-  ],
   robots: { index: true, follow: true },
   openGraph: {
     type: "website",
@@ -88,13 +80,15 @@ export default function RootLayout({
         )}
       </head>
       <body className={inter.className}>
-        <Suspense fallback={null}>
-          <AnalyticsConsent
-            script={googleAnalyticsScript}
-            configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
-            manualPageviews={manualPageviews}
-          />
-        </Suspense>
+        {googleAnalyticsScript && (
+          <Suspense fallback={null}>
+            <AnalyticsConsent
+              script={googleAnalyticsScript}
+              configuredId={process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? ""}
+              manualPageviews={manualPageviews}
+            />
+          </Suspense>
+        )}
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-white focus:text-sm focus:font-semibold focus:shadow-lg"

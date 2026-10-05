@@ -228,13 +228,17 @@ function WidgetEditor({
   const isSaving = createWidget.isPending || updateWidget.isPending;
 
   async function saveWidget() {
-    const payload = formToPayload(form);
-    if (widget) {
-      await updateWidget.mutateAsync(payload);
-      return;
+    try {
+      const payload = formToPayload(form);
+      if (widget) {
+        await updateWidget.mutateAsync(payload);
+        return;
+      }
+      const created = await createWidget.mutateAsync(payload);
+      onCreated(created);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
     }
-    const created = await createWidget.mutateAsync(payload);
-    onCreated(created);
   }
 
   async function copySnippet() {
@@ -246,12 +250,16 @@ function WidgetEditor({
   }
 
   async function removeWidget() {
-    if (!widget) return;
-    if (!window.confirm(`Delete ${widget.name}? Embedded sites will stop loading this widget.`)) {
-      return;
+    try {
+      if (!widget) return;
+      if (!window.confirm(`Delete ${widget.name}? Embedded sites will stop loading this widget.`)) {
+        return;
+      }
+      await deleteWidget.mutateAsync(widget.widgetId);
+      onDeleted();
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
     }
-    await deleteWidget.mutateAsync(widget.widgetId);
-    onDeleted();
   }
 
   return (

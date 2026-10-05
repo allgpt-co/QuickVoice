@@ -4,9 +4,8 @@ on:
   workflow_dispatch:
     inputs:
       ai_image:
-        description: QuickVoice AI image expected to be configured on the Coolify app before triggering deploy
+        description: Fully qualified QuickVoice AI image with an explicit tag to deploy
         required: true
-        default: 557690613141.dkr.ecr.us-east-1.amazonaws.com/allgpt-co/quickvoice-ai:sha-65e2778ea121f67407906f05595a05b2ab49cdb7@sha256:1be327ebbd515217949cabfcce6e5bd8b010264e72b82c303242623528c111ad
 
 permissions:
   contents: read
@@ -14,7 +13,8 @@ permissions:
 jobs:
   deploy-ai:
     name: Deploy QuickVoice AI Image
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
+    if: vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true'
     environment:
       name: production-backend
     env:
@@ -35,15 +35,23 @@ jobs:
             exit 1
           fi
 
+          if [[ ! "${AI_IMAGE}" =~ ^[a-z0-9][a-z0-9._:/-]*:[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}(@sha256:[a-f0-9]{64})?$ ]]; then
+            echo "[fail] AI_IMAGE must be an image reference with an explicit tag and optional sha256 digest."
+            exit 1
+          fi
+
           image_without_digest="${AI_IMAGE%@*}"
           image_name="${image_without_digest%:*}"
           tag="${image_without_digest##*:}"
+
+          payload="$(jq -cn --arg image_name "$image_name" --arg tag "$tag" \
+            '{docker_registry_image_name: $image_name, docker_registry_image_tag: $tag}')"
 
           curl --fail --show-error --silent \
             --request PATCH "${COOLIFY_API_URL}/applications/${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}" \
             --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
             --header "Content-Type: application/json" \
-            --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
+            --data "$payload"
 
           curl --fail --show-error --silent \
             --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_QUICKVOICE_AI_RESOURCE_UUID}&force=false" \

@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from urllib.error import HTTPError
+from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -11,6 +12,20 @@ from handlers.config_handler import get_config, normalize_config
 
 
 class ConfigHandlerTests(unittest.TestCase):
+    def test_normalize_config_isolates_per_call_result_data(self):
+        first_call = normalize_config({"agentId": "agent_1"})
+        second_call = normalize_config({"agentId": "agent_2"})
+
+        first_call["data_extracted"].append(
+            {"name": "Caller email", "value": "caller@example.com"}
+        )
+        first_call["data_evaluated"].append(
+            {"identifier": "qualified", "value": True}
+        )
+
+        self.assertEqual(second_call["data_extracted"], [])
+        self.assertEqual(second_call["data_evaluated"], [])
+
     def test_call_limits_are_preserved_and_invalid_values_cannot_disable_them(self):
         config = normalize_config({
             "max_conversation_duration_seconds": 120,
@@ -169,6 +184,60 @@ class ConfigHandlerTests(unittest.TestCase):
         self.assertEqual(len(calls), 1)
         self.assertIn("/agents/number-config/", calls[0][0])
 
+    def test_get_config_retries_transient_server_errors(self):
+        calls = []
+
+        async def fake_get_json(url, headers):
+            calls.append((url, headers))
+            if len(calls) < 3:
+                raise HTTPError(url, 503, "unavailable", None, None)
+            return {
+                "data": {
+                    "agentId": "agent_123",
+                    "organizationId": "org_123",
+                    "firstMessage": "Recovered configuration.",
+                }
+            }
+
+        sleep = AsyncMock()
+        with patch("handlers.config_handler.asyncio.sleep", sleep):
+            config = asyncio.run(
+                get_config(
+                    "agent_123",
+                    server_api_url="http://server.test/api/v1",
+                    internal_api_key="internal-secret",
+                    get_json=fake_get_json,
+                )
+            )
+
+        self.assertEqual(config["first_message"], "Recovered configuration.")
+        self.assertEqual(len(calls), 3)
+        self.assertEqual([call.args[0] for call in sleep.await_args_list], [0.25, 0.5])
+
+    def test_get_config_logs_terminal_transient_failure_after_three_attempts(self):
+        calls = []
+
+        async def fake_get_json(url, headers):
+            calls.append((url, headers))
+            raise HTTPError(url, 503, "unavailable", None, None)
+
+        with (
+            patch("handlers.config_handler.asyncio.sleep", new=AsyncMock()),
+            patch("handlers.config_handler.logger.error") as log_error,
+        ):
+            with self.assertRaises(HTTPError):
+                asyncio.run(
+                    get_config(
+                        "agent_123",
+                        server_api_url="http://server.test/api/v1",
+                        internal_api_key="internal-secret",
+                        get_json=fake_get_json,
+                    )
+                )
+
+        self.assertEqual(len(calls), 3)
+        log_error.assert_called_once()
+
     def test_get_config_fails_closed_when_runtime_backend_is_not_configured(self):
         with self.assertRaisesRegex(RuntimeError, "SERVER_API_URL and INTERNAL_API_KEY"):
             asyncio.run(
@@ -243,3 +312,16 @@ class ConfigHandlerTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+class ConfigDeadlineTests(unittest.IsolatedAsyncioTestCase):
+    async def test_deadline_includes_retry_wait_and_network(self):
+        from handlers.config_handler import _get_json_with_retry
+        real_timeout = asyncio.timeout
+        async def hung(*_args):
+            await asyncio.sleep(10)
+        def shortened(seconds):
+            self.assertEqual(seconds, 12)
+            return real_timeout(0.03)
+        with patch("handlers.config_handler.asyncio.timeout", side_effect=shortened):
+            with self.assertRaises(TimeoutError):
+                await _get_json_with_retry(hung, "https://example.test", {}, lookup="test")

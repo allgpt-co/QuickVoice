@@ -54,8 +54,12 @@ export default function CallDetailPage() {
  const agentName = agents?.find((a) => a.agentId === call?.agentId)?.name;
 
  async function onDelete() {
- await del.mutateAsync(params.id);
- router.push("/calls");
+   try {
+   await del.mutateAsync(params.id);
+   router.push("/calls");
+   } catch {
+     // The mutation hook displays the API error; preserve the current state for retry.
+   }
  }
 
  return (

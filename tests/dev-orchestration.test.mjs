@@ -91,6 +91,8 @@ test("Docker Compose provides local development dependencies", async () => {
   assert.match(compose, /redis:7/);
   assert.match(compose, /127\.0\.0\.1:\$\{REDIS_PORT:-6379\}:6379/);
   assert.match(compose, /quickvoice_redis_data/);
+  assert.match(compose, /qdrant\/qdrant:v1\.19\.1/);
+  assert.doesNotMatch(compose, /qdrant\/qdrant:latest/);
   assert.match(compose, /^\s{2}mailpit:/m);
   assert.match(compose, /profiles:/);
 });

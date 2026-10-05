@@ -1,12 +1,16 @@
 import type { Server as HttpServer } from "node:http";
 import { fromNodeHeaders } from "better-auth/node";
 import type { Redis } from "ioredis";
-import { Server as SocketIOServer } from "socket.io";
+import { Server as SocketIOServer, type Socket } from "socket.io";
 
 import { redisConnection } from "../config/redis.js";
+import { closeRedisClient } from "../workers/shutdown.js";
 import { trustedOrigins } from "../config/origins.js";
 import { auth } from "../lib/auth.js";
-import { hasSessionPermission } from "../middleware/authorize.middleware.js";
+import {
+  hasCurrentSessionPermission,
+  hasSessionPermission,
+} from "../middleware/authorize.middleware.js";
 import {
   LIVE_TRANSCRIPT_CHANNEL,
   parseWatchCallRequest,
@@ -30,15 +34,23 @@ type LiveSocketServer = SocketIOServer<
   SocketData
 >;
 
+type LiveSocket = Socket<
+  ClientToServerEvents,
+  ServerToClientEvents,
+  Record<string, never>,
+  SocketData
+>;
+
 export class LiveTranscriptGateway {
   readonly io: LiveSocketServer;
   private started = false;
   private closed = false;
+  private deliveryChain = Promise.resolve();
 
   constructor(
     httpServer: HttpServer,
     private readonly store: LiveTranscriptStore = liveTranscriptStore,
-    private readonly subscriber: Redis = redisConnection.duplicate()
+    private readonly subscriber: Redis = redisConnection.duplicate(),
   ) {
     this.io = new SocketIOServer(httpServer, {
       cors: {
@@ -53,7 +65,9 @@ export class LiveTranscriptGateway {
           headers: fromNodeHeaders(socket.request.headers),
         });
         if (!session) {
-          return next(socketError("UNAUTHENTICATED", "Authentication required"));
+          return next(
+            socketError("UNAUTHENTICATED", "Authentication required"),
+          );
         }
 
         const typedSession = session as {
@@ -64,13 +78,13 @@ export class LiveTranscriptGateway {
           typedSession.session?.activeOrganizationId ?? null;
         if (!organizationId) {
           return next(
-            socketError("FORBIDDEN", "An active organization is required")
+            socketError("FORBIDDEN", "An active organization is required"),
           );
         }
         const permitted = await hasSessionPermission(
           socket.request.headers,
           organizationId,
-          { callLogs: ["read"] }
+          { callLogs: ["read"] },
         );
         if (!permitted) {
           return next(socketError("FORBIDDEN", "Insufficient permissions"));
@@ -83,7 +97,9 @@ export class LiveTranscriptGateway {
         console.warn("[live-transcript] socket authentication failed", {
           error: error instanceof Error ? error.message : String(error),
         });
-        return next(socketError("UNAVAILABLE", "Authentication is unavailable"));
+        return next(
+          socketError("UNAVAILABLE", "Authentication is unavailable"),
+        );
       }
     });
 
@@ -92,10 +108,17 @@ export class LiveTranscriptGateway {
       void socket.join(organizationRoom(organizationId));
 
       socket.on("live-call:watch", async (payload, acknowledge) => {
+        if (!(await this.socketIsAuthorized(socket))) {
+          acknowledge?.(
+            commandFailure("FORBIDDEN", "Your live-call access has changed"),
+          );
+          socket.disconnect(true);
+          return;
+        }
         const request = parseWatchCallRequest(payload);
         if (!request) {
           return acknowledge?.(
-            commandFailure("BAD_REQUEST", "A valid callId is required")
+            commandFailure("BAD_REQUEST", "A valid callId is required"),
           );
         }
 
@@ -103,11 +126,11 @@ export class LiveTranscriptGateway {
         try {
           const access = await this.store.getCallAccess(
             organizationId,
-            request.callId
+            request.callId,
           );
           if (!access) {
             return acknowledge?.(
-              commandFailure("NOT_FOUND", "Live call not found")
+              commandFailure("NOT_FOUND", "Live call not found"),
             );
           }
 
@@ -117,7 +140,7 @@ export class LiveTranscriptGateway {
           await socket.join(callRoomName);
           const messages = await this.store.readTranscriptHistory(
             organizationId,
-            request.callId
+            request.callId,
           );
           const response: WatchCallAck = {
             ok: true,
@@ -136,17 +159,24 @@ export class LiveTranscriptGateway {
           return acknowledge?.(
             commandFailure(
               "UNAVAILABLE",
-              "Live transcript is temporarily unavailable"
-            )
+              "Live transcript is temporarily unavailable",
+            ),
           );
         }
       });
 
       socket.on("live-call:unwatch", async (payload, acknowledge) => {
+        if (!(await this.socketIsAuthorized(socket))) {
+          acknowledge?.(
+            commandFailure("FORBIDDEN", "Your live-call access has changed"),
+          );
+          socket.disconnect(true);
+          return;
+        }
         const request = parseWatchCallRequest(payload);
         if (!request) {
           return acknowledge?.(
-            commandFailure("BAD_REQUEST", "A valid callId is required")
+            commandFailure("BAD_REQUEST", "A valid callId is required"),
           );
         }
         await socket.leave(callRoom(organizationId, request.callId));
@@ -172,13 +202,11 @@ export class LiveTranscriptGateway {
     if (this.closed) return;
     this.closed = true;
     this.subscriber.off("message", this.onRedisMessage);
+    // Closing the dedicated subscriber socket removes its subscriptions too.
+    // Sending UNSUBSCRIBE first can hang forever while Redis is offline.
+    await closeRedisClient(this.subscriber);
     this.subscriber.off("error", this.onRedisError);
-    if (this.started) {
-      await this.subscriber
-        .unsubscribe(LIVE_TRANSCRIPT_CHANNEL)
-        .catch(() => undefined);
-    }
-    await this.subscriber.quit().catch(() => undefined);
+    await this.deliveryChain;
     await new Promise<void>((resolve) => this.io.close(() => resolve()));
   }
 
@@ -190,22 +218,68 @@ export class LiveTranscriptGateway {
       return;
     }
 
-    if (event.type === "call.started") {
-      this.io
-        .to(organizationRoom(event.organizationId))
-        .emit("live-call:started", event);
-      return;
-    }
-    if (event.type === "call.ended") {
-      this.io
-        .to(organizationRoom(event.organizationId))
-        .emit("live-call:ended", event);
-      return;
-    }
-    this.io
-      .to(callRoom(event.organizationId, event.callId))
-      .emit("live-transcript:message", event);
+    this.deliveryChain = this.deliveryChain
+      .then(() => this.deliverAuthorizedEvent(event))
+      .catch((error) => {
+        console.warn("[live-transcript] failed to deliver Redis event", {
+          organizationId: event.organizationId,
+          callId: event.callId,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
   };
+
+  private async deliverAuthorizedEvent(
+    event: NonNullable<ReturnType<typeof parsePublishedEvent>>,
+  ) {
+    const roomName =
+      event.type === "transcript.final"
+        ? callRoom(event.organizationId, event.callId)
+        : organizationRoom(event.organizationId);
+    const sockets = [...this.io.sockets.sockets.values()].filter((socket) =>
+      socket.rooms.has(roomName),
+    );
+    for (let offset = 0; offset < sockets.length; offset += 20) {
+      const authorized = await Promise.all(
+        sockets.slice(offset, offset + 20).map(async (socket) => ({
+          socket,
+          permitted: await this.socketIsAuthorized(socket),
+        })),
+      );
+
+      for (const { socket, permitted } of authorized) {
+        if (!permitted) {
+          socket.disconnect(true);
+          continue;
+        }
+        if (event.type === "call.started") {
+          socket.emit("live-call:started", event);
+        } else if (event.type === "call.ended") {
+          socket.emit("live-call:ended", event);
+        } else {
+          socket.emit("live-transcript:message", event);
+        }
+      }
+    }
+  }
+
+  private async socketIsAuthorized(socket: LiveSocket) {
+    try {
+      return await hasCurrentSessionPermission(
+        socket.request.headers,
+        socket.data.userId,
+        socket.data.organizationId,
+        { callLogs: ["read"] },
+      );
+    } catch (error) {
+      console.warn("[live-transcript] socket reauthorization failed", {
+        socketId: socket.id,
+        organizationId: socket.data.organizationId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return false;
+    }
+  }
 
   private readonly onRedisError = (error: Error) => {
     console.warn("[live-transcript] Redis subscriber error", {
@@ -222,7 +296,7 @@ export const callRoom = (organizationId: string, callId: string) =>
 
 function commandFailure(
   code: SocketCommandError["code"],
-  message: string
+  message: string,
 ): { ok: false; error: SocketCommandError } {
   return { ok: false, error: { code, message } };
 }

@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { StatusCodes } from "http-status-codes";
 
 import CustomApiError from "../../common/errors/customApiError.js";
@@ -14,11 +14,12 @@ import {
   type VoiceSessionPayload,
 } from "../agent/agent.service.js";
 import * as widgetRepository from "./widget.repository.js";
-import type {
-  CreateAgentWidgetInput,
-  CreatePublicWidgetSessionInput,
-  UpdateAgentWidgetInput,
-  WidgetTheme,
+import {
+  widgetThemeSchema,
+  type CreateAgentWidgetInput,
+  type CreatePublicWidgetSessionInput,
+  type UpdateAgentWidgetInput,
+  type WidgetTheme,
 } from "./widget.schema.js";
 import {
   authorizeCallBilling,
@@ -31,38 +32,25 @@ const WIDGET_ID_PREFIX = "wgt";
 const WIDGET_SESSION_ID_PREFIX = "wgs";
 const DEFAULT_WIDGET_SESSION_TTL_SECONDS = 900;
 const MAX_WIDGET_SESSION_TTL_SECONDS = 3600;
-const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = 60;
-const DEFAULT_RATE_LIMIT_MAX_SESSIONS = 10;
+const DEFAULT_RATE_LIMIT_WINDOW_SECONDS = DEFAULT_WIDGET_SESSION_TTL_SECONDS;
+const DEFAULT_RATE_LIMIT_MAX_SESSIONS = 2;
 const DEFAULT_MAX_CONCURRENT_SESSIONS = 5;
 
-const DEFAULT_THEME: WidgetTheme = {
-  primaryColor: "#002FA7",
-  accentColor: "#0F172A",
-  surfaceColor: "#FFFFFF",
-  textColor: "#111827",
-  mutedTextColor: "#667085",
-  buttonTextColor: "#FFFFFF",
-  borderColor: "#DADDE3",
-  position: "bottom-right",
-  launcherSize: "comfortable",
-  panelWidth: 340,
-  borderRadius: 16,
-  defaultOpen: false,
-  showAvatar: true,
-  avatarImageUrl: null,
-  avatarOrbColor1: "#002FA7",
-  avatarOrbColor2: "#00F0FF",
-  brandName: "QuickVoice",
-  actionText: "Talk to us",
-  welcomeText: "Talk with our voice agent.",
-  startButtonText: "Start call",
-  endButtonText: "End call",
-  connectingText: "Connecting",
-  listeningText: "Listening",
-  speakingText: "Assistant speaking",
-  endedText: "Call ended",
-  whiteLabel: false,
-};
+const INCREMENT_WIDGET_RATE_LIMIT_SCRIPT = `
+local current = redis.call("GET", KEYS[1])
+if not current then
+  redis.call("SET", KEYS[1], "1", "EX", ARGV[1])
+  return 1
+end
+
+local count = redis.call("INCR", KEYS[1])
+if redis.call("TTL", KEYS[1]) < 0 then
+  redis.call("EXPIRE", KEYS[1], ARGV[1])
+end
+return count
+`;
+
+const DEFAULT_THEME: WidgetTheme = widgetThemeSchema.parse({});
 
 type WidgetRecord = Awaited<
   ReturnType<typeof widgetRepository.findPublicWidget>
@@ -143,7 +131,9 @@ export const createAgentWidget = async (
 
   const allowedOrigins = normalizeAllowedOrigins(input.allowedOrigins);
   if (input.enabled && allowedOrigins.length === 0) {
-    throw new BadRequestError("Add at least one allowed origin before enabling");
+    throw new BadRequestError(
+      "Add at least one allowed origin before enabling",
+    );
   }
 
   const widget = await widgetRepository.createWidget(
@@ -184,13 +174,16 @@ export const updateAgentWidget = async (
     input.allowedOrigins === undefined
       ? undefined
       : normalizeAllowedOrigins(input.allowedOrigins);
-  const nextOrigins = allowedOrigins ?? jsonStringArray(existing.allowedOrigins);
+  const nextOrigins =
+    allowedOrigins ?? jsonStringArray(existing.allowedOrigins);
   const nextEnabled = input.enabled ?? existing.enabled;
   if (nextEnabled && !existing.agent.isConfigured) {
     throw new BadRequestError("Configure this agent before enabling a widget");
   }
   if (nextEnabled && nextOrigins.length === 0) {
-    throw new BadRequestError("Add at least one allowed origin before enabling");
+    throw new BadRequestError(
+      "Add at least one allowed origin before enabling",
+    );
   }
 
   const widget = await widgetRepository.updateWidget(
@@ -240,7 +233,6 @@ export const createPublicWidgetSession = async (
     origin,
     ipAddress,
   });
-  await enforceConcurrentSessionLimit(widgetId);
 
   const configuration = widget.agent.configuration;
   if (!configuration) {
@@ -251,15 +243,6 @@ export const createPublicWidgetSession = async (
   const roomName = `widget_${sessionId}`;
   const participantIdentity = `widget-user-${randomBytes(8).toString("hex")}`;
   const ttlSeconds = widgetSessionTtlSeconds();
-  const dynamicVariables = normalizeDynamicVariables(input.dynamicVariables);
-  const firstMessage = renderDynamicVariables(
-    configuration.firstMessage,
-    dynamicVariables,
-  );
-  const systemPrompt = renderDynamicVariables(
-    configuration.systemPrompt,
-    dynamicVariables,
-  );
 
   const payload: VoiceSessionPayload = {
     room: { name: roomName },
@@ -292,63 +275,49 @@ export const createPublicWidgetSession = async (
       provider: "WEB_WIDGET",
       from_number: "",
       to_number: "",
-      first_message: firstMessage,
-      system_prompt: systemPrompt,
-      ...(Object.keys(dynamicVariables).length > 0
-        ? { dynamic_variables: dynamicVariables }
-        : {}),
     },
     ttl_seconds: ttlSeconds,
   };
 
-  const admission = await authorizeCallBilling({
-    organizationId: widget.organizationId,
-    callId: roomName,
-    roomName,
-    sessionId,
-    agentId: widget.agentId,
-  });
-  if (admission.action === "stop") {
-    throw new PaymentRequiredError(
-      callAdmissionMessage(admission, "This voice agent is temporarily unavailable because its account needs credit"),
-      { reason: admission.reason },
-    );
-  }
+  const endToken = randomBytes(32).toString("base64url");
+  await widgetRepository.reserveWidgetSession({
+    sessionId, widgetId, organizationId: widget.organizationId, agentId: widget.agentId,
+    roomName, callId: roomName, participantIdentity, origin, endTokenHash: hashToken(endToken),
+    expiresAt: new Date(Date.now() + ttlSeconds * 1000),
+    metadata: { source: "web_widget", origin, visitorId: input.visitorId ?? null },
+  }, positiveIntEnv("WIDGET_MAX_CONCURRENT_SESSIONS_PER_WIDGET", DEFAULT_MAX_CONCURRENT_SESSIONS));
 
-  let voiceSession;
+  let voiceSession: AgentPreviewSession;
+  let dispatchAttempted = false;
   try {
-    voiceSession = await requestVoiceSession(
-      payload,
-      "Website widget session is unavailable",
-    );
+    const admission = await authorizeCallBilling({
+      organizationId: widget.organizationId, callId: roomName, roomName, sessionId, agentId: widget.agentId,
+    });
+    if (admission.action === "stop") {
+      throw new PaymentRequiredError(callAdmissionMessage(admission,
+        "This voice agent is temporarily unavailable because its account needs credit"), { reason: admission.reason });
+    }
+    dispatchAttempted = true;
+    voiceSession = await requestVoiceSession(payload, "Website widget session is unavailable");
+    if (voiceSession.roomName !== roomName) throw new Error("Unexpected widget room identity");
+    await widgetRepository.activateWidgetSession(sessionId, voiceSession.agent.dispatchId, new Date(voiceSession.expiresAt));
   } catch (error) {
-    await cancelCallBillingAdmission({
-      organizationId: widget.organizationId,
-      callId: roomName,
-      reason: "widget_session_creation_failed",
-    }).catch(() => undefined);
+    // The durable CREATED row remains discoverable even if cleanup itself fails.
+    const cleanup = await Promise.allSettled([
+      (async () => {
+        if (dispatchAttempted) {
+          try { await livekitRoomServiceClient.deleteRoom(roomName); }
+          catch (cleanupError) { if (!isLiveKitRoomNotFound(cleanupError)) throw cleanupError; }
+        }
+        await widgetRepository.markWidgetSessionFailed(sessionId, { reason: "widget_session_creation_failed" });
+      })(),
+      cancelCallBillingAdmission({ organizationId: widget.organizationId, callId: roomName, reason: "widget_session_creation_failed" }),
+    ]);
+    if (cleanup.some((result) => result.status === "rejected")) {
+      console.error("[widget] session cleanup incomplete", { sessionId });
+    }
     throw error;
   }
-  const endToken = randomBytes(32).toString("base64url");
-
-  await widgetRepository.createWidgetSession({
-    sessionId,
-    widgetId: widget.widgetId,
-    organizationId: widget.organizationId,
-    agentId: widget.agentId,
-    roomName: voiceSession.roomName,
-    callId: voiceSession.roomName,
-    participantIdentity,
-    dispatchId: voiceSession.agent.dispatchId,
-    origin,
-    endTokenHash: hashToken(endToken),
-    expiresAt: new Date(voiceSession.expiresAt),
-    metadata: {
-      source: "web_widget",
-      origin,
-      visitorId: input.visitorId ?? null,
-    },
-  });
 
   return {
     sessionId,
@@ -369,7 +338,7 @@ export const endPublicWidgetSession = async (
   if (!session || !session.endTokenHash) {
     throw new NotFoundError("Widget session not found");
   }
-  if (session.endTokenHash !== hashToken(endToken)) {
+  if (!widgetEndTokenMatches(session.endTokenHash, endToken)) {
     throw new NotFoundError("Widget session not found");
   }
 
@@ -395,8 +364,7 @@ export const publicWidgetOriginAllowed = async (
   return originAllowed(jsonStringArray(widget.allowedOrigins), origin);
 };
 
-export const widgetRoomBelongsToOrg =
-  widgetRepository.widgetRoomBelongsToOrg;
+export const widgetRoomBelongsToOrg = widgetRepository.widgetRoomBelongsToOrg;
 
 function toWidgetResponse(widget: {
   widgetId: string;
@@ -523,14 +491,7 @@ async function enforceWidgetRateLimit(input: {
   origin: string;
   ipAddress: string | undefined;
 }) {
-  const windowSeconds = positiveIntEnv(
-    "WIDGET_RATE_LIMIT_WINDOW_SECONDS",
-    DEFAULT_RATE_LIMIT_WINDOW_SECONDS,
-  );
-  const maxSessions = positiveIntEnv(
-    "WIDGET_RATE_LIMIT_MAX_SESSIONS",
-    DEFAULT_RATE_LIMIT_MAX_SESSIONS,
-  );
+  const { windowSeconds, maxSessions } = widgetRateLimitPolicy();
   const key = [
     "quickvoice",
     "widget",
@@ -539,8 +500,7 @@ async function enforceWidgetRateLimit(input: {
     hashToken(input.origin),
     hashToken(input.ipAddress || "unknown"),
   ].join(":");
-  const count = await redisConnection.incr(key);
-  if (count === 1) await redisConnection.expire(key, windowSeconds);
+  const count = await incrementWidgetRateLimit(key, windowSeconds);
   if (count > maxSessions) {
     throw new CustomApiError(
       "Too many widget sessions. Try again shortly.",
@@ -549,23 +509,63 @@ async function enforceWidgetRateLimit(input: {
   }
 }
 
-async function enforceConcurrentSessionLimit(widgetId: string) {
+type WidgetRateLimitRedis = {
+  eval(
+    script: string,
+    numberOfKeys: number,
+    key: string,
+    windowSeconds: number,
+  ): Promise<unknown>;
+};
+
+export async function incrementWidgetRateLimit(
+  key: string,
+  windowSeconds: number,
+  redis: WidgetRateLimitRedis = redisConnection,
+) {
+  const result = Number(
+    await redis.eval(INCREMENT_WIDGET_RATE_LIMIT_SCRIPT, 1, key, windowSeconds),
+  );
+  if (!Number.isSafeInteger(result) || result < 1) {
+    throw new Error("Widget rate-limit counter returned an invalid value");
+  }
+  return result;
+}
+
+export function widgetRateLimitPolicy() {
+  const sessionTtlSeconds = widgetSessionTtlSeconds();
   const maxConcurrent = positiveIntEnv(
     "WIDGET_MAX_CONCURRENT_SESSIONS_PER_WIDGET",
     DEFAULT_MAX_CONCURRENT_SESSIONS,
   );
-  const active = await widgetRepository.countActiveWidgetSessions(widgetId);
-  if (active >= maxConcurrent) {
-    throw new CustomApiError(
-      "This widget is at its concurrent call limit.",
-      StatusCodes.TOO_MANY_REQUESTS,
-    );
-  }
+  return {
+    // A source cannot replenish its allowance while the sessions it opened can
+    // still occupy the widget-wide capacity.
+    windowSeconds: Math.max(
+      positiveIntEnv(
+        "WIDGET_RATE_LIMIT_WINDOW_SECONDS",
+        DEFAULT_RATE_LIMIT_WINDOW_SECONDS,
+      ),
+      sessionTtlSeconds,
+    ),
+    // Even an unsafe deployment override cannot let one source fill the entire
+    // widget-wide pool. Operators can still lower this value.
+    maxSessions: Math.min(
+      positiveIntEnv(
+        "WIDGET_RATE_LIMIT_MAX_SESSIONS",
+        DEFAULT_RATE_LIMIT_MAX_SESSIONS,
+      ),
+      Math.max(1, maxConcurrent - 1),
+    ),
+  };
 }
 
 function widgetSessionTtlSeconds() {
   return Math.min(
-    positiveIntEnv("WIDGET_SESSION_TTL_SECONDS", DEFAULT_WIDGET_SESSION_TTL_SECONDS),
+    positiveIntEnv(
+      "WIDGET_SESSION_TTL_SECONDS",
+      DEFAULT_WIDGET_SESSION_TTL_SECONDS,
+    ),
     MAX_WIDGET_SESSION_TTL_SECONDS,
   );
 }
@@ -585,40 +585,22 @@ function defaultConsentText() {
 
 function mergeTheme(value: unknown): WidgetTheme {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return DEFAULT_THEME;
+    return { ...DEFAULT_THEME };
   }
-  return { ...DEFAULT_THEME, ...(value as Partial<WidgetTheme>) };
+  return Object.fromEntries(
+    Object.entries(widgetThemeSchema.unwrap().shape).map(([key, schema]) => {
+      const fallback = DEFAULT_THEME[key as keyof WidgetTheme];
+      const field = (value as Record<string, unknown>)[key];
+      const input = typeof fallback === "number" && typeof field !== "number" ? undefined : field;
+      const parsed = schema.safeParse(input ?? undefined);
+      return [key, parsed.success ? parsed.data : fallback];
+    }),
+  ) as WidgetTheme;
 }
 
 function jsonStringArray(value: unknown) {
   if (!Array.isArray(value)) return [];
   return value.filter((item): item is string => typeof item === "string");
-}
-
-function normalizeDynamicVariables(value: unknown): Record<string, string> {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return {};
-  const variables: Record<string, string> = {};
-  for (const [key, entry] of Object.entries(value as Record<string, unknown>)) {
-    const name = key.trim();
-    if (!/^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(name)) continue;
-    if (typeof entry !== "string") continue;
-    const variableValue = entry.trim();
-    if (variableValue) variables[name] = variableValue.slice(0, 500);
-  }
-  return variables;
-}
-
-function renderDynamicVariables(
-  template: string,
-  variables: Record<string, string>,
-) {
-  return template.replace(
-    /\{\{\s*([A-Za-z_][A-Za-z0-9_]*)\s*\}\}/g,
-    (match, key) => {
-      const value = variables[key];
-      return value?.trim() ? value : match;
-    },
-  );
 }
 
 function generatePublicId(prefix: string) {
@@ -627,6 +609,17 @@ function generatePublicId(prefix: string) {
 
 function hashToken(value: string) {
   return createHash("sha256").update(value).digest("hex");
+}
+
+export function widgetEndTokenMatches(
+  expectedHash: string,
+  suppliedToken: string,
+) {
+  if (!/^[0-9a-f]{64}$/i.test(expectedHash)) return false;
+  return timingSafeEqual(
+    Buffer.from(expectedHash, "hex"),
+    createHash("sha256").update(suppliedToken).digest(),
+  );
 }
 
 function isLiveKitRoomNotFound(error: unknown) {

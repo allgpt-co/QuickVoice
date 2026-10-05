@@ -172,9 +172,13 @@ export default function AgentConfigPage() {
   const deleteAgent = useDeleteAgent();
 
   async function confirmDelete() {
-    await deleteAgent.mutateAsync(agentId);
-    setDeleteOpen(false);
-    router.push("/agents");
+    try {
+      await deleteAgent.mutateAsync(agentId);
+      setDeleteOpen(false);
+      router.push("/agents");
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   return (

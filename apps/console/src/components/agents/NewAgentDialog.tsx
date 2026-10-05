@@ -95,16 +95,20 @@ export function NewAgentDialog() {
   });
 
   async function onSubmit(values: FormValues) {
-    const agent = await createAgent.mutateAsync({
-      name: values.name,
-      isActive: values.isActive,
-      templateId: selectedTemplate,
-    });
-    toast.success(`Agent "${agent.name}" created`);
-    setOpen(false);
-    setSelectedTemplate("blank");
-    form.reset();
-    router.push(`/agents/${agent.agentId}?tab=behavior`);
+    try {
+      const agent = await createAgent.mutateAsync({
+        name: values.name,
+        isActive: values.isActive,
+        templateId: selectedTemplate,
+      });
+      toast.success(`Agent "${agent.name}" created`);
+      setOpen(false);
+      setSelectedTemplate("blank");
+      form.reset();
+      router.push(`/agents/${agent.agentId}?tab=behavior`);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   return (

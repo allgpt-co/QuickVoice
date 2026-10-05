@@ -31,6 +31,7 @@ import {
   unappliedFinancialDelta,
   type DurableDisputeState,
 } from "./stripe-wallet-state.js";
+import { withTransactionConflictRetries } from "./transaction-conflict.js";
 
 const TOP_UP_KIND = "quickvoice_top_up";
 const AUTO_RECHARGE_KIND = "quickvoice_auto_recharge";
@@ -39,7 +40,6 @@ const AUTOMATIC_PROCESSING_LEASE_MS = 2 * 60 * 1_000;
 const FINANCIAL_PROCESSING_LEASE_MS = 2 * 60 * 1_000;
 const WEBHOOK_PROCESSING_LEASE_MS = 5 * 60 * 1_000;
 const RECONCILIATION_RETRY_MS = 60 * 1_000;
-const MAX_SERIALIZABLE_ATTEMPTS = 3;
 
 export async function createTopUpCheckout(args: {
   organizationId: string;
@@ -1390,21 +1390,11 @@ async function financialLedgerProgress(topUpId: string) {
 async function withSerializableRetries<T>(
   callback: (tx: Prisma.TransactionClient) => Promise<T>,
 ) {
-  for (let attempt = 1; attempt <= MAX_SERIALIZABLE_ATTEMPTS; attempt += 1) {
-    try {
-      return await prisma.$transaction(callback, {
-        isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-      });
-    } catch (error) {
-      if (
-        !isTransactionConflict(error) ||
-        attempt === MAX_SERIALIZABLE_ATTEMPTS
-      ) {
-        throw error;
-      }
-    }
-  }
-  throw new Error("Serializable billing transaction did not complete");
+  return withTransactionConflictRetries(() =>
+    prisma.$transaction(callback, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+    }),
+  );
 }
 
 async function ensureBillingAccountRecord(organizationId: string) {
@@ -1559,14 +1549,6 @@ function isUniqueConstraintError(error: unknown) {
     error &&
     typeof error === "object" &&
     (error as { code?: unknown }).code === "P2002",
-  );
-}
-
-function isTransactionConflict(error: unknown) {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    (error as { code?: unknown }).code === "P2034",
   );
 }
 

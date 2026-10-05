@@ -72,3 +72,9 @@ pnpm --filter web test
 ```
 
 The generator creates PDFs in `output/pdf/` and copies the public files to `apps/web/public/resources/`. Commit the generated public files and manifest with the source change. The web test compares source, generator, and download hashes so a later source edit cannot silently leave an old download. Render and visually review both PDFs before release; check all download links on the live resource page afterward. The CSV intentionally contains formulas; retain their original rows and import it with formula interpretation.
+
+## Schedule guard and sitemap dates (added 2026-10-02)
+
+`pnpm claims:audit:seo` (CI) now fails when a non-draft article is past its `date` without a valid `evidenceReview`, because such an article is live for readers but renders noindex. Articles due within seven days are printed as warnings. Resolve either by completing the review and running the CLI above, by moving `date` forward, or by setting `draft: true`.
+
+Static sitemap `<lastmod>` values come from `apps/web/data/static-page-dates.mjs`. After committing a change to a static page or its data, run `node scripts/update-static-page-dates.mjs` and commit the regenerated file; `--check` reports staleness and needs full commit history.

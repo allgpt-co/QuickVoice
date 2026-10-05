@@ -113,3 +113,15 @@ test("deleteKbDocumentVectors removes the previous agent namespace before reproc
     },
   ]);
 });
+
+
+test("KB reassignment explicitly revokes instead of permanently deleting the source", async () => {
+  await deleteKbDocumentVectors({
+    aiApiUrl: "http://ai.local", internalApiKey: "test-key", agentId: "previous", kbId: "kb",
+    permanent: false,
+    fetchImpl: async (url) => {
+      assert.equal(String(url), "http://ai.local/kb/previous/kb?permanent=false");
+      return Response.json({ success: true });
+    },
+  });
+});

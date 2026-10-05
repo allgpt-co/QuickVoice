@@ -1,25 +1,19 @@
 name: Deploy QuickVoice MCP Server
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "apps/mcp-server/**"
-      - "packages/typescript-config/**"
-      - "package.json"
-      - "pnpm-lock.yaml"
-      - "pnpm-workspace.yaml"
-      - ".npmrc"
-      - ".github/workflows/deploy-mcp-server.yml"
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      source_sha:
+        description: Commit SHA to validate and deploy
+        required: true
+        type: string
 
 concurrency:
-  group: quickvoice-mcp-server-deploy-${{ github.ref }}
+  group: quickvoice-mcp-server-deploy-production
   cancel-in-progress: false
 
 permissions:
   contents: read
-  id-token: write
 
 env:
   AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
@@ -30,7 +24,8 @@ env:
 jobs:
   validate-config:
     name: Validate MCP Deployment Config
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
     steps:
       - name: Validate required GitHub variables and secrets
         env:
@@ -39,7 +34,6 @@ jobs:
           REQUIRED_MCP_ECR_REPOSITORY: ${{ env.MCP_ECR_REPOSITORY }}
           REQUIRED_COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
           REQUIRED_COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID: ${{ env.COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID }}
-          REQUIRED_COOLIFY_API_TOKEN: ${{ secrets.COOLIFY_API_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
@@ -65,10 +59,6 @@ jobs:
             echo "[fail] Missing GitHub repository variable: COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID"
             missing=1
           fi
-          if [ -z "${REQUIRED_COOLIFY_API_TOKEN}" ]; then
-            echo "[fail] Missing GitHub repository secret: COOLIFY_API_TOKEN"
-            missing=1
-          fi
 
           if [ "${missing}" -ne 0 ]; then
             {
@@ -81,7 +71,7 @@ jobs:
               echo "- Repository variable: MCP_ECR_REPOSITORY"
               echo "- Repository variable: COOLIFY_API_URL"
               echo "- Repository variable: COOLIFY_QUICKVOICE_MCP_RESOURCE_UUID"
-              echo "- Repository secret: COOLIFY_API_TOKEN"
+              echo "- Production environment secret: COOLIFY_API_TOKEN"
             } >> "${GITHUB_STEP_SUMMARY}"
             exit 1
           fi
@@ -95,17 +85,21 @@ jobs:
           } >> "${GITHUB_STEP_SUMMARY}"
 
   security-audit:
-    name: Security Audit
-    runs-on: self-hosted
+    name: MCP Validation and Security Audit
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 30
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_sha }}
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: "24"
           cache: "pnpm"
@@ -114,37 +108,55 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint and typecheck MCP server
+        run: pnpm --filter quickvoice-mcp-server lint
+
+      - name: Build MCP server
+        run: pnpm --filter quickvoice-mcp-server build
+
+      - name: Run MCP transport tests
+        run: pnpm --filter quickvoice-mcp-server test:transport
+
       - name: Run security audit
         run: pnpm audit:deps --audit-level low
 
   build-and-push:
     name: Build and Push MCP Server Image
     runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
     needs: [validate-config, security-audit]
+    permissions:
+      contents: read
+      id-token: write
+    environment:
+      name: production-mcp-server
     outputs:
       image_uri: ${{ steps.image.outputs.image_uri }}
       image_tag: ${{ steps.image.outputs.image_tag }}
       digest: ${{ steps.mcp-build.outputs.digest }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_sha }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@ff717079ee2060e4bcee96c4779b553acc87447c # v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
+        uses: aws-actions/amazon-ecr-login@03f1aad4c6c7ffd436567f42f9384779290529bd # v2
 
       - name: Build and push MCP server Docker image
         id: mcp-build
         shell: bash
         env:
-          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.MCP_ECR_REPOSITORY }}:sha-${{ github.sha }}
+          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.MCP_ECR_REPOSITORY }}:sha-${{ inputs.source_sha }}
           LATEST_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.MCP_ECR_REPOSITORY }}:latest
+          SOURCE_SHA: ${{ inputs.source_sha }}
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
@@ -156,7 +168,7 @@ jobs:
               . && docker push "${IMAGE_TAG}" && docker push "${LATEST_TAG}"; then
               digest="$(aws ecr describe-images \
                 --repository-name "${MCP_ECR_REPOSITORY}" \
-                --image-ids imageTag="sha-${GITHUB_SHA}" \
+                --image-ids imageTag="sha-${SOURCE_SHA}" \
                 --query 'imageDetails[0].imageDigest' \
                 --output text)"
               if [ -z "${digest}" ] || [ "${digest}" = "None" ]; then
@@ -174,7 +186,7 @@ jobs:
       - name: Export MCP image metadata
         id: image
         env:
-          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.MCP_ECR_REPOSITORY }}:sha-${{ github.sha }}
+          IMAGE_TAG: ${{ steps.login-ecr.outputs.registry }}/${{ env.MCP_ECR_REPOSITORY }}:sha-${{ inputs.source_sha }}
           IMAGE_DIGEST: ${{ steps.mcp-build.outputs.digest }}
         shell: bash
         run: |
@@ -188,12 +200,22 @@ jobs:
         run: docker buildx imagetools inspect "${MCP_IMAGE_URI}"
 
   trigger-coolify:
-    name: Trigger Coolify Deploy
+    name: Deploy and Verify MCP Image
     runs-on: self-hosted
+    if: github.ref == 'refs/heads/main'
     needs: build-and-push
     environment:
       name: production-mcp-server
     steps:
+      - name: Checkout verified deployment helper
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.source_sha }}
+          persist-credentials: false
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
       - name: Trigger Coolify deployment
         env:
           COOLIFY_API_URL: ${{ env.COOLIFY_API_URL }}
@@ -207,19 +229,10 @@ jobs:
           image_name="${MCP_IMAGE_TAG%:*}"
           tag="${MCP_IMAGE_TAG##*:}"
 
-          curl --fail --show-error --silent \
-            --request PATCH "${COOLIFY_API_URL}/applications/${COOLIFY_RESOURCE_UUID}" \
-            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
-            --header "Content-Type: application/json" \
-            --data "$(printf '{"docker_registry_image_name":"%s","docker_registry_image_tag":"%s"}' "$image_name" "$tag")"
-
-          curl --fail --show-error --silent \
-            --request POST "${COOLIFY_API_URL}/deploy?uuid=${COOLIFY_RESOURCE_UUID}&force=false" \
-            --header "Authorization: Bearer ${COOLIFY_API_TOKEN}" \
-            --header "Content-Type: application/json"
+          DEPLOY_IMAGE_TAG="$MCP_IMAGE_TAG" node .github/scripts/deploy-image.mjs
 
           {
-            echo "## Coolify deployment triggered"
+            echo "## Coolify deployment verified healthy"
             echo "- Coolify app UUID: ${COOLIFY_RESOURCE_UUID}"
             echo "- Image URI: ${MCP_IMAGE_URI}"
             echo "- Image tag: ${MCP_IMAGE_TAG}"
@@ -230,12 +243,12 @@ jobs:
     name: Scan MCP Image
     runs-on: self-hosted
     needs: build-and-push
-    if: needs.build-and-push.result == 'success'
+    if: github.ref == 'refs/heads/main' && (needs.build-and-push.result == 'success')
     steps:
       - name: Scan MCP image for vulnerabilities
         id: trivy
         continue-on-error: true
-        uses: aquasecurity/trivy-action@v0.35.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
         with:
           image-ref: ${{ needs.build-and-push.outputs.image_uri }}
           severity: HIGH,CRITICAL

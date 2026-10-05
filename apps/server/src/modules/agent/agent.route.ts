@@ -39,7 +39,7 @@ router.get(
 router.post(
   "/:agentId/preview-session",
   authMiddleware,
-  requirePermission({ agentConfiguration: ["read"] }),
+  requirePermission({ agentPreview: ["create"] }),
   agentController.createAgentPreviewSession,
 );
 

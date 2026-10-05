@@ -16,7 +16,7 @@ type KbQueueLike = {
   add: (
     name: KbJobName,
     data: KbJobData,
-    options?: { jobId?: string },
+    options?: { jobId?: string; delay?: number },
   ) => Promise<unknown>;
   addBulk: (
     jobs: Array<{
@@ -50,9 +50,11 @@ type ReindexKnowledgeSourcesDependencies = {
   queue?: Pick<KbQueueLike, "add">;
   repository?: Pick<
     typeof kbRepository,
-    "listActiveForReindex" | "claimActiveForReindex" | "markError"
+    "listActiveForReindex" | "claimActiveForReindex"
   >;
 };
+
+const REINDEX_CLAIM_DELAY_MS = 30_000;
 
 export const createKnowledgeSources = async (
   args: CreateKbArgs,
@@ -147,6 +149,11 @@ export const updateKnowledgeSource = async (args: UpdateKbArgs) => {
       "Wait for document processing to finish before editing this entry",
     );
   }
+  if (asRecord(source.metadata).stage === "deleting") {
+    throw new BadRequestError(
+      "This knowledge source is being deleted; retry deletion instead",
+    );
+  }
 
   if (source.sourceType !== "URL" && args.url !== undefined) {
     throw new BadRequestError(
@@ -229,7 +236,12 @@ export const deleteKnowledgeSource = async (
   organizationId: string,
   kbId: string,
 ) => {
-  const source = await kbRepository.getByIdForOrg(kbId, organizationId);
+  const deletionToken = randomUUID();
+  const source = await kbRepository.claimKnowledgeSourceDeletion(
+    kbId,
+    organizationId,
+    deletionToken,
+  );
   if (!source) {
     throw new NotFoundError("Knowledge source not found");
   }
@@ -238,7 +250,13 @@ export const deleteKnowledgeSource = async (
   const deleted = await kbRepository.deleteKnowledgeSource(
     kbId,
     organizationId,
+    deletionToken,
   );
+  if (!deleted) {
+    throw new BadRequestError(
+      "Knowledge source deletion was superseded; retry",
+    );
+  }
   return deleted;
 };
 
@@ -260,23 +278,15 @@ export const reindexActiveKnowledgeSources = async (
     }
 
     const jobId = createJobId();
-    const claimed = await repository.claimActiveForReindex(
-      source.kbId,
-      source.organizationId,
-      createQueuedKbMetadata(jobId),
-    );
-    if (!claimed) {
-      skipped += 1;
-      continue;
-    }
-
+    let queuedJob: unknown;
     try {
-      await queue.add(
+      queuedJob = await queue.add(
         "process",
         {
           kbIds: [source.kbId],
           agentId: source.agentId,
           organizationId: source.organizationId,
+          enqueuedBeforeClaim: true,
           documents: [
             {
               kbId: source.kbId,
@@ -288,22 +298,53 @@ export const reindexActiveKnowledgeSources = async (
             },
           ],
         },
-        { jobId },
+        { jobId, delay: REINDEX_CLAIM_DELAY_MS },
       );
-      queued += 1;
     } catch (error) {
       failed += 1;
-      await repository.markError(
-        [source.kbId],
-        "The document could not be queued for reindexing.",
-        jobId,
-        source.organizationId,
-      );
+      continue;
     }
+
+    let claimed = false;
+    try {
+      claimed = await repository.claimActiveForReindex(
+        source.kbId,
+        source.organizationId,
+        createQueuedKbMetadata(jobId),
+      );
+    } catch (error) {
+      failed += 1;
+      await bestEffortJobOperation(queuedJob, "remove");
+      continue;
+    }
+    if (!claimed) {
+      skipped += 1;
+      await bestEffortJobOperation(queuedJob, "remove");
+      continue;
+    }
+
+    queued += 1;
+    // Promotion removes the normal delay. If it loses a Redis race or the
+    // process exits here, BullMQ still runs the durable delayed job later.
+    await bestEffortJobOperation(queuedJob, "promote");
   }
 
   return { discovered: sources.length, queued, skipped, failed };
 };
+
+async function bestEffortJobOperation(
+  job: unknown,
+  operation: "promote" | "remove",
+) {
+  if (!job || typeof job !== "object") return;
+  const method = (job as Record<string, unknown>)[operation];
+  if (typeof method !== "function") return;
+  try {
+    await method.call(job);
+  } catch (error) {
+    console.warn(`[kb-reindex] could not ${operation} queued job`, error);
+  }
+}
 
 export const retryKnowledgeSource = async (
   organizationId: string,

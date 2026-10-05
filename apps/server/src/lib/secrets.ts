@@ -1,4 +1,9 @@
-import { createCipheriv, createDecipheriv, randomBytes, createHash } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  randomBytes,
+  createHash,
+} from "node:crypto";
 
 const SECRET_PREFIX = "qvsec:v1:";
 const SECRET_REF_PREFIX = "qvsecret:";
@@ -15,7 +20,10 @@ export function encryptSecretValue(value: string) {
 
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", getEncryptionKey(), iv);
-  const ciphertext = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
+  const ciphertext = Buffer.concat([
+    cipher.update(value, "utf8"),
+    cipher.final(),
+  ]);
   const tag = cipher.getAuthTag();
 
   return [
@@ -40,7 +48,7 @@ export function decryptSecretValue(value: string) {
   const decipher = createDecipheriv(
     "aes-256-gcm",
     getEncryptionKey(),
-    Buffer.from(ivText, "base64url")
+    Buffer.from(ivText, "base64url"),
   );
   decipher.setAuthTag(Buffer.from(tagText, "base64url"));
 
@@ -52,6 +60,22 @@ export function decryptSecretValue(value: string) {
 
 export function isEncryptedSecretValue(value: unknown): value is string {
   return typeof value === "string" && value.startsWith(SECRET_PREFIX);
+}
+
+// qvsec envelopes are an internal storage format. API inputs must reject the
+// whole namespace so callers cannot submit ciphertext from another tenant or
+// preempt a future envelope version.
+export function isReservedSecretEnvelope(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith("qvsec:");
+}
+
+export function containsReservedSecretEnvelope(value: unknown): boolean {
+  if (isReservedSecretEnvelope(value)) return true;
+  if (Array.isArray(value)) {
+    return value.some(containsReservedSecretEnvelope);
+  }
+  if (!isRecord(value)) return false;
+  return Object.values(value).some(containsReservedSecretEnvelope);
 }
 
 export function isSecretReference(value: unknown): value is string {
@@ -92,13 +116,17 @@ export function resolveKeyValueSecrets<T>(value: T): T {
 
 export function restoreRedactedSecretReferences<T>(
   value: T,
-  existingValue: unknown
+  existingValue: unknown,
 ): T {
   return restoreRedactedValue(value, existingValue) as T;
 }
 
-function visitSecretFields(value: unknown, mode: "encrypt" | "redact" | "resolve"): unknown {
-  if (Array.isArray(value)) return value.map((item) => visitSecretFields(item, mode));
+function visitSecretFields(
+  value: unknown,
+  mode: "encrypt" | "redact" | "resolve",
+): unknown {
+  if (Array.isArray(value))
+    return value.map((item) => visitSecretFields(item, mode));
   if (!isRecord(value)) return value;
 
   if (value.type === "Secret") {
@@ -106,22 +134,35 @@ function visitSecretFields(value: unknown, mode: "encrypt" | "redact" | "resolve
   }
 
   return Object.fromEntries(
-    Object.entries(value).map(([key, item]) => [key, visitSecretFields(item, mode)])
+    Object.entries(value).map(([key, item]) => [
+      key,
+      visitSecretFields(item, mode),
+    ]),
   );
 }
 
-function visitKeyValueFields(value: unknown, mode: "encrypt" | "redact" | "resolve"): unknown {
-  if (Array.isArray(value)) return value.map((item) => visitKeyValueFields(item, mode));
+function visitKeyValueFields(
+  value: unknown,
+  mode: "encrypt" | "redact" | "resolve",
+): unknown {
+  if (Array.isArray(value))
+    return value.map((item) => visitKeyValueFields(item, mode));
   if (!isRecord(value)) return value;
 
   const next = Object.fromEntries(
-    Object.entries(value).map(([key, item]) => [key, visitKeyValueFields(item, mode)])
+    Object.entries(value).map(([key, item]) => [
+      key,
+      visitKeyValueFields(item, mode),
+    ]),
   );
 
   if (typeof next.key === "string" && typeof next.value === "string") {
     if (mode === "encrypt") {
       next.value = encryptSecretValue(next.value);
-    } else if (mode === "redact" && (isEncryptedSecretValue(next.value) || isSecretReference(next.value))) {
+    } else if (
+      mode === "redact" &&
+      (isEncryptedSecretValue(next.value) || isSecretReference(next.value))
+    ) {
       next.value = REDACTED_SECRET_VALUE;
       next.redacted = true;
     } else if (mode === "resolve") {
@@ -132,7 +173,10 @@ function visitKeyValueFields(value: unknown, mode: "encrypt" | "redact" | "resol
   return next;
 }
 
-function transformSecretMapValue(value: SecretMapValue, mode: "encrypt" | "redact" | "resolve") {
+function transformSecretMapValue(
+  value: SecretMapValue,
+  mode: "encrypt" | "redact" | "resolve",
+) {
   const next: Record<string, unknown> = { ...value };
 
   if (mode === "encrypt" && typeof next.value === "string") {
@@ -154,10 +198,7 @@ function transformSecretMapValue(value: SecretMapValue, mode: "encrypt" | "redac
   return next;
 }
 
-function restoreRedactedValue(
-  value: unknown,
-  existingValue: unknown
-): unknown {
+function restoreRedactedValue(value: unknown, existingValue: unknown): unknown {
   if (Array.isArray(value)) {
     const existingItems = Array.isArray(existingValue) ? existingValue : [];
     return value.map((item, index) => {
@@ -165,8 +206,7 @@ function restoreRedactedValue(
         isRecord(item) && typeof item.key === "string" ? item.key : null;
       const existingItem = itemKey
         ? existingItems.find(
-            (candidate) =>
-              isRecord(candidate) && candidate.key === itemKey
+            (candidate) => isRecord(candidate) && candidate.key === itemKey,
           )
         : existingItems[index];
       return restoreRedactedValue(item, existingItem);
@@ -174,17 +214,13 @@ function restoreRedactedValue(
   }
   if (!isRecord(value)) return value;
 
-  if (
-    value.redacted === true &&
-    (value.value === null || value.value === "")
-  ) {
+  if (value.redacted === true && (value.value === null || value.value === "")) {
     const storedValue = isRecord(existingValue)
       ? existingValue.value
       : undefined;
     if (
       typeof storedValue !== "string" ||
-      (!isSecretReference(storedValue) &&
-        !isEncryptedSecretValue(storedValue))
+      (!isSecretReference(storedValue) && !isEncryptedSecretValue(storedValue))
     ) {
       throw new Error("A redacted secret no longer has a stored value");
     }
@@ -203,16 +239,18 @@ function restoreRedactedValue(
         key,
         restoreRedactedValue(
           item,
-          isRecord(existingValue) ? existingValue[key] : undefined
+          isRecord(existingValue) ? existingValue[key] : undefined,
         ),
-      ])
+      ]),
   );
 }
 
 function getEncryptionKey() {
   const material = process.env.SECRET_ENCRYPTION_KEY?.trim();
   if (!material) {
-    throw new Error("SECRET_ENCRYPTION_KEY is required to encrypt integration secrets");
+    throw new Error(
+      "SECRET_ENCRYPTION_KEY is required to encrypt integration secrets",
+    );
   }
 
   const hexKey = /^[a-f0-9]{64}$/i.test(material)

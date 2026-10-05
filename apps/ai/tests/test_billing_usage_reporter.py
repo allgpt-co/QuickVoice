@@ -382,6 +382,29 @@ class BillingUsageReporterTests(unittest.IsolatedAsyncioTestCase):
         final_request = next(request for request in requests if request["final"])
         self.assertEqual(final_request["modelUsage"][0]["audio_duration"], 2.0)
 
+    async def test_concurrent_close_waits_for_the_same_final_snapshot(self):
+        request_started = asyncio.Event()
+        release_request = asyncio.Event()
+        requests = []
+
+        async def slow_post(_url, _headers, body):
+            requests.append(dict(body))
+            request_started.set()
+            await release_request.wait()
+            return {"data": {"action": "continue"}}
+
+        reporter = self.make_reporter(slow_post)
+        first_close = asyncio.create_task(reporter.close())
+        await asyncio.wait_for(request_started.wait(), timeout=0.2)
+        second_close = asyncio.create_task(reporter.close())
+        await asyncio.sleep(0)
+
+        self.assertFalse(second_close.done())
+        release_request.set()
+        await asyncio.gather(first_close, second_close)
+        self.assertEqual(len(requests), 1)
+        self.assertTrue(requests[0]["final"])
+
     async def test_missing_hosted_credentials_disables_reporting_without_network_calls(self):
         calls = []
 

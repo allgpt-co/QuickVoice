@@ -238,9 +238,13 @@ export function CallsTable({
   }
 
   async function confirmDelete() {
-    if (!deleteTarget) return;
-    await del.mutateAsync(deleteTarget.callId);
-    setDeleteTarget(null);
+    try {
+      if (!deleteTarget) return;
+      await del.mutateAsync(deleteTarget.callId);
+      setDeleteTarget(null);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   if (query.isLoading) {

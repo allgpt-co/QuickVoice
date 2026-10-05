@@ -38,7 +38,7 @@ services:
       start_period: 5s
 
   qdrant:
-    image: qdrant/qdrant:latest
+    image: qdrant/qdrant:v1.19.1
     container_name: quickvoice-dev-qdrant
     restart: unless-stopped
     ports:

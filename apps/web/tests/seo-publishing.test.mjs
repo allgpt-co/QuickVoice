@@ -80,13 +80,38 @@ test("sitemap excludes unreviewed content and illustrative details and uses sour
   const requireForSitemap = (name) => name === "@/lib/blog" ? {
     getIndexablePosts: () => [post, { ...post, slug: "pending", evidenceReview: undefined }].filter((candidate) => isIndexablePost(candidate, { now })),
     getPostModifiedDate: (candidate) => getPostModifiedDate(candidate, now),
-  } : require(name);
+  } : name.startsWith("@/data/") ? require(new URL("../data/" + name.slice(7), import.meta.url).pathname) : require(name);
   new Function("require", "module", "exports", output)(requireForSitemap, compiledModule, compiledModule.exports);
   const urls = compiledModule.exports.default();
   assert.equal(compiledModule.exports.revalidate, 3600);
   assert.equal(urls.find((entry) => entry.url.endsWith("/test-article")).lastModified.toISOString(), "2026-09-05T00:00:00.000Z");
   assert.equal(urls.some((entry) => entry.url.endsWith("/pending") || /\/case-studies\//.test(entry.url)), false);
-  assert.ok(urls.filter((entry) => !entry.url.includes("/blog/")).every((entry) => !Object.hasOwn(entry, "lastModified")));
+  const staticEntries = urls.filter((entry) => !entry.url.includes("/blog/"));
+  assert.ok(staticEntries.length >= 35);
+  assert.ok(staticEntries.some((entry) => entry.url === "https://quickvoice.co/"), "root URL uses the trailing-slash form Search Console reports as canonical");
+  assert.ok(staticEntries.some((entry) => entry.url === "https://quickvoice.co/resources/property-management-call-intake"));
+  const { STATIC_PAGE_SOURCES } = require("../data/static-page-sources.mjs");
+  for (const route of Object.keys(STATIC_PAGE_SOURCES)) {
+    assert.ok(staticEntries.some((entry) => entry.url === `https://quickvoice.co${route}`), `${route} is in the source map but not in the sitemap`);
+  }
+  for (const entry of staticEntries) {
+    assert.ok(entry.lastModified instanceof Date && Number.isFinite(entry.lastModified.getTime()), `${entry.url} needs a recorded modification date`);
+    assert.ok(entry.lastModified <= new Date(), `${entry.url} modification date is in the future`);
+  }
+  assert.equal(new Set(urls.map((entry) => entry.url)).size, urls.length);
+});
+
+test("recorded static page dates cover every sitemap route and are real calendar dates", () => {
+  const { STATIC_PAGE_SOURCES } = require("../data/static-page-sources.mjs");
+  const { STATIC_PAGE_LAST_MODIFIED } = require("../data/static-page-dates.mjs");
+  const routes = Object.keys(STATIC_PAGE_SOURCES);
+  assert.ok(routes.includes("/") && routes.includes("/pricing") && routes.includes("/solutions/ai-receptionist"));
+  for (const route of routes) {
+    assert.ok(parseContentDate(STATIC_PAGE_LAST_MODIFIED[route]), `${route} has no valid recorded date`);
+    assert.ok(STATIC_PAGE_SOURCES[route].length > 0, `${route} lists no source files`);
+    for (const source of STATIC_PAGE_SOURCES[route]) assert.ok(existsSync(new URL("../../../" + source, import.meta.url)), `${route}: missing source ${source}`);
+  }
+  assert.deepEqual(Object.keys(STATIC_PAGE_LAST_MODIFIED).sort(), routes.slice().sort());
 });
 
 test("www host permanently redirects to the apex with paths preserved", async () => {
@@ -123,4 +148,14 @@ test("blog hub features reviewed guides and keeps legacy titles in a collapsed s
   assert.match(searched, /No reviewed guides found/);
   assert.match(searched, /href="\/blog\/legacy"/);
   assert.doesNotMatch(searched, /Reviewed description/);
+});
+
+test("page canonicals are absolute and metadata carries no dead keywords tag", () => {
+  // Note: Next's metadata resolver collapses "https://quickvoice.co/" to the origin,
+  // so the homepage canonical cannot carry a trailing slash without site-wide trailingSlash.
+  const openSource = readFileSync(new URL("../src/app/open-source/page.tsx", import.meta.url), "utf8");
+  assert.match(openSource, /canonical:\s*"https:\/\/quickvoice\.co\/open-source"/, "open-source canonical must be absolute like every other page");
+  assert.match(openSource, /url:\s*"https:\/\/quickvoice\.co\/open-source"/);
+  const layout = readFileSync(new URL("../src/app/layout.tsx", import.meta.url), "utf8");
+  assert.doesNotMatch(layout, /^\s*keywords:/m, "meta keywords is ignored by search engines; drop it");
 });

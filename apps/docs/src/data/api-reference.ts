@@ -155,6 +155,18 @@ export const apiGroups: ApiGroup[] = [
     endpoints: [
       endpoint(
         "GET",
+        "/numbers/countries",
+        "List provider-supported countries for local number searches. Inventory is checked separately when searching; unsupported countries return NUMBER_COUNTRY_NOT_SUPPORTED (400), and country-discovery outages return NUMBER_COUNTRIES_UNAVAILABLE (503).",
+        "Session or API key",
+        "phoneNumber:create",
+        "apps/server/src/modules/numbers/phone.route.ts",
+        ["provider: TWILIO | TELNYX"],
+        undefined,
+        undefined,
+        "200 { success, message, data: Array<{ code, name }> }",
+      ),
+      endpoint(
+        "GET",
         "/numbers/search",
         "Search available provider numbers and obtain a signed hosted-billing quote before purchase.",
         "Session or API key",

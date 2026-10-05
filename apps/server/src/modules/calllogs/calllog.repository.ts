@@ -211,6 +211,11 @@ export const getTranscriptsByCallId = async (args: ListTranscriptsArgs) => {
 export const liveRoomBelongsToOrg = async (
   organizationId: string,
   roomName: string,
+  countOwnedRoom: (where: {
+    organizationId: string;
+    roomName: string;
+  }) => Promise<number> = (where) =>
+    prisma.callBillingSession.count({ where }),
 ) => {
   if (roomName.startsWith("widget_")) {
     return widgetRoomBelongsToOrg(organizationId, roomName);
@@ -224,11 +229,8 @@ export const liveRoomBelongsToOrg = async (
     return count > 0;
   }
 
-  const numbers = await prisma.phoneNumber.findMany({
-    where: { organizationId },
-    select: { number: true },
-  });
-  return numbers.some((number) => roomName.includes(number.number));
+  const count = await countOwnedRoom({ organizationId, roomName });
+  return count > 0;
 };
 
 export const listAgentNamesForOrg = async (

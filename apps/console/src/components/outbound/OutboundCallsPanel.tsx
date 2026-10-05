@@ -68,6 +68,7 @@ import {
 } from "@/src/hooks/queries/outbound";
 import type { OutboundCall } from "@/src/lib/api/resources/outbound";
 import type { CallStatus } from "@/src/lib/api/types";
+import { downloadRowsAsCsv } from "@/src/lib/export-csv";
 
 const STATUS_OPTIONS: Array<"all" | CallStatus> = [
   "all",
@@ -117,44 +118,21 @@ function canRetry(call: OutboundCall) {
   return call.status === "FAILED" || call.status === "NOT_ANSWERED";
 }
 
-function csvEscape(value: unknown) {
-  const text = String(value ?? "");
-  return /[",\n]/.test(text) ? `"${text.replaceAll('"', '""')}"` : text;
-}
-
 function downloadOutboundCsv(calls: OutboundCall[], agentName: (id: string | null) => string) {
-  const header = [
-    "Outbound ID",
-    "Status",
-    "Mode",
-    "Agent",
-    "To number",
-    "From number",
-    "Scheduled at",
-    "Created at",
-    "Failure reason",
-  ];
-  const rows = calls.map((call) => [
-    call.outboundId,
-    call.status,
-    call.mode,
-    agentName(call.agentId),
-    call.phoneNumber,
-    call.fromNumber,
-    call.scheduledAt ?? "",
-    call.createdAt,
-    call.failureReason ?? call.cancellationReason ?? "",
+  downloadRowsAsCsv("quickvoice-outbound-calls.csv", calls, [
+    { header: "Outbound ID", value: (call) => call.outboundId },
+    { header: "Status", value: (call) => call.status },
+    { header: "Mode", value: (call) => call.mode },
+    { header: "Agent", value: (call) => agentName(call.agentId) },
+    { header: "To number", value: (call) => call.phoneNumber },
+    { header: "From number", value: (call) => call.fromNumber },
+    { header: "Scheduled at", value: (call) => call.scheduledAt ?? "" },
+    { header: "Created at", value: (call) => call.createdAt },
+    {
+      header: "Failure reason",
+      value: (call) => call.failureReason ?? call.cancellationReason ?? "",
+    },
   ]);
-  const csv = [header, ...rows]
-    .map((row) => row.map(csvEscape).join(","))
-    .join("\n");
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "quickvoice-outbound-calls.csv";
-  link.click();
-  URL.revokeObjectURL(url);
 }
 
 function OutboundCallDetailDialog({
@@ -294,10 +272,14 @@ export function OutboundCallsPanel() {
   }, [agentNames, calls, search]);
 
   async function confirmCancel() {
-    if (!cancelTarget) return;
-    await cancelCall.mutateAsync(cancelTarget.outboundId, {
-      onSuccess: () => setCancelTarget(null),
-    });
+    try {
+      if (!cancelTarget) return;
+      await cancelCall.mutateAsync(cancelTarget.outboundId, {
+        onSuccess: () => setCancelTarget(null),
+      });
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   if (isLoading) {

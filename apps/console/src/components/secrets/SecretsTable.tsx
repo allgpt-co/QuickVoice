@@ -76,13 +76,17 @@ export function SecretsTable({ onCreate }: { onCreate: () => void }) {
   }
 
   async function confirmDelete() {
-    if (!deleteTarget) return;
-    await deleteSecret.mutateAsync(deleteTarget.secretId, {
-      onSuccess: () => {
-        toast.success("Secret deleted");
-        setDeleteTarget(null);
-      },
-    });
+    try {
+      if (!deleteTarget) return;
+      await deleteSecret.mutateAsync(deleteTarget.secretId, {
+        onSuccess: () => {
+          toast.success("Secret deleted");
+          setDeleteTarget(null);
+        },
+      });
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   if (isLoading) return <SecretSkeleton />;

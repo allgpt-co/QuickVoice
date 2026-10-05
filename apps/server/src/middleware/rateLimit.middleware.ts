@@ -48,6 +48,10 @@ const apiBasePath = `/api/${process.env.API_VERSION || "v1"}`.toLowerCase();
 
 const rateLimitMiddleware: RequestHandler = (req, res, next) => {
   const path = req.path.toLowerCase();
+  // Inngest authenticates callbacks with its signing key and must be able to
+  // deliver billing/reconciliation steps even when public traffic is limited.
+  if (/^\/api\/inngest\/?$/.test(path)) return next();
+
   const relativePath = path.startsWith(`${apiBasePath}/`)
     ? path.slice(apiBasePath.length)
     : "";

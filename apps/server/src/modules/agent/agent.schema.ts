@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { containsReservedSecretEnvelope } from "../../lib/secrets.js";
 
 const agentTemplateSlugSchema = z.enum([
   "business",
@@ -138,8 +139,8 @@ export const configureAgentSchema = z
     // voice_similarity_boost: z.number().min(0).max(1),
     // fetch_initiation_webhook_url: z.string().optional(),
     // post_call_webhook_url: z.string().optional(),
-    // concurrent_calls_limit: z.number().int().positive(),
-    // daily_calls_limit: z.number().int().positive(),
+    concurrent_calls_limit: z.number().int().min(1).max(100).optional(),
+    daily_calls_limit: z.number().int().min(1).max(100_000).optional(),
     // turn_timeout_seconds: z.number().int().positive(),
     // silence_end_call_timeout_seconds: z.number().int().positive(),
     // max_conversation_duration_seconds: z.number().int().positive(),
@@ -149,6 +150,9 @@ export const configureAgentSchema = z
   .refine((data) => !(data.zero_pii_retention && data.store_call_audio), {
     message: "Call audio cannot be stored when zero-PII retention is enabled",
     path: ["store_call_audio"],
+  })
+  .refine((data) => !containsReservedSecretEnvelope(data), {
+    message: "Encrypted secret envelopes cannot be submitted",
   });
 
 export type ConfigureAgentInput = z.infer<typeof configureAgentSchema>;

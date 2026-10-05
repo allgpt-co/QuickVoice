@@ -179,6 +179,11 @@ test("reindexActiveKnowledgeSources claims and queues a snapshot of active sourc
     queue: {
       add: async (...args: unknown[]) => {
         calls.push(["queue", ...args]);
+        return {
+          promote: async () => {
+            calls.push(["promote"]);
+          },
+        };
       },
     } as never,
   });
@@ -186,6 +191,15 @@ test("reindexActiveKnowledgeSources claims and queues a snapshot of active sourc
   assert.deepEqual(result, { discovered: 2, queued: 2, skipped: 0, failed: 0 });
   const queued = calls.filter((call) => call[0] === "queue");
   assert.equal(queued.length, 2);
+  assert.ok(
+    calls.findIndex((call) => call[0] === "queue") <
+      calls.findIndex((call) => call[0] === "claim"),
+  );
+  assert.deepEqual(queued[0]?.[3], {
+    jobId: "kb-reindex-1",
+    delay: 30_000,
+  });
+  assert.equal(calls.filter((call) => call[0] === "promote").length, 2);
   assert.deepEqual((queued[0]?.[2] as { documents: unknown[] }).documents, [
     {
       kbId: "kb-source-1",
@@ -206,6 +220,63 @@ test("reindexActiveKnowledgeSources claims and queues a snapshot of active sourc
       originalFileName: null,
     },
   ]);
+});
+
+test("reindex leaves an active source untouched when durable enqueue fails", async () => {
+  let claims = 0;
+  const result = await reindexActiveKnowledgeSources({
+    createJobId: () => "kb-reindex-1",
+    repository: {
+      listActiveForReindex: async () => [
+        { ...SOURCE, status: "ACTIVE", metadata: null },
+      ],
+      claimActiveForReindex: async () => {
+        claims += 1;
+        return true;
+      },
+    } as never,
+    queue: {
+      add: async () => {
+        throw new Error("Redis unavailable");
+      },
+    } as never,
+  });
+
+  assert.deepEqual(result, {
+    discovered: 1,
+    queued: 0,
+    skipped: 0,
+    failed: 1,
+  });
+  assert.equal(claims, 0);
+});
+
+test("reindex removes an orphan job when another process wins the claim", async () => {
+  let removed = 0;
+  const result = await reindexActiveKnowledgeSources({
+    createJobId: () => "kb-reindex-1",
+    repository: {
+      listActiveForReindex: async () => [
+        { ...SOURCE, status: "ACTIVE", metadata: null },
+      ],
+      claimActiveForReindex: async () => false,
+    } as never,
+    queue: {
+      add: async () => ({
+        remove: async () => {
+          removed += 1;
+        },
+      }),
+    } as never,
+  });
+
+  assert.deepEqual(result, {
+    discovered: 1,
+    queued: 0,
+    skipped: 1,
+    failed: 0,
+  });
+  assert.equal(removed, 1);
 });
 
 test("retryKnowledgeSource atomically claims a failed source and queues its stored document", async () => {

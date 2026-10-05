@@ -4,6 +4,7 @@ import { BadRequestError } from "../../common/errors/badRequest.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
 import {
+  containsReservedSecretEnvelope,
   redactKeyValueSecrets,
   restoreRedactedSecretReferences,
 } from "../../lib/secrets.js";
@@ -15,11 +16,13 @@ import {
 } from "../secrets/secret-store.service.js";
 import * as toolRepository from "./tool.repository.js";
 import type { CreateToolArgs, UpdateToolInput } from "./tool.schema.js";
+import { assertSafeToolSecretDestinationUpdate } from "./tool-secret-destination.js";
 
 export const listTools = async (organizationId: string) =>
   (await toolRepository.listTools(organizationId)).map(redactToolSecrets);
 
 export const createTool = async (args: CreateToolArgs) => {
+  rejectEncryptedSecretEnvelope(args);
   await assertSafeRemoteUrl(args.api_url);
   const toolId = randomUUID();
   const createdSecretIds: string[] = [];
@@ -47,10 +50,12 @@ export const updateTool = async (
   toolId: string,
   data: UpdateToolInput,
 ) => {
+  rejectEncryptedSecretEnvelope(data);
   const existing = await toolRepository.findTool(organizationId, toolId);
   if (!existing) throw new NotFoundError("Tool not found");
   if (data.api_url) {
     await assertSafeRemoteUrl(data.api_url);
+    assertSafeToolSecretDestinationUpdate(existing, data);
   }
   const createdSecretIds: string[] = [];
   let persisted = false;
@@ -231,4 +236,10 @@ function redactToolSecrets<T extends Record<string, any>>(tool: T): T {
     api_headers: redactKeyValueSecrets(tool.api_headers),
     dynamic_variables: redactKeyValueSecrets(tool.dynamic_variables),
   };
+}
+
+function rejectEncryptedSecretEnvelope(value: unknown) {
+  if (containsReservedSecretEnvelope(value)) {
+    throw new BadRequestError("Encrypted secret envelopes cannot be submitted");
+  }
 }

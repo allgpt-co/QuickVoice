@@ -30,8 +30,15 @@ from handlers.vector_provider_adapters import (
 )
 
 
+from utils import kb_index_state
+from test_vector_publication import Redis
+
+
 class VectorProviderAdaptersTests(unittest.TestCase):
     def setUp(self):
+        self.state_patch = patch.object(kb_index_state, "_CLIENT", Redis())
+        self.state_patch.start()
+        self.addCleanup(self.state_patch.stop)
         self.original_env = os.environ.copy()
         clear_vector_adapter_cache()
 
@@ -389,12 +396,8 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             adapter = QdrantVectorStoreAdapter(url="http://localhost:6333", collection_name="test-collection")
             mock_qdrant_client = MagicMock()
 
-            # Mock collection check (already exists)
-            mock_col = MagicMock()
-            mock_col.name = "test-collection"
-            mock_collections_resp = MagicMock()
-            mock_collections_resp.collections = [mock_col]
-            mock_qdrant_client.get_collections.return_value = mock_collections_resp
+            # Mock collection check (already exists with the expected dimensions)
+            mock_qdrant_client.get_collection.return_value.config.params.vectors.size = 2
 
             adapter._client = mock_qdrant_client
 
@@ -416,6 +419,21 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             self.assertEqual(upsert_kwargs["points"][0].payload["agentId"], "agent_abc")
             self.assertEqual(upsert_kwargs["points"][0].payload["kbId"], "kb_xyz")
             self.assertEqual(upsert_kwargs["points"][0].payload["text"], chunks[0])
+            self.assertFalse(upsert_kwargs["points"][0].payload["active"])
+            self.assertTrue(upsert_kwargs["points"][0].payload["indexVersion"])
+            first_version = upsert_kwargs["points"][0].payload["indexVersion"]
+            self.assertEqual(kb_index_state.snapshot("agent_abc")["kb_xyz"], first_version)
+            mock_qdrant_client.set_payload.assert_not_called()
+
+            # Collection configuration is validated once per adapter, not on every upsert.
+            adapter.upsert(
+                namespace="agent_abc",
+                kb_id="kb_second",
+                doc_name="Doc 2",
+                chunks=["Chunk text"],
+                embeddings=[[0.5, 0.6]],
+            )
+            mock_qdrant_client.get_collection.assert_called_once_with("test-collection")
 
             # 2. Query
             mock_point = MagicMock()
@@ -432,6 +450,8 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             self.assertEqual(results[0].text, "Chunk 1 text")
             self.assertEqual(results[0].score, 0.95)
             self.assertEqual(results[0].name, "Doc 1")
+            query_filter = mock_qdrant_client.query_points.call_args.kwargs["query_filter"]
+            self.assertEqual(query_filter.should[1].must[1].match.value, first_version)
 
             # 3. Delete
             adapter.delete_by_kb(namespace="agent_abc", kb_id="kb_xyz")
@@ -440,15 +460,128 @@ class VectorProviderAdaptersTests(unittest.TestCase):
             self.assertEqual(delete_kwargs["collection_name"], "test-collection")
 
             # Existing collections must match the selected embedding dimension.
-            mock_qdrant_client.get_collection.return_value.config.params.vectors.size = 3
-            with self.assertRaisesRegex(VectorAdapterError, "expects 3-dimensional"):
+            with self.assertRaisesRegex(VectorAdapterError, "expects 2-dimensional"):
                 adapter.upsert(
                     namespace="agent_abc",
-                    kb_id="kb_xyz",
+                    kb_id="kb_other",
                     doc_name="Doc 1",
                     chunks=["Chunk 1 text"],
-                    embeddings=[[0.1, 0.2]],
+                    embeddings=[[0.1, 0.2, 0.3]],
                 )
+
+    def test_qdrant_collection_creation_tolerates_a_concurrent_creator(self):
+        mock_models = MagicMock()
+        mock_models.PointStruct = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.Filter = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.FieldCondition = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.MatchValue = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.VectorParams = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.Distance.COSINE = "Cosine"
+
+        mock_qdrant_module = MagicMock()
+        mock_qdrant_module.models = mock_models
+
+        class MissingCollection(Exception):
+            status_code = 404
+
+        collection = MagicMock()
+        collection.config.params.vectors.size = 2
+
+        with patch.dict(sys.modules, {"qdrant_client": mock_qdrant_module, "qdrant_client.models": mock_models}):
+            adapter = QdrantVectorStoreAdapter(url="http://localhost:6333", collection_name="test-collection")
+            client = MagicMock()
+            client.get_collection.side_effect = [MissingCollection(), collection]
+            client.create_collection.side_effect = RuntimeError("collection already exists")
+            adapter._client = client
+
+            adapter.upsert(
+                namespace="agent_abc",
+                kb_id="kb_xyz",
+                doc_name="Doc",
+                chunks=["Chunk text"],
+                embeddings=[[0.1, 0.2]],
+            )
+
+            self.assertEqual(client.get_collection.call_count, 2)
+            client.create_collection.assert_called_once()
+            client.upsert.assert_called_once()
+
+    def test_qdrant_failed_batch_never_activates_partial_replacement(self):
+        mock_models = MagicMock()
+        mock_models.PointStruct = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.Filter = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.FieldCondition = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.MatchValue = lambda **kwargs: MagicMock(**kwargs)
+
+        mock_qdrant_module = MagicMock()
+        mock_qdrant_module.models = mock_models
+
+        with patch.dict(sys.modules, {"qdrant_client": mock_qdrant_module, "qdrant_client.models": mock_models}):
+            adapter = QdrantVectorStoreAdapter(url="http://localhost:6333", collection_name="test-collection")
+            adapter._collection_vector_size = 2
+            client = MagicMock()
+            client.upsert.side_effect = [None, RuntimeError("second batch failed")]
+            adapter._client = client
+
+            with self.assertRaisesRegex(RuntimeError, "second batch failed"):
+                adapter.upsert(
+                    namespace="agent_abc",
+                    kb_id="kb_other",
+                    doc_name="Doc",
+                    chunks=[f"Chunk {index}" for index in range(101)],
+                    embeddings=[[0.1, 0.2] for _ in range(101)],
+                )
+
+            client.set_payload.assert_not_called()
+            client.delete.assert_called_once()
+            cleanup_filter = client.delete.call_args.kwargs["points_selector"]
+            self.assertEqual(cleanup_filter.must[0].key, "agentId")
+            self.assertEqual(cleanup_filter.must[1].key, "kbId")
+            self.assertEqual(cleanup_filter.must[2].key, "indexVersion")
+
+    def test_qdrant_missing_collection_is_a_configuration_error(self):
+        mock_models = MagicMock()
+        mock_models.Filter = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.FieldCondition = lambda **kwargs: MagicMock(**kwargs)
+        mock_models.MatchValue = lambda **kwargs: MagicMock(**kwargs)
+
+        mock_qdrant_module = MagicMock()
+        mock_qdrant_module.models = mock_models
+
+        class MissingCollection(Exception):
+            status_code = 404
+
+        with patch.dict(sys.modules, {"qdrant_client": mock_qdrant_module, "qdrant_client.models": mock_models}):
+            adapter = QdrantVectorStoreAdapter(
+                url="http://localhost:6333",
+                collection_name="mistyped-collection",
+            )
+            client = MagicMock()
+            client.query_points.side_effect = MissingCollection("collection not found")
+            adapter._client = client
+
+            with self.assertRaisesRegex(
+                VectorAdapterError,
+                "Check QDRANT_COLLECTION_NAME",
+            ):
+                asyncio.run(
+                    adapter.query(
+                        namespace="agent_abc",
+                        vector=[0.1, 0.2],
+                    )
+                )
+
+            client.query_points.side_effect = None
+            client.query_points.return_value.points = []
+            self.assertEqual(
+                asyncio.run(
+                    adapter.query(
+                        namespace="agent_abc",
+                        vector=[0.1, 0.2],
+                    )
+                ),
+                [],
+            )
 
 
 if __name__ == "__main__":

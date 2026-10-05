@@ -19,13 +19,16 @@ import { ArrowLeft, Building2, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createOrgSchema } from "@/src/models/orgs/createOrgsSchema";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { generateSlug } from "@/src/utils/generateSlug";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 
 
 
 export default function Orgs() {
  const router = useRouter();
+ const queryClient = useQueryClient();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const form = useForm<z.infer<typeof createOrgSchema>>({
@@ -55,8 +58,19 @@ export default function Orgs() {
  setError(message);
  return;
  }
+ const { error: activationError } = await authClient.organization.setActive({
+ organizationId: data.id,
+ });
+ if (activationError) {
+ const message = activationError.message || "Organization was created, but could not be opened";
+ toast.error(message);
+ setError(message);
+ return;
+ }
+ clearIdentityCache(queryClient);
  toast.success("Organization created successfully");
- router.push(`/orgs/${data.id}`);
+ router.push("/dashboard");
+ router.refresh();
  } catch (err) {
  const message =
  err instanceof Error ? err.message : "Could not create organization";

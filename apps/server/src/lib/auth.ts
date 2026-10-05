@@ -1,4 +1,5 @@
 import { APIError, betterAuth } from "better-auth";
+import { AUTH_IP_ADDRESS_OPTIONS } from "../middleware/auth-client-ip.middleware.js";
 import { createAuthMiddleware } from "better-auth/api";
 import type { Invitation } from "better-auth/plugins";
 import { prismaAdapter } from "better-auth/adapters/prisma";
@@ -30,6 +31,7 @@ export const auth = betterAuth({
   basePath: `/api/${process.env.API_VERSION! || "v1"}/auth`,
   trustedOrigins,
   advanced: {
+    ipAddress: AUTH_IP_ADDRESS_OPTIONS,
     useSecureCookies: isSecureServerUrl,
     crossSubDomainCookies: {
       enabled: !!process.env.COOKIE_DOMAIN,
@@ -128,6 +130,10 @@ export const auth = betterAuth({
       references: "organization",
       enableSessionForAPIKeys: false,
       enableMetadata: false,
+      // API traffic is limited after successful authentication by the shared
+      // Redis-backed limiter in rateLimit.middleware.ts. Keeping Better Auth's
+      // per-key limiter enabled would apply its 10-request daily default first.
+      rateLimit: { enabled: false },
       permissions: {
         defaultPermissions: ORGANIZATION_API_KEY_PERMISSIONS,
       },

@@ -1,4 +1,7 @@
 import { z } from "zod";
+import { campaignScheduleToIso } from "./campaign-schedule";
+
+import { serializeCsvRows } from "@/src/lib/export-csv";
 
 export const BATCH_TEMPLATE_BASE_COLUMNS = [
   "phone_number",
@@ -9,7 +12,9 @@ export const BATCH_TEMPLATE_BASE_COLUMNS = [
 ] as const;
 
 export function buildBatchTemplateHeader(variableNames: string[] = []) {
-  return [...BATCH_TEMPLATE_BASE_COLUMNS, ...uniqueColumns(variableNames)].join(",");
+  return serializeCsvRows([
+    [...BATCH_TEMPLATE_BASE_COLUMNS, ...uniqueColumns(variableNames)],
+  ]);
 }
 
 export function buildBatchTemplateCsv(variableNames: string[] = []) {
@@ -33,13 +38,18 @@ export const batchCampaignSchema = z
     timezone: z.string().default("UTC"),
     ringingTimeoutSeconds: z.coerce.number().int().min(10).max(180),
   })
-  .superRefine((data, ctx) => {
-    if (data.scheduleMode === "later" && !data.scheduledAt) {
+  .transform((data, ctx) => {
+    if (data.scheduleMode === "instant") return { ...data, scheduledAt: undefined };
+    try {
+      if (!data.scheduledAt) throw new Error("Schedule time is required");
+      return { ...data, scheduledAt: campaignScheduleToIso(data.scheduledAt, data.timezone) };
+    } catch (error) {
       ctx.addIssue({
         path: ["scheduledAt"],
         code: z.ZodIssueCode.custom,
-        message: "Schedule time is required",
+        message: error instanceof Error ? error.message : "Invalid schedule time",
       });
+      return z.NEVER;
     }
   });
 

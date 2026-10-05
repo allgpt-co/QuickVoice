@@ -1,15 +1,30 @@
 ---
-title: "AI Voice Agents in 2026: A Documented Capability Snapshot"
-slug: "state-of-ai-voice-agents-2026"
-date: "2026-10-05"
-author: "Rahul Agarwal"
-category: "AI Voice Agent Education"
-tags: ["voice AI capabilities", "AI voice agents 2026", "voice platform evidence"]
-metaTitle: "AI Voice Agents in 2026: A Documented Capability Snapshot"
-metaDescription: "Separate documented voice-agent capabilities from unverified market statistics and assess the deployment evidence a business still needs."
-canonical: "https://quickvoice.co/blog/state-of-ai-voice-agents-2026"
-ogImage: "/og-image.png"
-readTime: "3 min"
+title: 'AI Voice Agents in 2026: A Documented Capability Snapshot'
+slug: state-of-ai-voice-agents-2026
+date: '2026-10-05'
+author: Rahul Agarwal
+category: AI Voice Agent Education
+tags:
+  - voice AI capabilities
+  - AI voice agents 2026
+  - voice platform evidence
+metaTitle: 'AI Voice Agents in 2026: A Documented Capability Snapshot'
+metaDescription: >-
+  Separate documented voice-agent capabilities from unverified market statistics
+  and assess the deployment evidence a business still needs.
+canonical: 'https://quickvoice.co/blog/state-of-ai-voice-agents-2026'
+ogImage: /og-image.png
+readTime: 3 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-10-02T07:44:24.006Z'
+  reviewer: Claude (primary-source and repository review)
+  sources:
+    - 'https://docs.vapi.ai/quickstart/phone'
+    - 'https://docs.bland.ai/tutorials/pathways'
+    - 'https://github.com/allgpt-co/QuickVoice'
+    - 'https://www.nist.gov/itl/ai-risk-management-framework'
+  contentHash: 903e0aaa72ac80488e1b38a43b0a6d72c39a44dbd3f9f3cfffc91b687d3ff4f5
 ---
 
 # AI Voice Agents in 2026: A Documented Capability Snapshot

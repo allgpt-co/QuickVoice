@@ -25,6 +25,10 @@ const replacePathParams = (definition: ApiDefinition, input: Record<string, unkn
     if (typeof value !== "string" || value.length === 0) {
       throw new Error(`Missing required path parameter: ${param}`);
     }
+    // URL parsing resolves standalone dot segments even when dots are percent-encoded.
+    if (value === "." || value === "..") {
+      throw new Error(`Invalid path parameter: ${param}`);
+    }
     path = path.replace(`:${param}`, encodeURIComponent(value));
   }
   return path;
@@ -88,7 +92,7 @@ export function createQuickVoiceMcpServer() {
         description: `${definition.description} Params/schema: ${definition.requestSchema}. Example use: read ${resourceUri(definition)}${definition.queryKeys?.length ? `?${definition.queryKeys[0]}=...` : ""}.`,
         mimeType: "application/json",
       },
-      async (uri, variables) => {
+      async (uri, variables, extra) => {
         const url = new URL(uri.href);
         const input = resourceParams(definition, variables as Record<string, unknown>);
         const path = replacePathParams(definition, input);
@@ -96,6 +100,7 @@ export function createQuickVoiceMcpServer() {
           method: definition.method,
           path,
           query: resourceQuery(definition, url),
+          signal: extra.signal,
         });
         return {
           contents: [
@@ -120,14 +125,21 @@ export function createQuickVoiceMcpServer() {
           query: z.record(z.string(), z.unknown()).optional(),
           body: z.record(z.string(), z.unknown()).optional(),
         },
+        annotations: definition.toolAnnotations ?? {
+          readOnlyHint: false,
+          destructiveHint: true,
+          idempotentHint: false,
+          openWorldHint: true,
+        },
       },
-      async (input: ToolInput) => {
+      async (input: ToolInput, extra) => {
         const path = replacePathParams(definition, input);
         const data = await callQuickVoiceApi({
           method: definition.method,
           path,
           query: input.query,
           body: input.body,
+          signal: extra.signal,
         });
         return jsonText(data);
       },

@@ -281,14 +281,14 @@ function OrganizationBillingPage({
     [transactions.data?.items],
   );
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    isActiveRef.current = true;
+    return () => {
       isActiveRef.current = false;
       topUpPollController.current?.abort();
       paymentMethodPollController.current?.abort();
-    },
-    [],
-  );
+    };
+  }, []);
 
   const pollForTopUpConfirmation = useCallback(
     async (topUpId: string) => {

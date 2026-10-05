@@ -6,6 +6,7 @@ on:
   push:
     branches: [main]
   workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -174,6 +175,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 40
     services:
+      schema-postgres:
+        image: postgres:16.15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: quickvoice_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d quickvoice_ci"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
       rate-limit-redis:
         image: redis:7-alpine
         ports:
@@ -207,6 +221,13 @@ jobs:
           # but `prisma generate` does not connect to the database.
           DATABASE_URL: postgresql://postgres:postgres@localhost:5432/quickvoice_ci
 
+      - name: Verify migration history matches Prisma schema
+        run: |
+          pnpm --filter server exec prisma migrate deploy
+          pnpm --filter server exec prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --exit-code
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/quickvoice_ci
+
       - name: Lint server
         run: pnpm --filter server lint
 
@@ -220,6 +241,72 @@ jobs:
         run: pnpm --filter server test
         env:
           TEST_RATE_LIMIT_REDIS_URL: redis://127.0.0.1:6379
+
+  mcp-server:
+    name: MCP Server Types, Build, Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint MCP server
+        run: pnpm --filter quickvoice-mcp-server lint
+
+      - name: Typecheck MCP server
+        run: pnpm --filter quickvoice-mcp-server check-types
+
+      - name: Build MCP server
+        run: pnpm --filter quickvoice-mcp-server build
+
+      - name: Run MCP transport tests
+        run: pnpm --filter quickvoice-mcp-server test:transport
+
+  widget:
+    name: Widget Lint, Types, Build, Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: "pnpm-lock.yaml"
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint widget
+        run: pnpm --filter quickvoice-widget lint
+
+      - name: Typecheck widget
+        run: pnpm --filter quickvoice-widget check-types
+
+      - name: Build widget
+        run: pnpm --filter quickvoice-widget build
+
+      - name: Test widget bundle
+        run: pnpm --filter quickvoice-widget test
 
   ai-python:
     name: AI Python Tests
@@ -424,6 +511,8 @@ jobs:
       - web
       - docs
       - server
+      - mcp-server
+      - widget
       - ai-python
       - docker-server
       - docker-ai
@@ -439,6 +528,8 @@ jobs:
             echo "- Web: ${{ needs.web.result }}"
             echo "- Docs: ${{ needs.docs.result }}"
             echo "- Server: ${{ needs.server.result }}"
+            echo "- MCP server: ${{ needs.mcp-server.result }}"
+            echo "- Widget: ${{ needs.widget.result }}"
             echo "- AI Python: ${{ needs.ai-python.result }}"
             echo "- Server Docker: ${{ needs.docker-server.result }}"
             echo "- AI Docker: ${{ needs.docker-ai.result }}"
@@ -455,6 +546,8 @@ jobs:
             "${{ needs.web.result }}" \
             "${{ needs.docs.result }}" \
             "${{ needs.server.result }}" \
+            "${{ needs.mcp-server.result }}" \
+            "${{ needs.widget.result }}" \
             "${{ needs.ai-python.result }}" \
             "${{ needs.docker-server.result }}" \
             "${{ needs.docker-ai.result }}" \
@@ -464,3 +557,120 @@ jobs:
               exit 1
             fi
           done
+
+  deployment-changes:
+    name: Detect Production Deployment Changes
+    runs-on: ubuntu-latest
+    needs: quality-summary
+    if: (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      server: ${{ steps.detect.outputs.server }}
+      ai: ${{ steps.detect.outputs.ai }}
+      mcp: ${{ steps.detect.outputs.mcp }}
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.sha }}
+
+      - name: Detect deployable changes from the tested push
+        id: detect
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+
+          git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
+          current_main="$(git rev-parse origin/main)"
+          if [ "$current_main" != "$SOURCE_SHA" ]; then
+            {
+              echo "server=false"
+              echo "ai=false"
+              echo "mcp=false"
+            } >> "$GITHUB_OUTPUT"
+            {
+              echo "## Production deployment skipped"
+              echo "- Tested commit: ${SOURCE_SHA}"
+              echo "- Current main: ${current_main}"
+              echo "- Reason: a newer main commit exists"
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          backend_base="$(DEPLOY_JOB='Deploy CI-Verified Backend / Deploy and Verify Backend Images' bash .github/scripts/deploy-diff-base.sh)"
+          mcp_base="$(DEPLOY_JOB='Deploy CI-Verified MCP Server / Deploy and Verify MCP Image' bash .github/scripts/deploy-diff-base.sh)"
+          changed_files="$(git diff --name-only "$backend_base" "$SOURCE_SHA")"
+          mcp_changed_files="$(git diff --name-only "$mcp_base" "$SOURCE_SHA")"
+
+          server=false
+          ai=false
+          mcp=false
+
+          # Avoid grep -q closing a pipe early and hiding matches under pipefail.
+          if grep -Eq '^(apps/server/|packages/typescript-config/|scripts/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)' <<< "$changed_files"; then
+            server=true
+          fi
+          if grep -Eq '^(apps/ai/|scripts/|\.github/workflows/ci\.yml$|\.github/workflows/backend-build\.yml$)' <<< "$changed_files"; then
+            ai=true
+          fi
+          if grep -Eq '^(apps/mcp-server/|packages/typescript-config/|package\.json$|pnpm-lock\.yaml$|pnpm-workspace\.yaml$|\.npmrc$|\.github/workflows/deploy-mcp-server\.yml$)' <<< "$mcp_changed_files"; then
+            mcp=true
+          fi
+
+          {
+            echo "server=${server}"
+            echo "ai=${ai}"
+            echo "mcp=${mcp}"
+          } >> "$GITHUB_OUTPUT"
+
+          {
+            echo "## Production deployment changes"
+            echo "- CI-verified commit: ${SOURCE_SHA}"
+            echo "- Server: ${server}"
+            echo "- AI: ${ai}"
+            echo "- MCP: ${mcp}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-backend:
+    name: Deploy CI-Verified Backend
+    needs: deployment-changes
+    if: >-
+      vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true' &&
+      (needs.deployment-changes.outputs.server == 'true' || needs.deployment-changes.outputs.ai == 'true')
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/backend-build.yml
+    with:
+      source_sha: ${{ github.sha }}
+      server_changed: ${{ needs.deployment-changes.outputs.server == 'true' }}
+      ai_changed: ${{ needs.deployment-changes.outputs.ai == 'true' }}
+    secrets: inherit
+
+  deploy-mcp:
+    name: Deploy CI-Verified MCP Server
+    needs: deployment-changes
+    if: vars.PRODUCTION_ENVIRONMENTS_PROTECTED == 'true' && needs.deployment-changes.outputs.mcp == 'true'
+    permissions:
+      contents: read
+      id-token: write
+    uses: ./.github/workflows/deploy-mcp-server.yml
+    with:
+      source_sha: ${{ github.sha }}
+    secrets: inherit
+
+  deployment-recovery:
+    name: Deployment Recovery Instructions
+    runs-on: ubuntu-latest
+    needs: [quality-summary, deploy-backend, deploy-mcp]
+    if: always() && github.ref == 'refs/heads/main' && contains(needs.*.result, 'failure')
+    steps:
+      - run: |
+          echo "::error::Deployment did not complete. Fix the failed checks, then run CI via workflow_dispatch on main. CI will revalidate the commit before deployment; change detection includes changes since the last successful deployment."

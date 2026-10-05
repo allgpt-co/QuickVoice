@@ -78,7 +78,13 @@ export const disconnect = authorized(async (req, res) => {
 export const executeTool = authorized(async (req, res) => {
   const mcpConnectionId = getStringParam(req.params.mcpConnectionId, "MCP connection ID");
   const toolName = getStringParam(req.params.toolName, "MCP tool name");
-  const result = await mcpService.executeTool(req.auth.activeOrganizationId, mcpConnectionId, toolName, req.body);
+  const result = await mcpService.executeTool(
+    req.auth.activeOrganizationId,
+    mcpConnectionId,
+    toolName,
+    req.body,
+    { autonomous: req.auth.authMethod === "internal" },
+  );
   res.status(StatusCodes.OK).json({ success: true, message: "MCP tool executed successfully", data: result });
   void recordAuditEvent({
     organizationId: req.auth.activeOrganizationId,

@@ -1,6 +1,10 @@
 import { Prisma } from "../../../prisma/generated/prisma/client.js";
 import prisma from "../../config/prisma.js";
-import type { CreateAgentArgs, UpdateAgentInput, ConfigureAgentInput } from "./agent.schema.js";
+import type {
+  CreateAgentArgs,
+  UpdateAgentInput,
+  ConfigureAgentInput,
+} from "./agent.schema.js";
 
 type CreateAgentInput = CreateAgentArgs & { agentSlug: string };
 type UpdateAgentRepoInput = UpdateAgentInput & { agentSlug?: string };
@@ -38,7 +42,7 @@ export const createAgent = async (agent: CreateAgentInput) => {
 
 export const createAgentWithConfiguration = async (
   agent: CreateAgentInput,
-  configuration: ConfigureAgentInput
+  configuration: ConfigureAgentInput,
 ) => {
   return prisma.$transaction(async (tx) => {
     const newAgent = await tx.agent.create({
@@ -57,10 +61,7 @@ export const createAgentWithConfiguration = async (
   });
 };
 
-export const findBySlug = async (
-  organizationId: string,
-  agentSlug: string
-) => {
+export const findBySlug = async (organizationId: string, agentSlug: string) => {
   return prisma.agent.findUnique({
     where: {
       organizationId_agentSlug: {
@@ -71,20 +72,17 @@ export const findBySlug = async (
   });
 };
 
-export const findByIdForOrg = async (
-  organizationId: string,
-  agentId: string
-) =>
+export const findByIdForOrg = async (organizationId: string, agentId: string) =>
   prisma.agent.findFirst({
-    where: { agentId, organizationId },
+    where: { agentId, organizationId, deletionRequestedAt: null },
     select: { agentId: true },
   });
-
 
 export const getAgents = async (organizationId: string) => {
   return prisma.agent.findMany({
     where: {
       organizationId,
+      deletionRequestedAt: null,
     },
   });
 };
@@ -92,23 +90,20 @@ export const getAgents = async (organizationId: string) => {
 export const updateAgent = async (
   organizationId: string,
   agentId: string,
-  data: UpdateAgentRepoInput
+  data: UpdateAgentRepoInput,
 ) => {
   // updateMany with a composite {agentId, organizationId} predicate is the
   // tenant-safe write: a row that belongs to another org yields count: 0
   // instead of being updated.
   const result = await prisma.agent.updateMany({
-    where: { agentId, organizationId },
+    where: { agentId, organizationId, deletionRequestedAt: null },
     data,
   });
   if (result.count === 0) return null;
   return prisma.agent.findUnique({ where: { agentId } });
 };
 
-export const deleteAgent = async (
-  organizationId: string,
-  agentId: string
-) => {
+export const deleteAgent = async (organizationId: string, agentId: string) => {
   return prisma.$transaction(async (tx) => {
     await tx.secret.deleteMany({
       where: {
@@ -122,9 +117,61 @@ export const deleteAgent = async (
   });
 };
 
+export const requestAgentDeletion = async (
+  organizationId: string,
+  agentId: string,
+  requestedAt = new Date(),
+) =>
+  prisma.$transaction(async (tx) => {
+    const existing = await tx.agent.findFirst({
+      where: { agentId, organizationId },
+      select: { agentId: true, deletionRequestedAt: true },
+    });
+    if (!existing) return null;
+    if (existing.deletionRequestedAt) return existing;
+
+    return tx.agent.update({
+      where: { agentId },
+      data: {
+        isActive: false,
+        deletionRequestedAt: requestedAt,
+        deletionAttemptedAt: null,
+        deletionError: null,
+      },
+      select: { agentId: true, deletionRequestedAt: true },
+    });
+  });
+
+export const listPendingAgentDeletions = async (limit = 100) =>
+  prisma.agent.findMany({
+    where: { deletionRequestedAt: { not: null } },
+    orderBy: [{ deletionAttemptedAt: "asc" }, { deletionRequestedAt: "asc" }],
+    take: limit,
+    select: { agentId: true, organizationId: true },
+  });
+
+export const markAgentDeletionAttempt = async (
+  organizationId: string,
+  agentId: string,
+) =>
+  prisma.agent.updateMany({
+    where: { agentId, organizationId, deletionRequestedAt: { not: null } },
+    data: { deletionAttemptedAt: new Date(), deletionError: null },
+  });
+
+export const markAgentDeletionFailed = async (
+  organizationId: string,
+  agentId: string,
+  error: string,
+) =>
+  prisma.agent.updateMany({
+    where: { agentId, organizationId, deletionRequestedAt: { not: null } },
+    data: { deletionError: error.slice(0, 2_000) },
+  });
+
 export const getAgentDeletionContext = async (
   organizationId: string,
-  agentId: string
+  agentId: string,
 ) =>
   prisma.agent.findFirst({
     where: { agentId, organizationId },
@@ -147,17 +194,17 @@ export const getAgentDeletionContext = async (
 export const configureAgent = async (
   organizationId: string,
   agentId: string,
-  data: ConfigureAgentInput
+  data: ConfigureAgentInput,
 ) => {
   // Tenant pre-check — bail early with null (service maps to NotFoundError).
   // findUnique on the PK, then compare org, is cheaper than a composite findFirst.
   const agent = await prisma.agent.findFirst({
     where: {
       agentId,
-      organizationId
-    }
+      organizationId,
+    },
   });
-  if (!agent ) return null;
+  if (!agent) return null;
 
   const prismaConfigData = toPrismaConfigData(data);
 
@@ -196,14 +243,14 @@ export const configureAgent = async (
 
 export const getAgentConfig = async (
   organizationId: string,
-  agentId: string
+  agentId: string,
 ) => {
   // Filter through the agent relation so a config row owned by another
   // org cannot be returned even if the caller guesses a valid agentId.
   return prisma.agentConfiguration.findFirst({
     where: {
       agentId,
-      agent: { organizationId },
+      agent: { organizationId, deletionRequestedAt: null },
     },
   });
 };
@@ -214,22 +261,20 @@ export const getAgentConfig = async (
 // boundaries at the service layer.
 export const agentExistsInOrg = async (
   agentId: string,
-  organizationId: string
+  organizationId: string,
 ) => {
   const row = await prisma.agent.findFirst({
-    where: { agentId, organizationId },
+    where: { agentId, organizationId, deletionRequestedAt: null },
     select: { agentId: true },
   });
   return row !== null;
 };
 
-export const getAgentConfigByNumber= async (
-  phoneNumber:string
-)=>{
+export const getAgentConfigByNumber = async (phoneNumber: string) => {
   const phone = await prisma.phoneNumber.findFirst({
     where: {
       number: phoneNumber,
-      agent: { isActive: true },
+      agent: { isActive: true, deletionRequestedAt: null },
     },
     select: {
       number: true,
@@ -252,7 +297,7 @@ export const getAgentConfigByNumber= async (
       },
     },
   });
-  
+
   if (phone?.billingStatus !== "ACTIVE" || !phone.agent?.configuration) {
     return null;
   }
@@ -264,13 +309,15 @@ export const getAgentConfigByNumber= async (
     agentNumber: phone.number,
     provider: phone.provider,
     tools: phone.agent.tools,
-    mcpConnections: phone.agent.mcpConnections.map((item) => item.mcpConnection),
+    mcpConnections: phone.agent.mcpConnections.map(
+      (item) => item.mcpConnection,
+    ),
   };
-}
+};
 
 export const getAgentConfigByIdForRuntime = async (agentId: string) => {
-  const agent = await prisma.agent.findUnique({
-    where: { agentId },
+  const agent = await prisma.agent.findFirst({
+    where: { agentId, deletionRequestedAt: null },
     select: {
       organizationId: true,
       userId: true,

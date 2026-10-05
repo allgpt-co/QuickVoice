@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { createServer } from "node:http";
+import { setTimeout as settle } from "node:timers/promises";
 import path from "node:path";
 import express, { Request } from "express";
 import cors from "cors";
@@ -15,20 +16,28 @@ import errorHandler from "./middleware/error.middleware.js";
 import rateLimitMiddleware from "./middleware/rateLimit.middleware.js";
 import { closeRateLimitStore } from "./middleware/rate-limit-store.js";
 import { trustedProxies } from "./config/trusted-proxies.js";
+import { authClientIpMiddleware } from "./middleware/auth-client-ip.middleware.js";
 
 import { serve as serveInngest } from "inngest/express";
-import { inngest } from "./config/inngest.js";
+import { inngest, getInngestServeOptions } from "./config/inngest.js";
 import { inngestFunctions } from "./inngest/index.js";
 import apiRouter from "./router.js";
+import { createReadinessRouter } from "./modules/system/readiness.route.js";
 import { getReadiness } from "./modules/system/readiness.service.js";
 import systemRuntimeRouter from "./modules/system/runtime.route.js";
 import contactRouter from "./modules/contact/contact.route.js";
 import { publicWidgetOriginAllowed } from "./modules/widgets/widget.service.js";
 import { createPublicWidgetCors } from "./modules/widgets/public-widget-cors.js";
-import "./workers/kb.worker.js";
-import "./workers/outbound-batch.worker.js";
-import swaggerUi from "swagger-ui-express";
-import { swaggerSpec } from "./config/swagger.js";
+import { closeKbWorker } from "./workers/kb.worker.js";
+import { closeOutboundBatchWorker, startOutboundDispatchRecovery } from "./workers/outbound-batch.worker.js";
+import { closeAgentDeletionWorker } from "./workers/agent-deletion.worker.js";
+import { closeKbQueue } from "./queues/kb.queue.js";
+import { closeOutboundBatchQueue } from "./queues/outbound-batch.queue.js";
+import { closeAgentDeletionQueue } from "./queues/agent-deletion.queue.js";
+import { closeRedisConnection } from "./config/redis.js";
+import prisma from "./config/prisma.js";
+import { armShutdownDeadline, closeResourcesInPhases } from "./workers/shutdown.js";
+import apiDocsRouter from "./modules/system/api-docs.route.js";
 import { LiveTranscriptGateway } from "./realtime/live-transcript.gateway.js";
 import {
   stripeWalletWebhookHandler,
@@ -42,30 +51,19 @@ import {
   startSilentCallWatchdog,
   stopSilentCallWatchdog,
 } from "./modules/billing/silent-call-watchdog.service.js";
+import {
+  startAgentDeletionRecovery,
+  stopAgentDeletionRecovery,
+} from "./modules/agent/agent-deletion-recovery.service.js";
 
 const app = express();
 app.set("trust proxy", trustedProxies());
+app.use(authClientIpMiddleware);
 
 const port = process.env.PORT || 5000;
 const apiVersion = process.env.API_VERSION || "v1";
 const widgetAssetDir =
   process.env.WIDGET_ASSET_DIR ?? path.resolve(process.cwd(), "../widget/dist");
-
-app.get(`/api/${apiVersion}/docs.json`, (_req, res) => {
-  res.json(swaggerSpec);
-});
-
-app.use(
-  `/api/${apiVersion}/docs`,
-  swaggerUi.serve,
-  swaggerUi.setup(swaggerSpec, {
-    explorer: true,
-    swaggerOptions: {
-      persistAuthorization: false,
-      withCredentials: true,
-    },
-  }),
-);
 
 // Run widget CORS for every method, before console CORS, parsers and limits.
 const publicWidgetPath = `/api/${apiVersion}/public/widgets`;
@@ -88,7 +86,12 @@ const consoleCors = cors({
   origin: trustedOrigins,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
-  exposedHeaders: ["Retry-After", "RateLimit-Limit", "RateLimit-Remaining", "RateLimit-Reset"],
+  exposedHeaders: [
+    "Retry-After",
+    "RateLimit-Limit",
+    "RateLimit-Remaining",
+    "RateLimit-Reset",
+  ],
 });
 app.use((req, res, next) => {
   if (req.path.startsWith(`${publicWidgetPath}/`)) return next();
@@ -139,6 +142,9 @@ app.use(`/api/${apiVersion}/system`, systemRuntimeRouter);
 // throttled before the server spends work parsing them.
 app.use(rateLimitMiddleware);
 
+// The operational API specification is available only to authenticated users.
+app.use(`/api/${apiVersion}`, apiDocsRouter);
+
 // Authenticate contact forwarding before its bounded JSON parser. Keep this
 // separate from session auth and mount it under the configured API version.
 app.use(`/api/${apiVersion}`, contactRouter);
@@ -149,7 +155,7 @@ app.use(express.json());
 // Must be after express.json() so Inngest can read request bodies.
 app.use(
   `/api/inngest`,
-  serveInngest({ client: inngest, functions: inngestFunctions }),
+  serveInngest({ client: inngest, functions: inngestFunctions, ...getInngestServeOptions() }),
 );
 /**
  * =========================
@@ -168,18 +174,7 @@ app.get(`/api/${apiVersion}/health`, (req, res) => {
   });
 });
 
-app.get(`/api/${apiVersion}/ready`, async (_req, res, next) => {
-  try {
-    const readiness = await getReadiness();
-    res.status(readiness.ready ? 200 : 503).json({
-      success: readiness.ready,
-      message: readiness.ready ? "Server ready" : "Server not ready",
-      data: readiness,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
+app.use(`/api/${apiVersion}/ready`, createReadinessRouter(getReadiness));
 
 app.use(
   "/widget/v1",
@@ -243,21 +238,45 @@ httpServer.listen(port, () => {
 });
 
 startSilentCallWatchdog();
+startAgentDeletionRecovery();
+void startOutboundDispatchRecovery().catch((error) => console.error("[outbound] recovery scheduler unavailable", error));
 
 let shuttingDown = false;
 async function shutdown(signal: NodeJS.Signals) {
   if (shuttingDown) return;
   shuttingDown = true;
+  armShutdownDeadline();
   console.log(`[server] received ${signal}; shutting down`);
   stopSilentCallWatchdog();
+  stopAgentDeletionRecovery();
   try {
-    await liveTranscriptGateway.close();
-    if (httpServer.listening) {
-      await new Promise<void>((resolve, reject) => {
-        httpServer.close((error) => (error ? reject(error) : resolve()));
-      });
-    }
-    closeRateLimitStore();
+    const serverClosing = (async () => {
+      await liveTranscriptGateway.close();
+      if (httpServer.listening) {
+        await new Promise<void>((resolve, reject) => {
+          httpServer.close((error) => (error ? reject(error) : resolve()));
+        });
+      }
+    })();
+    await closeResourcesInPhases([
+      [
+        closeKbWorker,
+        closeOutboundBatchWorker,
+        closeAgentDeletionWorker,
+        () => serverClosing,
+      ],
+      // ponytail: a bounded grace period covers short post-response audit writes;
+      // replace with tracked write draining if those tasks can exceed one second.
+      [() => settle(1_000)],
+      [
+        closeKbQueue,
+        closeOutboundBatchQueue,
+        closeAgentDeletionQueue,
+        closeRateLimitStore,
+        closeRedisConnection,
+        () => prisma.$disconnect(),
+      ],
+    ]);
     process.exitCode = 0;
   } catch (error) {
     console.error("[server] graceful shutdown failed", error);

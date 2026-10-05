@@ -48,6 +48,9 @@ export type AgentMinAggregateOutputType = {
   name: string | null
   templateId: string | null
   isActive: boolean | null
+  deletionRequestedAt: Date | null
+  deletionAttemptedAt: Date | null
+  deletionError: string | null
   isConfigured: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -65,6 +68,9 @@ export type AgentMaxAggregateOutputType = {
   name: string | null
   templateId: string | null
   isActive: boolean | null
+  deletionRequestedAt: Date | null
+  deletionAttemptedAt: Date | null
+  deletionError: string | null
   isConfigured: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -82,6 +88,9 @@ export type AgentCountAggregateOutputType = {
   name: number
   templateId: number
   isActive: number
+  deletionRequestedAt: number
+  deletionAttemptedAt: number
+  deletionError: number
   isConfigured: number
   createdAt: number
   updatedAt: number
@@ -115,6 +124,9 @@ export type AgentMinAggregateInputType = {
   name?: true
   templateId?: true
   isActive?: true
+  deletionRequestedAt?: true
+  deletionAttemptedAt?: true
+  deletionError?: true
   isConfigured?: true
   createdAt?: true
   updatedAt?: true
@@ -132,6 +144,9 @@ export type AgentMaxAggregateInputType = {
   name?: true
   templateId?: true
   isActive?: true
+  deletionRequestedAt?: true
+  deletionAttemptedAt?: true
+  deletionError?: true
   isConfigured?: true
   createdAt?: true
   updatedAt?: true
@@ -149,6 +164,9 @@ export type AgentCountAggregateInputType = {
   name?: true
   templateId?: true
   isActive?: true
+  deletionRequestedAt?: true
+  deletionAttemptedAt?: true
+  deletionError?: true
   isConfigured?: true
   createdAt?: true
   updatedAt?: true
@@ -253,6 +271,9 @@ export type AgentGroupByOutputType = {
   name: string
   templateId: string | null
   isActive: boolean
+  deletionRequestedAt: Date | null
+  deletionAttemptedAt: Date | null
+  deletionError: string | null
   isConfigured: boolean
   createdAt: Date
   updatedAt: Date
@@ -293,6 +314,9 @@ export type AgentWhereInput = {
   name?: Prisma.StringFilter<"Agent"> | string
   templateId?: Prisma.StringNullableFilter<"Agent"> | string | null
   isActive?: Prisma.BoolFilter<"Agent"> | boolean
+  deletionRequestedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionAttemptedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionError?: Prisma.StringNullableFilter<"Agent"> | string | null
   isConfigured?: Prisma.BoolFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -322,6 +346,9 @@ export type AgentOrderByWithRelationInput = {
   name?: Prisma.SortOrder
   templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  deletionRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionAttemptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionError?: Prisma.SortOrderInput | Prisma.SortOrder
   isConfigured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -355,6 +382,9 @@ export type AgentWhereUniqueInput = Prisma.AtLeast<{
   name?: Prisma.StringFilter<"Agent"> | string
   templateId?: Prisma.StringNullableFilter<"Agent"> | string | null
   isActive?: Prisma.BoolFilter<"Agent"> | boolean
+  deletionRequestedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionAttemptedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionError?: Prisma.StringNullableFilter<"Agent"> | string | null
   isConfigured?: Prisma.BoolFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -384,6 +414,9 @@ export type AgentOrderByWithAggregationInput = {
   name?: Prisma.SortOrder
   templateId?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  deletionRequestedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionAttemptedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  deletionError?: Prisma.SortOrderInput | Prisma.SortOrder
   isConfigured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -409,6 +442,9 @@ export type AgentScalarWhereWithAggregatesInput = {
   name?: Prisma.StringWithAggregatesFilter<"Agent"> | string
   templateId?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"Agent"> | boolean
+  deletionRequestedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Agent"> | Date | string | null
+  deletionAttemptedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"Agent"> | Date | string | null
+  deletionError?: Prisma.StringNullableWithAggregatesFilter<"Agent"> | string | null
   isConfigured?: Prisma.BoolWithAggregatesFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"Agent"> | Date | string
@@ -424,6 +460,9 @@ export type AgentCreateInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -453,6 +492,9 @@ export type AgentUncheckedCreateInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -478,6 +520,9 @@ export type AgentUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -507,6 +552,9 @@ export type AgentUncheckedUpdateInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -534,6 +582,9 @@ export type AgentCreateManyInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -549,6 +600,9 @@ export type AgentUpdateManyMutationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -566,6 +620,9 @@ export type AgentUncheckedUpdateManyInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -603,6 +660,9 @@ export type AgentCountOrderByAggregateInput = {
   name?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  deletionRequestedAt?: Prisma.SortOrder
+  deletionAttemptedAt?: Prisma.SortOrder
+  deletionError?: Prisma.SortOrder
   isConfigured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -627,6 +687,9 @@ export type AgentMaxOrderByAggregateInput = {
   name?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  deletionRequestedAt?: Prisma.SortOrder
+  deletionAttemptedAt?: Prisma.SortOrder
+  deletionError?: Prisma.SortOrder
   isConfigured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -644,6 +707,9 @@ export type AgentMinOrderByAggregateInput = {
   name?: Prisma.SortOrder
   templateId?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
+  deletionRequestedAt?: Prisma.SortOrder
+  deletionAttemptedAt?: Prisma.SortOrder
+  deletionError?: Prisma.SortOrder
   isConfigured?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -931,6 +997,9 @@ export type AgentCreateWithoutUserInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -958,6 +1027,9 @@ export type AgentUncheckedCreateWithoutUserInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1014,6 +1086,9 @@ export type AgentScalarWhereInput = {
   name?: Prisma.StringFilter<"Agent"> | string
   templateId?: Prisma.StringNullableFilter<"Agent"> | string | null
   isActive?: Prisma.BoolFilter<"Agent"> | boolean
+  deletionRequestedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionAttemptedAt?: Prisma.DateTimeNullableFilter<"Agent"> | Date | string | null
+  deletionError?: Prisma.StringNullableFilter<"Agent"> | string | null
   isConfigured?: Prisma.BoolFilter<"Agent"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"Agent"> | Date | string
@@ -1029,6 +1104,9 @@ export type AgentCreateWithoutOrganizationInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1056,6 +1134,9 @@ export type AgentUncheckedCreateWithoutOrganizationInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1107,6 +1188,9 @@ export type AgentCreateWithoutPhoneNumbersInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1135,6 +1219,9 @@ export type AgentUncheckedCreateWithoutPhoneNumbersInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1175,6 +1262,9 @@ export type AgentUpdateWithoutPhoneNumbersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1203,6 +1293,9 @@ export type AgentUncheckedUpdateWithoutPhoneNumbersInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1227,6 +1320,9 @@ export type AgentCreateWithoutConfigurationInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1255,6 +1351,9 @@ export type AgentUncheckedCreateWithoutConfigurationInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1295,6 +1394,9 @@ export type AgentUpdateWithoutConfigurationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1323,6 +1425,9 @@ export type AgentUncheckedUpdateWithoutConfigurationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1347,6 +1452,9 @@ export type AgentCreateWithoutWidgetsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1375,6 +1483,9 @@ export type AgentUncheckedCreateWithoutWidgetsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1415,6 +1526,9 @@ export type AgentUpdateWithoutWidgetsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1443,6 +1557,9 @@ export type AgentUncheckedUpdateWithoutWidgetsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1467,6 +1584,9 @@ export type AgentCreateWithoutKnowledgeSourcesInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1495,6 +1615,9 @@ export type AgentUncheckedCreateWithoutKnowledgeSourcesInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1535,6 +1658,9 @@ export type AgentUpdateWithoutKnowledgeSourcesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1563,6 +1689,9 @@ export type AgentUncheckedUpdateWithoutKnowledgeSourcesInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1587,6 +1716,9 @@ export type AgentCreateWithoutCallLogsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1615,6 +1747,9 @@ export type AgentUncheckedCreateWithoutCallLogsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1655,6 +1790,9 @@ export type AgentUpdateWithoutCallLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1683,6 +1821,9 @@ export type AgentUncheckedUpdateWithoutCallLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1707,6 +1848,9 @@ export type AgentCreateWithoutOutboundCallsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1735,6 +1879,9 @@ export type AgentUncheckedCreateWithoutOutboundCallsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1775,6 +1922,9 @@ export type AgentUpdateWithoutOutboundCallsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1803,6 +1953,9 @@ export type AgentUncheckedUpdateWithoutOutboundCallsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1827,6 +1980,9 @@ export type AgentCreateWithoutCampaignsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1855,6 +2011,9 @@ export type AgentUncheckedCreateWithoutCampaignsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1895,6 +2054,9 @@ export type AgentUpdateWithoutCampaignsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1923,6 +2085,9 @@ export type AgentUncheckedUpdateWithoutCampaignsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1947,6 +2112,9 @@ export type AgentCreateWithoutToolsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -1975,6 +2143,9 @@ export type AgentUncheckedCreateWithoutToolsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2020,6 +2191,9 @@ export type AgentCreateWithoutMcpConnectionsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2048,6 +2222,9 @@ export type AgentUncheckedCreateWithoutMcpConnectionsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2088,6 +2265,9 @@ export type AgentUpdateWithoutMcpConnectionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2116,6 +2296,9 @@ export type AgentUncheckedUpdateWithoutMcpConnectionsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2140,6 +2323,9 @@ export type AgentCreateWithoutMcpToolExecutionLogsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2168,6 +2354,9 @@ export type AgentUncheckedCreateWithoutMcpToolExecutionLogsInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2208,6 +2397,9 @@ export type AgentUpdateWithoutMcpToolExecutionLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2236,6 +2428,9 @@ export type AgentUncheckedUpdateWithoutMcpToolExecutionLogsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2261,6 +2456,9 @@ export type AgentCreateManyUserInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2276,6 +2474,9 @@ export type AgentUpdateWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2303,6 +2504,9 @@ export type AgentUncheckedUpdateWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2329,6 +2533,9 @@ export type AgentUncheckedUpdateManyWithoutUserInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2345,6 +2552,9 @@ export type AgentCreateManyOrganizationInput = {
   name: string
   templateId?: string | null
   isActive?: boolean
+  deletionRequestedAt?: Date | string | null
+  deletionAttemptedAt?: Date | string | null
+  deletionError?: string | null
   isConfigured?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -2360,6 +2570,9 @@ export type AgentUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2387,6 +2600,9 @@ export type AgentUncheckedUpdateWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2413,6 +2629,9 @@ export type AgentUncheckedUpdateManyWithoutOrganizationInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2428,6 +2647,9 @@ export type AgentUpdateWithoutToolsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2456,6 +2678,9 @@ export type AgentUncheckedUpdateWithoutToolsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2482,6 +2707,9 @@ export type AgentUncheckedUpdateManyWithoutToolsInput = {
   name?: Prisma.StringFieldUpdateOperationsInput | string
   templateId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deletionRequestedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionAttemptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deletionError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isConfigured?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -2602,6 +2830,9 @@ export type AgentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   name?: boolean
   templateId?: boolean
   isActive?: boolean
+  deletionRequestedAt?: boolean
+  deletionAttemptedAt?: boolean
+  deletionError?: boolean
   isConfigured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2632,6 +2863,9 @@ export type AgentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   name?: boolean
   templateId?: boolean
   isActive?: boolean
+  deletionRequestedAt?: boolean
+  deletionAttemptedAt?: boolean
+  deletionError?: boolean
   isConfigured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2651,6 +2885,9 @@ export type AgentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
   name?: boolean
   templateId?: boolean
   isActive?: boolean
+  deletionRequestedAt?: boolean
+  deletionAttemptedAt?: boolean
+  deletionError?: boolean
   isConfigured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2670,6 +2907,9 @@ export type AgentSelectScalar = {
   name?: boolean
   templateId?: boolean
   isActive?: boolean
+  deletionRequestedAt?: boolean
+  deletionAttemptedAt?: boolean
+  deletionError?: boolean
   isConfigured?: boolean
   createdAt?: boolean
   updatedAt?: boolean
@@ -2679,7 +2919,7 @@ export type AgentSelectScalar = {
   toolsCount?: boolean
 }
 
-export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"agentId" | "agentSlug" | "organizationId" | "userId" | "name" | "templateId" | "isActive" | "isConfigured" | "createdAt" | "updatedAt" | "callLogsCount" | "knowledgeSourcesCount" | "phoneNumbersCount" | "toolsCount", ExtArgs["result"]["agent"]>
+export type AgentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"agentId" | "agentSlug" | "organizationId" | "userId" | "name" | "templateId" | "isActive" | "deletionRequestedAt" | "deletionAttemptedAt" | "deletionError" | "isConfigured" | "createdAt" | "updatedAt" | "callLogsCount" | "knowledgeSourcesCount" | "phoneNumbersCount" | "toolsCount", ExtArgs["result"]["agent"]>
 export type AgentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.Agent$userArgs<ExtArgs>
@@ -2728,6 +2968,9 @@ export type $AgentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     name: string
     templateId: string | null
     isActive: boolean
+    deletionRequestedAt: Date | null
+    deletionAttemptedAt: Date | null
+    deletionError: string | null
     isConfigured: boolean
     createdAt: Date
     updatedAt: Date
@@ -3177,6 +3420,9 @@ export interface AgentFieldRefs {
   readonly name: Prisma.FieldRef<"Agent", 'String'>
   readonly templateId: Prisma.FieldRef<"Agent", 'String'>
   readonly isActive: Prisma.FieldRef<"Agent", 'Boolean'>
+  readonly deletionRequestedAt: Prisma.FieldRef<"Agent", 'DateTime'>
+  readonly deletionAttemptedAt: Prisma.FieldRef<"Agent", 'DateTime'>
+  readonly deletionError: Prisma.FieldRef<"Agent", 'String'>
   readonly isConfigured: Prisma.FieldRef<"Agent", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"Agent", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"Agent", 'DateTime'>

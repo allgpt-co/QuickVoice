@@ -5,9 +5,10 @@ import {
   createQuickOutboundCall,
   dispatchScheduledOutboundCall,
   outboundCallLimits,
+  retryOutboundCall,
 } from "../../src/modules/outbound/outbound-call.service.js";
 
-test("createQuickOutboundCall persists the quick call and dispatches a LiveKit SIP participant", async () => {
+test("createQuickOutboundCall uses the owned number carrier for persistence, billing, and dispatch", async () => {
   const calls: unknown[] = [];
   const repo = {
     getDialableNumber: async () => ({
@@ -55,7 +56,9 @@ test("createQuickOutboundCall persists the quick call and dispatches a LiveKit S
         first_name: "Ada",
         plan: "Starter",
       },
-    },
+      provider: "TELNYX",
+      sid: "client-forged-sid",
+    } as any,
     {
       repository: repo,
       sipClient,
@@ -73,6 +76,8 @@ test("createQuickOutboundCall persists the quick call and dispatches a LiveKit S
   assert.equal(create[0], "create");
   assert.equal(create[1].status, "SCHEDULED");
   assert.equal(create[1].mode, "quick");
+  assert.equal("provider" in create[1], false);
+  assert.equal("sid" in create[1], false);
   assert.deepEqual(create[1].optionalData, {
     username: "Ada",
     provider: "TWILIO",
@@ -179,6 +184,59 @@ test("createQuickOutboundCall marks the outbound row failed when LiveKit dispatc
   assert.equal(calls.length, 1);
   assert.equal((calls[0] as any[])[0], "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113");
   assert.match((calls[0] as any[])[1], /LiveKit unavailable/);
+});
+
+test("createQuickOutboundCall stops before billing and dialing when the agent limit is reached", async () => {
+  const calls: string[] = [];
+  const repo = {
+    getDialableNumber: async () => ({
+      number: "+15551230000",
+      sid: "carrier-sid-123",
+      provider: "TWILIO",
+    }),
+    createQuickCall: async (input: any) => ({ outboundId: "outbound_limited", ...input }),
+    claimQuickOutboundCall: async () => ({
+      claimed: false as const,
+      reason: "Agent concurrent call limit reached",
+    }),
+    markInProgress: async () => {
+      throw new Error("should not mark progress");
+    },
+    markFailed: async () => {
+      calls.push("failed");
+      return {} as never;
+    },
+  };
+
+  await assert.rejects(
+    createQuickOutboundCall(
+      {
+        organizationId: "org_123",
+        userId: "user_123",
+        agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+        phoneNumber: "+15550001111",
+        fromNumber: "+15551230000",
+      },
+      {
+        repository: repo,
+        sipClient: {
+          createSipParticipant: async () => {
+            calls.push("sip");
+            return {};
+          },
+        },
+        dispatchClient: {
+          createDispatch: async () => {
+            calls.push("dispatch");
+            return {};
+          },
+        },
+        outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },
+      },
+    ),
+    /concurrent call limit reached/,
+  );
+  assert.deepEqual(calls, ["failed"]);
 });
 
 test("createQuickOutboundCall deletes the LiveKit dispatch when SIP participant creation fails", async () => {
@@ -397,6 +455,10 @@ test("dispatchScheduledOutboundCall dispatches an existing campaign row with bat
       repository: repo,
       sipClient,
       dispatchClient,
+      roomClient: {
+        deleteRoom: async () => undefined,
+        listRooms: async () => [],
+      },
       outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },
       agentName: "QuickVoice",
     }
@@ -424,6 +486,154 @@ test("dispatchScheduledOutboundCall dispatches an existing campaign row with bat
   assert.equal(participantMetadata.voice_id, "aura-2-athena-en");
 
   assert.equal(calls.some((call) => (call as unknown[])[0] === "failed"), false);
+});
+
+test("dispatchScheduledOutboundCall skips a campaign call cancelled before it is claimed", async () => {
+  const calls: string[] = [];
+  const result = await dispatchScheduledOutboundCall("outbound_cancelled", {
+    repository: {
+      getOutboundCallForDispatch: async () => null,
+      getDialableNumber: async () => {
+        calls.push("dialable");
+        return null;
+      },
+      createQuickCall: async () => {
+        throw new Error("should not create a call");
+      },
+      markInProgress: async () => {
+        throw new Error("should not mark progress");
+      },
+      markFailed: async () => {
+        calls.push("failed");
+        return {} as never;
+      },
+    },
+  });
+
+  assert.equal(result, undefined);
+  assert.deepEqual(calls, []);
+});
+
+test("dispatchScheduledOutboundCall recovers a prior SIP participant without dialing twice", async () => {
+  const calls: unknown[] = [];
+  const outboundId = "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113";
+  const result = await dispatchScheduledOutboundCall(outboundId, {
+    repository: {
+      getOutboundCallForDispatch: async () => ({
+        outboundId,
+        organizationId: "org_123",
+        userId: "user_123",
+        agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+        campaignId: "campaign_123",
+        phoneNumber: "+15550001111",
+        fromNumber: "+15551230000",
+        firstMessage: "Hi.",
+        systemPrompt: "Prompt.",
+        optionalData: {},
+      }),
+      getDialableNumber: async () => ({
+        number: "+15551230000",
+        sid: "carrier-sid-123",
+        provider: "TWILIO",
+      }),
+      createQuickCall: async () => {
+        throw new Error("should not create a call");
+      },
+      markInProgress: async (_id: string, optionalData: unknown) => ({
+        outboundId,
+        status: "IN_PROGRESS",
+        optionalData,
+      }),
+      markFailed: async () => {
+        throw new Error("should not fail the recovered call");
+      },
+    },
+    hasActiveLegacySubscription: async () => false,
+    roomClient: {
+      deleteRoom: async () => {
+        throw new Error("should not delete the recovered room");
+      },
+      listRooms: async () => [{ name: `outbound_${outboundId}` }],
+      listParticipants: async () => [
+        { identity: `outbound-${outboundId}` },
+      ],
+    },
+    sipClient: {
+      createSipParticipant: async () => {
+        calls.push("sip");
+        return {};
+      },
+    },
+    dispatchClient: {
+      createDispatch: async () => {
+        calls.push("dispatch");
+        return {};
+      },
+    },
+    outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },
+  });
+
+  assert.equal(result?.recovered, true);
+  assert.equal(result?.outbound.status, "IN_PROGRESS");
+  assert.deepEqual(calls, []);
+});
+
+test("dispatchScheduledOutboundCall closes the room when cancellation wins during dialing", async () => {
+  const calls: unknown[] = [];
+  let cancelled = false;
+  const outboundId = "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113";
+  const repo = {
+    getOutboundCallForDispatch: async () => cancelled ? null : ({
+      outboundId,
+      organizationId: "org_123",
+      userId: "user_123",
+      agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+      campaignId: "campaign_123",
+      phoneNumber: "+15550001111",
+      fromNumber: "+15551230000",
+      firstMessage: "Hi.",
+      systemPrompt: "Prompt.",
+      optionalData: {},
+    }),
+    getDialableNumber: async () => ({
+      number: "+15551230000",
+      sid: "carrier-sid-123",
+      provider: "TWILIO",
+    }),
+    createQuickCall: async () => {
+      throw new Error("should not create a second outbound call");
+    },
+    markInProgress: async () => { cancelled = true; return null; },
+    markFailed: async (_outboundId: string, reason: string) => {
+      calls.push(["failed", reason]);
+      return { outboundId, status: "FAILED" };
+    },
+  };
+
+  const result = await dispatchScheduledOutboundCall(outboundId, {
+      repository: repo,
+      hasActiveLegacySubscription: async () => false,
+      sipClient: { createSipParticipant: async () => ({ participantId: "sip-1" }) },
+      dispatchClient: {
+        createDispatch: async () => ({ id: "dispatch-1" }),
+        deleteDispatch: async (...args: unknown[]) => {
+          calls.push(["deleteDispatch", ...args]);
+        },
+      },
+      roomClient: {
+        deleteRoom: async (roomName: string) => {
+          calls.push(["deleteRoom", roomName]);
+        },
+      },
+      outboundTrunks: { TWILIO: "twilio-trunk", TELNYX: "telnyx-trunk" },
+      agentName: "QuickVoice",
+    });
+  assert.equal(result, undefined);
+
+  assert.deepEqual(calls, [
+    ["deleteRoom", `outbound_${outboundId}`],
+    ["deleteDispatch", "dispatch-1", `outbound_${outboundId}`],
+  ]);
 });
 
 test("dispatchScheduledOutboundCall marks an existing campaign row failed when quota is exhausted", async () => {
@@ -486,6 +696,7 @@ test("dispatchScheduledOutboundCall marks an existing campaign row failed when q
 
   assert.deepEqual(calls, [
     ["load", "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113"],
+    ["load", "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113"],
     [
       "failed",
       "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
@@ -517,3 +728,75 @@ test("outbound calls always carry a LiveKit max duration and ringing timeout", (
     else process.env.OUTBOUND_RINGING_TIMEOUT_SECONDS = previousRinging;
   }
 });
+
+for (const { name, stored, expected } of [
+  {
+    name: "current variables",
+    stored: { dynamicVariables: { first_name: "Ada", plan: "Starter" } },
+    expected: { first_name: "Ada", plan: "Starter" },
+  },
+  {
+    name: "legacy variables",
+    stored: { dynamic_variables: { first_name: "Ada" } },
+    expected: { first_name: "Ada" },
+  },
+  {
+    name: "current variables take precedence",
+    stored: {
+      dynamicVariables: { first_name: "Ada" },
+      dynamic_variables: { first_name: "Old name" },
+    },
+    expected: { first_name: "Ada" },
+  },
+  { name: "no variables", stored: {}, expected: {} },
+  {
+    name: "malformed variables",
+    stored: { dynamicVariables: { " first_name ": " Ada ", empty: " ", invalid: 42 } },
+    expected: { first_name: "Ada" },
+  },
+]) {
+  test(`retryOutboundCall preserves ${name} without reusing carrier internals`, async () => {
+    let retryInput: Record<string, unknown> | undefined;
+    const outbound = {
+      outboundId: "2b1f6d53-42f5-4cc7-9689-7b6f51a0c113",
+      organizationId: "org_123",
+      userId: "user_123",
+      agentId: "8d55565f-1111-4111-8111-f95fd03f0df2",
+      phoneNumber: "+15550001111",
+      fromNumber: "+15551230000",
+      firstMessage: null,
+      systemPrompt: null,
+      status: "FAILED",
+      optionalData: {
+        ...stored,
+        username: "Ada",
+        provider: "TELNYX",
+        sid: "stale-or-forged-sid",
+      },
+    };
+
+    await retryOutboundCall(
+      {
+        organizationId: "org_123",
+        userId: "user_456",
+        outboundId: outbound.outboundId,
+      },
+      {
+        repository: {
+          getForOrg: async () => outbound,
+        } as any,
+        dispatchQuickCall: async (input: any) => {
+          retryInput = input;
+          return { accepted: true } as any;
+        },
+      },
+    );
+
+    assert.deepEqual(retryInput?.dynamicVariables, expected);
+    assert.equal(retryInput?.organizationId, "org_123");
+    assert.equal(retryInput?.userId, "user_456");
+    assert.equal(retryInput?.username, "Ada");
+    assert.equal("provider" in (retryInput ?? {}), false);
+    assert.equal("sid" in (retryInput ?? {}), false);
+  });
+}

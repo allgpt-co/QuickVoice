@@ -87,6 +87,31 @@ test("configureAgentSchema accepts bounded privacy controls", () => {
   assert.equal(parsed.conversation_retention_days, 365);
 });
 
+test("configureAgentSchema accepts bounded outbound call limits", () => {
+  const parsed = configureAgentSchema.parse({
+    ...validConfiguration,
+    concurrent_calls_limit: 8,
+    daily_calls_limit: 2_000,
+  });
+  assert.equal(parsed.concurrent_calls_limit, 8);
+  assert.equal(parsed.daily_calls_limit, 2_000);
+
+  assert.equal(
+    configureAgentSchema.safeParse({
+      ...validConfiguration,
+      concurrent_calls_limit: 0,
+    }).success,
+    false,
+  );
+  assert.equal(
+    configureAgentSchema.safeParse({
+      ...validConfiguration,
+      daily_calls_limit: 100_001,
+    }).success,
+    false,
+  );
+});
+
 test("configureAgentSchema rejects incompatible or unbounded retention settings", () => {
   assert.equal(
     configureAgentSchema.safeParse({
@@ -137,4 +162,19 @@ test("configureAgentSchema accepts only marked redacted webhook placeholders", (
     },
   });
   assert.equal(unmarked.success, false);
+});
+
+test("agent webhook inputs recursively reject internal encrypted envelopes", () => {
+  const parsed = configureAgentSchema.safeParse({
+    ...validConfiguration,
+    initiation_webhook: {
+      webhook_url: "https://example.test/init",
+      method: "POST",
+      dynamic_variables: {
+        customer_id: "qvsec:v1:leaked-ciphertext",
+      },
+    },
+  });
+
+  assert.equal(parsed.success, false);
 });

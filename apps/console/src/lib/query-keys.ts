@@ -14,6 +14,7 @@ export const queryKeys = {
       [...queryKeys.agents.all, "widgets", agentId] as const,
   },
   numbers: {
+    countries: (provider: string) => [...queryKeys.numbers.all, "countries", provider] as const,
     all: ["numbers"] as const,
     list: () => [...queryKeys.numbers.all, "list"] as const,
     search: (p: Record<string, unknown>) =>
@@ -46,12 +47,16 @@ export const queryKeys = {
   },
   org: {
     all: ["org"] as const,
+    detail: (orgId: string | null) => [...queryKeys.org.all, "detail", orgId] as const,
+    roles: (orgId: string | null) => [...queryKeys.org.all, "roles", orgId] as const,
+    invitePermission: (orgId: string | null, userId: string | undefined) =>
+      [...queryKeys.org.all, "invitePermission", orgId, userId] as const,
     members: () => [...queryKeys.org.all, "members"] as const,
     invitations: () => [...queryKeys.org.all, "invitations"] as const,
   },
   apiKeys: {
     all: ["apiKeys"] as const,
-    list: () => [...queryKeys.apiKeys.all, "list"] as const,
+    list: (orgId: string | null) => [...queryKeys.apiKeys.all, "list", orgId] as const,
   },
   billing: {
     all: ["billing"] as const,

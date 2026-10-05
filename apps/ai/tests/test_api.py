@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import warnings
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -15,6 +15,18 @@ try:
     from fastapi.testclient import TestClient  # type: ignore
 except Exception:
     TestClient = None
+
+
+class FakeRedis:
+    def __init__(self):
+        self.values = {}
+
+    async def get(self, key):
+        return self.values.get(key)
+
+    async def set(self, key, value, ex=None):
+        self.values[key] = value
+        return True
 
 
 @unittest.skipIf(TestClient is None, "fastapi test client is not installed")
@@ -34,17 +46,43 @@ class ApiTests(unittest.TestCase):
                 self.assertEqual(client.get("/health").status_code, 200)
                 self.assertEqual(client.get("/agents/agent_123/config").status_code, 401)
 
-    def test_health_returns_503_with_hosted_configuration_failures(self):
+    def test_health_is_cheap_and_does_not_disclose_runtime_configuration(self):
         import api
 
         with patch.dict(
             os.environ,
             {"QUICKVOICE_BILLING_MODE": "hosted"},
             clear=True,
+        ), patch.object(
+            api,
+            "get_runtime_readiness",
+            new=AsyncMock(side_effect=AssertionError("health ran readiness checks")),
         ):
             with TestClient(api.app) as client:
                 response = client.get("/health")
 
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"ok": True, "service": "ai"})
+
+    def test_detailed_readiness_requires_authentication(self):
+        import api
+
+        with patch.dict(
+            os.environ,
+            {
+                "INTERNAL_API_KEY": "internal-secret",
+                "QUICKVOICE_BILLING_MODE": "hosted",
+            },
+            clear=True,
+        ):
+            with TestClient(api.app) as client:
+                unauthorized = client.get("/ready")
+                response = client.get(
+                    "/ready",
+                    headers={"x-internal-key": "internal-secret"},
+                )
+
+        self.assertEqual(unauthorized.status_code, 401)
         self.assertEqual(response.status_code, 503)
         body = response.json()
         self.assertFalse(body["ok"])
@@ -55,10 +93,14 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(
             body["checks"]["internalApiKey"]["status"],
-            "not_configured",
+            "ok",
         )
         self.assertEqual(
             body["checks"]["billingUsageQueue"]["status"],
+            "not_configured",
+        )
+        self.assertEqual(
+            body["checks"]["callLogQueue"]["status"],
             "not_configured",
         )
 
@@ -121,7 +163,10 @@ class ApiTests(unittest.TestCase):
         original_process_documents = api.kb_handler.process_documents
         try:
             api.kb_handler.process_documents = fake_process_documents
-            with patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}, clear=False):
+            with (
+                patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}, clear=False),
+                patch.object(api.kb_handler, "_KB_REDIS_CLIENT", FakeRedis()),
+            ):
                 with TestClient(api.app) as client:
                     response = client.post(
                         "/kb/process",

@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import sys
 import tempfile
@@ -14,6 +15,7 @@ from handlers.calllog_handler import (
     enqueue_call_log,
     flush_call_log_queue,
     post_call_log,
+    run_call_log_queue_consumer,
 )
 
 
@@ -303,6 +305,118 @@ class CallLogHandlerTests(unittest.TestCase):
             self.assertEqual(result["failed"], 0)
             self.assertFalse(queued_path.exists())
             self.assertEqual(posted[0][2]["callId"], "room-123")
+
+    def test_enqueue_is_deterministic_for_the_same_call(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            first = enqueue_call_log(
+                {"callId": "room-123", "organizationId": "org_123"},
+                queue_dir=tmp,
+            )
+            second = enqueue_call_log(
+                {"callId": "room-123", "organizationId": "org_123"},
+                queue_dir=tmp,
+            )
+
+            self.assertEqual(first, second)
+            self.assertEqual(len(list(Path(tmp).glob("*.json"))), 1)
+
+    def test_concurrent_flushes_atomically_claim_each_call_log(self):
+        async def scenario():
+            with tempfile.TemporaryDirectory() as tmp:
+                enqueue_call_log(
+                    {"callId": "room-123", "organizationId": "org_123"},
+                    queue_dir=tmp,
+                )
+                request_started = asyncio.Event()
+                release_request = asyncio.Event()
+                posted = []
+
+                async def slow_post(_url, _headers, body):
+                    posted.append(body["callId"])
+                    request_started.set()
+                    await release_request.wait()
+                    return {"success": True}
+
+                first = asyncio.create_task(
+                    flush_call_log_queue(
+                        queue_dir=tmp,
+                        server_api_url="http://server.test",
+                        internal_api_key="internal-secret",
+                        post_json=slow_post,
+                    )
+                )
+                await asyncio.wait_for(request_started.wait(), timeout=0.2)
+                second = await flush_call_log_queue(
+                    queue_dir=tmp,
+                    server_api_url="http://server.test",
+                    internal_api_key="internal-secret",
+                    post_json=slow_post,
+                )
+                release_request.set()
+                await first
+
+                self.assertEqual(second["posted"], 0)
+                self.assertEqual(posted, ["room-123"])
+
+        asyncio.run(scenario())
+
+    def test_transient_delivery_failures_are_backed_off_not_dead_lettered(self):
+        async def unavailable(*_args):
+            raise OSError("server unavailable")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            queued_path = enqueue_call_log(
+                {"callId": "room-123", "organizationId": "org_123"},
+                queue_dir=tmp,
+            )
+
+            for _ in range(7):
+                result = asyncio.run(
+                    flush_call_log_queue(
+                        queue_dir=tmp,
+                        server_api_url="http://server.test",
+                        internal_api_key="internal-secret",
+                        post_json=unavailable,
+                    )
+                )
+                self.assertEqual(result["dead_lettered"], 0)
+                envelope = json.loads(queued_path.read_text(encoding="utf-8"))
+                envelope["nextAttemptAtEpoch"] = 0
+                queued_path.write_text(json.dumps(envelope), encoding="utf-8")
+
+            self.assertTrue(queued_path.exists())
+            self.assertEqual(list((Path(tmp) / "dead-letter").glob("*.json")), [])
+
+    def test_continuous_consumer_drains_without_waiting_for_another_call(self):
+        async def scenario():
+            with tempfile.TemporaryDirectory() as tmp:
+                enqueue_call_log(
+                    {"callId": "room-123", "organizationId": "org_123"},
+                    queue_dir=tmp,
+                )
+                delivered = asyncio.Event()
+                stop_event = asyncio.Event()
+
+                async def post_json(_url, _headers, _body):
+                    delivered.set()
+                    stop_event.set()
+                    return {"success": True}
+
+                await asyncio.wait_for(
+                    run_call_log_queue_consumer(
+                        queue_dir=tmp,
+                        server_api_url="http://server.test",
+                        internal_api_key="internal-secret",
+                        post_json=post_json,
+                        poll_seconds=0.01,
+                        stop_event=stop_event,
+                    ),
+                    timeout=0.5,
+                )
+                self.assertTrue(delivered.is_set())
+                self.assertEqual(list(Path(tmp).glob("*.json")), [])
+
+        asyncio.run(scenario())
 
 
 if __name__ == "__main__":

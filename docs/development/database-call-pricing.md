@@ -143,8 +143,10 @@ account, source URL, and contract billing increments. Example header mapping
 
 Set originPrefixColumn when the deck contains origin rules. Without it the
 mapping explicitly declares ALL origins. Prefix columns must contain concrete
-dialing prefixes, not country names. The importer accepts semicolon/whitespace
-separated prefixes, quoted CSV, and decimal USD prices. It rejects malformed,
+dialing prefixes, not country names. The importer accepts comma/semicolon/whitespace
+separated prefixes, quoted CSV, and decimal USD prices. Blank origin cells mean
+ALL origins; blank destination cells are rejected. Expanded books are limited
+to 250,000 routes (the uploaded outbound deck expands to 182,950). It rejects malformed,
 negative, missing, duplicate, and mixed-product/account prices.
 
 ```sh
@@ -257,3 +259,189 @@ old global telephony estimate and its under-reserving risk. New calls still use
 regular Deepgram prices from the shared default catalog. Do not drop the
 tables or column; active sessions and historical reconciliation require them.
 No existing customer balances or historical calls are rewritten by migration.
+
+
+## Uploaded Twilio SIP CSVs: production procedure
+
+This recipe uses the files in `docs/twilio-price`, Twilio PAYG Elastic SIP,
+self-hosted LiveKit media and a VPS AI worker. It must run with the updated
+importer: comma-separated prefixes, blank origins, the worldwide route limit,
+and concatenation without spreading a large array are required. The API image
+must contain those changes before using the container commands below.
+
+The scripts use the API container's existing `TWILIO_ACCOUNT_SID` and
+`DATABASE_URL`; do not paste credentials into SQL or chat. Keep
+`BILLING_PRICING_MODE=shadow` on the API while preparing and testing. Both API and
+AI must use `QUICKVOICE_BILLING_MODE=hosted` for QuickVoice wallet billing;
+self-hosted LiveKit describes infrastructure, not that billing-mode setting.
+
+### A. Put the CSV in the API container
+
+On the Docker host, identify the current **running API** container:
+
+```sh
+docker ps --format 'table {{.Names}}\t{{.Image}}' | grep quickvoice-server
+```
+
+Set its actual name (names change on deployment). Copy the uploaded
+`OutboundSipTrunkPricing.csv` onto this host as `/tmp/OutboundSipTrunkPricing.csv`
+first; the repository may be on a different machine.
+
+```sh
+QV_SERVER='REPLACE_WITH_ACTUAL_RUNNING_API_CONTAINER_NAME'
+docker cp /tmp/OutboundSipTrunkPricing.csv "$QV_SERVER":/tmp/OutboundSipTrunkPricing.csv
+docker exec -it "$QV_SERVER" sh
+```
+
+The following preparation/import commands run **inside that API container**,
+which already has the compiled CLI and production connection configuration:
+
+```sh
+cd /app/apps/server
+node dist/src/modules/billing/rate-book.cli.js template self-hosted vps > /tmp/qv-rates-base.json
+node --input-type=module <<'JS'
+import { writeFileSync } from 'node:fs';
+const account = process.env.TWILIO_ACCOUNT_SID;
+if (!account) throw new Error('TWILIO_ACCOUNT_SID is missing on the API service');
+writeFileSync('/tmp/qv-outbound-mapping.json', JSON.stringify({
+  account,
+  direction: 'outbound',
+  currency: 'USD',
+  originPrefixColumn: 'Origination Prefixes',
+  destinationPrefixColumn: 'Destination Prefixes',
+  priceColumn: 'Price / min',
+  descriptionColumn: 'Description',
+  minimumSeconds: 60,
+  incrementSeconds: 60,
+  source: 'https://assets.cdn.prod.twilio.com/pricing-csv/OutboundSipTrunkPricing.csv'
+}));
+JS
+node dist/src/modules/billing/rate-book.cli.js add-sip-csv /tmp/qv-rates-base.json /tmp/OutboundSipTrunkPricing.csv /tmp/qv-outbound-mapping.json > /tmp/qv-rates-outbound.json
+node dist/src/modules/billing/rate-book.cli.js validate /tmp/qv-rates-outbound.json
+```
+
+Stop on any command error. For the uploaded file, validation should report
+`valid: true` and `routes: 182950`. These commands do not write database rows.
+Do not use the outbound book alone to enforce billing for an application that
+accepts inbound calls.
+
+The 60-second minimum/increment follows Twilio's published rounding for Elastic
+SIP PAYG; use different increments only with a verified account agreement.
+[Twilio minute rounding](https://help.twilio.com/articles/223132307-How-do-you-round-minutes-for-billing-).
+
+### B. Prepare inbound routes for owned numbers
+
+`SiteNumbersPricing.csv` is a country/number-type table, not a destination-prefix
+table. Use **Inbound Trunking Price / min**, not **Inbound Voice Price / min** or
+the monthly rental price. In the uploaded file, US Local is `0.00340` and US Toll
+Free is `0.01300` USD/minute, before the 1.2 multiplier.
+
+In DBeaver, run the following read-only query and inspect **every row**. It uses
+those two verified CSV rates only; unsupported or missing metadata produces a
+NULL price deliberately.
+
+```sql
+SELECT
+  "number" AS "Prefix",
+  CASE
+    WHEN "billingCountryIso" = 'US' AND "billingNumberType" = 'local'
+      THEN '0.00340'
+    WHEN "billingCountryIso" = 'US' AND "billingNumberType" = 'toll_free'
+      THEN '0.01300'
+    ELSE NULL
+  END AS "USD",
+  concat("billingCountryIso", ' ', "billingNumberType", ' SIP inbound') AS "Destination"
+FROM "PhoneNumber"
+WHERE "provider" = 'twilio' AND "billingStatus" = 'ACTIVE'
+ORDER BY "number";
+```
+
+Your supplied inventory had 18 active numbers, with 12 missing country/type.
+Verify those entries against Twilio's owned-number inventory before assigning
+prices. A +1 prefix alone is not sufficient proof of US/local classification.
+For other countries/types, use their matching SIP CSV row and preserve any
+origin-specific pricing. This SQL recipe only covers US Local/Toll Free.
+
+Once all prices are verified, export the result as UTF-8 CSV with headers
+`Prefix,USD,Destination`, named `/tmp/qv-inbound.csv` on the Docker host. NULL
+prices must not be replaced with zero. Exact phone-number prefixes ensure local
+and toll-free prices do not overlap. Include unassigned active numbers too.
+
+In a separate **Docker host** terminal:
+
+```sh
+QV_SERVER='REPLACE_WITH_ACTUAL_RUNNING_API_CONTAINER_NAME'
+docker cp /tmp/qv-inbound.csv "$QV_SERVER":/tmp/qv-inbound.csv
+```
+
+Back **inside the API container**:
+
+```sh
+node --input-type=module <<'JS'
+import { readFileSync, writeFileSync } from 'node:fs';
+const mapping = JSON.parse(readFileSync('/tmp/qv-outbound-mapping.json', 'utf8'));
+delete mapping.originPrefixColumn;
+Object.assign(mapping, {
+  direction: 'inbound', destinationPrefixColumn: 'Prefix',
+  priceColumn: 'USD', descriptionColumn: 'Destination',
+  source: 'https://assets.cdn.prod.twilio.com/pricing-csv/SiteNumbersPricing.csv'
+});
+writeFileSync('/tmp/qv-inbound-mapping.json', JSON.stringify(mapping));
+JS
+node dist/src/modules/billing/rate-book.cli.js add-sip-csv /tmp/qv-rates-outbound.json /tmp/qv-inbound.csv /tmp/qv-inbound-mapping.json > /tmp/qv-rates.json
+node dist/src/modules/billing/rate-book.cli.js validate /tmp/qv-rates.json
+node dist/src/modules/billing/rate-book.cli.js quote /tmp/qv-rates.json +13022079009 +919466460761 outbound
+node dist/src/modules/billing/rate-book.cli.js quote /tmp/qv-rates.json +919466460761 +13022079009 inbound
+```
+
+For the original 18-number inventory, expect **182,968 total routes**, provided
+each inbound number has one flat rate. Recalculate this if the inventory changes.
+The inbound quote for the recorded US/local number should show
+`baseMicrosPerMinute: "3400"`. The customer telephony component is then
+`3400 × 1.2 = 4080` micro-dollars per billed minute ($0.00408), plus the separate
+AI/platform components. Review outbound quotes for representative destinations.
+A local quote does not place a call or spend wallet credit.
+
+### C. Import, verify and activate
+
+Ensure the normal deployment migrations succeeded first. Take a database backup
+using the production backup procedure. The following command is the **database
+write** step, run inside the API container:
+
+```sh
+node dist/src/modules/billing/rate-book.cli.js import /tmp/qv-rates.json
+```
+
+It writes one `BillingRateCatalog` version and its `TelephonyRate` rows in a
+transaction. It does not alter customer balances. Expect `imported: true`; an
+identical repeat returns `imported: false`. A timeout/failure must be resolved
+before activation, not treated as a successful import.
+
+Verify in DBeaver:
+
+```sql
+SELECT "version", "effectiveAt", "expiresAt"
+FROM "BillingRateCatalog"
+ORDER BY "effectiveAt" DESC
+LIMIT 5;
+
+SELECT "direction", count(*) AS "routes"
+FROM "TelephonyRate"
+WHERE "catalogVersion" = (
+  SELECT "version" FROM "BillingRateCatalog"
+  ORDER BY "effectiveAt" DESC LIMIT 1
+)
+GROUP BY "direction";
+```
+
+Keep the API in `BILLING_PRICING_MODE=shadow` for test calls and use the checks in
+section 5. Only after inbound/outbound/preview checks pass, set
+`BILLING_PRICING_MODE=enforce` in Coolify's API environment and redeploy. No rates
+need to be copied into the AI service; the API owns wallet pricing.
+
+**Before enforcement, arrange renewal.** Generated books expire after 48 hours.
+Regenerate and import a new version before expiry, or configure the controlled
+publisher/refresh workflow in section 6. Setting `BILLING_RATE_BOOK_URL` alone
+does not regenerate rates. Never repeatedly import the same expired file.
+Back up the approved CSVs, mappings and final book outside the container;
+`/tmp` files disappear when containers are replaced.

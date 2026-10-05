@@ -93,8 +93,7 @@ export async function deployWeb({
     repo !== "allgpt-co/QuickVoice" ||
     app.git_branch !== "main" ||
     app.git_commit_sha !== "HEAD" ||
-    !domains.includes("https://quickvoice.co") ||
-    app.id == null
+    !domains.includes("https://quickvoice.co")
   ) {
     throw new Error(
       "Marketing application identity or main-branch configuration does not match.",
@@ -242,11 +241,20 @@ export async function deployWeb({
     }
     if (
       deployment.deployment_uuid !== deploymentUuid ||
-      String(deployment.application_id) !== String(app.id)
+      (app.id != null && String(deployment.application_id) !== String(app.id))
     ) {
       throw new Error(
         "Deployment does not belong to the expected marketing application.",
       );
+    }
+    if (app.id == null) {
+      // Coolify hides numeric application IDs; verify through UUID-scoped history.
+      // ponytail: fail closed outside the ten latest deployments; paginate for busier apps.
+      const matches = (await listDeployments()).filter(row => row?.deployment_uuid === deploymentUuid);
+      if (matches.length !== 1 || (matches[0].application_id != null &&
+          deployment.application_id != null && String(matches[0].application_id) !== String(deployment.application_id))) {
+        throw new Error("Deployment does not belong to the expected marketing application.");
+      }
     }
     if (
       ["failed", "cancelled", "canceled", "cancelled-by-user"].includes(

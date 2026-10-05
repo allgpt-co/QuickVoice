@@ -1,4 +1,5 @@
 import { TelephonyProvider } from "../../../prisma/generated/prisma/client.js";
+import CustomApiError from "../../common/errors/customApiError.js";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { telnyxClient } from "../../config/telnyx.js";
@@ -46,11 +47,56 @@ export type AvailableNumber = {
   rateCatalogVersion: string;
 };
 
+export type NumberCountry = { code: string; name: string };
+
+// This purchase flow supports local numbers; toll-free/mobile-only countries
+// must not be advertised as searchable here. Inventory is checked separately.
+export const listNumberCountries = async (
+  provider: TelephonyProvider,
+): Promise<NumberCountry[]> => {
+  try {
+    let countries: NumberCountry[];
+    if (provider === TelephonyProvider.TWILIO) {
+      const rows = await twilioClient.availablePhoneNumbers.list({ limit: 300 });
+      countries = rows
+        .filter((row) => Boolean(row.subresourceUris?.local))
+        .map((row) => ({ code: row.countryCode, name: row.country }));
+    } else {
+      const response = await telnyxClient.countryCoverage.retrieve();
+      if (!response.data) throw new Error("Missing country coverage");
+      const names = new Intl.DisplayNames(["en"], { type: "region" });
+      countries = Object.entries(response.data)
+        .filter(([, row]) => row.local && (row.local.features ?? row.features)?.includes("voice"))
+        .map(([key, row]) => {
+          const code = (row.code ?? key).toUpperCase();
+          return { code, name: names.of(code) ?? code };
+        });
+    }
+    return countries.sort((a, b) => a.name.localeCompare(b.name, "en"));
+  } catch {
+    // Authentication and provider outages are not evidence of no coverage.
+    throw new CustomApiError(
+      "Country availability could not be loaded from the provider. Please try again later.",
+      503,
+      { code: "NUMBER_COUNTRIES_UNAVAILABLE" },
+    );
+  }
+};
+
 export const searchAvailableNumbers = async (
   input: SearchNumbersInput,
   organizationId: string,
 ): Promise<AvailableNumber[]> => {
-  const { provider, country, areaCode, limit } = input;
+  const { provider, areaCode, limit } = input;
+  const country = input.country.toUpperCase();
+  const countries = await listNumberCountries(provider);
+  if (!countries.some((entry) => entry.code === country)) {
+    throw new CustomApiError(
+      `Local phone numbers are not provided in this country by ${provider === TelephonyProvider.TWILIO ? "Twilio" : "Telnyx"}. Please select another country or provider.`,
+      400,
+      { code: "NUMBER_COUNTRY_NOT_SUPPORTED" },
+    );
+  }
 
   if (provider === TelephonyProvider.TWILIO) {
     const results = await twilioClient
@@ -60,6 +106,8 @@ export const searchAvailableNumbers = async (
         voiceEnabled: true,
         limit: limit ?? 10,
       });
+
+    if (!results.length) return [];
 
     const pricing = await twilioClient.pricing.v1.phoneNumbers
       .countries(country)
@@ -104,6 +152,9 @@ export const searchAvailableNumbers = async (
     const response = await telnyxClient.availablePhoneNumbers.list({
       filter: {
         country_code: country,
+        ...(areaCode !== undefined
+          ? { national_destination_code: String(areaCode) }
+          : {}),
         phone_number_type: "local",
         features: ["voice"],
         limit: limit ?? 10,

@@ -6,6 +6,8 @@ const providerSchema = z.preprocess((value) => {
   return value;
 }, z.nativeEnum(TelephonyProvider));
 
+export const numberCountriesSchema = z.object({ provider: providerSchema });
+
 // Query params for GET /numbers/search. Parsed directly in the controller
 // against req.query because the existing validate middleware only parses
 // req.body.
@@ -13,7 +15,8 @@ export const searchNumbersSchema = z.object({
   provider: providerSchema,
   country: z
     .string()
-    .length(2, "country must be an ISO-3166 alpha-2 code (e.g. 'US')"),
+    .regex(/^[a-z]{2}$/i, "country must be an ISO-3166 alpha-2 code (e.g. 'US')")
+    .toUpperCase(),
   areaCode: z.coerce.number().int().positive().optional(),
   limit: z.coerce.number().int().positive().max(50).optional(),
 });

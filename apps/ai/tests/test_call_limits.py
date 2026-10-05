@@ -5,7 +5,7 @@ import tempfile
 import time
 import unittest
 from types import SimpleNamespace
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 from livekit import api
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -81,29 +81,39 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_meaningful_activity_restarts_the_full_silence_window(self):
         session = Events()
-        ended = asyncio.Event()
+        stop = AsyncMock()
+        loop = asyncio.get_running_loop()
+        handles = []
 
-        async def stop(_reason):
-            ended.set()
+        def schedule(_delay, _callback, *_args):
+            handle = Mock()
+            handles.append(handle)
+            return handle
 
-        guard = attach_call_limits(
-            session,
-            silence_timeout_seconds=0.12,
-            max_duration_seconds=600,
-            connected_at_monotonic=time.monotonic(),
-            stop_session=stop,
-        )
-        try:
-            session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
-            await asyncio.sleep(0.06)
-            guard.record_user_activity("transcript")
-            await asyncio.sleep(0.06)
-            self.assertFalse(ended.is_set())
-            self.assertEqual(session.messages, [])
-            await asyncio.wait_for(ended.wait(), 1)
-            self.assertEqual(session.messages, ["Are you still there?"])
-        finally:
-            guard.close()
+        # Check timer deadlines directly: sub-100ms sleeps race with CI load.
+        with patch.object(loop, "call_later", side_effect=schedule) as timer:
+            guard = attach_call_limits(
+                session, silence_timeout_seconds=30, max_duration_seconds=600,
+                connected_at_monotonic=time.monotonic(), stop_session=stop,
+            )
+            try:
+                session.emit("agent_state_changed", SimpleNamespace(new_state="listening"))
+                previous_warning, previous_hangup = handles[-2:]
+                guard.record_user_activity("transcript")
+                previous_warning.cancel.assert_called_once()
+                previous_hangup.cancel.assert_called_once()
+                warning, hangup = timer.call_args_list[-2:]
+                self.assertEqual(warning.args[0], 20)
+                self.assertEqual(hangup.args[0], 30)
+                self.assertEqual(session.messages, [])
+                stop.assert_not_called()
+                warning.args[1]()
+                hangup.args[1](*hangup.args[2:])
+                await asyncio.sleep(0)
+                self.assertEqual(session.messages, ["Are you still there?"])
+                stop.assert_awaited_once_with("silence_timeout")
+            finally:
+                guard.close()
 
     async def test_agent_work_pauses_silence_before_the_warning(self):
         session = Events()

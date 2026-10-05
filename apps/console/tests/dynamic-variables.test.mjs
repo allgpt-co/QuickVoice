@@ -66,6 +66,7 @@ test("batch templates include selected agent dynamic variables", async () => {
 
   assert.match(campaignModel, /BATCH_TEMPLATE_BASE_COLUMNS = \[[\s\S]*"phone_number"[\s\S]*"prompt"[\s\S]*\] as const/);
   assert.match(campaignModel, /function buildBatchTemplateHeader\(variableNames: string\[] = \[]\)/);
+  assert.match(campaignModel, /serializeCsvRows/);
   assert.match(batchForm, /buildBatchTemplateHeader\(dynamicVariableNames\)/);
   assert.match(batchForm, /buildBatchTemplateCsv\(dynamicVariableNames\)/);
   assert.match(batchForm, /navigator\.clipboard\.writeText\(templateHeader\)/);

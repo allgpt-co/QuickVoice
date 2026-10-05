@@ -381,6 +381,8 @@ export interface McpCatalogPage {
 }
 
 export interface McpToolDescriptor {
+  /** Derived by the server from its autonomous execution policy. */
+  requiresConfirmation?: boolean;
   name: string;
   description: string;
   inputSchema: Record<string, unknown> | null;

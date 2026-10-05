@@ -106,6 +106,7 @@ export function useSaveAgentConfig(id: string) {
         ivr_navigation_enabled: input.ivr_navigation_enabled,
       });
       qc.invalidateQueries({ queryKey: queryKeys.agents.list() });
+      qc.invalidateQueries({ queryKey: queryKeys.agents.detail(id) });
       toast.success("Saved");
     },
     onError: (err: Error) => {

@@ -72,7 +72,7 @@ const formSchema = z.object({
     .number()
     .int()
     .min(1)
-    .max(300)
+    .max(15)
     .optional()
     .or(z.literal("")),
   disable_interruptions: z.boolean(),
@@ -278,39 +278,43 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
   const isPending = createTool.isPending || updateTool.isPending;
 
   const onSubmit = async (values: FormValues) => {
-    const apiHeaders = cleanKvPairs(values.api_headers as KVPair[]);
-    const dynamicVariables = cleanKvPairs(values.dynamic_variables as KVPair[]);
-    const payload = {
-      ...values,
-      response_timeout_secs:
-        values.response_timeout_secs === ""
-          ? null
-          : Number(values.response_timeout_secs),
-      api_headers: apiHeaders.length ? apiHeaders : null,
-      api_query_params: values.api_query_params.length
-        ? values.api_query_params
-        : null,
-      api_path_params: values.api_path_params.length
-        ? values.api_path_params
-        : null,
-      api_body: values.api_body.length ? values.api_body : null,
-      dynamic_variables: dynamicVariables.length ? dynamicVariables : null,
-    };
+    try {
+      const apiHeaders = cleanKvPairs(values.api_headers as KVPair[]);
+      const dynamicVariables = cleanKvPairs(values.dynamic_variables as KVPair[]);
+      const payload = {
+        ...values,
+        response_timeout_secs:
+          values.response_timeout_secs === ""
+            ? null
+            : Number(values.response_timeout_secs),
+        api_headers: apiHeaders.length ? apiHeaders : null,
+        api_query_params: values.api_query_params.length
+          ? values.api_query_params
+          : null,
+        api_path_params: values.api_path_params.length
+          ? values.api_path_params
+          : null,
+        api_body: values.api_body.length ? values.api_body : null,
+        dynamic_variables: dynamicVariables.length ? dynamicVariables : null,
+      };
 
-    if (mode === "create") {
-      await createTool.mutateAsync(payload, {
-        onSuccess: () => {
-          toast.success("Tool created");
-          onOpenChange(false);
-        },
-      });
-    } else {
-      await updateTool.mutateAsync(payload, {
-        onSuccess: () => {
-          toast.success("Tool saved");
-          onOpenChange(false);
-        },
-      });
+      if (mode === "create") {
+        await createTool.mutateAsync(payload, {
+          onSuccess: () => {
+            toast.success("Tool created");
+            onOpenChange(false);
+          },
+        });
+      } else {
+        await updateTool.mutateAsync(payload, {
+          onSuccess: () => {
+            toast.success("Tool saved");
+            onOpenChange(false);
+          },
+        });
+      }
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
     }
   };
 
@@ -557,7 +561,7 @@ export function ToolSheet({ mode, tool, open, onOpenChange }: ToolSheetProps) {
                   id="timeout"
                   type="number"
                   min={1}
-                  max={300}
+                  max={15}
                   placeholder="Optional — e.g. 10"
                   className="h-9 w-36"
                   {...register("response_timeout_secs")}

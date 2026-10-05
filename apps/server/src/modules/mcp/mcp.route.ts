@@ -1,3 +1,4 @@
+import { ForbiddenError } from "../../common/errors/forbidden.js";
 import { Router } from "express";
 import authMiddleware from "../../middleware/auth.middleware.js";
 import { requirePermission } from "../../middleware/authorize.middleware.js";
@@ -68,7 +69,11 @@ router.delete(
 router.post(
   "/connections/:mcpConnectionId/tools/:toolName/execute",
   authMiddleware,
-  requirePermission({ tools: ["read"] }),
+  (req, _res, next) => req.auth?.authMethod === "apiKey"
+    ? next(new ForbiddenError("Organization API keys cannot execute connected MCP tools"))
+    : next(),
+  // Remote tools can mutate provider data using the organization's OAuth grant.
+  requirePermission({ tools: ["execute"] }),
   validate(executeMcpToolSchema),
   mcpController.executeTool
 );

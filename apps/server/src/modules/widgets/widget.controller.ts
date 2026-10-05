@@ -146,10 +146,8 @@ function stringParam(value: unknown, message: string) {
   return value.trim();
 }
 
-function clientIp(req: Request) {
-  const forwarded = req.headers["x-forwarded-for"];
-  if (typeof forwarded === "string" && forwarded.trim()) {
-    return forwarded.split(",")[0]?.trim();
-  }
-  return req.ip;
+export function clientIp(req: Request) {
+  // Express derives this only through the configured trusted-proxy chain.
+  // Reading X-Forwarded-For directly lets callers manufacture rate-limit keys.
+  return req.ip ?? req.socket.remoteAddress;
 }

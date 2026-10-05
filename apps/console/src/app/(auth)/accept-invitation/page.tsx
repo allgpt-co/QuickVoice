@@ -3,16 +3,18 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Mail, Loader2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import Logo1 from "@/src/components/logo1";
 import { authClient } from "@/src/lib/auth-client";
 import { CONSOLE_URL, invitationPath } from "@/src/lib/links";
+import { clearIdentityCache } from "@/src/lib/query-cache";
 
 function Invitation() {
   const invitationId = useSearchParams().get("invitationId") ?? "";
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { data: session, isPending, error: sessionError, refetch } = authClient.useSession();
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState("");
@@ -34,6 +36,7 @@ function Invitation() {
   async function openWorkspace(organizationId: string) {
     const { error } = await authClient.organization.setActive({ organizationId });
     if (error) throw new Error("You joined the workspace, but we could not open it. Please try again.");
+    clearIdentityCache(queryClient);
     router.replace("/dashboard");
   }
 
@@ -44,6 +47,7 @@ function Invitation() {
       if (action === "signout") {
         const { error } = await authClient.signOut();
         if (error) throw new Error(error.message);
+        clearIdentityCache(queryClient);
         router.replace(invitationPath(invitationId, "/login"));
       } else if (action === "verify" && session) {
         const { error } = await authClient.sendVerificationEmail({

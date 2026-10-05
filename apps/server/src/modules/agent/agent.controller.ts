@@ -94,17 +94,20 @@ export const deleteAgent = authorized(async (req, res) => {
     throw new BadRequestError("Agent id is required");
   }
 
-  await agentService.deleteAgent(req.auth.activeOrganizationId, agentId);
+  const deletion = await agentService.requestAgentDeletion(
+    req.auth.activeOrganizationId,
+    agentId,
+  );
 
-  res.status(StatusCodes.OK).json({
+  res.status(StatusCodes.ACCEPTED).json({
     success: true,
-    message: "Agent deleted successfully",
-    data: null,
+    message: "Agent deletion started",
+    data: deletion,
   });
   void recordAuditEvent({
     organizationId: req.auth.activeOrganizationId,
     userId: req.auth.userId,
-    action: "agent.deleted",
+    action: "agent.deletion_requested",
     resourceType: "agent",
     resourceId: agentId,
   });

@@ -22,8 +22,12 @@ export function DeleteKbButton({ kbId, name }: { kbId: string; name: string }) {
   const del = useDeleteKb();
 
   async function onDelete() {
-    await del.mutateAsync(kbId);
-    setOpen(false);
+    try {
+      await del.mutateAsync(kbId);
+      setOpen(false);
+    } catch {
+      // The mutation hook displays the API error; preserve the current state for retry.
+    }
   }
 
   return (

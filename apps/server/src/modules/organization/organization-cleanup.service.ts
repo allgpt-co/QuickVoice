@@ -4,6 +4,7 @@ import { stripeClient } from "../../config/stripe.js";
 import { isHostedBilling } from "../../config/billing-mode.js";
 import { cleanupKnowledgeSourceAssets } from "../kb/kb-assets.service.js";
 import * as kbRepository from "../kb/kb.repository.js";
+import { disconnectSmitheryConnection } from "../mcp/mcp.service.js";
 import { deleteNumber } from "../numbers/phone.service.js";
 
 type OrganizationCleanupInput = {
@@ -33,6 +34,9 @@ type OrganizationCleanupDependencies = {
       sourceType: string;
     }>
   >;
+  listMcpConnections?: (
+    organizationId: string,
+  ) => Promise<Array<{ smitheryNamespace: string; smitheryConnectionId: string }>>;
   listPhoneNumbers?: (
     organizationId: string,
   ) => Promise<Array<{ phId: string }>>;
@@ -48,6 +52,10 @@ type OrganizationCleanupDependencies = {
     customerId: string,
   ) => Promise<Array<{ id: string; status: string }>>;
   releaseNumber?: typeof deleteNumber;
+  revokeMcpConnection?: (
+    namespace: string,
+    connectionId: string,
+  ) => Promise<void>;
 };
 
 const TERMINAL_SUBSCRIPTION_STATUSES = new Set([
@@ -125,6 +133,10 @@ export async function cleanupOrganizationBeforeDeletion(
     dependencies.listSubscriptions ?? defaultListSubscriptions;
   const subscriptions = await listSubscriptions(organizationId);
 
+  const listMcpConnections =
+    dependencies.listMcpConnections ?? defaultListMcpConnections;
+  const mcpConnections = await listMcpConnections(organizationId);
+
   const hostedBilling = dependencies.hostedBilling ?? isHostedBilling;
   let stripeSubscriptions: Array<{ id: string; status: string }> = [];
   let stripeCustomerMissing = false;
@@ -187,6 +199,15 @@ export async function cleanupOrganizationBeforeDeletion(
     await releaseNumber(organizationId, phoneNumber.phId);
   }
 
+  const revokeMcpConnection =
+    dependencies.revokeMcpConnection ?? disconnectSmitheryConnection;
+  for (const connection of mcpConnections) {
+    await revokeMcpConnection(
+      connection.smitheryNamespace,
+      connection.smitheryConnectionId,
+    );
+  }
+
   const cleanupKnowledgeSource =
     dependencies.cleanupKnowledgeSource ?? cleanupKnowledgeSourceAssets;
   const deleteKnowledgeSource =
@@ -217,6 +238,7 @@ export async function cleanupOrganizationBeforeDeletion(
     recordingsDeleted: recordings.length,
     campaignFilesDeleted: campaignFiles.length,
     subscriptionsDeleted: subscriptions.length,
+    mcpConnectionsRevoked: mcpConnections.length,
     stripeCustomerDetached,
   };
 }
@@ -323,6 +345,16 @@ async function defaultListSubscriptions(organizationId: string) {
     select: {
       status: true,
       stripeSubscriptionId: true,
+    },
+  });
+}
+
+async function defaultListMcpConnections(organizationId: string) {
+  return prisma.mcpConnection.findMany({
+    where: { organizationId },
+    select: {
+      smitheryNamespace: true,
+      smitheryConnectionId: true,
     },
   });
 }
