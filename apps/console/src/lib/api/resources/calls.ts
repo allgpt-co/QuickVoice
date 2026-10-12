@@ -53,6 +53,12 @@ export const callsApi = {
     const res = await apiClient.get<ApiEnvelope<CallLog>>(`/calls/${callId}`);
     return res.data.data;
   },
+  recordingDownloadUrl: async (callId: string): Promise<string> => {
+    const res = await apiClient.get<ApiEnvelope<{ url: string }>>(
+      `/calls/${encodeURIComponent(callId)}/recording/download-url`,
+    );
+    return res.data.data.url;
+  },
   transcripts: async (
     callId: string,
     params: TranscriptParams = {}

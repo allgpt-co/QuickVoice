@@ -135,7 +135,7 @@ export function CallTranscriptSheet({ call, onClose }: Props) {
 
           <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)]">
             <aside className="border-b bg-muted/20 p-4 sm:p-6 lg:border-r lg:border-b-0 lg:p-6">
-              <AudioPlayer src={call?.audioRecordingPath ?? null} />
+              <AudioPlayer src={call?.audioRecordingPath ?? null} callId={call?.callId ?? ""} />
               <div className="mt-5 rounded-xl border bg-background/70 p-4 text-sm text-muted-foreground">
                 <p className="font-medium text-foreground">Review tip</p>
                 <p className="mt-1 leading-relaxed">

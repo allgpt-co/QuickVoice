@@ -2,9 +2,28 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import {
+  getCallRecordingDownloadUrl,
   listLiveCalls,
   signCallRecordingUrl,
 } from "../../src/modules/calllogs/calllog.service.js";
+
+test("recording download signs the organization-owned S3 key as an attachment", async (t) => {
+  const { default: prisma } = await import("../../src/config/prisma.js");
+  const original = prisma.callLog.findFirst;
+  prisma.callLog.findFirst = (async ({ where }: any) => {
+    assert.deepEqual(where, { callId: "call-1", organizationId: "org-1", deleted: false });
+    return { audioRecordingPath: "Voice-agents/Recordings/call-1.ogg" };
+  }) as typeof original;
+  t.after(() => { prisma.callLog.findFirst = original; });
+
+  const url = await getCallRecordingDownloadUrl("org-1", "call-1", async (key, expiry, fileName) => {
+    assert.equal(key, "Voice-agents/Recordings/call-1.ogg");
+    assert.equal(expiry, 3600);
+    assert.equal(fileName, "recording-call-1.ogg");
+    return "https://example.test/signed-attachment";
+  });
+  assert.equal(url, "https://example.test/signed-attachment");
+});
 
 test("signCallRecordingUrl replaces a stored S3 key with a signed playback URL", async () => {
   const call = {

@@ -4,17 +4,20 @@ import { useRef, useState } from "react";
 import { Download, Music, Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 
 import { Button } from "@/src/components/ui/button";
+import { callsApi } from "@/src/lib/api/resources/calls";
 
 function formatTime(seconds: number) {
     const whole = Math.floor(seconds);
     return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
 }
 
-export function AudioPlayer({ src }: { src: string | null }) {
+export function AudioPlayer({ src, callId }: { src: string | null; callId: string }) {
     const audioRef = useRef<HTMLAudioElement>(null);
     const [playingSrc, setPlayingSrc] = useState<string | null>(null);
     const [position, setPosition] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [downloading, setDownloading] = useState(false);
+    const [downloadError, setDownloadError] = useState(false);
     const playing = playingSrc === src;
 
     function seekTo(seconds: number) {
@@ -56,6 +59,19 @@ export function AudioPlayer({ src }: { src: string | null }) {
             setPlayingSrc(src);
         } catch {
             setPlayingSrc(null);
+        }
+    }
+
+    async function download() {
+        setDownloading(true);
+        setDownloadError(false);
+        try {
+            const url = await callsApi.recordingDownloadUrl(callId);
+            window.location.assign(url);
+        } catch {
+            setDownloadError(true);
+        } finally {
+            setDownloading(false);
         }
     }
 
@@ -127,12 +143,11 @@ export function AudioPlayer({ src }: { src: string | null }) {
                 </div>
             </div>
             <div className="mt-4">
-                <Button asChild type="button" variant="outline" className="w-full justify-center">
-                    <a href={src} target="_blank" rel="noreferrer" download>
-                        <Download />
-                        Download
-                    </a>
+                <Button type="button" variant="outline" className="w-full justify-center" onClick={download} disabled={downloading}>
+                    <Download />
+                    {downloading ? "Preparing download…" : "Download"}
                 </Button>
+                {downloadError && <p role="alert" className="mt-2 text-xs text-destructive">Could not download the recording. Please try again.</p>}
             </div>
             <audio
                 ref={audioRef}
