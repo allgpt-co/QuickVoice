@@ -1,5 +1,5 @@
 import "dotenv/config";
-import prisma from "../src/config/prisma.js";
+import prisma from "../../config/prisma.js";
 
 type SmitheryServer = {
   id: string;

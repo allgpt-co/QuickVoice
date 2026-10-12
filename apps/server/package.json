@@ -15,7 +15,7 @@
     "check-types": "tsc --noEmit",
     "test": "tsx --test tests/*.test.ts tests/*/*.test.ts",
     "seed": "tsx prisma/seed.ts",
-    "import:smithery-catalog": "tsx prisma/import-smithery-catalog.ts",
+    "import:smithery-catalog": "node dist/src/modules/mcp/import-smithery-catalog.cli.js",
     "reindex:knowledge": "tsx prisma/reindex-knowledge-sources.ts",
     "billing:rates": "tsx src/modules/billing/rate-book.cli.ts"
   },
