@@ -6,6 +6,7 @@ import { Button } from "@/src/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
@@ -30,12 +31,13 @@ export function McpPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="grid-cols-[minmax(0,1fr)] sm:max-w-xl">
         <DialogHeader>
           <DialogTitle>Add MCP connection</DialogTitle>
+          <DialogDescription>Choose a connected server to make its tools available to this agent.</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2">
+        <div className="min-w-0 max-h-[min(60dvh,28rem)] space-y-2 overflow-y-auto pr-1">
           {isLoading ? (
             <p className="text-sm text-muted-foreground">Loading connections...</p>
           ) : !available.length ? (
@@ -44,23 +46,28 @@ export function McpPickerDialog({
             </p>
           ) : (
             available.map((connection) => (
-              <div key={connection.mcpConnectionId} className="flex items-center gap-3 border p-3">
-                <div className="flex size-9 shrink-0 items-center justify-center border bg-primary/10 text-primary">
+              <div key={connection.mcpConnectionId} className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] items-center gap-3 rounded-lg border bg-card p-3 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+                <div className="flex size-9 items-center justify-center rounded-md bg-primary/10 text-primary">
                   <PlugZap className="size-4" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-sm font-medium">{connection.displayName}</p>
-                    <Badge variant={connection.status === "CONNECTED" ? "secondary" : "outline"}>
+                    <p className="min-w-0 break-words text-sm font-medium">{connection.displayName}</p>
+                    <Badge
+                      variant={connection.status === "CONNECTED" ? "secondary" : "outline"}
+                      className={connection.status === "ERROR" ? "border-destructive/30 text-destructive" : ""}
+                    >
                       {connection.status.replace("_", " ")}
                     </Badge>
                   </div>
-                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground" title={connection.mcpUrl}>
                     {(connection.tools?.length ?? 0)} tools · {connection.mcpUrl}
                   </p>
                 </div>
                 <Button
                   size="sm"
+                  variant={connection.status === "CONNECTED" ? "default" : "outline"}
+                  className="col-span-2 w-full sm:col-span-1 sm:w-auto"
                   disabled={connection.status !== "CONNECTED" || attach.isPending}
                   onClick={() =>
                     attach.mutate(connection.mcpConnectionId, {
