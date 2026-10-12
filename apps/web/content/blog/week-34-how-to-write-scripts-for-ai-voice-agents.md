@@ -1,15 +1,27 @@
 ---
-title: "How to Write AI Voice Agent Scripts With Clear Action Boundaries"
-slug: "how-to-write-scripts-for-ai-voice-agents"
-date: "2026-10-19"
-author: "Rahul Agarwal"
-category: "Implementation Guides"
-tags: ["voice agent scripts", "conversation instructions", "call script testing"]
-metaTitle: "How to Write AI Voice Agent Scripts With Clear Action Boundaries"
-metaDescription: "Write concise voice instructions with approved facts, one question at a time, truthful action confirmations, fallback behavior, and revision tests."
-canonical: "https://quickvoice.co/blog/how-to-write-scripts-for-ai-voice-agents"
-ogImage: "/og-image.png"
-readTime: "3 min"
+title: How to Write AI Voice Agent Scripts With Clear Action Boundaries
+slug: how-to-write-scripts-for-ai-voice-agents
+date: '2026-10-19'
+author: Rahul Agarwal
+category: Implementation Guides
+tags:
+  - voice agent scripts
+  - conversation instructions
+  - call script testing
+metaTitle: How to Write AI Voice Agent Scripts With Clear Action Boundaries
+metaDescription: >-
+  Write concise voice instructions with approved facts, one question at a time,
+  truthful action confirmations, fallback behavior, and revision tests.
+canonical: 'https://quickvoice.co/blog/how-to-write-scripts-for-ai-voice-agents'
+ogImage: /og-image.png
+readTime: 3 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-10-12T09:05:14.462Z'
+  reviewer: Codex
+  sources:
+    - 'https://github.com/allgpt-co/QuickVoice'
+  contentHash: 1081b33aa2bb8d5b01de1c0e9dee3dd74c717b4ea5fea7f4e04bec15fd64acbd
 ---
 
 # How to Write AI Voice Agent Scripts With Clear Action Boundaries

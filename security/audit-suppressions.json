@@ -10,6 +10,16 @@
       ],
       "reason": "No upstream fixed version exists. patches/braces@3.0.3.patch bounds parser nesting and recursive compile/expand/stringify walkers to 100 levels. scripts/verify-braces-patch.mjs must pass on installed dependency copies before this exception is accepted. Replace with upstream fix when released.",
       "expires": "2026-11-03"
+    },
+    {
+      "id": "GHSA-hp3w-g68c-fv3c",
+      "module": "sprintf-js",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "No patched sprintf-js version exists. The only resolved copy comes through gray-matter -> js-yaml 3 -> argparse; QuickVoice does not call argparse or pass caller-controlled format strings to sprintf-js. Review or remove this exception when upstream ships a fix or gray-matter drops that dependency.",
+      "expires": "2026-11-12"
     }
   ]
 }

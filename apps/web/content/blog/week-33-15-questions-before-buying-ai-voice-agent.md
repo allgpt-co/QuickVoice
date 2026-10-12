@@ -1,15 +1,29 @@
 ---
-title: "Fifteen Questions Before Buying an AI Voice Agent Platform"
-slug: "questions-before-buying-ai-voice-agent-platform"
-date: "2026-10-12"
-author: "Rahul Agarwal"
-category: "ROI & Business Case"
-tags: ["voice AI procurement", "platform buyer questions", "voice agent evaluation"]
-metaTitle: "Fifteen Questions Before Buying an AI Voice Agent Platform"
-metaDescription: "Use a procurement worksheet covering task evidence, action authority, operating costs, data handling, support, and exit conditions."
-canonical: "https://quickvoice.co/blog/questions-before-buying-ai-voice-agent-platform"
-ogImage: "/og-image.png"
-readTime: "3 min"
+title: Fifteen Questions Before Buying an AI Voice Agent Platform
+slug: questions-before-buying-ai-voice-agent-platform
+date: '2026-10-12'
+author: Rahul Agarwal
+category: ROI & Business Case
+tags:
+  - voice AI procurement
+  - platform buyer questions
+  - voice agent evaluation
+metaTitle: Fifteen Questions Before Buying an AI Voice Agent Platform
+metaDescription: >-
+  Use a procurement worksheet covering task evidence, action authority,
+  operating costs, data handling, support, and exit conditions.
+canonical: 'https://quickvoice.co/blog/questions-before-buying-ai-voice-agent-platform'
+ogImage: /og-image.png
+readTime: 3 min
+evidenceReview:
+  status: reviewed
+  reviewedAt: '2026-10-12T09:05:14.248Z'
+  reviewer: Codex
+  sources:
+    - >-
+      https://www.hhs.gov/hipaa/for-professionals/special-topics/health-information-technology/cloud-computing/index.html
+    - 'https://github.com/allgpt-co/QuickVoice'
+  contentHash: d93b3c8a6f2b110318d0286830cc5e0f74cb14af6221fc3bc797b31c39ee04d6
 ---
 
 # Fifteen Questions Before Buying an AI Voice Agent Platform
