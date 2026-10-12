@@ -178,3 +178,15 @@ test("bootstrap keeps only the HTTP referral origin before automatic measurement
     assert.equal(commands.some(([command]) => command === "event"), false);
   }
 });
+
+test("snapshot URLs use the same exact public manifest and current origin as live events", () => {
+  for (const [hostname, configuredId] of [["quickvoice.co", ""], ["preview.example.com", "G-TEST123"]]) {
+    const { context } = browser(hostname);
+    context.window.location.origin = `https://${hostname}`;
+    runInNewContext(createGoogleAnalyticsScript(configuredId, true, ["/", "/pricing", "/blog/published"]), context);
+    const allowed = context.window.quickvoiceAnalyticsPageAllowed;
+    for (const path of ["/pricing/", "/pricing?email=synthetic", "/blog/published"]) assert.equal(allowed(`https://${hostname}${path}`), true);
+    for (const url of [`https://${hostname}/blog/unknown`, `https://${hostname}/dashboard/private`, `http://${hostname}/pricing`, `https://${hostname}:8080/pricing`, `https://user:pass@${hostname}/pricing`, "https://foreign.example/pricing", "javascript:alert(1)", "malformed"]) assert.equal(allowed(url), false, url);
+    assert.equal(allowed(), true);
+  }
+});
