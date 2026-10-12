@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { mcpApi, type ConnectMcpInput, type McpCatalogParams } from "@/src/lib/api/resources/mcp";
@@ -22,39 +23,47 @@ const openSetupAndPoll = (
   setupUrl: string,
   mcpConnectionId: string,
   qc: ReturnType<typeof useQueryClient>
-) => {
+): (() => void) => {
   if (!isSafeSetupUrl(setupUrl)) {
     toast.error("Setup URL is invalid or uses an unsupported protocol.");
-    return;
+    return () => {};
   }
 
   window.open(setupUrl, "_blank", "noopener,noreferrer");
   toast.info("Complete setup in the new tab. QuickVoice will refresh automatically.");
   let attempts = 0;
+  let refreshing = false;
   const maxAttempts = 24;
   const intervalId = window.setInterval(refresh, 5000);
+  const stop = () => {
+    window.clearInterval(intervalId);
+    window.removeEventListener("focus", refresh);
+  };
   async function refresh() {
+    if (refreshing || attempts >= maxAttempts) return;
+    refreshing = true;
     attempts += 1;
     try {
       const connection = await mcpApi.refresh(mcpConnectionId);
       qc.invalidateQueries({ queryKey: queryKeys.mcp.all });
       qc.invalidateQueries({ queryKey: queryKeys.mcp.connections() });
       if (connection.status === "CONNECTED") {
-        window.clearInterval(intervalId);
-        window.removeEventListener("focus", refresh);
+        stop();
         toast.success(`${connection.displayName} connected`);
       }
     } catch {
       // Keep polling while Smithery is still settling after OAuth.
+    } finally {
+      refreshing = false;
     }
 
     if (attempts >= maxAttempts) {
-      window.clearInterval(intervalId);
-      window.removeEventListener("focus", refresh);
+      stop();
     }
   }
 
   window.addEventListener("focus", refresh);
+  return stop;
 };
 
 export function useMcpCatalog(params: McpCatalogParams = {}) {
@@ -101,9 +110,12 @@ export function useConnectMcp() {
 
 export function useOpenMcpSetup() {
   const qc = useQueryClient();
+  const cleanup = useRef<(() => void) | null>(null);
+  useEffect(() => () => cleanup.current?.(), []);
   return (setupUrl: string, mcpConnectionId: string) => {
     if (typeof window === "undefined") return;
-    openSetupAndPoll(setupUrl, mcpConnectionId, qc);
+    cleanup.current?.();
+    cleanup.current = openSetupAndPoll(setupUrl, mcpConnectionId, qc);
   };
 }
 

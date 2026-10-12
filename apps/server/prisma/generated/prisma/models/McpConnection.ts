@@ -266,7 +266,6 @@ export type McpConnectionWhereInput = {
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   catalogItem?: Prisma.XOR<Prisma.McpServerCatalogItemNullableScalarRelationFilter, Prisma.McpServerCatalogItemWhereInput> | null
   agents?: Prisma.AgentMcpConnectionListRelationFilter
-  executionLogs?: Prisma.McpToolExecutionLogListRelationFilter
 }
 
 export type McpConnectionOrderByWithRelationInput = {
@@ -290,7 +289,6 @@ export type McpConnectionOrderByWithRelationInput = {
   user?: Prisma.UserOrderByWithRelationInput
   catalogItem?: Prisma.McpServerCatalogItemOrderByWithRelationInput
   agents?: Prisma.AgentMcpConnectionOrderByRelationAggregateInput
-  executionLogs?: Prisma.McpToolExecutionLogOrderByRelationAggregateInput
 }
 
 export type McpConnectionWhereUniqueInput = Prisma.AtLeast<{
@@ -318,7 +316,6 @@ export type McpConnectionWhereUniqueInput = Prisma.AtLeast<{
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   catalogItem?: Prisma.XOR<Prisma.McpServerCatalogItemNullableScalarRelationFilter, Prisma.McpServerCatalogItemWhereInput> | null
   agents?: Prisma.AgentMcpConnectionListRelationFilter
-  executionLogs?: Prisma.McpToolExecutionLogListRelationFilter
 }, "mcpConnectionId" | "organizationId_smitheryConnectionId">
 
 export type McpConnectionOrderByWithAggregationInput = {
@@ -383,7 +380,6 @@ export type McpConnectionCreateInput = {
   user?: Prisma.UserCreateNestedOneWithoutMcpConnectionsInput
   catalogItem?: Prisma.McpServerCatalogItemCreateNestedOneWithoutConnectionsInput
   agents?: Prisma.AgentMcpConnectionCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUncheckedCreateInput = {
@@ -404,7 +400,6 @@ export type McpConnectionUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUpdateInput = {
@@ -425,7 +420,6 @@ export type McpConnectionUpdateInput = {
   user?: Prisma.UserUpdateOneWithoutMcpConnectionsNestedInput
   catalogItem?: Prisma.McpServerCatalogItemUpdateOneWithoutConnectionsNestedInput
   agents?: Prisma.AgentMcpConnectionUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateInput = {
@@ -446,7 +440,6 @@ export type McpConnectionUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionCreateManyInput = {
@@ -720,20 +713,6 @@ export type McpConnectionUpdateOneRequiredWithoutAgentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.McpConnectionUpdateToOneWithWhereWithoutAgentsInput, Prisma.McpConnectionUpdateWithoutAgentsInput>, Prisma.McpConnectionUncheckedUpdateWithoutAgentsInput>
 }
 
-export type McpConnectionCreateNestedOneWithoutExecutionLogsInput = {
-  create?: Prisma.XOR<Prisma.McpConnectionCreateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedCreateWithoutExecutionLogsInput>
-  connectOrCreate?: Prisma.McpConnectionCreateOrConnectWithoutExecutionLogsInput
-  connect?: Prisma.McpConnectionWhereUniqueInput
-}
-
-export type McpConnectionUpdateOneRequiredWithoutExecutionLogsNestedInput = {
-  create?: Prisma.XOR<Prisma.McpConnectionCreateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedCreateWithoutExecutionLogsInput>
-  connectOrCreate?: Prisma.McpConnectionCreateOrConnectWithoutExecutionLogsInput
-  upsert?: Prisma.McpConnectionUpsertWithoutExecutionLogsInput
-  connect?: Prisma.McpConnectionWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.McpConnectionUpdateToOneWithWhereWithoutExecutionLogsInput, Prisma.McpConnectionUpdateWithoutExecutionLogsInput>, Prisma.McpConnectionUncheckedUpdateWithoutExecutionLogsInput>
-}
-
 export type McpConnectionCreateWithoutUserInput = {
   mcpConnectionId?: string
   displayName: string
@@ -751,7 +730,6 @@ export type McpConnectionCreateWithoutUserInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutMcpConnectionsInput
   catalogItem?: Prisma.McpServerCatalogItemCreateNestedOneWithoutConnectionsInput
   agents?: Prisma.AgentMcpConnectionCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUncheckedCreateWithoutUserInput = {
@@ -771,7 +749,6 @@ export type McpConnectionUncheckedCreateWithoutUserInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionCreateOrConnectWithoutUserInput = {
@@ -839,7 +816,6 @@ export type McpConnectionCreateWithoutOrganizationInput = {
   user?: Prisma.UserCreateNestedOneWithoutMcpConnectionsInput
   catalogItem?: Prisma.McpServerCatalogItemCreateNestedOneWithoutConnectionsInput
   agents?: Prisma.AgentMcpConnectionCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUncheckedCreateWithoutOrganizationInput = {
@@ -859,7 +835,6 @@ export type McpConnectionUncheckedCreateWithoutOrganizationInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionCreateOrConnectWithoutOrganizationInput = {
@@ -905,7 +880,6 @@ export type McpConnectionCreateWithoutCatalogItemInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutMcpConnectionsInput
   user?: Prisma.UserCreateNestedOneWithoutMcpConnectionsInput
   agents?: Prisma.AgentMcpConnectionCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUncheckedCreateWithoutCatalogItemInput = {
@@ -925,7 +899,6 @@ export type McpConnectionUncheckedCreateWithoutCatalogItemInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutMcpConnectionInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionCreateOrConnectWithoutCatalogItemInput = {
@@ -971,7 +944,6 @@ export type McpConnectionCreateWithoutAgentsInput = {
   organization: Prisma.OrganizationCreateNestedOneWithoutMcpConnectionsInput
   user?: Prisma.UserCreateNestedOneWithoutMcpConnectionsInput
   catalogItem?: Prisma.McpServerCatalogItemCreateNestedOneWithoutConnectionsInput
-  executionLogs?: Prisma.McpToolExecutionLogCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionUncheckedCreateWithoutAgentsInput = {
@@ -991,7 +963,6 @@ export type McpConnectionUncheckedCreateWithoutAgentsInput = {
   lastSyncedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedCreateNestedManyWithoutMcpConnectionInput
 }
 
 export type McpConnectionCreateOrConnectWithoutAgentsInput = {
@@ -1027,7 +998,6 @@ export type McpConnectionUpdateWithoutAgentsInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMcpConnectionsNestedInput
   user?: Prisma.UserUpdateOneWithoutMcpConnectionsNestedInput
   catalogItem?: Prisma.McpServerCatalogItemUpdateOneWithoutConnectionsNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateWithoutAgentsInput = {
@@ -1047,103 +1017,6 @@ export type McpConnectionUncheckedUpdateWithoutAgentsInput = {
   lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutMcpConnectionNestedInput
-}
-
-export type McpConnectionCreateWithoutExecutionLogsInput = {
-  mcpConnectionId?: string
-  displayName: string
-  provider?: string
-  mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
-  status?: $Enums.McpConnectionStatus
-  setupUrl?: string | null
-  tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastSyncedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  organization: Prisma.OrganizationCreateNestedOneWithoutMcpConnectionsInput
-  user?: Prisma.UserCreateNestedOneWithoutMcpConnectionsInput
-  catalogItem?: Prisma.McpServerCatalogItemCreateNestedOneWithoutConnectionsInput
-  agents?: Prisma.AgentMcpConnectionCreateNestedManyWithoutMcpConnectionInput
-}
-
-export type McpConnectionUncheckedCreateWithoutExecutionLogsInput = {
-  mcpConnectionId?: string
-  organizationId: string
-  userId?: string | null
-  catalogItemId?: string | null
-  displayName: string
-  provider?: string
-  mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
-  status?: $Enums.McpConnectionStatus
-  setupUrl?: string | null
-  tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastSyncedAt?: Date | string | null
-  createdAt?: Date | string
-  updatedAt?: Date | string
-  agents?: Prisma.AgentMcpConnectionUncheckedCreateNestedManyWithoutMcpConnectionInput
-}
-
-export type McpConnectionCreateOrConnectWithoutExecutionLogsInput = {
-  where: Prisma.McpConnectionWhereUniqueInput
-  create: Prisma.XOR<Prisma.McpConnectionCreateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedCreateWithoutExecutionLogsInput>
-}
-
-export type McpConnectionUpsertWithoutExecutionLogsInput = {
-  update: Prisma.XOR<Prisma.McpConnectionUpdateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedUpdateWithoutExecutionLogsInput>
-  create: Prisma.XOR<Prisma.McpConnectionCreateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedCreateWithoutExecutionLogsInput>
-  where?: Prisma.McpConnectionWhereInput
-}
-
-export type McpConnectionUpdateToOneWithWhereWithoutExecutionLogsInput = {
-  where?: Prisma.McpConnectionWhereInput
-  data: Prisma.XOR<Prisma.McpConnectionUpdateWithoutExecutionLogsInput, Prisma.McpConnectionUncheckedUpdateWithoutExecutionLogsInput>
-}
-
-export type McpConnectionUpdateWithoutExecutionLogsInput = {
-  mcpConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
-  setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  organization?: Prisma.OrganizationUpdateOneRequiredWithoutMcpConnectionsNestedInput
-  user?: Prisma.UserUpdateOneWithoutMcpConnectionsNestedInput
-  catalogItem?: Prisma.McpServerCatalogItemUpdateOneWithoutConnectionsNestedInput
-  agents?: Prisma.AgentMcpConnectionUpdateManyWithoutMcpConnectionNestedInput
-}
-
-export type McpConnectionUncheckedUpdateWithoutExecutionLogsInput = {
-  mcpConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
-  organizationId?: Prisma.StringFieldUpdateOperationsInput | string
-  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  catalogItemId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  displayName?: Prisma.StringFieldUpdateOperationsInput | string
-  provider?: Prisma.StringFieldUpdateOperationsInput | string
-  mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
-  status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
-  setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  metadata?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
-  lastSyncedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  agents?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionCreateManyUserInput = {
@@ -1181,7 +1054,6 @@ export type McpConnectionUpdateWithoutUserInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMcpConnectionsNestedInput
   catalogItem?: Prisma.McpServerCatalogItemUpdateOneWithoutConnectionsNestedInput
   agents?: Prisma.AgentMcpConnectionUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateWithoutUserInput = {
@@ -1201,7 +1073,6 @@ export type McpConnectionUncheckedUpdateWithoutUserInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateManyWithoutUserInput = {
@@ -1257,7 +1128,6 @@ export type McpConnectionUpdateWithoutOrganizationInput = {
   user?: Prisma.UserUpdateOneWithoutMcpConnectionsNestedInput
   catalogItem?: Prisma.McpServerCatalogItemUpdateOneWithoutConnectionsNestedInput
   agents?: Prisma.AgentMcpConnectionUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateWithoutOrganizationInput = {
@@ -1277,7 +1147,6 @@ export type McpConnectionUncheckedUpdateWithoutOrganizationInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateManyWithoutOrganizationInput = {
@@ -1333,7 +1202,6 @@ export type McpConnectionUpdateWithoutCatalogItemInput = {
   organization?: Prisma.OrganizationUpdateOneRequiredWithoutMcpConnectionsNestedInput
   user?: Prisma.UserUpdateOneWithoutMcpConnectionsNestedInput
   agents?: Prisma.AgentMcpConnectionUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateWithoutCatalogItemInput = {
@@ -1353,7 +1221,6 @@ export type McpConnectionUncheckedUpdateWithoutCatalogItemInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   agents?: Prisma.AgentMcpConnectionUncheckedUpdateManyWithoutMcpConnectionNestedInput
-  executionLogs?: Prisma.McpToolExecutionLogUncheckedUpdateManyWithoutMcpConnectionNestedInput
 }
 
 export type McpConnectionUncheckedUpdateManyWithoutCatalogItemInput = {
@@ -1381,12 +1248,10 @@ export type McpConnectionUncheckedUpdateManyWithoutCatalogItemInput = {
 
 export type McpConnectionCountOutputType = {
   agents: number
-  executionLogs: number
 }
 
 export type McpConnectionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   agents?: boolean | McpConnectionCountOutputTypeCountAgentsArgs
-  executionLogs?: boolean | McpConnectionCountOutputTypeCountExecutionLogsArgs
 }
 
 /**
@@ -1404,13 +1269,6 @@ export type McpConnectionCountOutputTypeDefaultArgs<ExtArgs extends runtime.Type
  */
 export type McpConnectionCountOutputTypeCountAgentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.AgentMcpConnectionWhereInput
-}
-
-/**
- * McpConnectionCountOutputType without action
- */
-export type McpConnectionCountOutputTypeCountExecutionLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.McpToolExecutionLogWhereInput
 }
 
 
@@ -1435,7 +1293,6 @@ export type McpConnectionSelect<ExtArgs extends runtime.Types.Extensions.Interna
   user?: boolean | Prisma.McpConnection$userArgs<ExtArgs>
   catalogItem?: boolean | Prisma.McpConnection$catalogItemArgs<ExtArgs>
   agents?: boolean | Prisma.McpConnection$agentsArgs<ExtArgs>
-  executionLogs?: boolean | Prisma.McpConnection$executionLogsArgs<ExtArgs>
   _count?: boolean | Prisma.McpConnectionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["mcpConnection"]>
 
@@ -1508,7 +1365,6 @@ export type McpConnectionInclude<ExtArgs extends runtime.Types.Extensions.Intern
   user?: boolean | Prisma.McpConnection$userArgs<ExtArgs>
   catalogItem?: boolean | Prisma.McpConnection$catalogItemArgs<ExtArgs>
   agents?: boolean | Prisma.McpConnection$agentsArgs<ExtArgs>
-  executionLogs?: boolean | Prisma.McpConnection$executionLogsArgs<ExtArgs>
   _count?: boolean | Prisma.McpConnectionCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type McpConnectionIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1529,7 +1385,6 @@ export type $McpConnectionPayload<ExtArgs extends runtime.Types.Extensions.Inter
     user: Prisma.$UserPayload<ExtArgs> | null
     catalogItem: Prisma.$McpServerCatalogItemPayload<ExtArgs> | null
     agents: Prisma.$AgentMcpConnectionPayload<ExtArgs>[]
-    executionLogs: Prisma.$McpToolExecutionLogPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     mcpConnectionId: string
@@ -1946,7 +1801,6 @@ export interface Prisma__McpConnectionClient<T, Null = never, ExtArgs extends ru
   user<T extends Prisma.McpConnection$userArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.McpConnection$userArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   catalogItem<T extends Prisma.McpConnection$catalogItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.McpConnection$catalogItemArgs<ExtArgs>>): Prisma.Prisma__McpServerCatalogItemClient<runtime.Types.Result.GetResult<Prisma.$McpServerCatalogItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   agents<T extends Prisma.McpConnection$agentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.McpConnection$agentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AgentMcpConnectionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  executionLogs<T extends Prisma.McpConnection$executionLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.McpConnection$executionLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$McpToolExecutionLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2452,30 +2306,6 @@ export type McpConnection$agentsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.AgentMcpConnectionScalarFieldEnum | Prisma.AgentMcpConnectionScalarFieldEnum[]
-}
-
-/**
- * McpConnection.executionLogs
- */
-export type McpConnection$executionLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the McpToolExecutionLog
-   */
-  select?: Prisma.McpToolExecutionLogSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the McpToolExecutionLog
-   */
-  omit?: Prisma.McpToolExecutionLogOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.McpToolExecutionLogInclude<ExtArgs> | null
-  where?: Prisma.McpToolExecutionLogWhereInput
-  orderBy?: Prisma.McpToolExecutionLogOrderByWithRelationInput | Prisma.McpToolExecutionLogOrderByWithRelationInput[]
-  cursor?: Prisma.McpToolExecutionLogWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.McpToolExecutionLogScalarFieldEnum | Prisma.McpToolExecutionLogScalarFieldEnum[]
 }
 
 /**

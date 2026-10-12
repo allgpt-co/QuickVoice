@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/dialog";
-import { useAttachMcpConnection, useMcpConnections } from "@/src/hooks/queries/mcp";
+import { useAttachMcpConnection, useMcpConnections, useOpenMcpSetup, useRefreshMcpConnection } from "@/src/hooks/queries/mcp";
 import type { AgentMcpConnection } from "@/src/lib/api/types";
 
 export function McpPickerDialog({
@@ -26,6 +26,8 @@ export function McpPickerDialog({
 }) {
   const { data: connections = [], isLoading } = useMcpConnections();
   const attach = useAttachMcpConnection(agentId);
+  const refresh = useRefreshMcpConnection();
+  const openSetup = useOpenMcpSetup();
   const attachedIds = new Set(attachedConnections.map((item) => item.mcpConnectionId));
   const available = connections.filter((connection) => !attachedIds.has(connection.mcpConnectionId));
 
@@ -63,12 +65,14 @@ export function McpPickerDialog({
                   <p className="mt-0.5 truncate text-xs text-muted-foreground" title={connection.mcpUrl}>
                     {(connection.tools?.length ?? 0)} tools · {connection.mcpUrl}
                   </p>
+                  {typeof connection.metadata?.lastSyncError === "string" && (
+                    <p className="mt-1 text-xs text-destructive" role="status">{connection.metadata.lastSyncError}</p>
+                  )}
                 </div>
-                <Button
+                {connection.status === "CONNECTED" ? <Button
                   size="sm"
-                  variant={connection.status === "CONNECTED" ? "default" : "outline"}
                   className="col-span-2 w-full sm:col-span-1 sm:w-auto"
-                  disabled={connection.status !== "CONNECTED" || attach.isPending}
+                  disabled={attach.isPending}
                   onClick={() =>
                     attach.mutate(connection.mcpConnectionId, {
                       onSuccess: () => onOpenChange(false),
@@ -81,7 +85,22 @@ export function McpPickerDialog({
                     <PlugZap className="size-4" />
                   )}
                   Attach
-                </Button>
+                </Button> : <Button
+                  size="sm"
+                  variant="outline"
+                  className="col-span-2 w-full sm:col-span-1 sm:w-auto"
+                  disabled={refresh.isPending && refresh.variables === connection.mcpConnectionId}
+                  onClick={() => connection.setupUrl
+                    ? openSetup(connection.setupUrl, connection.mcpConnectionId)
+                    : refresh.mutate(connection.mcpConnectionId, {
+                        onSuccess: (updated) => {
+                          if (updated.setupUrl) openSetup(updated.setupUrl, updated.mcpConnectionId);
+                        },
+                      })}
+                >
+                  {refresh.isPending && refresh.variables === connection.mcpConnectionId && <Loader2 className="size-4 animate-spin" />}
+                  {connection.setupUrl ? "Complete setup" : "Retry setup"}
+                </Button>}
               </div>
             ))
           )}

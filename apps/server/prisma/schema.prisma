@@ -1317,7 +1317,6 @@ model McpConnection {
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   agents               AgentMcpConnection[]
-  executionLogs        McpToolExecutionLog[]
 
   @@unique([organizationId, smitheryConnectionId])
   @@index([organizationId])
@@ -1349,7 +1348,6 @@ model McpToolExecutionLog {
   agentId               String?
   agent                 Agent?        @relation(fields: [agentId], references: [agentId], onDelete: SetNull)
   mcpConnectionId       String
-  mcpConnection         McpConnection @relation(fields: [mcpConnectionId], references: [mcpConnectionId], onDelete: Cascade)
   toolName              String
   callId                String?
   status                String

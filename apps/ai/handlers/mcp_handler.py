@@ -1,6 +1,7 @@
 import asyncio
 import json
 import os
+import re
 import time
 from typing import Any
 from urllib.parse import quote
@@ -10,6 +11,8 @@ from utils.metrics import emit_metric
 
 MAX_ARGUMENTS_JSON_BYTES = 8192
 MAX_TOOL_OUTPUT_CHARS = 4000
+MAX_SERVER_RESPONSE_BYTES = 1_048_576
+SAFE_TOOL_NAME = re.compile(r"[A-Za-z0-9._-]{1,128}\Z")
 
 
 def build_mcp_tool_instructions(connections: list[dict[str, Any]]) -> str:
@@ -17,14 +20,21 @@ def build_mcp_tool_instructions(connections: list[dict[str, Any]]) -> str:
     for connection in connections or []:
         if connection.get("status") != "CONNECTED":
             continue
-        tools = [tool for tool in connection.get("tools") or [] if not _tool_requires_confirmation(tool)]
+        tools = [
+            tool for tool in connection.get("tools") or []
+            if isinstance(tool, dict)
+            and isinstance(tool.get("name"), str)
+            and SAFE_TOOL_NAME.fullmatch(tool["name"])
+            and not _tool_requires_confirmation(tool)
+        ]
         if not tools:
             continue
         connection_id = connection.get("mcpConnectionId")
-        display_name = connection.get("displayName") or "MCP connection"
-        tool_names = ", ".join(str(tool.get("name")) for tool in tools if tool.get("name"))
+        tool_names = ", ".join(json.dumps(tool["name"]) for tool in tools)
         if connection_id and tool_names:
-            lines.append(f"- {display_name} connection_id={connection_id}; tools: {tool_names}")
+            lines.append(
+                f"- connection_id={json.dumps(str(connection_id))}; tools: {tool_names}"
+            )
 
     if not lines:
         return ""
@@ -122,7 +132,11 @@ def _resolve_allowed_tool(
         if str(connection.get("mcpConnectionId") or "") != str(connection_id):
             continue
         for tool in connection.get("tools") or []:
-            if str(tool.get("name") or "") == str(tool_name):
+            if (
+                isinstance(tool, dict)
+                and SAFE_TOOL_NAME.fullmatch(str(tool.get("name") or ""))
+                and str(tool.get("name") or "") == str(tool_name)
+            ):
                 return tool
         raise PermissionError("MCP tool is not allowlisted for this agent")
     raise PermissionError("MCP connection is not allowlisted for this agent")
@@ -156,4 +170,7 @@ def _post_json(url: str, headers: dict[str, str], payload: dict[str, Any]):
     body = json.dumps(payload).encode("utf-8")
     request = Request(url, data=body, headers=headers, method="POST")
     with urlopen(request, timeout=30) as response:
-        return json.loads(response.read().decode("utf-8"))
+        body = response.read(MAX_SERVER_RESPONSE_BYTES + 1)
+        if len(body) > MAX_SERVER_RESPONSE_BYTES:
+            raise ValueError("MCP response is too large")
+        return json.loads(body.decode("utf-8"))

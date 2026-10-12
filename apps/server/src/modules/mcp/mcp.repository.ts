@@ -162,6 +162,7 @@ export const upsertConnection = (data: {
       catalogItemId: data.catalogItemId,
       displayName: data.displayName,
       mcpUrl: data.mcpUrl,
+      smitheryNamespace: data.smitheryNamespace,
       status: data.status,
       setupUrl: data.setupUrl,
       tools: jsonOrNull(data.tools ?? []),

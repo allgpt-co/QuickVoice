@@ -8,7 +8,8 @@ const objectValue = (value: unknown): McpTool =>
 export const normalizeMcpTools = (value: unknown): McpTool[] =>
   (Array.isArray(value) ? value : []).flatMap((candidate) => {
     const tool = objectValue(candidate);
-    if (typeof tool.name !== "string" || !tool.name.trim()) return [];
+    // Tool names enter an agent prompt and an API path; reject control characters.
+    if (typeof tool.name !== "string" || !/^[A-Za-z0-9._-]{1,128}$/.test(tool.name)) return [];
     return [{
       name: tool.name,
       description:

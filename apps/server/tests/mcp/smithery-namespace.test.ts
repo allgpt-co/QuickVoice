@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { BadRequestError } from "../../src/common/errors/badRequest.js";
-import { resolveSmitheryNamespace } from "../../src/modules/mcp/smithery-namespace.js";
+import { readSmitheryJson, resolveSmitheryNamespace } from "../../src/modules/mcp/smithery-namespace.js";
+
+test("rejects oversized provider JSON before parsing", async () => {
+  const response = new Response(JSON.stringify({ data: "x".repeat(1_048_576) }));
+  await assert.rejects(readSmitheryJson(response), /response is too large/);
+});
 
 const jsonResponse = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {

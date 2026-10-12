@@ -6,7 +6,7 @@ import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
 import { redactJson } from "../../lib/redaction.js";
 import { findCuratedMcp, curatedMcpCatalog } from "./mcp.catalog.js";
 import * as repository from "./mcp.repository.js";
-import { resolveSmitheryNamespace } from "./smithery-namespace.js";
+import { readSmitheryJson, resolveSmitheryNamespace } from "./smithery-namespace.js";
 import {
   findMcpTool,
   mcpToolRequiresConfirmation,
@@ -169,11 +169,15 @@ const callSmitheryTool = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify(args),
+      signal: AbortSignal.timeout(20_000),
     }
   );
-  const result = await response.json().catch(() => ({}));
+  const result = await readSmitheryJson(response);
   if (!response.ok) {
-    throw new Error(result?.message || "MCP tool execution failed");
+    if (isInsufficientGoogleScope(result)) {
+      throw new Error("Google Drive access was not granted during OAuth setup.");
+    }
+    throw new Error("MCP tool execution failed at the provider");
   }
   return result;
 };
@@ -215,9 +219,10 @@ const upsertSmitheryConnection = async (args: {
         userId: args.userId,
       },
     }),
+    signal: AbortSignal.timeout(10_000),
   });
 
-  const body = await response.json().catch(() => ({}));
+  const body = await readSmitheryJson(response);
   if (!response.ok) {
     const message = String(body?.message ?? "");
     if (
@@ -228,11 +233,7 @@ const upsertSmitheryConnection = async (args: {
         "MCP connections are not configured correctly. Ask an administrator to verify the Smithery API key."
       );
     }
-    throw new BadRequestError(
-      message
-        ? `Could not connect to the MCP endpoint: ${message}`
-        : "Could not connect to the MCP endpoint. Confirm that it is the full public HTTPS MCP URL."
-    );
+    throw new BadRequestError("Could not connect to the MCP endpoint. Check its URL and provider setup.");
   }
   return body;
 };
@@ -246,11 +247,11 @@ export const disconnectSmitheryConnection = async (
   const response = await fetch(connectionApiUrl(namespace, connectionId), {
     method: "DELETE",
     headers: { Authorization: `Bearer ${key}` },
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!response.ok && response.status !== 404) {
-    const body = await response.json().catch(() => ({}));
-    throw new BadRequestError(body?.message || "Could not disconnect Smithery connection");
+    throw new BadRequestError("Could not disconnect Smithery connection");
   }
 };
 
@@ -262,11 +263,11 @@ const syncTools = async (namespace: string, connectionId: string) => {
       signal: AbortSignal.timeout(10_000),
     }
   );
-  const result = await response.json().catch(() => ({}));
+  const result = await readSmitheryJson(response);
   if (!response.ok) {
-    throw new BadRequestError(result?.message || "Could not list MCP tools");
+    throw new BadRequestError("Could not list MCP tools");
   }
-
+  if (!Array.isArray(result.tools)) throw new BadRequestError("MCP provider returned an invalid tool list");
   return normalizeMcpTools(result.tools);
 };
 
@@ -381,6 +382,22 @@ export const connect = async (
     preferredNamespace: SMITHERY_NAMESPACE,
   });
 
+  // Persist the handle before creating the remote OAuth connection so a later
+  // database failure never leaves an undiscoverable grant at Smithery.
+  const pending = await repository.upsertConnection({
+    organizationId,
+    userId,
+    catalogItemId: dbCatalogItem?.mcpServerId ?? null,
+    displayName,
+    mcpUrl,
+    smitheryNamespace,
+    smitheryConnectionId,
+    status: "PENDING",
+    tools: [],
+    metadata: { source: catalogItem ? "curated" : "custom", catalogSlug: catalogItem?.slug ?? null },
+    lastSyncedAt: null,
+  });
+
   const smithery = await upsertSmitheryConnection({
     namespace: smitheryNamespace,
     connectionId: smitheryConnectionId,
@@ -388,6 +405,12 @@ export const connect = async (
     mcpUrl,
     organizationId,
     userId,
+  }).catch(async (error) => {
+    await repository.updateConnectionStatus(organizationId, pending.mcpConnectionId, {
+      status: "ERROR",
+      metadata: { lastSyncError: "Could not create MCP connection at the provider" },
+    });
+    throw error;
   });
 
   // Persist a custom catalog row only after the remote connection has been
@@ -422,25 +445,34 @@ export const connect = async (
   };
 
   if (status === "CONNECTED") {
-    tools = await syncTools(smitheryNamespace, smitheryConnectionId).catch(() => []);
-    if (isGoogleDriveMcp(mcpUrl)) {
-      const scopeCheck = await checkGoogleDriveScopes(smitheryNamespace, smitheryConnectionId).catch((err) => ({
+    try {
+      tools = await syncTools(smitheryNamespace, smitheryConnectionId);
+    } catch {
+      status = "ERROR";
+      metadata.lastSyncError = "Could not sync MCP tools";
+    }
+    if (status === "CONNECTED" && isGoogleDriveMcp(mcpUrl)) {
+      const scopeCheck = await checkGoogleDriveScopes(smitheryNamespace, smitheryConnectionId).catch(() => ({
         ok: false,
-        error: err instanceof Error ? err.message : "Could not verify Google Drive access",
+        error: "Could not verify Google Drive access",
       }));
       metadata.lastScopeCheckAt = new Date().toISOString();
       metadata.lastProviderMethod = "google.apps.drive.v3.DriveFiles.List";
       if (!scopeCheck.ok) {
-        status = "AUTH_REQUIRED";
-        setupUrl = setupUrl ?? smitherySetupUrl(smitheryNamespace, smitheryConnectionId);
-        metadata.scopeIssue = "missing_google_drive_scope";
+        status = scopeCheck.error === "Google Drive access was not granted during OAuth setup." ? "AUTH_REQUIRED" : "ERROR";
+        if (status === "AUTH_REQUIRED") {
+          setupUrl = setupUrl ?? smitherySetupUrl(smitheryNamespace, smitheryConnectionId);
+          metadata.scopeIssue = "missing_google_drive_scope";
+        } else {
+          metadata.lastSyncError = scopeCheck.error;
+        }
         metadata.lastScopeError = scopeCheck.error;
       } else {
         metadata.scopeIssue = null;
         metadata.lastScopeError = null;
         lastSyncedAt = new Date();
       }
-    } else {
+    } else if (status === "CONNECTED") {
       lastSyncedAt = new Date();
     }
   }
@@ -471,29 +503,33 @@ export const refreshConnection = async (organizationId: string, mcpConnectionId:
   let setupUrl: string | null = null;
   let smitheryStatus: unknown = null;
   const metadata = metadataObject(connection.metadata);
+  metadata.scopeIssue = null;
+  metadata.lastScopeError = null;
 
   try {
     tools = await syncTools(connection.smitheryNamespace, connection.smitheryConnectionId);
     if (isGoogleDriveMcp(connection.mcpUrl)) {
-      const scopeCheck = await checkGoogleDriveScopes(connection.smitheryNamespace, connection.smitheryConnectionId).catch((err) => ({
+      const scopeCheck = await checkGoogleDriveScopes(connection.smitheryNamespace, connection.smitheryConnectionId).catch(() => ({
         ok: false,
-        error: err instanceof Error ? err.message : "Could not verify Google Drive access",
+        error: "Could not verify Google Drive access",
       }));
       metadata.lastScopeCheckAt = new Date().toISOString();
       metadata.lastProviderMethod = "google.apps.drive.v3.DriveFiles.List";
       if (!scopeCheck.ok) {
-        status = "AUTH_REQUIRED";
+        status = scopeCheck.error === "Google Drive access was not granted during OAuth setup." ? "AUTH_REQUIRED" : "ERROR";
         error = scopeCheck.error;
-        setupUrl = connection.setupUrl ?? smitherySetupUrl(connection.smitheryNamespace, connection.smitheryConnectionId);
-        metadata.scopeIssue = "missing_google_drive_scope";
+        if (status === "AUTH_REQUIRED") {
+          setupUrl = connection.setupUrl ?? smitherySetupUrl(connection.smitheryNamespace, connection.smitheryConnectionId);
+          metadata.scopeIssue = "missing_google_drive_scope";
+        }
         metadata.lastScopeError = scopeCheck.error;
       } else {
         metadata.scopeIssue = null;
         metadata.lastScopeError = null;
       }
     }
-  } catch (err) {
-    error = err instanceof Error ? err.message : "Could not sync MCP tools";
+  } catch {
+    error = "Could not sync MCP tools";
     try {
       const smithery = await upsertSmitheryConnection({
         namespace: connection.smitheryNamespace,
@@ -505,6 +541,7 @@ export const refreshConnection = async (organizationId: string, mcpConnectionId:
       });
       smitheryStatus = smithery?.status ?? null;
       status = normalizeStatus(smitheryState(smithery));
+      if (status === "CONNECTED") status = "ERROR";
       setupUrl = smitheryAuthorizationUrl(smithery) ?? connection.setupUrl;
       if (!setupUrl && ["AUTH_REQUIRED", "INPUT_REQUIRED"].includes(status)) {
         setupUrl = smitherySetupUrl(
@@ -632,7 +669,9 @@ export const executeTool = async (
     });
     return result;
   } catch (err) {
-    const message = err instanceof Error ? err.message : "MCP tool execution failed";
+    const message = isInsufficientGoogleScope(err instanceof Error ? err.message : "")
+      ? "Google Drive access was not granted during OAuth setup."
+      : "MCP tool execution failed at the provider";
     if (isGoogleDriveMcp(connection.mcpUrl) && (isInsufficientGoogleScope(message) || message.includes("Google Drive access"))) {
       await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
         status: "AUTH_REQUIRED",

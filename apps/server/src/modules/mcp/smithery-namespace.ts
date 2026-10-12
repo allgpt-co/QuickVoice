@@ -17,9 +17,32 @@ const namespacePattern = /^[a-z0-9](?:[a-z0-9-]{1,37}[a-z0-9])?$/;
 const apiUrl = (baseUrl: string, path: string) =>
   `${baseUrl.replace(/\/$/, "")}${path}`;
 
-const responseMessage = async (response: Response) => {
-  const body = await response.json().catch(() => ({}));
-  return typeof body?.message === "string" ? body.message : "";
+export const readSmitheryJson = async (response: Response): Promise<Record<string, any>> => {
+  if (!response.body) throw new BadRequestError("MCP provider returned an empty response");
+  const reader = response.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      length += value.byteLength;
+      if (length > 1_048_576) {
+        await reader.cancel();
+        throw new BadRequestError("MCP provider response is too large");
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  try {
+    const result = JSON.parse(new TextDecoder().decode(Buffer.concat(chunks)));
+    if (!result || typeof result !== "object" || Array.isArray(result)) throw new Error("Invalid JSON");
+    return result;
+  } catch {
+    throw new BadRequestError("MCP provider returned invalid JSON");
+  }
 };
 
 const configurationError = () =>
@@ -43,13 +66,14 @@ export async function resolveSmitheryNamespace({
   const authorization = { Authorization: `Bearer ${apiKey}` };
   const listResponse = await fetcher(apiUrl(apiBaseUrl, "/namespaces"), {
     headers: authorization,
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!listResponse.ok) {
     throw configurationError();
   }
 
-  const listBody = await listResponse.json().catch(() => ({}));
+  const listBody = await readSmitheryJson(listResponse);
   const namespaces = Array.isArray(listBody?.namespaces)
     ? listBody.namespaces
         .map((item: unknown) =>
@@ -74,6 +98,7 @@ export async function resolveSmitheryNamespace({
       {
         method: "PUT",
         headers: authorization,
+        signal: AbortSignal.timeout(10_000),
       }
     );
     if (createPreferredResponse.ok) {
@@ -83,8 +108,7 @@ export async function resolveSmitheryNamespace({
     // A configured name may already be owned by another Smithery account.
     // In that case, let Smithery generate a namespace for this API key.
     if (![409, 422].includes(createPreferredResponse.status)) {
-      const message = await responseMessage(createPreferredResponse);
-      if (/credential|token|unauthor|forbidden/i.test(message)) {
+      if ([401, 403].includes(createPreferredResponse.status)) {
         throw configurationError();
       }
     }
@@ -93,12 +117,13 @@ export async function resolveSmitheryNamespace({
   const createResponse = await fetcher(apiUrl(apiBaseUrl, "/namespaces"), {
     method: "POST",
     headers: authorization,
+    signal: AbortSignal.timeout(10_000),
   });
   if (!createResponse.ok) {
     throw configurationError();
   }
 
-  const createBody = await createResponse.json().catch(() => ({}));
+  const createBody = await readSmitheryJson(createResponse);
   const createdName =
     typeof createBody?.name === "string"
       ? createBody.name

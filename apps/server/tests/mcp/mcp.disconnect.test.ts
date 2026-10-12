@@ -25,10 +25,10 @@ test("Smithery disconnect sends an authenticated DELETE", async (t) => {
     fetch.mock.calls[0]?.arguments[0],
     "https://api.smithery.ai/connect/quickvoice-prod/org-123-gmail",
   );
-  assert.deepEqual(fetch.mock.calls[0]?.arguments[1], {
-    method: "DELETE",
-    headers: { Authorization: "Bearer test-smithery-key" },
-  });
+  const options = fetch.mock.calls[0]?.arguments[1] as RequestInit;
+  assert.equal(options.method, "DELETE");
+  assert.deepEqual(options.headers, { Authorization: "Bearer test-smithery-key" });
+  assert.ok(options.signal);
 });
 
 test("Smithery disconnect treats an already-missing connection as success", async (t) => {
@@ -56,6 +56,6 @@ test("Smithery disconnect does not discard the local retry handle on rejection",
 
   await assert.rejects(
     disconnectSmitheryConnection("quickvoice-prod", "org-123-gmail"),
-    /Method not allowed/,
+    /Could not disconnect Smithery connection/,
   );
 });

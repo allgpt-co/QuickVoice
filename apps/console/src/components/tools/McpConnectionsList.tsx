@@ -82,6 +82,9 @@ export function McpConnectionsList() {
                   {(connection.tools?.length ?? 0)} tools synced
                   {connection.lastSyncedAt ? ` - Last synced ${new Date(connection.lastSyncedAt).toLocaleString()}` : ""}
                 </p>
+                {typeof connection.metadata?.lastSyncError === "string" && (
+                  <p className="mt-2 text-xs text-destructive" role="status">{connection.metadata.lastSyncError}</p>
+                )}
                 {missingGoogleDriveScope && (
                   <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
                     On the Google consent screen, check Google Drive access before continuing.
