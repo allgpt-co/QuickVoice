@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from handlers.calllog_handler import build_call_log_payload, post_call_log_with_retry
+from handlers.langfuse_handler import send_call_trace
 from utils.logger import logger, redact_sensitive
 
 
@@ -50,5 +51,19 @@ class CallFinalizer:
                 payload["evaluatedData"] = []
             if self._config.get("retention_days") is not None:
                 payload["metadata"]["retentionDays"] = self._config.get("retention_days")
+
             await self._post_call_log(payload)
             logger.info("[CALL_LOG] finalized call {}", redact_sensitive({"callId": payload["callId"]}))
+
+            # Send the call trace to Langfuse for observability and evaluation.
+            # This runs after the call log is posted and is completely non-blocking.
+            send_call_trace(
+                call_id=payload.get("callId", "unknown"),
+                agent_id=payload.get("agentId") or self._call_context.get("agent_id"),
+                organization_id=payload.get("organizationId"),
+                started_at=self._started_at,
+                ended_at=ended_at,
+                transcripts=payload.get("transcripts", []),
+                config=self._config,
+                call_context=self._call_context,
+            )
