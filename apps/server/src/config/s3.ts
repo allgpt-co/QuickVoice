@@ -88,9 +88,14 @@ function getBucket(): string {
  */
 export const generateDownloadUrl = async (
   key: string,
-  expiresIn = 3600
+  expiresIn = 3600,
+  fileName?: string
 ): Promise<string> => {
-  const command = new GetObjectCommand({ Bucket: getBucket(), Key: key });
+  const command = new GetObjectCommand({
+    Bucket: getBucket(),
+    Key: key,
+    ...(fileName ? { ResponseContentDisposition: `attachment; filename="${fileName}"` } : {}),
+  });
   return getSignedUrl(s3, command, { expiresIn });
 };
 

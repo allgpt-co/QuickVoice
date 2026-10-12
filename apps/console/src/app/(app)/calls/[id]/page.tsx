@@ -144,7 +144,7 @@ export default function CallDetailPage() {
  {call ? (
  <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
  <div className="space-y-6">
- <AudioPlayer src={call.audioRecordingPath} />
+ <AudioPlayer src={call.audioRecordingPath} callId={call.callId} />
  <div className="border bg-card p-5">
  <h2 className="mb-4 text-sm font-semibold">Transcript</h2>
  <Transcript callId={call.callId} />

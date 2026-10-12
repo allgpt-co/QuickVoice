@@ -18,18 +18,19 @@ vm.runInNewContext(compiled, {
   module: moduleValue,
   require: (id) => id.endsWith("/ui/button")
     ? { Button: ({ asChild, children, ...props }) => asChild ? children : React.createElement("button", props, children) }
-    : require(id),
+    : id.endsWith("/api/resources/calls") ? { callsApi: {} } : require(id),
 });
 
 test("recordings expose accessible seeking, skip, replay, and download controls", () => {
-  const html = renderToStaticMarkup(React.createElement(moduleValue.exports.AudioPlayer, { src: "/recording.wav" }));
+  const html = renderToStaticMarkup(React.createElement(moduleValue.exports.AudioPlayer, { src: "/recording.wav", callId: "call-1" }));
   for (const label of ["Recording position", "Back 10 seconds", "Play recording", "Forward 10 seconds", "Replay recording"]) {
     assert.ok(html.includes(`aria-label="${label}"`), label);
   }
   assert.match(html, /type="range"/);
-  assert.match(html, /href="\/recording.wav"/);
+  assert.match(html, /<button[^>]*>.*Download<\/button>/s);
+  assert.doesNotMatch(html, /href="\/recording.wav"/);
 
-  const empty = renderToStaticMarkup(React.createElement(moduleValue.exports.AudioPlayer, { src: null }));
+  const empty = renderToStaticMarkup(React.createElement(moduleValue.exports.AudioPlayer, { src: null, callId: "call-1" }));
   assert.match(empty, /No recording available/);
   assert.doesNotMatch(empty, /type="range"|Replay recording/);
 });

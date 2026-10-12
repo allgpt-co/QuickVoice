@@ -62,6 +62,13 @@ router.get(
 );
 
 router.get(
+  "/:callId/recording/download-url",
+  authMiddleware,
+  requirePermission({ callLogs: ["read"] }),
+  calllogController.getCallRecordingDownloadUrl
+);
+
+router.get(
   "/:callId/transcripts",
   authMiddleware,
   requirePermission({ callLogs: ["read"] }),

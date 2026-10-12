@@ -87,6 +87,19 @@ export const getCallLog = async (organizationId: string, callId: string) => {
   return signCallRecordingUrl(row);
 };
 
+export const getCallRecordingDownloadUrl = async (
+  organizationId: string,
+  callId: string,
+  signer: typeof generateDownloadUrl = generateDownloadUrl,
+) => {
+  const call = await calllogRepository.getCallByIdForOrg(callId, organizationId);
+  if (!call?.audioRecordingPath || isHttpUrl(call.audioRecordingPath)) {
+    throw new NotFoundError("Recording not available for download");
+  }
+  const fileName = `recording-${callId.replace(/[^a-zA-Z0-9_-]/g, "_")}.ogg`;
+  return signer(call.audioRecordingPath, 3600, fileName);
+};
+
 export const getTranscripts = async (args: ListTranscriptsArgs) => {
   const rows = await calllogRepository.getTranscriptsByCallId(args);
   const hasMore = rows.length > args.limit;
