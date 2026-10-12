@@ -279,78 +279,59 @@ export async function importRateBook(
     throw new PricingUnavailableError("Cannot import an expired rate book");
   const hash = createHash("sha256").update(JSON.stringify(book)).digest("hex");
   const { routes, ...settings } = book;
-  return db.$transaction(
-    async (tx) => {
-      const existing = await tx.billingRateCatalog.findUnique({
-        where: { version: book.catalog.catalogVersion },
-      });
-      if (existing) {
-        if (existing.contentHash !== hash)
-          throw new Error("Rate versions are immutable; import a new version");
+  try {
+    return await db.$transaction(
+      async (tx) => {
+        const existing = await tx.billingRateCatalog.findUnique({
+          where: { version: book.catalog.catalogVersion },
+        });
+        if (existing) {
+          if (existing.contentHash !== hash)
+            throw new Error("Rate versions are immutable; import a new version");
+          return {
+            version: existing.version,
+            imported: false,
+            routes: routes.length,
+          };
+        }
+        await tx.billingRateCatalog.create({
+          data: {
+            version: book.catalog.catalogVersion,
+            effectiveAt: new Date(book.catalog.effectiveAt),
+            expiresAt: new Date(book.expiresAt),
+            contentHash: hash,
+            settings,
+          },
+        });
+        // Bound SQL parameter counts for worldwide prefix decks.
+        for (let i = 0; i < routes.length; i += 1000) {
+          await tx.telephonyRate.createMany({
+            data: routes.slice(i, i + 1000).map((rate) => ({
+              catalogVersion: book.catalog.catalogVersion,
+              provider: rate.provider,
+              direction: rate.direction,
+              originPrefix: rate.originPrefix,
+              destinationPrefix: rate.destinationPrefix,
+              rate,
+            })),
+          });
+        }
         return {
-          version: existing.version,
-          imported: false,
+          version: book.catalog.catalogVersion,
+          imported: true,
           routes: routes.length,
         };
-      }
-      await tx.billingRateCatalog.create({
-        data: {
-          version: book.catalog.catalogVersion,
-          effectiveAt: new Date(book.catalog.effectiveAt),
-          expiresAt: new Date(book.expiresAt),
-          contentHash: hash,
-          settings,
-        },
-      });
-      // Bound SQL parameter counts for worldwide prefix decks.
-      for (let i = 0; i < routes.length; i += 1000) {
-        await tx.telephonyRate.createMany({
-          data: routes.slice(i, i + 1000).map((rate) => ({
-            catalogVersion: book.catalog.catalogVersion,
-            provider: rate.provider,
-            direction: rate.direction,
-            originPrefix: rate.originPrefix,
-            destinationPrefix: rate.destinationPrefix,
-            rate,
-          })),
-        });
-      }
-      return {
-        version: book.catalog.catalogVersion,
-        imported: true,
-        routes: routes.length,
-      };
-    },
-    { timeout: 60_000 },
-  );
-}
-
-export async function refreshRateBook() {
-  const endpoint = process.env.BILLING_RATE_BOOK_URL;
-  if (!endpoint) return { skipped: true };
-  const url = new URL(endpoint);
-  if (url.protocol !== "https:" || url.username || url.password)
-    throw new Error("Rate book URL must use HTTPS without credentials");
-  const response = await fetch(url, {
-    redirect: "error",
-    signal: AbortSignal.timeout(30_000),
-  });
-  if (!response.ok)
-    throw new Error(`Rate book download failed: HTTP ${response.status}`);
-  const reader = response.body?.getReader();
-  if (!reader) throw new Error("Empty rate book response");
-  const chunks: Uint8Array[] = [];
-  let bytes = 0;
-  try {
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      bytes += value.byteLength;
-      if (bytes > 128 * 1024 * 1024) throw new Error("Rate book exceeds 128 MiB");
-      chunks.push(value);
-    }
-  } finally {
-    await reader.cancel();
+      },
+      { timeout: 60_000 },
+    );
+  } catch (error) {
+    // Two operators (or a retried scheduler run) can both see the version as
+    // absent before one commits. A matching committed version is idempotent.
+    if ((error as { code?: unknown }).code !== "P2002") throw error;
+    const existing = await db.billingRateCatalog.findUnique({
+      where: { version: book.catalog.catalogVersion },
+    });
+    if (!existing || existing.contentHash !== hash) throw error;
+    return { version: existing.version, imported: false, routes: routes.length };
   }
-  return importRateBook(JSON.parse(Buffer.concat(chunks).toString("utf8")));
 }

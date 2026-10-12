@@ -8,11 +8,11 @@ import { reconcileTelephonyCosts } from "../modules/billing/telephony-reconcilia
 import { reconcilePendingStripeTopUps } from "../modules/billing/stripe-wallet.service.js";
 import { runPhoneNumberBilling } from "../modules/numbers/number-billing.service.js";
 import { recoverStaleNumberPurchases } from "../modules/numbers/number-purchase-maintenance.service.js";
-import { refreshRateBook } from "../modules/billing/database-rate-catalog.service.js";
+import { refreshMonthlyRateBook } from "../modules/billing/monthly-rate-book.service.js";
 
 export const refreshBillingRates: InngestFunction.Any = inngest.createFunction(
-  { id: "refresh-billing-rates", retries: 2, concurrency: 1, triggers: { cron: "TZ=UTC 0 2 * * *" } },
-  async ({ step }) => step.run("import-validated-rate-book", () => refreshRateBook()),
+  { id: "refresh-billing-rates", retries: 2, concurrency: 1, triggers: { cron: "TZ=UTC 0 2 1 * *" } },
+  async ({ step }) => step.run("import-validated-rate-book", () => refreshMonthlyRateBook()),
 );
 
 export const expireBillingReservations: InngestFunction.Any =

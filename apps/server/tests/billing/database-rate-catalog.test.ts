@@ -15,6 +15,7 @@ import {
   usdRateMicros,
   voiceCountryRates,
 } from "../../src/modules/billing/rate-book.cli.js";
+import { buildMonthlyRateBook } from "../../src/modules/billing/monthly-rate-book.service.js";
 import {
   calculateCallTelephonyMicros,
   calculateLivekitChargeMicros,
@@ -162,6 +163,45 @@ test("regular Deepgram template reuses the shared regular catalog and omits VPS 
   );
   assert.ok(!current.livekit.phone.some((r) => r.meter === "agent-hosting"));
   assert.throws(() => regularRateBookTemplate("unknown", "vps", now));
+  assert.equal(regularRateBookTemplate("ship", "vps", now).expiresAt, "2026-10-08T00:00:00.000Z");
+});
+
+test("monthly SIP renewal prices owned numbers from current CSV and preserves verified legacy types", () => {
+  const renewed = buildMonthlyRateBook({
+    account: route.account,
+    plan: "self-hosted",
+    workerHosting: "vps",
+    outboundCsv: "ISO,Country,Origination Prefixes,Destination Prefixes,Description,Price / min\nIN,India,,91946,India mobile,0.04560\n",
+    inboundCsv: "ISO,Phone Number Type,Inbound Trunking Price / min\nUS,Local,0.00340\nUS,Toll Free,0.01300\n",
+    numbers: [
+      { number: "+13022079009", billingCountryIso: "US", billingNumberType: "local" },
+      { number: "+18005550100", billingCountryIso: null, billingNumberType: null },
+    ],
+    previousInbound: [{ ...route, direction: "inbound", destinationPrefix: "+18005550100", description: "US Toll Free SIP inbound" }],
+    now,
+  });
+  assert.equal(renewed.expiresAt, "2026-10-08T00:00:00.000Z");
+  assert.equal(renewed.routes.length, 3);
+  assert.equal(renewed.routes.find((r) => r.destinationPrefix === "+13022079009")?.baseMicrosPerMinute, "3400");
+  assert.equal(renewed.routes.find((r) => r.destinationPrefix === "+18005550100")?.baseMicrosPerMinute, "13000");
+  assert.throws(() => buildMonthlyRateBook({
+    account: route.account, plan: "self-hosted", workerHosting: "vps",
+    outboundCsv: "ISO,Country,Origination Prefixes,Destination Prefixes,Description,Price / min\nIN,India,,91946,India mobile,0.04560\n",
+    inboundCsv: "ISO,Phone Number Type,Inbound Trunking Price / min\nUS,Local,0.00340\n",
+    numbers: [{ number: "+18005550100", billingCountryIso: null, billingNumberType: null }],
+    previousInbound: [], now,
+  }), /Verified inbound SIP price is missing/);
+});
+
+test("concurrent import of the same version returns the committed book", async () => {
+  const memory = store();
+  (memory.db as any).billingRateCatalog.create = async ({ data }: any) => {
+    memory.books.set(data.version, data);
+    throw Object.assign(new Error("competing import committed"), { code: "P2002" });
+  };
+  assert.deepEqual(await importRateBook(book(), memory.db, now), {
+    version: book().catalog.catalogVersion, imported: false, routes: 1,
+  });
 });
 
 test("destination then origin specificity handles toll-free and ROW without cheaper country fallback", () => {
@@ -266,7 +306,7 @@ test("import is immutable and repeatable; lookups reject wrong account, expired 
     /No rate/,
   );
   await assert.rejects(
-    resolveDatabaseCallCatalog(request, new Date("2026-10-02"), memory.db),
+    resolveDatabaseCallCatalog(request, new Date("2026-10-09"), memory.db),
     /expired/,
   );
   assert.equal(Object.isFrozen(catalog), true);

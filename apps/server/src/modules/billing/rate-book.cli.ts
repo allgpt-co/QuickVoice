@@ -46,7 +46,8 @@ export function regularRateBookTemplate(
     workerHosting === "livekit-cloud" ? [timed("agent-hosting", "10000")] : [];
   return {
     catalog,
-    expiresAt: new Date(now.getTime() + 48 * 3600_000).toISOString(),
+    // Monthly publication runs on the 1st; allow a week to repair a failed run.
+    expiresAt: new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 8)).toISOString(),
     source: "https://deepgram.com/pricing",
     telephony: {},
     routes: [],
@@ -208,6 +209,8 @@ async function main() {
   };
   if (command === "template")
     return regularRateBookTemplate(args[0]!, args[1]!);
+  if (command === "refresh-monthly")
+    return (await import("./monthly-rate-book.service.js")).refreshMonthlyRateBook();
   if (command === "validate") {
     const book = rateBookSchema.parse(await readJson(args[0]));
     return {
@@ -275,7 +278,7 @@ async function main() {
     return rateBookSchema.parse(book);
   }
   throw new Error(
-    "Usage: billing:rates template <ship|scale|self-hosted> <vps|livekit-cloud> | validate <book.json> | import <book.json> | quote <book.json> <from> <to> [inbound|outbound] | add-sip-csv <book.json> <deck.csv> <mapping.json> | add-voice-country <book.json> <CC>",
+    "Usage: billing:rates template <ship|scale|self-hosted> <vps|livekit-cloud> | refresh-monthly | validate <book.json> | import <book.json> | quote <book.json> <from> <to> [inbound|outbound] | add-sip-csv <book.json> <deck.csv> <mapping.json> | add-voice-country <book.json> <CC>",
   );
 }
 

@@ -100,7 +100,8 @@ Use scale instead of ship for Scale; self-hosted only when the LiveKit media
 server is self-hosted too. A VPS worker connecting to LiveKit Cloud is still a
 Cloud project. Use livekit-cloud instead of vps only for Cloud-hosted workers.
 
-The generated book has no phone routes. Its expiry is 48 hours after generation.
+The generated book has no phone routes. It expires on the 8th of the following
+UTC month, giving the scheduled monthly renewal a seven-day repair window.
 Review the effective time, expiry, model prices, LiveKit meters, markup and
 buffer before importing. Use a new catalogVersion and effectiveAt for every
 price update. Never extend an existing version's validity in place.
@@ -222,23 +223,33 @@ destination-specific telephony is resolved during call admission.
 
 ## 6. Keep prices current
 
-An optional operator-controlled HTTPS endpoint can publish the complete validated
-JSON book:
+The registered Inngest job `refresh-billing-rates` runs at 02:00 UTC on the
+**1st of each month**. It downloads Twilio's public Elastic SIP termination and
+origination CSVs, builds outbound rates and exact inbound routes for active
+Twilio numbers, validates the complete book and imports a new immutable version.
+It uses the latest catalog's LiveKit plan and requires the current Twilio account
+to match that catalog. No `BILLING_RATE_BOOK_URL` is needed.
 
-```dotenv
-BILLING_RATE_BOOK_URL=https://YOUR_CONTROLLED_HOST/quickvoice-rates.json
+Numbers need verified `billingCountryIso` and `billingNumberType`. For existing
+numbers with missing metadata, the job can recover US Local/Toll Free type from
+the prior catalog's inbound route descriptions. New numbers without either source
+of classification fail the refresh. Unsupported or ambiguous CSV prices also
+fail instead of guessing. The current public CSV supplies SIP rates; discounted
+account-specific rates require a separately reviewed import.
+
+The new book expires on the 8th of the next UTC month. Failed downloads/imports
+leave the previous book untouched. Watch the Inngest job for failures and fix
+them before the grace period ends; an expired latest catalog blocks new calls
+in enforce mode. To run a renewal manually, use the production server CLI:
+
+```sh
+node dist/src/modules/billing/rate-book.cli.js refresh-monthly
 ```
 
-The registered Inngest job refresh-billing-rates fetches it at 02:00 UTC daily
-with bounded download size, a timeout and retries. The publisher must refresh
-source rates and emit a new version/effective time before expiry. Merely
-redownloading an old book does not renew it. This job consumes the published
-book; it does not scrape provider pricing pages or independently regenerate SIP
-decks. The supplied exporters can run in the publisher's daily job.
-
-Failed downloads/imports leave the previous book untouched. Watch job failures
-and impending expiry. Once the latest book expires, enforce mode fails closed.
-Automatic rate import is disabled when the URL is unset.
+Run this immediately after deploying the monthly refresh change if the active
+book is already expired; the first scheduled run otherwise waits until the 1st.
+Calls in progress keep their stored `CallBillingSession.rateSnapshot`, including
+the selected destination rate, across catalog changes.
 
 ## Verification and rollback
 
@@ -439,9 +450,8 @@ section 5. Only after inbound/outbound/preview checks pass, set
 `BILLING_PRICING_MODE=enforce` in Coolify's API environment and redeploy. No rates
 need to be copied into the AI service; the API owns wallet pricing.
 
-**Before enforcement, arrange renewal.** Generated books expire after 48 hours.
-Regenerate and import a new version before expiry, or configure the controlled
-publisher/refresh workflow in section 6. Setting `BILLING_RATE_BOOK_URL` alone
-does not regenerate rates. Never repeatedly import the same expired file.
+**Before enforcement, arrange renewal.** Confirm the monthly Inngest job is
+registered and runs successfully; generated books expire on the 8th of the next
+UTC month. Never repeatedly import the same expired file.
 Back up the approved CSVs, mappings and final book outside the container;
 `/tmp` files disappear when containers are replaced.
