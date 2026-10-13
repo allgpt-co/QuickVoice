@@ -89,6 +89,12 @@ class CallMetadataCollectorTests(unittest.TestCase):
         collector.record_extracted_data("plan", "pro")
         self.assertEqual([item["value"] for item in config["data_extracted"]], [42, "2026-10-13", "Pro"])
 
+    def test_legacy_choice_without_options_keeps_free_text_behavior(self):
+        config = {"data_needed": [{"id": "plan", "name": "Plan", "type": "choice"}]}
+        collector = CallMetadataCollector(config)
+        self.assertIn("Recorded", collector.record_extracted_data("plan", " Custom "))
+        self.assertEqual(config["data_extracted"][0]["value"], "Custom")
+
     def test_build_metadata_collection_instructions_lists_configured_targets(self):
         instructions = build_metadata_collection_instructions(
             {

@@ -127,6 +127,13 @@ test("configureAgentSchema bounds analysis definitions and validates choice opti
     }).success,
     true,
   );
+  assert.equal(
+    configureAgentSchema.safeParse({
+      ...validConfiguration,
+      data_needed: [{ ...field, options: undefined }],
+    }).success,
+    true,
+  );
   for (const data_needed of [
     [{ ...field, options: [] }],
     [{ ...field, options: ["Pro", "pro"] }],

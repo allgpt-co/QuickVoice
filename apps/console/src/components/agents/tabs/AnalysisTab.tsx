@@ -361,6 +361,11 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
                   </Label>
                   <Input
                     id={`analysis-options-${item.id}`}
+                    aria-describedby={
+                      !item.options?.length
+                        ? `analysis-options-help-${item.id}`
+                        : undefined
+                    }
                     value={
                       choiceDrafts[item.id] ?? item.options?.join(", ") ?? ""
                     }
@@ -378,6 +383,15 @@ export function AnalysisTab({ agentId }: { agentId: string }) {
                       });
                     }}
                   />
+                  {!item.options?.length && (
+                    <p
+                      id={`analysis-options-help-${item.id}`}
+                      className="text-xs text-muted-foreground"
+                    >
+                      This existing field accepts any text until you add two or
+                      more choices.
+                    </p>
+                  )}
                 </div>
               )}
             </div>

@@ -142,8 +142,11 @@ def _normalize_field_value(target: dict[str, Any], value: Any) -> Any:
             raise ValueError("provide a date in YYYY-MM-DD format") from None
     if field_type == "choice":
         options = target.get("options") or []
-        if not isinstance(value, str) or not isinstance(options, list):
+        if not isinstance(value, str) or not value.strip() or not isinstance(options, list):
             raise ValueError("choose a configured option")
+        if not options:
+            # Legacy choice definitions had no options and accepted free text.
+            return value.strip()
         match = next((option for option in options if isinstance(option, str) and option.casefold() == value.strip().casefold()), None)
         if match is None:
             raise ValueError("choose a configured option")

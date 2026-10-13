@@ -70,10 +70,6 @@ export const dataItemSchema = z
       .max(20)
       .optional(),
   })
-  .refine((item) => item.type !== "choice" || Boolean(item.options?.length), {
-    message: "Choice fields require at least two options",
-    path: ["options"],
-  })
   .refine(
     (item) =>
       !item.options ||
