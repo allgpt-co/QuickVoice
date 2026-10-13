@@ -112,6 +112,39 @@ test("configureAgentSchema accepts bounded outbound call limits", () => {
   );
 });
 
+test("configureAgentSchema bounds analysis definitions and validates choice options", () => {
+  const field = {
+    id: "plan",
+    type: "choice",
+    name: "Plan",
+    description: "Selected service plan",
+    options: ["Basic", "Pro"],
+  };
+  assert.equal(
+    configureAgentSchema.safeParse({
+      ...validConfiguration,
+      data_needed: [field],
+    }).success,
+    true,
+  );
+  for (const data_needed of [
+    [{ ...field, options: [] }],
+    [{ ...field, options: ["Pro", "pro"] }],
+    [field, { ...field, id: "another" }],
+    Array.from({ length: 21 }, (_, index) => ({
+      ...field,
+      id: `field-${index}`,
+      name: `Field ${index}`,
+    })),
+  ]) {
+    assert.equal(
+      configureAgentSchema.safeParse({ ...validConfiguration, data_needed })
+        .success,
+      false,
+    );
+  }
+});
+
 test("configureAgentSchema rejects incompatible or unbounded retention settings", () => {
   assert.equal(
     configureAgentSchema.safeParse({

@@ -50,17 +50,62 @@ export const updateAgentSchema = createAgentSchema
   });
 export type UpdateAgentInput = z.infer<typeof updateAgentSchema>;
 
-export const dataItemSchema = z.object({
-  id: z.string(),
-  type: z.string().min(1, "Data item type is required"),
-  name: z.string().min(1, "Data item value is required"),
-  description: z.string().min(5, "Description is required"),
-});
+export const dataItemSchema = z
+  .object({
+    id: z.string().trim().min(1).max(100),
+    type: z.enum([
+      "string",
+      "String",
+      "text",
+      "number",
+      "boolean",
+      "date",
+      "choice",
+    ]),
+    name: z.string().trim().min(1, "Data item name is required").max(100),
+    description: z.string().trim().min(5, "Description is required").max(500),
+    options: z
+      .array(z.string().trim().min(1).max(100))
+      .min(2)
+      .max(20)
+      .optional(),
+  })
+  .refine((item) => item.type !== "choice" || Boolean(item.options?.length), {
+    message: "Choice fields require at least two options",
+    path: ["options"],
+  })
+  .refine(
+    (item) =>
+      !item.options ||
+      new Set(item.options.map((option) => option.toLowerCase())).size ===
+        item.options.length,
+    {
+      message: "Choice options must be unique",
+      path: ["options"],
+    },
+  );
 export const dataEvaluationSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1, "Data evaluation name is required"),
-  criteria: z.string().min(1, "Data evaluation criteria is required"),
+  id: z.string().trim().min(1).max(100),
+  name: z.string().trim().min(1, "Data evaluation name is required").max(100),
+  criteria: z
+    .string()
+    .trim()
+    .min(1, "Data evaluation criteria is required")
+    .max(500),
 });
+
+function uniqueAnalysisTargets(items: Array<{ id: string; name: string }>) {
+  const owners = new Map<string, number>();
+  for (const [index, item] of items.entries()) {
+    for (const key of [item.id, item.name].map((value) =>
+      value.toLowerCase(),
+    )) {
+      if (owners.has(key) && owners.get(key) !== index) return false;
+      owners.set(key, index);
+    }
+  }
+  return true;
+}
 
 const webhookValueSchema = z
   .object({
@@ -113,8 +158,14 @@ export const configureAgentSchema = z
     // tokenLimit: z.number().int().positive().default(4096),
     use_rag: z.boolean(),
     voiceId: z.string().min(1, "Voice ID is required"),
-    data_needed: z.array(dataItemSchema),
-    data_evaluation: z.array(dataEvaluationSchema),
+    data_needed: z
+      .array(dataItemSchema)
+      .max(20)
+      .refine(uniqueAnalysisTargets, "Field IDs and names must be unique"),
+    data_evaluation: z
+      .array(dataEvaluationSchema)
+      .max(20)
+      .refine(uniqueAnalysisTargets, "Evaluation IDs and names must be unique"),
     initiation_webhook: initiation_webhookSchema,
     post_call_webhook: post_call_webhookSchema,
     variables: z

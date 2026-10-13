@@ -36,6 +36,7 @@ export interface ConfigureAgentInput {
     type: string;
     name: string;
     description: string;
+    options?: string[];
   }>;
   data_evaluation: Array<{
     id: string;

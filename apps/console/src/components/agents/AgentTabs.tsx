@@ -12,7 +12,12 @@ import {
   Webhook,
   Wrench,
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/src/components/ui/tabs";
 import { BehaviorTab } from "@/src/components/agents/tabs/BehaviorTab";
 import { VoiceTab } from "@/src/components/agents/tabs/VoiceTab";
 import { WebhooksTab } from "@/src/components/agents/tabs/WebhooksTab";
@@ -76,7 +81,7 @@ export function AgentTabs({ agentId }: { agentId: string }) {
       <TabsContent value="voice" className="mt-6 min-w-0">
         <VoiceTab agentId={agentId} />
       </TabsContent>
-      <TabsContent value="analysis" className="mt-6 min-w-0">
+      <TabsContent value="analysis" forceMount className="mt-6 min-w-0">
         <AnalysisTab agentId={agentId} />
       </TabsContent>
       <TabsContent value="webhooks" className="mt-6 min-w-0">

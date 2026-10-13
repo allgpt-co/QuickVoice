@@ -1,3 +1,5 @@
+from datetime import date
+from math import isfinite
 from typing import Any
 
 
@@ -8,7 +10,7 @@ def build_metadata_collection_instructions(config: dict[str, Any]) -> str:
 
     if data_needed:
         lines = [
-            "Collect the configured call data during the conversation. When the caller provides one of these values, immediately call record_call_extracted_data with the field id or name and the exact value:",
+            "Collect the configured call data during the conversation. When the caller provides one of these values, call record_call_extracted_data with the field id or name and the value. Use YYYY-MM-DD for dates and a listed option for choice fields:",
         ]
         lines.extend(f"- {_target_label(item)}" for item in data_needed)
         sections.append("\n".join(lines))
@@ -37,11 +39,16 @@ class CallMetadataCollector:
             return "No data field was provided."
 
         target = _match_target(self._data_needed, field_key)
-        normalized_value = _normalize_value(value)
+        if target is None:
+            return f"Unknown data field {field_key}. Use a configured field id or name."
+        try:
+            normalized_value = _normalize_field_value(target, value)
+        except ValueError as exc:
+            return f"Could not record {field_key}: {exc}"
         item = {
-            "type": str(target.get("type") or "text") if target else "text",
-            "name": str(target.get("name") or field_key) if target else field_key,
-            "description": str(target.get("description") or "") if target else "",
+            "type": str(target.get("type") or "text"),
+            "name": str(target.get("name") or field_key),
+            "description": str(target.get("description") or ""),
             "value": normalized_value,
         }
         _upsert(self._config["data_extracted"], item, key="name")
@@ -53,9 +60,11 @@ class CallMetadataCollector:
             return "No evaluation identifier was provided."
 
         target = _match_target(self._data_evaluation, identifier_key)
+        if target is None:
+            return f"Unknown evaluation {identifier_key}. Use a configured criterion id or name."
         item = {
-            "identifier": str(target.get("id") or target.get("name") or identifier_key) if target else identifier_key,
-            "description": str(target.get("criteria") or target.get("description") or "") if target else "",
+            "identifier": str(target.get("id") or target.get("name") or identifier_key),
+            "description": str(target.get("criteria") or target.get("description") or ""),
             "value": _normalize_value(value),
         }
         _upsert(self._config["data_evaluated"], item, key="identifier")
@@ -105,12 +114,51 @@ def _normalize_value(value: Any) -> Any:
     return value
 
 
+def _normalize_field_value(target: dict[str, Any], value: Any) -> Any:
+    field_type = str(target.get("type") or "string").lower()
+    if field_type in {"string", "text"}:
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError("provide a non-empty text value")
+        return value.strip()
+    if field_type == "number":
+        if isinstance(value, bool):
+            raise ValueError("provide a number")
+        try:
+            number = float(value)
+        except (TypeError, ValueError):
+            raise ValueError("provide a number") from None
+        if not isfinite(number):
+            raise ValueError("provide a finite number")
+        return int(number) if number.is_integer() else number
+    if field_type == "boolean":
+        normalized = _normalize_value(value)
+        if not isinstance(normalized, bool):
+            raise ValueError("provide true or false")
+        return normalized
+    if field_type == "date":
+        try:
+            return date.fromisoformat(str(value).strip()).isoformat()
+        except ValueError:
+            raise ValueError("provide a date in YYYY-MM-DD format") from None
+    if field_type == "choice":
+        options = target.get("options") or []
+        if not isinstance(value, str) or not isinstance(options, list):
+            raise ValueError("choose a configured option")
+        match = next((option for option in options if isinstance(option, str) and option.casefold() == value.strip().casefold()), None)
+        if match is None:
+            raise ValueError("choose a configured option")
+        return match
+    raise ValueError("unsupported field type")
+
+
 def _target_label(item: dict[str, Any]) -> str:
     field_id = item.get("id") or item.get("name")
     field_type = item.get("type") or "text"
     name = item.get("name") or field_id
     description = item.get("description") or ""
-    return f"{field_id} ({field_type}) - {name}: {description}"
+    options = item.get("options") if field_type == "choice" else None
+    choices = f"; choose one of: {', '.join(options)}" if isinstance(options, list) else ""
+    return f"{field_id} ({field_type}) - {name}: {description}{choices}"
 
 
 def _evaluation_label(item: dict[str, Any]) -> str:
