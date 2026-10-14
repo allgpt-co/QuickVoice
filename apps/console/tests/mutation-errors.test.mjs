@@ -66,7 +66,14 @@ const cases = [
     { widget: { widgetId: "widget" } },
   ],
   ["components/agents/tabs/WebsiteWidgetTab.tsx", "removeWidget"],
-  ["components/agents/tabs/VoiceTab.tsx", "onSubmit"],
+  ["components/agents/tabs/VoiceTab.tsx", "onSubmit", {
+    voiceOptions: {},
+    languages: [{ code: "en" }],
+    availableSttModels: [{ id: "deepgram/nova-3" }],
+    llmModels: [{ id: "bedrock/model" }],
+    availableTtsModels: [{ id: "deepgram/aura-2" }],
+    availableVoices: [{ id: "aura-2-asteria-en" }],
+  }],
   ["components/agents/tabs/WebhooksTab.tsx", "onSubmit"],
   ["components/agents/tabs/AnalysisTab.tsx", "saveAnalysis"],
   ["app/(app)/calls/[id]/page.tsx", "onDelete"],
@@ -98,6 +105,11 @@ for (const [file, name, overrides] of cases) {
     const effect = () => effects.push("success");
     const values = {
       name: "Draft",
+      agent_language: "en",
+      sttModel: "deepgram/nova-3",
+      llmModel: "bedrock/model",
+      ttsModel: "deepgram/aura-2",
+      voiceId: "aura-2-asteria-en",
       response_timeout_secs: "",
       api_headers: [],
       dynamic_variables: [],
