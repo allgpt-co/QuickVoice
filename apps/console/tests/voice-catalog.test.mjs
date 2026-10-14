@@ -93,6 +93,7 @@ test("Indian English stays distinct when filtering speech models and voices", ()
   assert.equal(normalizeLanguageCode("EN-in"), "en-IN");
   assert.equal(normalizeLanguageCode("en-US"), "en");
   assert.equal(normalizeLanguageCode("es"), "es");
+  assert.equal(normalizeLanguageCode("fr-CA", [{ code: "fr" }]), "fr");
   assert.ok(getSttModelsForLanguage("en-IN").some((model) => model.id === "sarvam/saaras:v3"));
   assert.ok(getTtsModelsForLanguage("en-IN").some((model) => model.id === "sarvam/bulbul:v3"));
   assert.ok(!getTtsModelsForLanguage("en-IN").some((model) => model.id === "deepgram/aura-2"));

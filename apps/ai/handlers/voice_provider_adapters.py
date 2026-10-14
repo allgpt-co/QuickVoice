@@ -172,6 +172,7 @@ def _deepgram_language(language: str) -> str:
         "en": "en-US",
         "en-IN": "en-IN",
         "hi": "hi",
+        "fil": "tl",
     }.get(language, language)
 
 

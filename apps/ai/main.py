@@ -161,10 +161,18 @@ def build_agent_instructions(config: dict, call_context: dict | None = None) -> 
     instructions = config.get("system_prompt") or DEFAULT_SYSTEM_PROMPT
     voice_config = config.get("voice_config")
     language = str(config.get("agent_language") or (voice_config.get("language") if isinstance(voice_config, dict) else None) or "en")
-    if language in {"hi", "hi-IN"}:
-        instructions += "\n\nSpeak and respond in Hindi (hi-IN), unless the caller explicitly asks for another language."
-    elif language == "en-IN":
-        instructions += "\n\nSpeak and respond in Indian English (en-IN), unless the caller explicitly asks for another language."
+    if language not in {"en", "en-US"}:
+        catalog_language = {"hi-IN": "hi"}.get(language, language)
+        language_name = next(
+            (item["label"] for item in load_voice_catalog()["languages"] if item["id"] == catalog_language),
+            language,
+        )
+        if language == "en-IN":
+            language_name = "Indian English"
+        instructions += (
+            f"\n\nSpeak and respond in {language_name} ({language}), unless the caller "
+            "explicitly asks for another language."
+        )
     if config.get("use_rag"):
         instructions += RAG_TOOL_INSTRUCTIONS
     if ivr_navigation_enabled(config, call_context):

@@ -8,6 +8,7 @@ from urllib.request import Request
 
 from livekit import api
 
+from handlers.voice_catalog import load_voice_catalog
 from utils.logger import logger, redact_sensitive
 from utils.safe_http import safe_https_request
 
@@ -697,15 +698,30 @@ def speak_first_message(session: Any, config: dict[str, Any]):
     first_message = (config.get("first_message") or "").strip()
     if not first_message:
         return None
+    standard_greetings = {
+        "Hi, thanks for calling. How can I help you today?":
+            "नमस्ते, कॉल करने के लिए धन्यवाद। आज मैं आपकी कैसे मदद कर सकता हूँ?",
+        "Hi, thanks for calling. I can help answer questions, capture details, or route the next step. How can I help?":
+            "नमस्ते, कॉल करने के लिए धन्यवाद। मैं आपके सवालों के जवाब दे सकता हूँ, जानकारी दर्ज कर सकता हूँ या अगला कदम तय करने में मदद कर सकता हूँ। मैं आपकी कैसे मदद करूँ?",
+        "Hi, thanks for calling. I can help with scheduling, intake details, or a message for the care team. How can I help today?":
+            "नमस्ते, कॉल करने के लिए धन्यवाद। मैं अपॉइंटमेंट तय करने, विवरण दर्ज करने या देखभाल टीम के लिए संदेश लेने में मदद कर सकता हूँ। आज मैं आपकी क्या मदद करूँ?",
+    }
+    language = config.get("agent_language") or "en"
     if config.get("agent_language") in {"hi", "hi-IN"}:
-        first_message = {
-            "Hi, thanks for calling. How can I help you today?":
-                "नमस्ते, कॉल करने के लिए धन्यवाद। आज मैं आपकी कैसे मदद कर सकता हूँ?",
-            "Hi, thanks for calling. I can help answer questions, capture details, or route the next step. How can I help?":
-                "नमस्ते, कॉल करने के लिए धन्यवाद। मैं आपके सवालों के जवाब दे सकता हूँ, जानकारी दर्ज कर सकता हूँ या अगला कदम तय करने में मदद कर सकता हूँ। मैं आपकी कैसे मदद करूँ?",
-            "Hi, thanks for calling. I can help with scheduling, intake details, or a message for the care team. How can I help today?":
-                "नमस्ते, कॉल करने के लिए धन्यवाद। मैं अपॉइंटमेंट तय करने, विवरण दर्ज करने या देखभाल टीम के लिए संदेश लेने में मदद कर सकता हूँ। आज मैं आपकी क्या मदद करूँ?",
-        }.get(first_message, first_message)
+        first_message = standard_greetings.get(first_message, first_message)
+    elif language not in {"en", "en-US", "en-IN"} and first_message in standard_greetings:
+        language_name = next(
+            (item["label"] for item in load_voice_catalog()["languages"] if item["id"] == language),
+            language,
+        )
+        return session.generate_reply(
+            instructions=(
+                f"Say only this opening greeting in {language_name} ({language}), translated "
+                f"naturally from English. Do not call tools or add details: {first_message}"
+            ),
+            tool_choice="none",
+            allow_interruptions=False,
+        )
     return session.say(first_message, allow_interruptions=False)
 
 

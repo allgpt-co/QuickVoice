@@ -16,7 +16,7 @@ class VoiceCatalogTests(unittest.TestCase):
     def test_load_voice_catalog_returns_static_provider_options(self):
         catalog = load_voice_catalog()
 
-        self.assertEqual(catalog["version"], "2026-08-01")
+        self.assertEqual(catalog["version"], "2026-10-14")
         self.assertTrue(any(item["provider"] == "deepgram" for item in catalog["stt_models"]))
         self.assertTrue(any(item["provider"] == "bedrock" for item in catalog["llm_models"]))
         self.assertTrue(
@@ -53,6 +53,25 @@ class VoiceCatalogTests(unittest.TestCase):
                 for item in catalog["stt_models"]
             )
         )
+
+    def test_every_listed_language_has_complete_speech_path(self):
+        catalog = load_voice_catalog()
+        self.assertEqual(len(catalog["languages"]), 33)
+        for language in catalog["languages"]:
+            code = language["id"]
+            with self.subTest(language=code):
+                self.assertTrue(any(code in model["languages"] for model in catalog["stt_models"]))
+                self.assertTrue(any(
+                    code in model["languages"]
+                    and any(
+                        voice["provider"] == model["provider"]
+                        and model["id"] in voice["tts_models"]
+                        and code in voice["languages"]
+                        for voice in catalog["voices"]
+                    )
+                    for model in catalog["tts_models"]
+                ))
+        self.assertNotIn("fil", next(model for model in catalog["stt_models"] if model["id"] == "nova-3-multilingual")["languages"])
 
     def test_load_voice_catalog_prefers_configured_json_path(self):
         with tempfile.TemporaryDirectory() as tmp:

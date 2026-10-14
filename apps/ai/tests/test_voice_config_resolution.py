@@ -92,6 +92,48 @@ class VoiceConfigResolutionTests(unittest.TestCase):
         self.assertEqual(config["stt"]["provider"], "sarvam")
         self.assertEqual(config["tts"]["voice"], "shubh")
 
+    def test_french_voice_agent_uses_supported_provider_path(self):
+        config = resolve_voice_config(
+            {
+                "language": "fr",
+                "stt": {"provider": "deepgram", "model": "nova-3"},
+                "tts": {
+                    "provider": "elevenlabs",
+                    "model": "eleven_flash_v2_5",
+                    "voice": "EXAVITQu4vr4xnSDxMaL",
+                },
+            },
+            load_voice_catalog(),
+        )
+        self.assertEqual(config["stt"]["language"], "fr")
+        self.assertEqual(config["tts"]["model"], "eleven_flash_v2_5")
+
+    def test_filipino_uses_direct_nova_3_not_ten_language_multilingual_mode(self):
+        catalog = load_voice_catalog()
+        base = {
+            "language": "fil",
+            "stt": {"provider": "deepgram", "model": "nova-3"},
+            "tts": {
+                "provider": "elevenlabs",
+                "model": "eleven_flash_v2_5",
+                "voice": "EXAVITQu4vr4xnSDxMaL",
+            },
+        }
+        self.assertEqual(resolve_voice_config(base, catalog)["stt"]["language"], "fil")
+        with self.assertRaisesRegex(VoiceConfigValidationError, "stt.model does not support"):
+            resolve_voice_config({**base, "stt": {"provider": "deepgram", "model": "nova-3-multilingual"}}, catalog)
+
+    def test_non_english_deepgram_voice_is_rejected(self):
+        with self.assertRaisesRegex(VoiceConfigValidationError, "tts.model does not support"):
+            resolve_voice_config(
+                {
+                    "language": "fr",
+                    "stt": {"provider": "deepgram", "model": "nova-3"},
+                    "tts": {"provider": "deepgram", "model": "aura-2", "voice": "aura-2-asteria-en"},
+                },
+                load_voice_catalog(),
+            )
+
     def test_resolve_voice_config_rejects_invalid_voice(self):
         with self.assertRaisesRegex(VoiceConfigValidationError, "voice is not supported"):
             resolve_voice_config(

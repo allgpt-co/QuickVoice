@@ -33,6 +33,7 @@ import {
     getSttModelsForLanguage,
     getTtsModelsForLanguage,
     getVoicesForTtsModel,
+    LANGUAGES,
     LLM_MODELS,
     normalizeLanguageCode,
     type LanguageAwareModelOption,
@@ -152,7 +153,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
         () => (voiceCatalog ? buildVoiceOptionsFromCatalog(voiceCatalog) : null),
         [voiceCatalog]
     );
-    const languages = voiceOptions?.languages ?? [];
+    const languages = voiceOptions?.languages ?? LANGUAGES;
     const timezones = voiceOptions?.timezones ?? COMMON_TIMEZONES;
     const llmModels = voiceOptions?.llmModels ?? LLM_MODELS;
 
@@ -172,13 +173,13 @@ export function VoiceTab({ agentId }: { agentId: string }) {
         if (!config || form.formState.isDirty) return;
         form.reset({
             voiceId: config.voiceId,
-            agent_language: normalizeLanguageCode(config.agent_language),
+            agent_language: normalizeLanguageCode(config.agent_language, languages),
             llmModel: config.llmModel,
             sttModel: config.sttModel ?? "deepgram/nova-3",
             ttsModel: config.ttsModel ?? "deepgram/aura-2",
             timezone: config.timezone,
         });
-    }, [config, form, form.formState.isDirty]);
+    }, [config, form, form.formState.isDirty, languages]);
 
     const selectedLanguage = useWatch({
         control: form.control,
@@ -306,9 +307,9 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                         <p className="text-sm text-muted-foreground">
                             Choose the caller language before selecting speech models.
                         </p>
-                        {selectedLanguage === "hi" ? (
+                        {selectedLanguage !== "en" && selectedLanguage !== "en-IN" ? (
                             <p className="text-sm text-muted-foreground">
-                                Standard greetings are spoken in Hindi. If you wrote a custom greeting, update it in Behavior to match.
+                                Standard greetings are spoken in {selectedLanguageLabel}. If you wrote a custom greeting, update it in Behavior to match.
                             </p>
                         ) : null}
                     </div>

@@ -488,6 +488,22 @@ class WorkerHandlerTests(unittest.TestCase):
             "system_prompt": "You are a helpful assistant.",
         }))
 
+    def test_french_agent_generates_localized_standard_greeting(self):
+        calls = []
+        session = SimpleNamespace(generate_reply=lambda **kwargs: calls.append(kwargs) or "speech-handle")
+        result = speak_first_message(session, {
+            "agent_language": "fr",
+            "first_message": "Hi, thanks for calling. How can I help you today?",
+        })
+        self.assertEqual(result, "speech-handle")
+        self.assertIn("French (fr)", calls[0]["instructions"])
+        self.assertEqual(calls[0]["tool_choice"], "none")
+        self.assertFalse(calls[0]["allow_interruptions"])
+        self.assertIn("Speak and respond in French (fr)", build_agent_instructions({
+            "agent_language": "fr",
+            "system_prompt": "You are a helpful assistant.",
+        }))
+
     def test_invalid_saved_voice_configuration_is_not_silently_accepted(self):
         from handlers.voice_config_resolution import VoiceConfigValidationError
 
