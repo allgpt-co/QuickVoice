@@ -34,13 +34,45 @@ export type ProviderFinalCost = {
   providerBillableSeconds: number | null;
 };
 
+type TwilioCallCost = {
+  price: string | null;
+  priceUnit: string | null;
+  duration: string | null;
+  status: string;
+};
+
+// Calls Twilio never connected end in these statuses with no (or a zero) price
+// that will never change; waiting for a "completed" price would retry forever.
+const TWILIO_UNCONNECTED_FINAL_STATUSES = new Set([
+  "busy",
+  "failed",
+  "no-answer",
+  "canceled",
+]);
+
+/** Returns the provider-final cost, or null while Twilio's price is pending. */
+export function twilioFinalCost(call: TwilioCallCost): ProviderFinalCost | null {
+  if (TWILIO_UNCONNECTED_FINAL_STATUSES.has(call.status)) {
+    if (call.price !== null && call.priceUnit?.toUpperCase() !== "USD") {
+      throw new Error(`Unsupported Twilio billing currency: ${call.priceUnit}`);
+    }
+    return {
+      baseCostMicros: call.price === null ? 0n : parseProviderUsdToMicros(call.price),
+      providerBillableSeconds: 0,
+    };
+  }
+  if (call.status !== "completed" || call.price === null) return null;
+  if (call.priceUnit?.toUpperCase() !== "USD") {
+    throw new Error(`Unsupported Twilio billing currency: ${call.priceUnit}`);
+  }
+  return {
+    baseCostMicros: parseProviderUsdToMicros(call.price),
+    providerBillableSeconds: parseProviderSeconds(call.duration),
+  };
+}
+
 type ReconciliationDependencies = {
-  fetchTwilioCall: (callSid: string) => Promise<{
-    price: string | null;
-    priceUnit: string | null;
-    duration: string | null;
-    status: string;
-  }>;
+  fetchTwilioCall: (callSid: string) => Promise<TwilioCallCost>;
   createTelnyxReport: typeof createTelnyxReport;
   retrieveTelnyxReport: typeof retrieveTelnyxReport;
   fetchText: typeof fetchReportText;
@@ -146,17 +178,12 @@ async function reconcileTwilioSessions(
     if (!(await claimSession(session, now))) continue;
     try {
       const call = await dependencies.fetchTwilioCall(session.providerCallId!);
-      if (call.status !== "completed" || call.price === null) {
+      const finalCost = twilioFinalCost(call);
+      if (!finalCost) {
         await retrySession(session.callBillingSessionId, now, "Twilio price is not final yet");
         continue;
       }
-      if (call.priceUnit?.toUpperCase() !== "USD") {
-        throw new Error(`Unsupported Twilio billing currency: ${call.priceUnit}`);
-      }
-      await finalizeProviderCost(session, {
-        baseCostMicros: parseProviderUsdToMicros(call.price),
-        providerBillableSeconds: parseProviderSeconds(call.duration),
-      }, now);
+      await finalizeProviderCost(session, finalCost, now);
       completed += 1;
     } catch (error) {
       await retrySession(

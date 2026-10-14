@@ -362,6 +362,24 @@ jobs:
           if [ "$AI_CHANGED" = "true" ]; then
             deploy_coolify "AI" "$COOLIFY_AI_RESOURCE_UUID" "$AI_IMAGE_URI" "$AI_IMAGE_TAG"
           fi
+      # Inngest Cloud keeps the last synced function definitions and cron
+      # schedules until the app is re-synced, so sync after every server deploy.
+      - name: Sync Inngest functions
+        if: needs.changes.outputs.server == 'true'
+        env:
+          INNGEST_SYNC_URL: ${{ vars.QUICKVOICE_INNGEST_SYNC_URL || 'https://api.quickvoice.co/api/inngest' }}
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5; do
+            if curl -fsS -X PUT --max-time 30 "$INNGEST_SYNC_URL" -o /dev/null; then
+              echo "- Inngest functions synced: ${INNGEST_SYNC_URL}" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+            echo "[warn] Inngest sync attempt ${attempt} failed; retrying."
+            sleep 10
+          done
+          echo "[fail] Could not sync Inngest functions at ${INNGEST_SYNC_URL}."
+          exit 1
 
   scan-server:
     name: Scan Server Image

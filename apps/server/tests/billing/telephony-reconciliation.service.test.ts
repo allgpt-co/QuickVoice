@@ -4,7 +4,46 @@ import test from "node:test";
 import {
   allocateUsageRefund,
   parseTelnyxCdrCsv,
+  twilioFinalCost,
 } from "../../src/modules/billing/telephony-reconciliation.service.js";
+
+test("finalizes a completed Twilio call at its posted price", () => {
+  assert.deepEqual(
+    twilioFinalCost({ status: "completed", price: "-1.43400", priceUnit: "USD", duration: "222" }),
+    { baseCostMicros: 1_434_000n, providerBillableSeconds: 222 },
+  );
+});
+
+test("waits while a Twilio call price is still pending", () => {
+  assert.equal(
+    twilioFinalCost({ status: "completed", price: null, priceUnit: "USD", duration: "60" }),
+    null,
+  );
+  assert.equal(
+    twilioFinalCost({ status: "in-progress", price: null, priceUnit: "USD", duration: null }),
+    null,
+  );
+});
+
+test("finalizes unconnected Twilio calls at zero instead of retrying forever", () => {
+  for (const status of ["busy", "no-answer", "canceled"]) {
+    assert.deepEqual(
+      twilioFinalCost({ status, price: null, priceUnit: "USD", duration: "0" }),
+      { baseCostMicros: 0n, providerBillableSeconds: 0 },
+    );
+  }
+  assert.deepEqual(
+    twilioFinalCost({ status: "failed", price: "0.00000", priceUnit: "USD", duration: "0" }),
+    { baseCostMicros: 0n, providerBillableSeconds: 0 },
+  );
+});
+
+test("rejects a non-USD Twilio price", () => {
+  assert.throws(
+    () => twilioFinalCost({ status: "completed", price: "-1.00", priceUnit: "EUR", duration: "60" }),
+    /Unsupported Twilio billing currency/,
+  );
+});
 
 test("parses quoted Telnyx CDRs and sums every provider-billed leg", () => {
   const costs = parseTelnyxCdrCsv(
