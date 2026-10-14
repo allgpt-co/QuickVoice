@@ -81,6 +81,24 @@ test("buildVoiceOptionsFromCatalog maps AI catalog values to console dropdown op
   assert.deepEqual(plain(options.voices[0].ttsModels), ["elevenlabs/eleven_flash_v2_5"]);
 });
 
+test("Indian English stays distinct when filtering speech models and voices", () => {
+  const {
+    normalizeLanguageCode,
+    getSttModelsForLanguage,
+    getTtsModelsForLanguage,
+    getVoicesForTtsModel,
+  } = loadVoicesModule();
+
+  assert.equal(normalizeLanguageCode("en-IN"), "en-IN");
+  assert.equal(normalizeLanguageCode("EN-in"), "en-IN");
+  assert.equal(normalizeLanguageCode("en-US"), "en");
+  assert.equal(normalizeLanguageCode("es"), "es");
+  assert.ok(getSttModelsForLanguage("en-IN").some((model) => model.id === "sarvam/saaras:v3"));
+  assert.ok(getTtsModelsForLanguage("en-IN").some((model) => model.id === "sarvam/bulbul:v3"));
+  assert.ok(!getTtsModelsForLanguage("en-IN").some((model) => model.id === "deepgram/aura-2"));
+  assert.ok(getVoicesForTtsModel("sarvam/bulbul:v3", "en-IN").length > 0);
+});
+
 test("voice tab keeps configured model and voice values visible after refresh", () => {
   const source = readFileSync(join(root, "src/components/agents/tabs/VoiceTab.tsx"), "utf8");
 

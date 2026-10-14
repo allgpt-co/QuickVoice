@@ -33,7 +33,6 @@ import {
     getSttModelsForLanguage,
     getTtsModelsForLanguage,
     getVoicesForTtsModel,
-    LANGUAGES,
     LLM_MODELS,
     normalizeLanguageCode,
     type LanguageAwareModelOption,
@@ -146,14 +145,14 @@ function ensureSelectedVoiceOption(options: Voice[], value: string | undefined) 
 }
 
 export function VoiceTab({ agentId }: { agentId: string }) {
-    const { data: config, isLoading } = useAgentConfig(agentId);
-    const { data: voiceCatalog } = useVoiceCatalog();
+    const { data: config, isLoading, refetch: refetchConfig } = useAgentConfig(agentId);
+    const { data: voiceCatalog, isLoading: isCatalogLoading, refetch: refetchCatalog } = useVoiceCatalog();
     const save = useSaveAgentConfig(agentId);
     const voiceOptions = useMemo(
         () => (voiceCatalog ? buildVoiceOptionsFromCatalog(voiceCatalog) : null),
         [voiceCatalog]
     );
-    const languages = voiceOptions?.languages ?? LANGUAGES;
+    const languages = voiceOptions?.languages ?? [];
     const timezones = voiceOptions?.timezones ?? COMMON_TIMEZONES;
     const llmModels = voiceOptions?.llmModels ?? LLM_MODELS;
 
@@ -170,7 +169,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
     });
 
     useEffect(() => {
-        if (!config) return;
+        if (!config || form.formState.isDirty) return;
         form.reset({
             voiceId: config.voiceId,
             agent_language: normalizeLanguageCode(config.agent_language),
@@ -179,7 +178,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
             ttsModel: config.ttsModel ?? "deepgram/aura-2",
             timezone: config.timezone,
         });
-    }, [config, form]);
+    }, [config, form, form.formState.isDirty]);
 
     const selectedLanguage = useWatch({
         control: form.control,
@@ -251,11 +250,51 @@ export function VoiceTab({ agentId }: { agentId: string }) {
     );
 
     async function onSubmit(values: FormValues) {
+      if (!config || !voiceOptions) return;
+      if (!languages.some((language) => language.code === values.agent_language)) {
+        form.setError("agent_language", { message: "Choose an available language." });
+        return;
+      }
+      if (!availableSttModels.some((model) => model.id === values.sttModel)) {
+        form.setError("sttModel", { message: "Choose an STT model for this language." });
+        return;
+      }
+      if (!llmModels.some((model) => model.id === values.llmModel)) {
+        form.setError("llmModel", { message: "Choose an available LLM model." });
+        return;
+      }
+      if (!availableTtsModels.some((model) => model.id === values.ttsModel)) {
+        form.setError("ttsModel", { message: "Choose a TTS model for this language." });
+        return;
+      }
+      if (!availableVoices.some((voice) => voice.id === values.voiceId)) {
+        form.setError("voiceId", { message: "Choose a voice for this model and language." });
+        return;
+      }
       try {
           await save.mutateAsync(mergeConfig(config, values));
+          form.reset(values);
       } catch {
         // The mutation hook displays the API error; preserve the current state for retry.
       }
+    }
+
+    if (isLoading || isCatalogLoading) {
+        return <div className="h-96 animate-pulse border bg-card" aria-label="Loading voice settings" />;
+    }
+
+    if (!config || !voiceOptions) {
+        return (
+            <div role="alert" className="flex flex-wrap items-center gap-3 border bg-card p-6 text-sm">
+                <span>Could not load voice settings or the available voices.</span>
+                <Button type="button" variant="outline" onClick={() => {
+                    void refetchConfig();
+                    void refetchCatalog();
+                }}>
+                    Try again
+                </Button>
+            </div>
+        );
     }
 
     return (
@@ -267,6 +306,11 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                         <p className="text-sm text-muted-foreground">
                             Choose the caller language before selecting speech models.
                         </p>
+                        {selectedLanguage === "hi" ? (
+                            <p className="text-sm text-muted-foreground">
+                                Standard greetings are spoken in Hindi. If you wrote a custom greeting, update it in Behavior to match.
+                            </p>
+                        ) : null}
                     </div>
                     <div className="grid min-w-0 gap-5 sm:grid-cols-2">
                         <FormField
@@ -275,7 +319,21 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                             render={({ field }) => (
                                 <FormItem className="min-w-0">
                                     <FormLabel>Language</FormLabel>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={(language) => {
+                                        field.onChange(language);
+                                        const stt = getSttModelsForLanguage(language, voiceOptions);
+                                        const tts = getTtsModelsForLanguage(language, voiceOptions);
+                                        const nextTts = tts.some((model) => model.id === form.getValues("ttsModel"))
+                                            ? form.getValues("ttsModel") : tts[0]?.id ?? "";
+                                        if (!stt.some((model) => model.id === form.getValues("sttModel"))) {
+                                            form.setValue("sttModel", stt[0]?.id ?? "", { shouldDirty: true });
+                                        }
+                                        form.setValue("ttsModel", nextTts, { shouldDirty: true });
+                                        const voices = getVoicesForTtsModel(nextTts, language, voiceOptions);
+                                        if (!voices.some((voice) => voice.id === form.getValues("voiceId"))) {
+                                            form.setValue("voiceId", voices[0]?.id ?? "", { shouldDirty: true });
+                                        }
+                                    }}>
                                         <FormControl>
                                             <SelectTrigger className="w-full min-w-0">
                                                 <SelectValue />
@@ -409,7 +467,13 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                             render={({ field }) => (
                                 <FormItem className="min-w-0">
                                     <FormLabel>TTS</FormLabel>
-                                    <Select value={field.value} onValueChange={field.onChange}>
+                                    <Select value={field.value} onValueChange={(ttsModel) => {
+                                        field.onChange(ttsModel);
+                                        const voices = getVoicesForTtsModel(ttsModel, selectedLanguage, voiceOptions);
+                                        if (!voices.some((voice) => voice.id === form.getValues("voiceId"))) {
+                                            form.setValue("voiceId", voices[0]?.id ?? "", { shouldDirty: true });
+                                        }
+                                    }}>
                                         <FormControl>
                                             <SelectTrigger className="w-full min-w-0">
                                                 <SelectValue />
@@ -464,7 +528,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                 <div className="flex items-center justify-end gap-3">
                     <Button
                         type="submit"
-                        disabled={save.isPending || isLoading || !form.formState.isDirty}
+                        disabled={save.isPending || !form.formState.isDirty}
                     >
                         {save.isPending ? (
                             <>

@@ -472,6 +472,34 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(result, "speech-handle")
         self.assertEqual(session.calls, [("Hello caller.", {"allow_interruptions": False})])
 
+    def test_hindi_agent_localizes_standard_greeting_and_instruction(self):
+        session = SimpleNamespace(say=lambda text, **kwargs: text)
+        greeting = speak_first_message(session, {
+            "agent_language": "hi",
+            "first_message": "Hi, thanks for calling. How can I help you today?",
+        })
+        self.assertIn("नमस्ते", greeting)
+        self.assertIn("Speak and respond in Hindi", build_agent_instructions({
+            "agent_language": "hi",
+            "system_prompt": "You are a helpful assistant.",
+        }))
+        self.assertIn("Indian English", build_agent_instructions({
+            "agent_language": "en-IN",
+            "system_prompt": "You are a helpful assistant.",
+        }))
+
+    def test_invalid_saved_voice_configuration_is_not_silently_accepted(self):
+        from handlers.voice_config_resolution import VoiceConfigValidationError
+
+        with self.assertRaises(VoiceConfigValidationError):
+            attach_resolved_voice_config({
+                "agent_language": "en-IN",
+                "stt_model": "deepgram/nova-3",
+                "llm_model": "bedrock/us.amazon.nova-micro-v1:0",
+                "tts_model": "deepgram/aura-2",
+                "voice": "aura-2-asteria-en",
+            })
+
     def test_parse_preview_user_transcript_packet_accepts_preview_user_text(self):
         text = parse_preview_user_transcript_packet(
             b'{"type":"preview_user_transcript","text":" hello agent "}',

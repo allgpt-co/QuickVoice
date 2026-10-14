@@ -293,10 +293,12 @@ export function normalizeLanguageCode(language: string): LanguageCode {
   const normalized = language.trim().toLowerCase();
   const baseLanguage = normalized.split("-", 1)[0];
   const matched = LANGUAGES.find(
-    (option) => option.code === normalized || option.code === baseLanguage,
+    (option) => option.code.toLowerCase() === normalized,
+  ) ?? LANGUAGES.find(
+    (option) => option.code.toLowerCase() === baseLanguage,
   );
 
-  return matched?.code ?? "en";
+  return matched?.code ?? language.trim();
 }
 
 function supportsLanguage(

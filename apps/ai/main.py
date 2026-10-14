@@ -45,7 +45,7 @@ from handlers.worker_handler import (
     wait_for_sip_answer,
 )
 from handlers.voice_catalog import load_voice_catalog
-from handlers.voice_config_resolution import resolve_voice_config
+from handlers.voice_config_resolution import VoiceConfigValidationError, resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
 from utils.logger import logger
@@ -159,6 +159,12 @@ def build_agent_tools(config: dict, call_context: dict | None = None) -> list:
 
 def build_agent_instructions(config: dict, call_context: dict | None = None) -> str:
     instructions = config.get("system_prompt") or DEFAULT_SYSTEM_PROMPT
+    voice_config = config.get("voice_config")
+    language = str(config.get("agent_language") or (voice_config.get("language") if isinstance(voice_config, dict) else None) or "en")
+    if language in {"hi", "hi-IN"}:
+        instructions += "\n\nSpeak and respond in Hindi (hi-IN), unless the caller explicitly asks for another language."
+    elif language == "en-IN":
+        instructions += "\n\nSpeak and respond in Indian English (en-IN), unless the caller explicitly asks for another language."
     if config.get("use_rag"):
         instructions += RAG_TOOL_INSTRUCTIONS
     if ivr_navigation_enabled(config, call_context):
@@ -245,22 +251,24 @@ def attach_resolved_voice_config(config: dict) -> dict:
     if isinstance(config.get("voice_config"), dict):
         return config
 
+    for field in ("stt_model", "llm_model", "tts_model"):
+        value = config.get(field)
+        if value and provider_section(value) is None:
+            raise VoiceConfigValidationError(f"Unsupported {field}: {value}")
+
     tts_section = provider_section(config.get("tts_model"))
     if tts_section is not None:
         tts_section = {**tts_section, "voice": config.get("voice")}
-    try:
-        voice_config = resolve_voice_config(
-            {
-                "language": str(config.get("agent_language", "en-US")),
-                "timezone": config.get("timezone"),
-                "stt": provider_section(config.get("stt_model")),
-                "llm": provider_section(config.get("llm_model")),
-                "tts": tts_section,
-            },
-            load_voice_catalog(),
-        )
-    except Exception:
-        return config
+    voice_config = resolve_voice_config(
+        {
+            "language": str(config.get("agent_language", "en-US")),
+            "timezone": config.get("timezone"),
+            "stt": provider_section(config.get("stt_model")),
+            "llm": provider_section(config.get("llm_model")),
+            "tts": tts_section,
+        },
+        load_voice_catalog(),
+    )
 
     updated = dict(config)
     updated["voice_config"] = voice_config
@@ -630,7 +638,12 @@ async def _run_entrypoint(ctx: JobContext):
         )
         metadata = await apply_initiation_webhook_metadata(config, metadata, call_context)
         config = apply_metadata_overrides(config, metadata)
-        config = attach_resolved_voice_config(config)
+        try:
+            config = attach_resolved_voice_config(config)
+        except VoiceConfigValidationError as error:
+            logger.error("Invalid saved voice configuration: {}", redact_sensitive(str(error)))
+            await end_call_without_billing(ctx, "invalid_voice_configuration")
+            return
 
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 

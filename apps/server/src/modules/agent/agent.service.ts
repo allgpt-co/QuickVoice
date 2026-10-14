@@ -172,6 +172,46 @@ export const getVoiceCatalog = async (): Promise<VoiceCatalog> => {
   return (await response.json()) as VoiceCatalog;
 };
 
+export const validateConfiguredVoice = async (configuration: {
+  agent_language: string;
+  timezone: string;
+  sttModel: string;
+  llmModel: string;
+  ttsModel: string;
+  voiceId: string;
+}) => {
+  const aiApiUrl = process.env.AI_API_URL ?? "http://localhost:5555";
+  let response: Response;
+  try {
+    response = await fetch(`${aiApiUrl.replace(/\/$/, "")}/voice/config/resolve`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-internal-key": requireInternalApiKey(),
+      },
+      body: JSON.stringify({
+        language: configuration.agent_language,
+        timezone: configuration.timezone,
+        stt: providerModel(configuration.sttModel),
+        llm: providerModel(configuration.llmModel),
+        tts: { ...providerModel(configuration.ttsModel), voice: configuration.voiceId },
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
+  } catch {
+    throw new CustomApiError("Voice validation is unavailable. Try again later.", 503);
+  }
+  if (response.status === 400) {
+    const body = await response.json().catch(() => ({})) as { detail?: unknown };
+    throw new BadRequestError(
+      typeof body.detail === "string" ? body.detail : "Unsupported voice configuration",
+    );
+  }
+  if (!response.ok) {
+    throw new CustomApiError("Voice validation is unavailable. Try again later.", 503);
+  }
+};
+
 export const createAgentPreviewSession = async (
   organizationId: string,
   agentId: string,
@@ -555,6 +595,7 @@ export const configureAgent = async (args: ConfigureAgentArgs) => {
   if (!agent) {
     throw new NotFoundError("Agent not found");
   }
+  await validateConfiguredVoice(data);
   const existingConfiguration = await agentRepository.getAgentConfig(
     organizationId,
     agentId,
