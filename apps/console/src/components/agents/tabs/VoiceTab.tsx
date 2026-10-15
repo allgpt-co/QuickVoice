@@ -115,7 +115,9 @@ function ensureSelectedLanguageModelOption(
     const matched = findModelOption(options, value);
     const fallback: LanguageAwareModelOption = {
         ...(matched ?? {
-            label: `Configured ${kind}: ${humanizeModelId(value)}`,
+            label: value.startsWith("sarvam/")
+                ? `Unavailable Sarvam ${kind}: ${humanizeModelId(value)}`
+                : `Configured ${kind}: ${humanizeModelId(value)}`,
             provider: "Configured",
             languages: [],
         }),
@@ -249,6 +251,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
         config.llmModel === selectedLlmModel &&
         config.ttsModel === selectedTtsModel
     );
+    const sarvamConfigured = config?.sttModel?.startsWith("sarvam/") || config?.ttsModel?.startsWith("sarvam/");
 
     async function onSubmit(values: FormValues) {
       if (!config || !voiceOptions) return;
@@ -301,6 +304,11 @@ export function VoiceTab({ agentId }: { agentId: string }) {
     return (
         <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {sarvamConfigured ? (
+                    <p role="alert" className="border border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
+                        This agent has a saved Sarvam model, which is unavailable. Choose supported STT, TTS, and voice options, then save before using this agent.
+                    </p>
+                ) : null}
                 <section className="border bg-card p-6">
                     <div className="mb-5 space-y-1">
                         <h2 className="text-base font-semibold">Locale</h2>
@@ -401,7 +409,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                                         </FormControl>
                                         <SelectContent>
                                             {sttModelsWithConfiguredValue.map((model) => (
-                                                <SelectItem key={model.id} value={model.id}>
+                                                <SelectItem key={model.id} value={model.id} disabled={model.id.startsWith("sarvam/")}>
                                                     {model.label}
                                                 </SelectItem>
                                             ))}
@@ -482,7 +490,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                                         </FormControl>
                                         <SelectContent>
                                             {ttsModelsWithConfiguredValue.map((model) => (
-                                                <SelectItem key={model.id} value={model.id}>
+                                                <SelectItem key={model.id} value={model.id} disabled={model.id.startsWith("sarvam/")}>
                                                     {model.label}
                                                 </SelectItem>
                                             ))}
@@ -506,7 +514,7 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                                         </FormControl>
                                         <SelectContent>
                                             {voicesWithConfiguredValue.map((voice) => (
-                                                <SelectItem key={voice.id} value={voice.id}>
+                                                <SelectItem key={voice.id} value={voice.id} disabled={voice.id === "shubh"}>
                                                     {voice.name}
                                                 </SelectItem>
                                             ))}

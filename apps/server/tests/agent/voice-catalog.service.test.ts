@@ -66,17 +66,17 @@ test("validateConfiguredVoice sends the exact saved locale, models, and voice to
   await validateConfiguredVoice({
     agent_language: "en-IN",
     timezone: "Asia/Kolkata",
-    sttModel: "sarvam/saaras:v3",
+    sttModel: "deepgram/nova-3",
     llmModel: "bedrock/us.amazon.nova-micro-v1:0",
-    ttsModel: "sarvam/bulbul:v3",
-    voiceId: "shubh",
+    ttsModel: "elevenlabs/eleven_flash_v2_5",
+    voiceId: "EXAVITQu4vr4xnSDxMaL",
   });
   assert.deepEqual(payload, {
     language: "en-IN",
     timezone: "Asia/Kolkata",
-    stt: { provider: "sarvam", model: "saaras:v3" },
+    stt: { provider: "deepgram", model: "nova-3" },
     llm: { provider: "bedrock", model: "us.amazon.nova-micro-v1:0" },
-    tts: { provider: "sarvam", model: "bulbul:v3", voice: "shubh" },
+    tts: { provider: "elevenlabs", model: "eleven_flash_v2_5", voice: "EXAVITQu4vr4xnSDxMaL" },
   });
 });
 

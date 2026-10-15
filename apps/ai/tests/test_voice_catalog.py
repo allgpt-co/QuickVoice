@@ -16,7 +16,7 @@ class VoiceCatalogTests(unittest.TestCase):
     def test_load_voice_catalog_returns_static_provider_options(self):
         catalog = load_voice_catalog()
 
-        self.assertEqual(catalog["version"], "2026-10-14")
+        self.assertEqual(catalog["version"], "2026-10-15")
         self.assertTrue(any(item["provider"] == "deepgram" for item in catalog["stt_models"]))
         self.assertTrue(any(item["provider"] == "bedrock" for item in catalog["llm_models"]))
         self.assertTrue(
@@ -44,7 +44,8 @@ class VoiceCatalogTests(unittest.TestCase):
                 for item in catalog["voices"]
             )
         )
-        self.assertTrue(any(item["provider"] == "sarvam" for item in catalog["voices"]))
+        for category in ("stt_models", "tts_models", "voices"):
+            self.assertFalse(any(item["provider"] == "sarvam" for item in catalog[category]))
         self.assertTrue(
             any(
                 item["id"] == "nova-3-multilingual"

@@ -134,12 +134,12 @@ class ApiTests(unittest.TestCase):
                 response = client.post(
                     "/voice/config/resolve",
                     headers={"x-internal-key": "internal-secret"},
-                    json={"language": "hi", "tts": {"provider": "sarvam", "model": "bulbul:v3", "voice": "shubh"}},
+                    json={"language": "hi", "tts": {"provider": "elevenlabs", "model": "eleven_flash_v2_5", "voice": "EXAVITQu4vr4xnSDxMaL"}},
                 )
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["config"]["language"], "hi")
-        self.assertEqual(response.json()["config"]["tts"]["provider"], "sarvam")
+        self.assertEqual(response.json()["config"]["tts"]["provider"], "elevenlabs")
 
     def test_kb_process_returns_accepted_job_and_status_exposes_results(self):
         import api

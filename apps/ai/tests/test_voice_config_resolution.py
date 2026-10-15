@@ -64,8 +64,8 @@ class VoiceConfigResolutionTests(unittest.TestCase):
                 "language": "hi-IN",
                 "stt": {"model": "deepgram/nova-3"},
                 "tts": {
-                    "model": "sarvam/bulbul:v3",
-                    "voice": "shubh",
+                    "model": "elevenlabs/eleven_flash_v2_5",
+                    "voice": "EXAVITQu4vr4xnSDxMaL",
                 },
             },
             load_voice_catalog(),
@@ -78,19 +78,16 @@ class VoiceConfigResolutionTests(unittest.TestCase):
             "deepgram/nova-3-multilingual",
         )
 
-    def test_resolve_voice_config_accepts_sarvam_hindi_selection(self):
-        config = resolve_voice_config(
-            {
-                "language": "hi",
-                "tts": {"provider": "sarvam", "model": "bulbul:v3", "voice": "shubh"},
-                "stt": {"provider": "sarvam", "model": "saaras:v3"},
-            },
-            load_voice_catalog(),
-        )
-
-        self.assertEqual(config["language"], "hi")
-        self.assertEqual(config["stt"]["provider"], "sarvam")
-        self.assertEqual(config["tts"]["voice"], "shubh")
+    def test_resolve_voice_config_rejects_unavailable_sarvam_selection(self):
+        with self.assertRaisesRegex(VoiceConfigValidationError, "stt.model is not supported"):
+            resolve_voice_config(
+                {
+                    "language": "hi",
+                    "tts": {"provider": "sarvam", "model": "bulbul:v3", "voice": "shubh"},
+                    "stt": {"provider": "sarvam", "model": "saaras:v3"},
+                },
+                load_voice_catalog(),
+            )
 
     def test_french_voice_agent_uses_supported_provider_path(self):
         config = resolve_voice_config(

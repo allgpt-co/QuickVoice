@@ -47,7 +47,7 @@ NOVA_3_MULTILINGUAL_LANGUAGES = ["en", "en-IN", "es", "fr", "de", "hi", "ru", "p
 
 
 STATIC_VOICE_CATALOG = {
-    "version": "2026-10-14",
+    "version": "2026-10-15",
     "defaults": {
         "language": "en",
         "timezone": "UTC",
@@ -90,14 +90,6 @@ STATIC_VOICE_CATALOG = {
             "languages": ["en", "en-IN"],
             "runtime_model": "nova-2",
             "billing_model": "deepgram/nova-2",
-        },
-        {
-            "provider": "sarvam",
-            "id": "saaras:v3",
-            "label": "Sarvam Saaras v3",
-            "languages": ["hi", "en-IN"],
-            "runtime_model": "saaras:v3",
-            "billing_model": "sarvam/saaras:v3",
         },
     ],
     "llm_models": [
@@ -159,14 +151,6 @@ STATIC_VOICE_CATALOG = {
             "runtime_model": "eleven_turbo_v2_5",
             "billing_model": "elevenlabs/eleven_turbo_v2_5",
         },
-        {
-            "provider": "sarvam",
-            "id": "bulbul:v3",
-            "label": "Sarvam Bulbul v3",
-            "languages": ["hi", "en-IN"],
-            "runtime_model": "bulbul:v3",
-            "billing_model": "sarvam/bulbul:v3",
-        },
     ],
     "voices": [
         {
@@ -216,14 +200,6 @@ STATIC_VOICE_CATALOG = {
             "languages": VOICE_LANGUAGE_IDS,
             "tts_models": ["eleven_flash_v2_5", "eleven_turbo_v2_5"],
             "runtime_voice": "UgBBYS2sOqTuMpoF3BR0",
-        },
-        {
-            "provider": "sarvam",
-            "id": "shubh",
-            "label": "Shubh",
-            "languages": ["hi", "en-IN"],
-            "tts_models": ["bulbul:v3"],
-            "runtime_voice": "shubh",
         },
     ],
 }
