@@ -108,6 +108,8 @@ const DEFAULT_THEME: WidgetTheme = {
 
 class QuickVoiceWidgetElement extends HTMLElement {
   private readonly root: ShadowRoot;
+  private readonly uiContainer: HTMLDivElement;
+  private readonly audioContainer: HTMLDivElement;
   private config: PublicWidgetConfig | null = null;
   private session: PublicWidgetSession | null = null;
   private room: Room | null = null;
@@ -116,11 +118,16 @@ class QuickVoiceWidgetElement extends HTMLElement {
   private expanded = false;
   private consentAccepted = false;
   private errorMessage = "";
-  private audioContainer: HTMLDivElement | null = null;
+  private audioPlaybackBlocked = false;
+  private callAttempt = 0;
 
   constructor() {
     super();
     this.root = this.attachShadow({ mode: "open" });
+    this.uiContainer = document.createElement("div");
+    this.audioContainer = document.createElement("div");
+    this.audioContainer.hidden = true;
+    this.root.append(this.uiContainer, this.audioContainer);
   }
 
   connectedCallback() {
@@ -191,6 +198,7 @@ class QuickVoiceWidgetElement extends HTMLElement {
     }
 
     this.errorMessage = "";
+    const attempt = ++this.callAttempt;
     this.state = "requesting";
     this.render();
 
@@ -200,6 +208,10 @@ class QuickVoiceWidgetElement extends HTMLElement {
         noiseSuppression: true,
         autoGainControl: true,
       });
+      if (attempt !== this.callAttempt) {
+        localTrack.stop();
+        return;
+      }
       this.localTrack = localTrack;
       this.state = "connecting";
       this.render();
@@ -210,6 +222,17 @@ class QuickVoiceWidgetElement extends HTMLElement {
           visitorId: this.visitorId(),
         },
       );
+      if (attempt !== this.callAttempt) {
+        try {
+          await this.apiPost(
+            `/public/widgets/${encodeURIComponent(this.widgetId)}/sessions/${encodeURIComponent(session.sessionId)}/end`,
+            { endToken: session.endToken },
+          );
+        } catch {
+          // The widget was removed while the request was in flight.
+        }
+        return;
+      }
       this.session = session;
 
       const room = new Room({
@@ -218,43 +241,62 @@ class QuickVoiceWidgetElement extends HTMLElement {
       });
       this.room = room;
       room
-        .on(RoomEvent.TrackSubscribed, (track) => this.attachRemoteTrack(track))
+        .on(RoomEvent.TrackSubscribed, (track) => {
+          if (this.room === room) this.attachRemoteTrack(track);
+        })
         .on(RoomEvent.TrackUnsubscribed, (track) => {
           track.detach().forEach((element) => element.remove());
         })
         .on(RoomEvent.Disconnected, () => {
-          this.cleanupAudio();
-          if (this.state === "live" || this.state === "connecting") {
-            this.state = "ended";
-            this.render();
-          }
+          if (this.room === room) void this.endCall({ notifyServer: true });
+        })
+        .on(RoomEvent.AudioPlaybackStatusChanged, () => {
+          if (this.room !== room) return;
+          this.audioPlaybackBlocked = !room.canPlaybackAudio;
+          this.render();
         })
         .on(RoomEvent.Reconnecting, () => {
+          if (this.room !== room) return;
           this.state = "connecting";
           this.render();
         })
         .on(RoomEvent.Reconnected, () => {
+          if (this.room !== room) return;
           this.state = "live";
           this.render();
         });
 
       await room.connect(session.livekitUrl, session.participant.token);
+      if (attempt !== this.callAttempt) {
+        room.disconnect();
+        return;
+      }
       await room.localParticipant.publishTrack(localTrack);
+      if (attempt !== this.callAttempt) return;
       this.state = "live";
       this.render();
     } catch (error) {
+      if (attempt !== this.callAttempt) return;
       await this.endCall({ notifyServer: true });
       this.setError(errorMessage(error, "Could not start the call."));
     }
   }
 
   private async endCall(options: { notifyServer: boolean }) {
+    ++this.callAttempt;
     const session = this.session;
+    this.session = null;
     this.localTrack?.stop();
     this.localTrack = null;
-    this.room?.disconnect();
+    const room = this.room;
     this.room = null;
+    room?.disconnect();
     this.cleanupAudio();
+    this.audioPlaybackBlocked = false;
+    if (this.state !== "error") {
+      this.state = "ended";
+      this.render();
+    }
 
     if (options.notifyServer && session) {
       try {
@@ -266,25 +308,15 @@ class QuickVoiceWidgetElement extends HTMLElement {
         // The local call is already disconnected. Server cleanup is best-effort.
       }
     }
-
-    this.session = null;
-    if (this.state !== "error") {
-      this.state = "ended";
-      this.render();
-    }
   }
 
   private attachRemoteTrack(track: RemoteTrack) {
     if (track.kind !== Track.Kind.Audio) return;
-    this.audioContainer =
-      this.audioContainer ??
-      this.root.querySelector<HTMLDivElement>('[data-audio-container="true"]');
-    if (!this.audioContainer) return;
     this.audioContainer.appendChild(track.attach());
   }
 
   private cleanupAudio() {
-    this.audioContainer?.querySelectorAll("audio").forEach((element) => element.remove());
+    this.audioContainer.querySelectorAll("audio").forEach((element) => element.remove());
   }
 
   private visitorId() {
@@ -384,7 +416,7 @@ class QuickVoiceWidgetElement extends HTMLElement {
       : "";
     const styleNonce = this.nonce || loaderNonce;
 
-    this.root.innerHTML = `
+    this.uiContainer.innerHTML = `
       <style${styleNonce ? ` nonce="${escapeAttribute(styleNonce)}"` : ""}>
         :host {
           all: initial;
@@ -415,7 +447,9 @@ class QuickVoiceWidgetElement extends HTMLElement {
         }
         .qv-panel {
           display: ${this.expanded ? "block" : "none"};
-          overflow: hidden;
+          max-height: calc(100vh - ${launcher.height + 60}px);
+          max-height: calc(100dvh - ${launcher.height + 60}px);
+          overflow-y: auto;
           border: 1px solid var(--qv-border);
           border-radius: var(--qv-radius);
           background: var(--qv-surface);
@@ -570,13 +604,13 @@ class QuickVoiceWidgetElement extends HTMLElement {
         }
       </style>
       <div class="qv-shell">
-        <section class="qv-panel" aria-live="polite">
+        <section class="qv-panel" id="qv-panel">
           <div class="qv-header">
             <div class="qv-brand">
               ${avatarMarkup}
               <div>
                 <p class="qv-title">${brandName}</p>
-                <p class="qv-status">${statusText}</p>
+                <p class="qv-status" role="status" aria-live="polite">${statusText}</p>
               </div>
             </div>
             <button class="qv-close" type="button" data-action="collapse" aria-label="Close widget">×</button>
@@ -598,20 +632,17 @@ class QuickVoiceWidgetElement extends HTMLElement {
                   ? `<button class="qv-primary" type="button" data-action="end">${endButtonText}</button>`
                   : `<button class="qv-primary" type="button" data-action="start" ${!canStart || startDisabled ? "disabled" : ""}>${isBusy ? statusText : startButtonText}</button>`
               }
+              ${this.audioPlaybackBlocked ? '<button class="qv-secondary" type="button" data-action="enable-audio">Enable sound</button>' : ""}
             </div>
             ${theme.whiteLabel ? "" : `<p class="qv-powered">Powered by QuickVoice</p>`}
           </div>
         </section>
-        <button class="qv-bubble" type="button" data-action="toggle" aria-expanded="${this.expanded ? "true" : "false"}">
+        <button class="qv-bubble" type="button" data-action="toggle" aria-controls="qv-panel" aria-expanded="${this.expanded ? "true" : "false"}">
           <span class="qv-dot" aria-hidden="true"></span>
           <span>${bubbleLabel}</span>
         </button>
       </div>
-      <div data-audio-container="true" hidden></div>
     `;
-    this.audioContainer = this.root.querySelector<HTMLDivElement>(
-      '[data-audio-container="true"]',
-    );
 
     this.root.querySelector('[data-action="toggle"]')?.addEventListener("click", () => {
       this.expanded = !this.expanded;
@@ -627,11 +658,27 @@ class QuickVoiceWidgetElement extends HTMLElement {
     this.root.querySelector('[data-action="end"]')?.addEventListener("click", () => {
       void this.endCall({ notifyServer: true });
     });
+    this.root.querySelector('[data-action="enable-audio"]')?.addEventListener("click", () => {
+      const room = this.room;
+      if (!room) return;
+      void room.startAudio().then(() => {
+        if (this.room !== room) return;
+        this.audioPlaybackBlocked = false;
+        this.render();
+      }).catch(() => {
+        // Keep the button available for another user gesture.
+      });
+    });
     this.root.querySelector('[data-action="consent"]')?.addEventListener("change", (event) => {
       this.consentAccepted = (event.target as HTMLInputElement).checked;
       this.errorMessage = "";
-      if (this.state === "error") this.state = "idle";
-      this.render();
+      if (this.state === "error") {
+        this.state = "idle";
+        this.render();
+      } else {
+        const start = this.root.querySelector<HTMLButtonElement>('[data-action="start"]');
+        if (start) start.disabled = isBusy || !this.consentAccepted;
+      }
     });
   }
 }

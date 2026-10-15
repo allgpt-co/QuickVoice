@@ -27,12 +27,15 @@ test("production bundle registers the quickvoice-widget element", async () => {
 test("style nonces survive every render and an explicit widget nonce overrides the loader", async () => {
   for (const loaderNonce of ["loader-nonce", ""]) {
     let Widget;
-    globalThis.document = { currentScript: { nonce: loaderNonce, getAttribute: () => "" } };
+    globalThis.document = {
+      currentScript: { nonce: loaderNonce, getAttribute: () => "" },
+      createElement: () => ({ innerHTML: "", hidden: false, appendChild() {}, querySelectorAll: () => [] }),
+    };
     globalThis.window = globalThis;
     globalThis.HTMLElement = class {
       nonce = "";
       attachShadow() {
-        this.shadowRoot = { innerHTML: "", querySelector: () => null };
+        this.shadowRoot = { append() {}, querySelector: () => null };
         return this.shadowRoot;
       }
       getAttribute() { return null; }
@@ -48,11 +51,43 @@ test("style nonces survive every render and an explicit widget nonce overrides t
       widget.state = state;
       widget.expanded = !widget.expanded;
       widget.render();
-      assert.ok(widget.shadowRoot.innerHTML.includes(loaderNonce ? '<style nonce="loader-nonce">' : "<style>"));
+      assert.ok(widget.uiContainer.innerHTML.includes(loaderNonce ? '<style nonce="loader-nonce">' : "<style>"));
     }
     widget.nonce = 'style-nonce"<&';
     widget.render();
-    assert.ok(widget.shadowRoot.innerHTML.includes('<style nonce="style-nonce&quot;&lt;&amp;">'));
-    assert.ok(!widget.shadowRoot.innerHTML.includes('<style nonce="loader-nonce">'));
+    assert.ok(widget.uiContainer.innerHTML.includes('<style nonce="style-nonce&quot;&lt;&amp;">'));
+    assert.ok(!widget.uiContainer.innerHTML.includes('<style nonce="loader-nonce">'));
   }
+});
+
+test("remote audio survives state changes and the browser unblock control appears", async () => {
+  let Widget;
+  globalThis.document = {
+    currentScript: null,
+    createElement: () => ({ innerHTML: "", hidden: false, children: [], appendChild(node) { this.children.push(node); }, querySelectorAll: () => [] }),
+  };
+  globalThis.window = globalThis;
+  globalThis.HTMLElement = class {
+    attachShadow() {
+      this.shadowRoot = { append() {}, querySelector: () => null };
+      return this.shadowRoot;
+    }
+    getAttribute() { return null; }
+    hasAttribute() { return false; }
+  };
+  globalThis.customElements = {
+    get: () => undefined,
+    define: (_name, constructor) => { Widget = constructor; },
+  };
+  await import("../dist/quickvoice-widget.js?audio-retention");
+  const widget = new Widget();
+  const audio = {};
+  widget.audioContainer.appendChild(audio);
+  widget.state = "connecting";
+  widget.render();
+  widget.state = "live";
+  widget.audioPlaybackBlocked = true;
+  widget.render();
+  assert.deepEqual(widget.audioContainer.children, [audio]);
+  assert.match(widget.uiContainer.innerHTML, /data-action="enable-audio"/);
 });
