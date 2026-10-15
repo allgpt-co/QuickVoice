@@ -152,6 +152,7 @@ def evaluate_local_runtime_config(
     raw_internal_key = str(env.get("INTERNAL_API_KEY", "")).strip()
     raw_queue_dir = str(env.get("AI_BILLING_USAGE_QUEUE_DIR", "")).strip()
     raw_call_log_queue_dir = str(env.get("AI_CALL_LOG_QUEUE_DIR", "")).strip()
+    raw_post_call_webhook_queue_dir = str(env.get("AI_POST_CALL_WEBHOOK_QUEUE_DIR", "")).strip()
 
     try:
         billing_mode = resolve_billing_mode(env)
@@ -190,6 +191,12 @@ def evaluate_local_runtime_config(
         "callLogQueue": _queue_check(
             raw_call_log_queue_dir,
             variable_name="AI_CALL_LOG_QUEUE_DIR",
+            required=hosted,
+            queue_probe=queue_probe,
+        ),
+        "postCallWebhookQueue": _queue_check(
+            raw_post_call_webhook_queue_dir,
+            variable_name="AI_POST_CALL_WEBHOOK_QUEUE_DIR",
             required=hosted,
             queue_probe=queue_probe,
         ),

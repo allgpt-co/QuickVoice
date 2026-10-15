@@ -145,6 +145,20 @@ class SafeHttpTests(unittest.TestCase):
         self.assertNotIn("Host", headers)
         self.assertEqual(headers["X-test"], "allowed")
 
+    def test_webhook_can_accept_success_without_reading_a_large_response(self):
+        response = FakeResponse(headers={"content-length": "10000000"})
+        connection = FakeConnection(response)
+        result = safe_https_request(
+            self._request(), timeout=4, max_response_bytes=16,
+            read_response_body=False,
+            resolver=lambda *_: ["93.184.216.34"],
+            connection_factory=lambda *_: connection,
+        )
+        self.assertEqual(result.status, 200)
+        self.assertEqual(result.body, b"")
+        self.assertIsNone(response.read_limit)
+        self.assertTrue(connection.closed)
+
     def test_cancellation_stops_request_before_waiting_for_response(self):
         cancellation_event = threading.Event()
 

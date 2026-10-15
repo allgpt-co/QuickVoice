@@ -11,6 +11,28 @@ from handlers.finalization_handler import CallFinalizer
 
 
 class FinalizationHandlerTests(unittest.TestCase):
+    def test_post_call_webhook_is_queued_once_when_enabled(self):
+        queued = []
+        posted = []
+
+        async def post(payload):
+            posted.append(payload)
+
+        finalizer = CallFinalizer(
+            config={"agent_id": "agent_123", "organization_id": "org_123",
+                    "post_call_webhook": {"webhook_url": "https://example.com/hook"}},
+            call_context={"call_id": "call_123"},
+            started_at=datetime(2026, 1, 1, tzinfo=timezone.utc),
+            recording_path=None,
+            transcript_reader=lambda: [],
+            post_call_log=post,
+            enqueue_webhook=lambda payload: queued.append(payload),
+        )
+        asyncio.run(finalizer.finalize())
+        asyncio.run(finalizer.finalize())
+        self.assertEqual(len(queued), 1)
+        self.assertEqual(len(posted), 1)
+
     def test_call_duration_uses_disconnect_time_not_delayed_finalization(self):
         posts = []
 

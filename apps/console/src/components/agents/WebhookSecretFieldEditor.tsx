@@ -12,23 +12,17 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import { SecretSelect } from "@/src/components/secrets/SecretSelect";
+import {
+  normalizeFieldType,
+  type SecretFieldRow,
+} from "./webhook-secret-fields";
 
-export type SecretFieldType = "Value" | "Secret";
-
-export type SecretFieldRecord = Record<
-  string,
-  {
-    value: string;
-    type: SecretFieldType;
-  }
->;
-
-export type SecretFieldRow = {
-  id: string;
-  key: string;
-  value: string;
-  type: SecretFieldType;
-};
+export {
+  rowsForSecretFields,
+  secretFieldsFromRows,
+  secretFieldRecordsEqual,
+} from "./webhook-secret-fields";
+export type { SecretFieldRow, SecretFieldRecord, SecretFieldType } from "./webhook-secret-fields";
 
 function createRow(): SecretFieldRow {
   return {
@@ -37,64 +31,6 @@ function createRow(): SecretFieldRow {
     value: "",
     type: "Value",
   };
-}
-
-function normalizeFieldType(value: unknown): SecretFieldType {
-  return value === "Secret" ? "Secret" : "Value";
-}
-
-export function rowsForSecretFields(value: unknown): SecretFieldRow[] {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return [];
-
-  return Object.entries(value as Record<string, unknown>).map(([key, entry], index) => {
-    if (entry && typeof entry === "object" && !Array.isArray(entry)) {
-      const record = entry as Record<string, unknown>;
-      return {
-        id: `${key}-${index}`,
-        key,
-        value: typeof record.value === "string" ? record.value : String(record.value ?? ""),
-        type: normalizeFieldType(record.type),
-      };
-    }
-
-    return {
-      id: `${key}-${index}`,
-      key,
-      value: typeof entry === "string" ? entry : String(entry ?? ""),
-      type: "Value",
-    };
-  });
-}
-
-export function secretFieldsFromRows(rows: SecretFieldRow[]): SecretFieldRecord {
-  const record: SecretFieldRecord = {};
-  for (const row of rows) {
-    const key = row.key.trim();
-    const value = row.value.trim();
-    if (!key || !value) continue;
-    record[key] = {
-      value,
-      type: row.type,
-    };
-  }
-  return record;
-}
-
-export function secretFieldRecordsEqual(
-  a: SecretFieldRecord,
-  b: SecretFieldRecord
-) {
-  const aKeys = Object.keys(a).sort();
-  const bKeys = Object.keys(b).sort();
-  if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key, index) => {
-    const otherKey = bKeys[index];
-    return (
-      key === otherKey &&
-      a[key]?.value === b[otherKey]?.value &&
-      a[key]?.type === b[otherKey]?.type
-    );
-  });
 }
 
 export function WebhookSecretFieldEditor({
@@ -161,10 +97,10 @@ export function WebhookSecretFieldEditor({
                 value={row.type}
                 disabled={disabled}
                 onValueChange={(value) =>
-                  updateRow(row.id, { type: normalizeFieldType(value), value: "" })
+                  updateRow(row.id, { type: normalizeFieldType(value), value: "", redacted: false })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger aria-label={`${label} field type for ${row.key || "new field"}`}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -175,8 +111,10 @@ export function WebhookSecretFieldEditor({
               {row.type === "Secret" ? (
                 <SecretSelect
                   value={row.value}
-                  onValueChange={(value) => updateRow(row.id, { value })}
+                  onValueChange={(value) => updateRow(row.id, { value, redacted: false })}
                   disabled={disabled}
+                  placeholder={row.redacted ? "Saved secret" : "Select secret"}
+                  ariaLabel={`${label} secret for ${row.key || "new field"}`}
                 />
               ) : (
                 <Input

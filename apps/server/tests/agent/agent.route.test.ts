@@ -56,3 +56,11 @@ test("DELETE /:agentId is registered behind auth middleware", async () => {
   assert.equal(body.success, false);
   assert.equal(body.code, "UNAUTHORIZED");
 });
+
+test("webhook status read and write endpoints require authentication", async () => {
+  const url = `${baseUrl}/api/v1/agents/8d55565f-1111-4111-8111-f95fd03f0df2/webhook-events`;
+  const read = await requestJson(url);
+  const write = await requestJson(url, { method: "POST", body: JSON.stringify({}) });
+  assert.equal(read.status, 401);
+  assert.equal(write.status, 401);
+});

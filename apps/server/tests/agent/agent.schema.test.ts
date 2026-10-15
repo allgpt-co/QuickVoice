@@ -5,7 +5,15 @@ import {
   configureAgentSchema,
   createAgentSchema,
   updateAgentSchema,
+  webhookEventSchema,
 } from "../../src/modules/agent/agent.schema.js";
+
+test("webhook status accepts only bounded phase, status, and error codes", () => {
+  const base = { organizationId: "org_1", phase: "initiation", status: "failed" };
+  assert.equal(webhookEventSchema.parse({ ...base, errorCode: "timeout" }).errorCode, "timeout");
+  assert.equal(webhookEventSchema.safeParse({ ...base, status: "sent_secret" }).success, false);
+  assert.equal(webhookEventSchema.safeParse({ ...base, errorCode: "https://secret.example" }).success, false);
+});
 
 test("createAgentSchema accepts console template slugs", () => {
   for (const templateId of ["blank", "business", "medical", "support"]) {

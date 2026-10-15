@@ -139,6 +139,13 @@ export const post_call_webhookSchema = z
   })
   .nullable();
 
+export const webhookEventSchema = z.object({
+  organizationId: z.string().min(1),
+  phase: z.enum(["initiation", "post_call"]),
+  status: z.enum(["delivered", "retrying", "failed"]),
+  errorCode: z.enum(["timeout", "http_error", "invalid_response", "delivery_error"]).optional(),
+});
+
 export const configureAgentSchema = z
   .object({
     agent_language: z.string(),

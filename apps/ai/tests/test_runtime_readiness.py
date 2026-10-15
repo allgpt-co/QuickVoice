@@ -27,6 +27,7 @@ class RuntimeConfigTests(unittest.TestCase):
             "internalApiKey",
             "billingUsageQueue",
             "callLogQueue",
+            "postCallWebhookQueue",
         ):
             self.assertTrue(result["checks"][name]["required"])
             self.assertEqual(
@@ -40,6 +41,7 @@ class RuntimeConfigTests(unittest.TestCase):
             "SERVER_API_URL": "https://api.quickvoice.example/api/v1",
             "INTERNAL_API_KEY": "internal-secret",
             "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
+            "AI_POST_CALL_WEBHOOK_QUEUE_DIR": "/var/lib/quickvoice/post-call-webhooks",
         }
 
         relative = evaluate_local_runtime_config(
@@ -53,6 +55,7 @@ class RuntimeConfigTests(unittest.TestCase):
                 **base_env,
                 "AI_BILLING_USAGE_QUEUE_DIR": "/var/lib/quickvoice/billing-queue",
                 "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
+                "AI_POST_CALL_WEBHOOK_QUEUE_DIR": "/var/lib/quickvoice/post-call-webhooks",
             },
             queue_probe=lambda _path: "AI_BILLING_USAGE_QUEUE_DIR is not writable",
         )
@@ -90,6 +93,7 @@ class RuntimeHandshakeTests(unittest.IsolatedAsyncioTestCase):
                 "INTERNAL_API_KEY": "internal-secret",
                 "AI_BILLING_USAGE_QUEUE_DIR": "/var/lib/quickvoice/billing-queue",
                 "AI_CALL_LOG_QUEUE_DIR": "/var/lib/quickvoice/call-logs",
+                "AI_POST_CALL_WEBHOOK_QUEUE_DIR": "/var/lib/quickvoice/post-call-webhooks",
             },
             get_json=get_json,
             queue_probe=lambda path: (
@@ -98,6 +102,7 @@ class RuntimeHandshakeTests(unittest.IsolatedAsyncioTestCase):
                 in {
                     Path("/var/lib/quickvoice/billing-queue"),
                     Path("/var/lib/quickvoice/call-logs"),
+                    Path("/var/lib/quickvoice/post-call-webhooks"),
                 }
                 else "unexpected path"
             ),

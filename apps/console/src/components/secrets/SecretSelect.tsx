@@ -14,11 +14,13 @@ export function SecretSelect({
   onValueChange,
   disabled,
   placeholder = "Select secret",
+  ariaLabel = "Select secret",
 }: {
   value?: string;
   onValueChange: (value: string) => void;
   disabled?: boolean;
   placeholder?: string;
+  ariaLabel?: string;
 }) {
   const { data: secrets = [], isLoading } = useSecrets();
 
@@ -28,7 +30,7 @@ export function SecretSelect({
       onValueChange={onValueChange}
       disabled={disabled || isLoading || secrets.length === 0}
     >
-      <SelectTrigger className="h-9">
+      <SelectTrigger className="h-9" aria-label={ariaLabel}>
         <SelectValue
           placeholder={
             isLoading

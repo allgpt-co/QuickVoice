@@ -84,6 +84,13 @@ export interface WebhookValue {
   redacted?: boolean;
 }
 
+export interface AgentWebhookEvent {
+  phase: "initiation" | "post_call";
+  status: "delivered" | "retrying" | "failed";
+  errorCode: string | null;
+  createdAt: string;
+}
+
 export const agentsApi = {
   list: async (): Promise<Agent[]> => {
     const res = await apiClient.get<ApiEnvelope<Agent[]>>("/agents");
@@ -106,6 +113,12 @@ export const agentsApi = {
   getConfig: async (id: string): Promise<AgentConfiguration | null> => {
     const res = await apiClient.get<ApiEnvelope<AgentConfiguration | null>>(
       `/agents/${id}/config`,
+    );
+    return res.data.data;
+  },
+  getWebhookEvents: async (id: string): Promise<AgentWebhookEvent[]> => {
+    const res = await apiClient.get<ApiEnvelope<AgentWebhookEvent[]>>(
+      `/agents/${id}/webhook-events`,
     );
     return res.data.data;
   },

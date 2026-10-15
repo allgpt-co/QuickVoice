@@ -20,6 +20,7 @@ from handlers.billing_usage_reporter import (
 )
 from handlers.call_metadata_collector import CallMetadataCollector, build_metadata_collection_instructions
 from handlers.calllog_handler import run_call_log_queue_consumer
+from handlers.post_call_webhook_handler import run_post_call_webhook_queue_consumer
 from handlers.config_handler import get_config
 from handlers.finalization_handler import CallFinalizer
 from handlers.livekit_handler import recording_path as build_recording_path, start_recording
@@ -399,6 +400,18 @@ def start_call_log_queue_consumer_thread() -> threading.Thread:
         name="call-log-outbox",
         daemon=True,
     )
+    thread.start()
+    return thread
+
+
+def start_post_call_webhook_queue_consumer_thread() -> threading.Thread:
+    def consume() -> None:
+        try:
+            asyncio.run(run_post_call_webhook_queue_consumer())
+        except Exception as error:
+            logger.critical("[webhook:post-call] outbox stopped: {}", redact_sensitive(str(error)))
+
+    thread = threading.Thread(target=consume, name="post-call-webhook-outbox", daemon=True)
     thread.start()
     return thread
 
@@ -981,6 +994,7 @@ if __name__ == "__main__":
 
     start_billing_usage_queue_consumer_thread()
     start_call_log_queue_consumer_thread()
+    start_post_call_webhook_queue_consumer_thread()
     agents.cli.run_app(
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,

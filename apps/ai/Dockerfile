@@ -33,7 +33,8 @@ ENV PATH="/opt/venv/bin:${PATH}" \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     AI_API_PORT=5555 \
     AI_BILLING_USAGE_QUEUE_DIR=/var/lib/quickvoice/billing-usage \
-    AI_CALL_LOG_QUEUE_DIR=/var/lib/quickvoice/call-logs
+    AI_CALL_LOG_QUEUE_DIR=/var/lib/quickvoice/call-logs \
+    AI_POST_CALL_WEBHOOK_QUEUE_DIR=/var/lib/quickvoice/post-call-webhooks
 
 # Torch/ONNX wheels need libgomp at runtime; compilers remain in the dependency stage.
 RUN apt-get update \
@@ -53,7 +54,7 @@ WORKDIR /app
 COPY --from=dependencies /opt/venv /opt/venv
 COPY . .
 
-RUN mkdir -p "${AI_BILLING_USAGE_QUEUE_DIR}" "${AI_CALL_LOG_QUEUE_DIR}" \
+RUN mkdir -p "${AI_BILLING_USAGE_QUEUE_DIR}" "${AI_CALL_LOG_QUEUE_DIR}" "${AI_POST_CALL_WEBHOOK_QUEUE_DIR}" \
   && chown -R appuser:appuser /app /var/lib/quickvoice
 
 USER appuser

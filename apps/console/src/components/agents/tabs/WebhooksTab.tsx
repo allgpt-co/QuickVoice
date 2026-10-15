@@ -2,14 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Braces, Loader2, Save } from "lucide-react";
+import { Braces, Loader2, RefreshCw, Save } from "lucide-react";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Switch } from "@/src/components/ui/switch";
-import { Label } from "@/src/components/ui/label";
 import {
   Form,
   FormControl,
@@ -28,6 +28,7 @@ import {
 } from "@/src/components/ui/select";
 import { useAgentConfig, useSaveAgentConfig } from "@/src/hooks/queries/agents";
 import { mergeConfig } from "@/src/lib/agents/config-defaults";
+import { agentsApi } from "@/src/lib/api/resources/agents";
 import {
   normalizeAgentVariables,
   uniqueDynamicVariableNames,
@@ -126,6 +127,11 @@ function recordsEqual(a: Record<string, string>, b: Record<string, string>) {
 export function WebhooksTab({ agentId }: { agentId: string }) {
   const { data: config, isLoading } = useAgentConfig(agentId);
   const save = useSaveAgentConfig(agentId);
+  const deliveryEvents = useQuery({
+    queryKey: ["agents", agentId, "webhook-events"],
+    queryFn: () => agentsApi.getWebhookEvents(agentId),
+    refetchInterval: 30_000,
+  });
   const [webhookRowsState, setWebhookRowsState] = useState({
     source: "",
     initiationVariableRows: [] as WebhookVariableRow[],
@@ -312,9 +318,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
             ...config?.post_call_webhook,
             webhook_url: v.post_url,
             method: "POST" as const,
-            ...(Object.keys(postHeaders).length > 0
-              ? { headers: postHeaders }
-              : {}),
+            headers: postHeaders,
             transcript: v.post_transcript,
             audio_url: v.post_audio,
           }
@@ -361,7 +365,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <section className="border bg-card p-6">
-          <div className="mb-5 flex items-start justify-between gap-6">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <h2 className="text-base font-semibold">Initiation webhook</h2>
               <p className="text-sm text-muted-foreground">
@@ -374,7 +378,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
               name="initiation_enabled"
               render={({ field }) => (
                 <FormItem className="flex items-center gap-3">
-                  <Label className="text-xs">Enabled</Label>
+                  <FormLabel className="text-xs">Enable initiation webhook</FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
@@ -422,9 +426,12 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
                     </FormControl>
                     <SelectContent>
                       <SelectItem value="POST">POST</SelectItem>
-                      <SelectItem value="GET">GET</SelectItem>
+                      <SelectItem value="GET">GET (static response only)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <FormDescription>
+                    POST includes call context. GET sends no caller details and is suitable only for static responses.
+                  </FormDescription>
                 </FormItem>
               )}
             />
@@ -501,7 +508,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
         </section>
 
         <section className="border bg-card p-6">
-          <div className="mb-5 flex items-start justify-between gap-6">
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <h2 className="text-base font-semibold">Post-call webhook</h2>
               <p className="text-sm text-muted-foreground">
@@ -514,7 +521,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
               name="post_enabled"
               render={({ field }) => (
                 <FormItem className="flex items-center gap-3">
-                  <Label className="text-xs">Enabled</Label>
+                  <FormLabel className="text-xs">Enable post-call webhook</FormLabel>
                   <FormControl>
                     <Switch
                       checked={field.value}
@@ -559,7 +566,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between border p-4">
                     <div className="space-y-0.5">
-                      <Label>Include transcript</Label>
+                      <FormLabel>Include transcript</FormLabel>
                       <FormDescription>
                         Full transcript in payload.
                       </FormDescription>
@@ -580,7 +587,7 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
                 render={({ field }) => (
                   <FormItem className="flex items-center justify-between border p-4">
                     <div className="space-y-0.5">
-                      <Label>Include audio URL</Label>
+                      <FormLabel>Include audio URL</FormLabel>
                       <FormDescription>
                         Signed URL to the recording.
                       </FormDescription>
@@ -596,6 +603,39 @@ export function WebhooksTab({ agentId }: { agentId: string }) {
                 )}
               />
             </div>
+          </div>
+        </section>
+
+        <section className="border bg-card p-6" aria-label="Webhook delivery status">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div className="space-y-1">
+              <h2 className="text-base font-semibold">Delivery status</h2>
+              <p className="text-sm text-muted-foreground">
+                Recent real-call attempts. Preview calls do not invoke initiation webhooks;
+                initiation failures let the call continue without response variables.
+              </p>
+            </div>
+            <Button type="button" size="sm" variant="outline" onClick={() => deliveryEvents.refetch()}>
+              <RefreshCw className="size-4" /> Refresh
+            </Button>
+          </div>
+          <div className="mt-4 space-y-2" aria-live="polite">
+            {deliveryEvents.isError ? (
+              <p className="text-sm text-destructive">Could not load delivery status. Try Refresh.</p>
+            ) : deliveryEvents.isLoading ? (
+              <p className="text-sm text-muted-foreground">Loading delivery status...</p>
+            ) : deliveryEvents.data?.length ? (
+              deliveryEvents.data.map((event, index) => (
+                <div key={`${event.createdAt}-${index}`} className="flex flex-wrap items-center justify-between gap-2 border px-3 py-2 text-sm">
+                  <span>{event.phase === "post_call" ? "Post-call" : "Initiation"} · {event.status}{event.errorCode ? ` (${event.errorCode.replaceAll("_", " ")})` : ""}</span>
+                  <time className="text-muted-foreground" dateTime={event.createdAt}>
+                    {new Date(event.createdAt).toLocaleString()}
+                  </time>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No delivery attempts recorded yet.</p>
+            )}
           </div>
         </section>
 

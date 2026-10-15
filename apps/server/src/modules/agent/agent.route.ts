@@ -10,6 +10,7 @@ import {
   configureAgentSchema,
   createAgentSchema,
   updateAgentSchema,
+  webhookEventSchema,
 } from "./agent.schema.js";
 
 const router = Router();
@@ -71,6 +72,20 @@ router.get(
   authMiddleware,
   requirePermission({ agentConfiguration: ["read"] }),
   agentController.getAgentConfig,
+);
+
+router.get(
+  "/:agentId/webhook-events",
+  authMiddleware,
+  requirePermission({ agentConfiguration: ["read"] }),
+  agentController.getAgentWebhookEvents,
+);
+
+router.post(
+  "/:agentId/webhook-events",
+  requireInternalApiKey,
+  validate(webhookEventSchema),
+  agentController.recordAgentWebhookEvent,
 );
 
 router.get(

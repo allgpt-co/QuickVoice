@@ -40,6 +40,7 @@ def safe_https_request(
     *,
     timeout: float,
     max_response_bytes: int,
+    read_response_body: bool = True,
     resolver: Callable[[str, int], list[str]] | None = None,
     connection_factory: Callable[
         [str, int, list[str], float], http.client.HTTPSConnection
@@ -107,6 +108,13 @@ def safe_https_request(
             raise UnsafeRemoteRequestError("Remote redirects are not allowed")
         if response.status >= 400:
             raise RuntimeError(f"HTTP {response.status}")
+
+        if not read_response_body:
+            return SafeHttpResponse(
+                status=response.status,
+                content_type=response.getheader("Content-Type", ""),
+                body=b"",
+            )
 
         content_length = response.getheader("Content-Length")
         if content_length is not None:

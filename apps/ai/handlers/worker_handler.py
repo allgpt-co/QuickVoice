@@ -9,6 +9,8 @@ from urllib.request import Request
 from livekit import api
 
 from handlers.voice_catalog import load_voice_catalog
+from handlers.webhook_events import report_webhook_event, webhook_error_code
+from handlers.webhook_fields import webhook_body_values, webhook_header_values
 from utils.logger import logger, redact_sensitive
 from utils.safe_http import safe_https_request
 
@@ -451,8 +453,11 @@ async def apply_initiation_webhook_metadata(
             call_context,
         )
     except Exception as error:
-        logger.warning("[webhook:initiation] request failed: {}", str(error))
+        logger.warning("[webhook:initiation] request failed: {}", redact_sensitive(str(error)))
+        await report_webhook_event(config, "initiation", "failed", webhook_error_code(error))
         response = {}
+    else:
+        await report_webhook_event(config, "initiation", "delivered")
 
     webhook_mappings = webhook.get("dynamic_variables")
     mapped_dynamic_variables = resolve_webhook_dynamic_variables(
@@ -522,42 +527,6 @@ def _fetch_initiation_webhook_json(
     if not raw.strip():
         return {}
     return json.loads(raw)
-
-
-def webhook_header_values(headers: Any) -> dict[str, str]:
-    if not isinstance(headers, dict):
-        return {}
-
-    resolved: dict[str, str] = {}
-    for key, entry in headers.items():
-        if not key:
-            continue
-        if isinstance(entry, dict):
-            value = entry.get("value")
-        else:
-            value = entry
-        if value in (None, ""):
-            continue
-        resolved[str(key)] = str(value)
-    return resolved
-
-
-def webhook_body_values(body: Any) -> dict[str, Any]:
-    if not isinstance(body, dict):
-        return {}
-
-    resolved: dict[str, Any] = {}
-    for key, entry in body.items():
-        if not key:
-            continue
-        if isinstance(entry, dict):
-            value = entry.get("value")
-        else:
-            value = entry
-        if value in (None, ""):
-            continue
-        resolved[str(key)] = value
-    return resolved
 
 
 def extract_webhook_dynamic_variables(payload: Any) -> dict[str, Any]:
