@@ -55,11 +55,11 @@ task up:dev
 
 ### Choose Your Host
 
-| Host    | Support level                | Guidance                                                                                                                                                                                                                     |
-| ------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Linux   | Supported                    | Install the prerequisites above, run `task doctor`, then run `task up:dev`.                                                                                                                                                  |
-| macOS   | Supported with current tools | Install Docker Desktop and a modern Bash (`>=4`). The Bash 3.2 bundled with macOS is not sufficient for every orchestration script. Verify `bash --version`, `docker compose version`, and `task --version` before starting. |
-| Windows | Use WSL2                     | Native PowerShell and Command Prompt are not supported by the Bash-based Taskfile scripts. Use WSL2 with Docker Desktop's WSL integration.                                                                                   |
+| Host    | Support level                | Guidance                                                                                                                                                                                                                                                                              |
+| ------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Linux   | Supported                    | Install the prerequisites above, run `task doctor`, then run `task up:dev`.                                                                                                                                                                                                           |
+| macOS   | Supported with current tools | Install Docker Desktop and a modern Bash (`>=4`). The Bash 3.2 bundled with macOS is not sufficient for every orchestration script. Follow the [macOS setup guide](./docs/setup/macos.md) to verify `bash --version`, `docker compose version`, and `task --version` before starting. |
+| Windows | Use WSL2                     | Native PowerShell and Command Prompt are not supported by the Bash-based Taskfile scripts. Use WSL2 with Docker Desktop's WSL integration.                                                                                                                                            |
 
 On Debian, Ubuntu, or WSL2, Docker, Python, and the Go toolchain can be installed with:
 
