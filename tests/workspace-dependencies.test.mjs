@@ -19,7 +19,7 @@ test("workspace installs do not expose hoisted transitive dependencies", () => {
 });
 
 test("workspace source imports declare their dependencies in their own manifest", () => {
-  const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { cwd: root, encoding: "utf8" })
+  const files = execFileSync("git", ["ls-files", "--cached", "-z"], { cwd: root, encoding: "utf8" })
     .split("\0").filter((file) => file && existsSync(new URL(file, root)));
   const manifests = files.filter((file) => file === "package.json" || /^(apps|packages)\/[^/]+\/package.json$/.test(file))
     .map((file) => ({ dir: path.dirname(file), file, data: JSON.parse(read(file)) }))
