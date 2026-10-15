@@ -81,7 +81,7 @@ export function AgentTabs({ agentId }: { agentId: string }) {
       <TabsContent value="voice" className="mt-6 min-w-0">
         <VoiceTab agentId={agentId} />
       </TabsContent>
-      <TabsContent value="analysis" forceMount className="mt-6 min-w-0">
+      <TabsContent value="analysis" forceMount hidden={current !== "analysis"} className="mt-6 min-w-0">
         <AnalysisTab agentId={agentId} />
       </TabsContent>
       <TabsContent value="webhooks" className="mt-6 min-w-0">
