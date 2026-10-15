@@ -54,6 +54,26 @@ def publish(namespace, kb_id, version, expected):
     return bool(accepted), previous
 
 
+def publish_confirmed(namespace, kb_id, version, expected):
+    try:
+        return publish(namespace, kb_id, version, expected)
+    except Exception:
+        # The Redis write may have committed before the response was lost.
+        if _client().hget(_key(namespace), kb_id) == version:
+            return True, expected
+        raise
+
+
+def revoke_failed(namespace, kb_id, expected):
+    # A failed retry is already hidden. Never downgrade a deletion or revoke a
+    # generation published by a newer job after this attempt started.
+    if expected.startswith("!"):
+        return expected.startswith("!failed:") and _client().hget(_key(namespace), kb_id) == expected
+    marker = "!failed:" + (expected or "legacy")
+    accepted, _ = _client().eval(_PUBLISH, 1, _key(namespace), kb_id, marker, expected)
+    return bool(accepted)
+
+
 def delete(namespace, kb_id, *, permanent=True):
     # Reassignment revokes current writers but permits a later move back. An
     # actual source deletion is permanent and can never be downgraded.

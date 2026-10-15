@@ -8,14 +8,12 @@ import {
  FileText,
  Link as LinkIcon,
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
 import { EmptyState } from "@/src/components/common/EmptyState";
 import { Button } from "@/src/components/ui/button";
 import { KnowledgeSourceStatus } from "@/src/components/kb/kb-utils";
+import { useKbSources } from "@/src/hooks/queries/kb";
 import { Skeleton } from "@/src/components/ui/skeleton";
-import { kbApi } from "@/src/lib/api/resources/kb";
-import { queryKeys } from "@/src/lib/query-keys";
 import type { KbSourceType } from "@/src/lib/api/types";
 
 const SOURCE_ICON: Record<KbSourceType, typeof FileText> = {
@@ -29,14 +27,7 @@ const SOURCE_ICON: Record<KbSourceType, typeof FileText> = {
 };
 
 export function KnowledgeTab({ agentId }: { agentId: string }) {
- const { data: sources, isLoading } = useQuery({
- queryKey: queryKeys.kb.list(agentId),
- queryFn: () => kbApi.list(agentId),
- refetchInterval: (query) =>
- query.state.data?.some((source) => source.status === "PROCESSING")
- ? 2_000
- : false,
- });
+ const { data: sources, isLoading } = useKbSources(agentId);
 
  return (
  <div className="space-y-6">

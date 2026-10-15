@@ -5,7 +5,7 @@ QuickVoice keeps Pinecone as the runtime default until both providers are select
 For an existing installation, migrate the vector store and embedding model in separate operations. Existing Pinecone vectors can only be queried with the embedding model that created them.
 
 1. Deploy this release while keeping `VECTOR_STORE_PROVIDER=pinecone` and `EMBEDDING_PROVIDER=pinecone` on the AI service.
-2. Deploy Qdrant with persistent storage and create a backup. In Coolify, attach Qdrant and the AI service to the same network and use its stable alias, for example `QDRANT_URL=http://quickvoice-qdrant:6333`.
+2. Deploy Qdrant with persistent storage and create a backup. In Coolify, attach Qdrant and the AI service to the same network and use its stable alias, for example `QDRANT_URL=http://quickvoice-qdrant:6333`. Keep the AI service's Redis data persistent as well: the `quickvoice:kb:index:*` hashes select the published vector generation and fence deleted sources. Enable Redis AOF (or an equivalent durable, backed-up configuration) before reindexing; do not flush these keys. Losing them hides versioned documents until they are reindexed.
 3. Schedule a maintenance window, then set the AI service to:
 
    ```env

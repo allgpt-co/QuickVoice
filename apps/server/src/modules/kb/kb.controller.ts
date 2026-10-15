@@ -9,6 +9,7 @@ import {
   updateKbApiSchema,
 } from "./kb.schema.js";
 import { createKbUploadUrl } from "./kb-upload.service.js";
+import { getKbFileUrl } from "./kb-file-access.service.js";
 
 export const createKnowledgeSources = authorized(async (req, res) => {
   const sources = await kbService.createKnowledgeSources({
@@ -34,6 +35,19 @@ export const listKnowledgeSources = authorized(async (req, res) => {
     message: "Knowledge sources fetched successfully",
     data: sources,
   });
+});
+
+export const getKnowledgeSourceFileUrl = authorized(async (req, res) => {
+  const kbId = req.params.kbId;
+  if (typeof kbId !== "string" || !kbId) {
+    throw new BadRequestError("Knowledge source id is required");
+  }
+  const disposition = req.query.disposition ?? "attachment";
+  if (disposition !== "inline" && disposition !== "attachment") {
+    throw new BadRequestError("File disposition must be inline or attachment");
+  }
+  const url = await getKbFileUrl(req.auth.activeOrganizationId, kbId, disposition);
+  res.status(StatusCodes.OK).json({ success: true, data: { url } });
 });
 
 export const updateKnowledgeSource = authorized(async (req, res) => {

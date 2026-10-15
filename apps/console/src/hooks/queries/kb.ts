@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
@@ -11,7 +12,9 @@ import {
 import { queryKeys } from "@/src/lib/query-keys";
 
 export function useKbSources(agentId?: string) {
-  return useQuery({
+  const qc = useQueryClient();
+  const lastActiveSources = useRef<string | null>(null);
+  const query = useQuery({
     queryKey: queryKeys.kb.list(agentId),
     queryFn: () => kbApi.list(agentId),
     refetchInterval: (query) =>
@@ -19,6 +22,18 @@ export function useKbSources(agentId?: string) {
         ? 2_000
         : false,
   });
+  const activeSources = query.data
+    ? query.data.filter((source) => source.status === "ACTIVE")
+        .map((source) => `${source.kbId}:${source.agentId ?? ""}`)
+        .sort()
+        .join("|")
+    : null;
+  useEffect(() => {
+    if (activeSources === null || activeSources === lastActiveSources.current) return;
+    lastActiveSources.current = activeSources;
+    void qc.invalidateQueries({ queryKey: queryKeys.agents.all });
+  }, [activeSources, qc]);
+  return query;
 }
 
 export function useCreateKb() {

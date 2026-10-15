@@ -86,6 +86,25 @@ test("KB upload signing rejects mismatched types and oversized files", async () 
   );
 });
 
+test("KB upload signing cannot exceed the AI service's 10 MB download floor", async () => {
+  const previous = process.env.KB_MAX_UPLOAD_BYTES;
+  process.env.KB_MAX_UPLOAD_BYTES = String(50 * 1024 * 1024);
+  try {
+    await assert.rejects(
+      createKbUploadUrl({
+        organizationId: "org_123",
+        fileName: "large.pdf",
+        contentType: "application/pdf",
+        fileSize: 11 * 1024 * 1024,
+      }),
+      /10 MB upload limit/,
+    );
+  } finally {
+    if (previous === undefined) delete process.env.KB_MAX_UPLOAD_BYTES;
+    else process.env.KB_MAX_UPLOAD_BYTES = previous;
+  }
+});
+
 test("KB file references must use the active organization and matching source type", () => {
   const key = `kb/org_123/${TEST_UUID}.pdf`;
 

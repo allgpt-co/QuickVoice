@@ -8,15 +8,18 @@ import os
 import io
 import copy
 import asyncio
+import http.client
 import ipaddress
 import inspect
 import json
 import secrets
 import socket
+import ssl
 import time
+import zipfile
 from datetime import datetime, timezone
 from typing import Optional
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
 try:
     import redis.asyncio as redis_asyncio
@@ -26,6 +29,7 @@ except ImportError:  # Lightweight unit-test environments install no Redis clien
 from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
 from utils.pinecone_client import pinecone_client, pinecone_host
+from utils import kb_index_state
 from handlers.vector_provider_adapters import get_vector_adapters, get_vector_store_adapter
 from handlers.kb_chunking import chunk_text as _chunk_text
 
@@ -53,6 +57,13 @@ CHUNK_SIZE = int(os.environ.get("KB_CHUNK_SIZE_TOKENS", "220"))
 CHUNK_OVERLAP = int(os.environ.get("KB_CHUNK_OVERLAP_TOKENS", "32"))
 MAX_INPUT_TOKENS = int(os.environ.get("KB_MAX_INPUT_TOKENS", "256"))
 MAX_DOWNLOAD_BYTES = int(os.environ.get("KB_MAX_DOWNLOAD_BYTES", str(10 * 1024 * 1024)))
+MAX_FILE_DOWNLOAD_BYTES = max(10 * 1024 * 1024, MAX_DOWNLOAD_BYTES)
+MAX_DOWNLOAD_SECONDS = 90
+MAX_EXTRACTED_CHARS = 2_000_000
+MAX_ARCHIVE_UNCOMPRESSED_BYTES = 50 * 1024 * 1024
+MAX_ARCHIVE_MEMBERS = 5_000
+MAX_DOCUMENT_ROWS = 100_000
+MAX_PDF_PAGES = 500
 MAX_CHUNKS_PER_DOCUMENT = int(os.environ.get("KB_MAX_CHUNKS_PER_DOCUMENT", "500"))
 MAX_DOCUMENTS_PER_JOB = int(os.environ.get("KB_MAX_DOCUMENTS_PER_JOB", "50"))
 ALLOWED_SCHEMES = {"http", "https"}
@@ -589,6 +600,9 @@ def _document_error_fields(exc: Exception, *, budget: dict) -> dict:
     elif "download exceeds" in message:
         code = "KB_DOWNLOAD_TOO_LARGE"
         user_message = "This knowledge source is larger than the allowed download size."
+    elif "Extracted text exceeds limit" in message or "Document archive exceeds limit" in message or "Document row limit exceeded" in message or "PDF page limit exceeded" in message:
+        code = "KB_DOCUMENT_TOO_LARGE"
+        user_message = "This document expands beyond the knowledge-base processing limit. Reduce its size and try again."
     elif "Too many redirects" in message:
         code = "KB_TOO_MANY_REDIRECTS"
         user_message = "This URL redirects too many times. Use the final destination URL and try again."
@@ -668,7 +682,7 @@ def _extract_html(content: bytes) -> str:
     soup = BeautifulSoup(content, "html.parser")
     for tag in soup(["script", "style", "nav", "footer", "header"]):
         tag.decompose()
-    return soup.get_text(separator="\n", strip=True)
+    return _bounded_text([soup.get_text(separator="\n", strip=True)])
 
 
 async def download_bytes(
@@ -677,35 +691,104 @@ async def download_bytes(
     max_bytes: int = MAX_DOWNLOAD_BYTES,
     expected_content: str | None = None,
 ) -> bytes:
-    import httpx  # type: ignore
+    return await asyncio.to_thread(_download_bytes_pinned, url, max_bytes, expected_content)
 
-    safe_url = await asyncio.to_thread(validate_ingest_url, url)
-    async with httpx.AsyncClient(follow_redirects=False, timeout=60) as client:
-        current_url = safe_url
-        for _ in range(5):
-            async with client.stream("GET", current_url, headers={"User-Agent": "QuickVoice-KB/1.0"}) as resp:
-                if resp.status_code in {301, 302, 303, 307, 308}:
-                    redirect_url = resp.headers.get("location")
-                    if not redirect_url:
-                        raise ValueError("Redirect response missing Location header")
-                    current_url = await asyncio.to_thread(
-                        validate_ingest_url,
-                        str(resp.url.join(redirect_url)),
-                    )
-                    continue
 
-                resp.raise_for_status()
-                _validate_content_type(resp.headers.get("content-type", ""), expected_content)
-                chunks: list[bytes] = []
-                total = 0
-                async for chunk in resp.aiter_bytes():
-                    total += len(chunk)
-                    if total > max_bytes:
-                        raise ValueError(f"download exceeds {max_bytes} byte limit")
-                    chunks.append(chunk)
-                return b"".join(chunks)
+class _PinnedHTTPConnection(http.client.HTTPConnection):
+    def __init__(self, host: str, port: int, addresses: list[str]):
+        super().__init__(host, port, timeout=60)
+        self._addresses = addresses
 
-        raise ValueError("Too many redirects")
+    def connect(self):
+        self.sock = _connect_vetted(self._addresses, self.port, self.timeout)
+
+
+class _PinnedHTTPSConnection(http.client.HTTPSConnection):
+    def __init__(self, host: str, port: int, addresses: list[str]):
+        super().__init__(host, port, timeout=60, context=ssl.create_default_context())
+        self._addresses = addresses
+
+    def connect(self):
+        sock = _connect_vetted(self._addresses, self.port, self.timeout)
+        try:
+            self.sock = self._context.wrap_socket(sock, server_hostname=self.host)
+        except Exception:
+            sock.close()
+            raise
+
+
+def _connect_vetted(addresses: list[str], port: int, timeout: float):
+    last_error = None
+    for address in addresses:
+        try:
+            return socket.create_connection((address, port), timeout)
+        except OSError as exc:
+            last_error = exc
+    raise last_error or ValueError("URL host could not be resolved")
+
+
+def _download_bytes_pinned(url: str, max_bytes: int, expected_content: str | None) -> bytes:
+    deadline = time.monotonic() + MAX_DOWNLOAD_SECONDS
+    current_url = validate_ingest_url(url)
+    for _ in range(5):
+        _remaining_download_time(deadline)
+        parsed = urlparse(current_url)
+        port = parsed.port or (443 if parsed.scheme == "https" else 80)
+        # Resolve once more immediately before connecting, validate every answer,
+        # then connect to the vetted IP while retaining the hostname for TLS/Host.
+        addresses = [str(address) for address in _validate_public_host(parsed.hostname)]
+        connection = (
+            _PinnedHTTPSConnection(parsed.hostname, port, addresses)
+            if parsed.scheme == "https"
+            else _PinnedHTTPConnection(parsed.hostname, port, addresses)
+        )
+        try:
+            connection.timeout = _remaining_download_time(deadline)
+            path = parsed.path or "/"
+            if parsed.query:
+                path += f"?{parsed.query}"
+            connection.request("GET", path, headers={"Host": parsed.netloc, "User-Agent": "QuickVoice-KB/1.0", "Accept-Encoding": "identity"})
+            _bound_socket_timeout(connection, deadline)
+            response = connection.getresponse()
+            if response.status in {301, 302, 303, 307, 308}:
+                location = response.getheader("Location")
+                if not location:
+                    raise ValueError("Redirect response missing Location header")
+                current_url = validate_ingest_url(urljoin(current_url, location))
+                continue
+            if not 200 <= response.status < 300:
+                raise ValueError(f"Knowledge download failed with HTTP {response.status}")
+            _validate_content_type(response.getheader("Content-Type", ""), expected_content)
+            chunks: list[bytes] = []
+            total = 0
+            while True:
+                _bound_socket_timeout(connection, deadline)
+                chunk = response.read(64 * 1024)
+                if not chunk:
+                    break
+                total += len(chunk)
+                if total > max_bytes:
+                    raise ValueError(f"download exceeds {max_bytes} byte limit")
+                chunks.append(chunk)
+            return b"".join(chunks)
+        finally:
+            connection.close()
+    raise ValueError("Too many redirects")
+
+
+def _remaining_download_time(deadline: float) -> float:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("Knowledge download timed out")
+    return min(60, remaining)
+
+
+def _bound_socket_timeout(connection, deadline: float) -> None:
+    timeout = _remaining_download_time(deadline)
+    connection.timeout = timeout
+    sock = getattr(connection, "sock", None)
+    if sock is not None:
+        sock.settimeout(timeout)
 
 
 def validate_ingest_url(url: str) -> str:
@@ -727,7 +810,7 @@ def validate_ingest_url(url: str) -> str:
     return urlunparse(parsed._replace(scheme=parsed.scheme.lower(), netloc=parsed.netloc.lower()))
 
 
-def _validate_public_host(host: str) -> None:
+def _validate_public_host(host: str) -> list[ipaddress.IPv4Address | ipaddress.IPv6Address]:
     try:
         addresses = [ipaddress.ip_address(host)]
     except ValueError:
@@ -740,15 +823,11 @@ def _validate_public_host(host: str) -> None:
             addresses.append(ipaddress.ip_address(info[4][0]))
 
     for address in addresses:
-        if (
-            address.is_private
-            or address.is_loopback
-            or address.is_link_local
-            or address.is_reserved
-            or address.is_multicast
-            or address.is_unspecified
-        ):
+        if not address.is_global:
             raise ValueError("Private, local, or reserved IP addresses are not allowed for KB ingestion")
+    if not addresses:
+        raise ValueError("URL host could not be resolved")
+    return addresses
 
 
 def _validate_content_type(content_type: str, expected_content: str | None) -> None:
@@ -763,45 +842,78 @@ def _validate_content_type(content_type: str, expected_content: str | None) -> N
 
 def parse_pdf(content: bytes) -> str:
     import fitz  # type: ignore  (pymupdf)
-    doc = fitz.open(stream=content, filetype="pdf")
-    return "\n".join(page.get_text() for page in doc)
+    with fitz.open(stream=content, filetype="pdf") as doc:
+        if len(doc) > MAX_PDF_PAGES:
+            raise ValueError("PDF page limit exceeded")
+        return _bounded_text(page.get_text() for page in doc)
 
 
 def parse_docx(content: bytes) -> str:
     from docx import Document  # type: ignore
+    _validate_archive(content)
     doc = Document(io.BytesIO(content))
-    parts = []
-    for para in doc.paragraphs:
-        if para.text.strip():
-            parts.append(para.text)
-    for table in doc.tables:
-        for row in table.rows:
-            parts.append("\t".join(cell.text for cell in row.cells))
-    return "\n".join(parts)
+    def parts():
+        for para in doc.paragraphs:
+            if para.text.strip():
+                yield para.text
+        for table in doc.tables:
+            for row in table.rows:
+                yield "\t".join(cell.text for cell in row.cells)
+    return _bounded_text(parts())
 
 
 def parse_xlsx(content: bytes) -> str:
     import openpyxl  # type: ignore
+    _validate_archive(content)
     wb = openpyxl.load_workbook(io.BytesIO(content), read_only=True, data_only=True)
-    parts = []
-    for ws in wb.worksheets:
-        for row in ws.iter_rows(values_only=True):
-            row_text = "\t".join(str(c) for c in row if c is not None)
-            if row_text.strip():
-                parts.append(row_text)
-    return "\n".join(parts)
+    try:
+        def parts():
+            rows = 0
+            for ws in wb.worksheets:
+                for row in ws.iter_rows(values_only=True):
+                    rows += 1
+                    if rows > MAX_DOCUMENT_ROWS:
+                        raise ValueError("Document row limit exceeded")
+                    row_text = "\t".join(str(c) for c in row if c is not None)
+                    if row_text.strip():
+                        yield row_text
+        return _bounded_text(parts())
+    finally:
+        wb.close()
 
 
 def parse_xls(content: bytes) -> str:
     import xlrd  # type: ignore
     wb = xlrd.open_workbook(file_contents=content)
-    parts = []
-    for sheet in wb.sheets():
-        for rx in range(sheet.nrows):
-            row_text = "\t".join(str(sheet.cell_value(rx, cx)) for cx in range(sheet.ncols))
-            if row_text.strip():
-                parts.append(row_text)
-    return "\n".join(parts)
+    def parts():
+        rows = 0
+        for sheet in wb.sheets():
+            for rx in range(sheet.nrows):
+                rows += 1
+                if rows > MAX_DOCUMENT_ROWS:
+                    raise ValueError("Document row limit exceeded")
+                row_text = "\t".join(str(sheet.cell_value(rx, cx)) for cx in range(sheet.ncols))
+                if row_text.strip():
+                    yield row_text
+    return _bounded_text(parts())
+
+
+def _validate_archive(content: bytes) -> None:
+    with zipfile.ZipFile(io.BytesIO(content)) as archive:
+        members = archive.infolist()
+        if len(members) > MAX_ARCHIVE_MEMBERS or sum(member.file_size for member in members) > MAX_ARCHIVE_UNCOMPRESSED_BYTES:
+            raise ValueError("Document archive exceeds limit")
+
+
+def _bounded_text(parts) -> str:
+    collected = []
+    length = 0
+    for part in parts:
+        length += len(part) + (1 if collected else 0)
+        if length > MAX_EXTRACTED_CHARS:
+            raise ValueError("Extracted text exceeds limit")
+        collected.append(part)
+    return "\n".join(collected)
 
 
 def parse_file(content: bytes, source_type: str) -> str:
@@ -815,7 +927,7 @@ def parse_file(content: bytes, source_type: str) -> str:
     if st == "XLS":
         return parse_xls(content)
     # TXT / CSV and any other plain-text type
-    return content.decode("utf-8", errors="replace")
+    return _bounded_text([content.decode("utf-8", errors="replace")])
 
 
 # ── chunking ─────────────────────────────────────────────────────────────────
@@ -980,8 +1092,10 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
             continue
 
         started = time.perf_counter()
+        expected_generation = None
 
         try:
+            expected_generation = await asyncio.to_thread(kb_index_state.assert_not_deleted, agent_id, kb_id)
             # 1. Extract text
             await _notify_progress(progress, {**result_base, "status": "running", "stage": "extracting"})
             if source_type.upper() == "URL":
@@ -991,7 +1105,7 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
             else:
                 if not presigned_url:
                     raise ValueError("presignedUrl is required for file source types")
-                content = await download_bytes(presigned_url)
+                content = await download_bytes(presigned_url, max_bytes=MAX_FILE_DOWNLOAD_BYTES)
                 text = await asyncio.to_thread(parse_file, content, source_type)
 
             if not text.strip():
@@ -1060,6 +1174,11 @@ async def process_documents(payload: dict, progress=None, should_cancel=None) ->
             results.append(result)
 
         except Exception as exc:
+            if expected_generation is not None:
+                try:
+                    await asyncio.to_thread(kb_index_state.revoke_failed, agent_id, kb_id, expected_generation)
+                except Exception as revoke_exc:
+                    logger.error("[kb] failed to hide stale vectors {}", redact_sensitive({"kbId": kb_id, "error": str(revoke_exc)}))
             error = _document_error_fields(exc, budget=budget)
             emit_metric(
                 "kb_document_processed",

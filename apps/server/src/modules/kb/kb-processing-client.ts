@@ -30,6 +30,7 @@ const TERMINAL_JOB_STATUSES = new Set([
 
 const DEFAULT_POLL_INTERVAL_MS = 2_000;
 const DEFAULT_TIMEOUT_MS = 10 * 60 * 1_000;
+const REQUEST_TIMEOUT_MS = 30_000;
 
 export async function processKbDocuments({
   aiApiUrl,
@@ -49,6 +50,7 @@ export async function processKbDocuments({
   onStatus?: KbProcessingStatusHandler;
 }) {
   const baseUrl = trimTrailingSlashes(aiApiUrl);
+  const deadline = Date.now() + timeoutMs;
   const body = await fetchJson(fetchImpl, `${baseUrl}/kb/process`, {
     method: "POST",
     headers: {
@@ -56,7 +58,7 @@ export async function processKbDocuments({
       "x-internal-key": internalApiKey,
     },
     body: JSON.stringify(payload),
-  });
+  }, deadline);
   await onStatus?.(body);
 
   if (Array.isArray(body.processed) || isTerminalJob(body)) {
@@ -74,6 +76,7 @@ export async function processKbDocuments({
     internalApiKey,
     pollIntervalMs,
     timeoutMs,
+    deadline,
     jobId: getString(body.jobId) ?? statusUrl,
     onStatus,
   });
@@ -120,6 +123,7 @@ async function pollKbJob({
   internalApiKey,
   pollIntervalMs,
   timeoutMs,
+  deadline,
   jobId,
   onStatus,
 }: {
@@ -128,16 +132,18 @@ async function pollKbJob({
   internalApiKey: string;
   pollIntervalMs: number;
   timeoutMs: number;
+  deadline: number;
   jobId: string;
   onStatus?: KbProcessingStatusHandler;
 }) {
-  const deadline = Date.now() + timeoutMs;
-
   while (true) {
+    if (Date.now() >= deadline) {
+      throw new Error(`KB processing job ${jobId} did not complete within ${timeoutMs}ms`);
+    }
     const body = await fetchJson(fetchImpl, statusUrl, {
       method: "GET",
       headers: { "x-internal-key": internalApiKey },
-    });
+    }, deadline);
     await onStatus?.(body);
 
     if (isTerminalJob(body)) {
@@ -150,12 +156,20 @@ async function pollKbJob({
       );
     }
 
-    await delay(pollIntervalMs);
+    await delay(Math.min(pollIntervalMs, Math.max(0, deadline - Date.now())));
   }
 }
 
-async function fetchJson(fetchImpl: FetchLike, url: string, init: RequestInit) {
-  const response = await fetchImpl(url, init);
+async function fetchJson(fetchImpl: FetchLike, url: string, init: RequestInit, deadline?: number) {
+  const timeoutMs = deadline === undefined
+    ? REQUEST_TIMEOUT_MS
+    : Math.max(1, Math.min(REQUEST_TIMEOUT_MS, deadline - Date.now()));
+  const response = await fetchImpl(url, {
+    ...init,
+    signal: init.signal
+      ? AbortSignal.any([init.signal, AbortSignal.timeout(timeoutMs)])
+      : AbortSignal.timeout(timeoutMs),
+  });
   const text = await response.text();
 
   if (!response.ok) {

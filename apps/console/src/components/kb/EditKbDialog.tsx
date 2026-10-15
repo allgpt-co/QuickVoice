@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Loader2, Save } from "lucide-react";
+import { Download, Eye, Loader2, Save } from "lucide-react";
+import { toast } from "sonner";
 
 import { KnowledgeSourceStatus } from "@/src/components/kb/kb-utils";
 import { Button } from "@/src/components/ui/button";
@@ -23,6 +24,7 @@ import {
   SelectValue,
 } from "@/src/components/ui/select";
 import { useUpdateKb } from "@/src/hooks/queries/kb";
+import { kbApi } from "@/src/lib/api/resources/kb";
 import type { Agent, KnowledgeSource } from "@/src/lib/api/types";
 
 function formatDate(value: string | null) {
@@ -85,6 +87,7 @@ function EditKbDialogContent({
     source.sourceType === "URL" ? source.storagePath : ""
   );
   const update = useUpdateKb();
+  const [fileAction, setFileAction] = useState<"inline" | "attachment" | null>(null);
 
   const metadata = useMemo(() => {
     if (!source.metadata || Object.keys(source.metadata).length === 0) {
@@ -94,6 +97,7 @@ function EditKbDialogContent({
   }, [source]);
 
   const isProcessing = source.status === "PROCESSING";
+  const canPreviewFile = source.sourceType === "PDF" || source.sourceType === "TXT" || source.sourceType === "CSV";
   const canSave =
     !isProcessing &&
     !update.isPending &&
@@ -125,6 +129,27 @@ function EditKbDialogContent({
     } catch {
       // The mutation displays the API error and keeps the dialog open so the
       // user can correct the fields without losing their changes.
+    }
+  }
+
+  async function openFile(disposition: "inline" | "attachment") {
+    if (fileAction) return;
+    const previewTab = disposition === "inline" ? window.open("about:blank", "_blank") : null;
+    if (disposition === "inline" && !previewTab) {
+      toast.error("Allow pop-ups to preview this document");
+      return;
+    }
+    if (previewTab) previewTab.opener = null;
+    setFileAction(disposition);
+    try {
+      const signedUrl = await kbApi.fileUrl(source.kbId, disposition);
+      if (previewTab) previewTab.location.href = signedUrl;
+      else window.location.assign(signedUrl);
+    } catch (error) {
+      previewTab?.close();
+      toast.error(error instanceof Error ? error.message : "Could not open this document");
+    } finally {
+      setFileAction(null);
     }
   }
 
@@ -233,6 +258,25 @@ function EditKbDialogContent({
                 <Detail label="Storage reference" value={source.storagePath} />
               ) : null}
             </div>
+            {source.sourceType !== "URL" ? (
+              <div className="space-y-2">
+                <div className="flex flex-wrap gap-2">
+                  {canPreviewFile ? (
+                    <Button type="button" variant="outline" disabled={fileAction !== null} onClick={() => void openFile("inline")}>
+                      {fileAction === "inline" ? <Loader2 className="animate-spin" /> : <Eye />}
+                      Preview in new tab
+                    </Button>
+                  ) : null}
+                  <Button type="button" variant="outline" disabled={fileAction !== null} onClick={() => void openFile("attachment")}>
+                    {fileAction === "attachment" ? <Loader2 className="animate-spin" /> : <Download />}
+                    Download file
+                  </Button>
+                </div>
+                {!canPreviewFile ? (
+                  <p className="text-xs text-muted-foreground">Download this file to review it in a compatible app.</p>
+                ) : null}
+              </div>
+            ) : null}
           </section>
 
           <section className="space-y-3" aria-labelledby="kb-metadata-heading">

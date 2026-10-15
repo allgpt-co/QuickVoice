@@ -17,6 +17,7 @@ for (const scenario of ['stale', 'same-agent-edit', 'superseded', 'reassigned'])
         if (name.endsWith('kb.repository.js')) return { markProcessing: async () => scenario === 'stale' ? [] : ['kb'], markActive: async () => scenario === 'superseded' ? [] : ['kb'] };
         if (name.endsWith('kb-processing-client.js')) return { processKbDocuments: async () => ({}), deleteKbDocumentVectors: async ({ agentId, permanent }: any) => { assert.equal(permanent, false); deleted.push(agentId); } };
         if (name.endsWith('kb-processing-result.js')) return { assertKbProcessingSucceeded: () => {} };
+        if (name.endsWith('kb-index-manifest.js')) return { trackKbJob: async () => {}, finishKbJob: async () => {} };
         return {};
       },
     });

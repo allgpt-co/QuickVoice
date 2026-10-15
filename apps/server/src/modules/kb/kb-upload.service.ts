@@ -5,7 +5,6 @@ import { generateUploadUrl } from "../../config/s3.js";
 import { inspectKbUpload } from "./kb-file-policy.js";
 
 const DEFAULT_MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-const MAX_CONFIGURABLE_UPLOAD_BYTES = 100 * 1024 * 1024;
 
 type CreateKbUploadUrlArgs = {
   contentType: string;
@@ -62,7 +61,7 @@ function readMaxUploadBytes() {
   const value = Number(process.env.KB_MAX_UPLOAD_BYTES);
   return Number.isInteger(value) &&
     value > 0 &&
-    value <= MAX_CONFIGURABLE_UPLOAD_BYTES
+    value <= DEFAULT_MAX_UPLOAD_BYTES
     ? value
     : DEFAULT_MAX_UPLOAD_BYTES;
 }

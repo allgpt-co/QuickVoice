@@ -509,14 +509,21 @@ class PineconeVectorStoreAdapter(BaseVectorStoreAdapter):
             index.delete(filter=version_filter, namespace=namespace)
             raise
         # Leave staged data intact on an ambiguous Redis publication failure.
-        accepted, previous = kb_index_state.publish(namespace, kb_id, version, expected)
+        accepted, previous = kb_index_state.publish_confirmed(namespace, kb_id, version, expected)
         if not accepted:
             index.delete(filter=version_filter, namespace=namespace)
             raise VectorAdapterError("Knowledge source was deleted or changed during indexing")
-        if previous.startswith("!"):
+        if previous.startswith("!failed:"):
+            previous = previous.removeprefix("!failed:")
+            if previous == "legacy":
+                previous = ""
+        elif previous.startswith("!"):
             return
-        index.delete(filter={"kbId": {"$eq": kb_id}, "indexVersion":
-                     {"$eq": previous} if previous else {"$exists": False}}, namespace=namespace)
+        try:
+            index.delete(filter={"kbId": {"$eq": kb_id}, "indexVersion":
+                         {"$eq": previous} if previous else {"$exists": False}}, namespace=namespace)
+        except Exception as exc:
+            logger.warning("[kb] old Pinecone generation cleanup deferred {}", redact_sensitive({"kbId": kb_id, "error": str(exc)}))
 
     def delete_by_kb(self, *, namespace: str, kb_id: str, permanent: bool = True) -> None:
         previous = kb_index_state.delete(namespace, kb_id, permanent=permanent)
@@ -733,13 +740,17 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
 
         # Do not roll back an ambiguous Redis result: publication may have
         # committed. Unpublished staged vectors are never query-visible.
-        accepted, previous = kb_index_state.publish(namespace, kb_id, index_version, expected)
+        accepted, previous = kb_index_state.publish_confirmed(namespace, kb_id, index_version, expected)
         if not accepted:
             client.delete(collection_name=self._collection_name, points_selector=version_filter, wait=True)
             raise VectorAdapterError("Knowledge source was deleted or changed during indexing")
         # Delete exactly what this atomic publication replaced, never another
         # concurrent writer's generation. Legacy vectors predate the manifest.
-        if previous.startswith("!"):
+        if previous.startswith("!failed:"):
+            previous = previous.removeprefix("!failed:")
+            if previous == "legacy":
+                previous = ""
+        elif previous.startswith("!"):
             return
         previous_filter = models.Filter(must=[
             models.FieldCondition(key="agentId", match=models.MatchValue(value=namespace)),
@@ -752,7 +763,10 @@ class QdrantVectorStoreAdapter(BaseVectorStoreAdapter):
                 models.FieldCondition(key="active", match=models.MatchValue(value=True)),
                 models.IsEmptyCondition(is_empty=models.PayloadField(key="active")),
             ]
-        client.delete(collection_name=self._collection_name, points_selector=previous_filter, wait=True)
+        try:
+            client.delete(collection_name=self._collection_name, points_selector=previous_filter, wait=True)
+        except Exception as exc:
+            logger.warning("[kb] old Qdrant generation cleanup deferred {}", redact_sensitive({"kbId": kb_id, "error": str(exc)}))
 
     def delete_by_kb(self, *, namespace: str, kb_id: str, permanent: bool = True) -> None:
         previous = kb_index_state.delete(namespace, kb_id, permanent=permanent)

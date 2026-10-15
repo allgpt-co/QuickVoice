@@ -73,6 +73,16 @@ class Checks(unittest.TestCase):
   self.write('old');self.client.fail=True
   with self.assertRaises(RuntimeError):self.write()
   self.assertEqual([p.text for p in self.read()],['old'])
+ def test_failed_document_hides_old_generation_and_retry_replaces_it(self):
+  self.write('old')
+  expected=kb_index_state.assert_not_deleted('agent','kb')
+  self.assertTrue(kb_index_state.revoke_failed('agent','kb',expected))
+  self.assertEqual(self.read(),[])
+  self.write('recovered')
+  self.assertEqual([p.text for p in self.read()],['recovered'])
+  self.assertEqual(len(self.client.points),1)
+  self.assertFalse(kb_index_state.revoke_failed('agent','kb',expected))
+  self.assertEqual([p.text for p in self.read()],['recovered'])
  def test_query_retries_if_publication_changes_snapshot(self):
   self.write('old');self.client.query_hook=lambda:self.write('new')
   self.assertEqual([p.text for p in self.read()],['new'])
@@ -93,7 +103,7 @@ class Checks(unittest.TestCase):
    original(*args)
    raise ConnectionError('response lost after commit')
   self.redis.eval = commit_then_disconnect
-  with self.assertRaises(ConnectionError):self.write('new')
+  self.write('new')
   self.assertEqual([p.text for p in self.read()], ['new'])
  def test_missing_redis_fails_closed(self):
   self.write('old')

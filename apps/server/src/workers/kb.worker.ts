@@ -10,6 +10,7 @@ import {
   KbProcessingFailedError,
 } from "../modules/kb/kb-processing-result.js";
 import { isFinalKbJobAttempt } from "../modules/kb/kb-job-metadata.js";
+import { finishKbJob, trackKbJob } from "../modules/kb/kb-index-manifest.js";
 import * as kbRepository from "../modules/kb/kb.repository.js";
 import { safeKbWorkerFailure } from "../modules/kb/kb-worker-failure.js";
 import type { KbJobData, KbJobName } from "../queues/kb.queue.js";
@@ -48,6 +49,7 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
     // A stale job owns no vectors. Explicit source deletion is fenced by the
     // AI publication manifest; never erase another job's published generation.
     if (claimedKbIds.length === 0) return;
+    await trackKbJob(agentId, claimedKbIds, jobId);
     const claimedDocuments = documents.filter((document) =>
       claimedKbIds.includes(document.kbId),
     );
@@ -103,6 +105,9 @@ export const kbWorker = new Worker<KbJobData, void, KbJobName>(
       body,
       organizationId,
     );
+    await finishKbJob(agentId, claimedKbIds, jobId, false).catch((error) =>
+      console.error("[kb-worker] clearing knowledge job ownership failed", error),
+    );
   },
   {
     connection: redisConnection,
@@ -134,6 +139,12 @@ kbWorker.on("failed", async (job, err) => {
   }
 
   console.error(`[kb-worker] job ${jobId} failed permanently`, err.message);
+  const failedKbIds = err instanceof KbProcessingFailedError
+    ? err.summary.failures.map((failure) => failure.kbId)
+    : kbIds;
+  await finishKbJob(agentId, failedKbIds, jobId, true).catch((error) =>
+    console.error("[kb-worker] hiding failed knowledge vectors failed", error),
+  );
   const persistFailure =
     err instanceof KbProcessingFailedError
       ? kbRepository.applyProcessingSummary(
@@ -153,6 +164,14 @@ kbWorker.on("failed", async (job, err) => {
   await persistFailure.catch((error) =>
     console.error("[kb-worker] persisting processing failure failed", error),
   );
+  if (err instanceof KbProcessingFailedError) {
+    await finishKbJob(
+      agentId,
+      err.summary.successfulKbIds,
+      jobId,
+      false,
+    ).catch((error) => console.error("[kb-worker] clearing knowledge job ownership failed", error));
+  }
 });
 
 kbWorker.on("completed", (job) => {

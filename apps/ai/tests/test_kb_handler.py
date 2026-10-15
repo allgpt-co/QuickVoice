@@ -1,8 +1,11 @@
 import asyncio
+import io
 import os
+import socket
 import sys
 import threading
 import unittest
+import zipfile
 from unittest.mock import AsyncMock, patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -31,9 +34,15 @@ class KbHandlerTests(unittest.TestCase):
         self.redis = FakeRedis()
         self.original_redis = kb_handler._KB_REDIS_CLIENT
         kb_handler._KB_REDIS_CLIENT = self.redis
+        self.generation_patch = patch.object(kb_handler.kb_index_state, "assert_not_deleted", return_value="old-version")
+        self.revoke_patch = patch.object(kb_handler.kb_index_state, "revoke_failed", return_value=True)
+        self.generation_patch.start()
+        self.revoke = self.revoke_patch.start()
 
     def tearDown(self):
         kb_handler._KB_REDIS_CLIENT = self.original_redis
+        self.generation_patch.stop()
+        self.revoke_patch.stop()
 
     def test_file_parsing_and_vector_writes_run_off_the_event_loop(self):
         event_loop_thread = threading.get_ident()
@@ -154,6 +163,7 @@ class KbHandlerTests(unittest.TestCase):
             "ftp://example.com/file.txt",
             "http://127.0.0.1/admin",
             "http://169.254.169.254/latest/meta-data",
+            "http://100.64.0.11/internal",
             "http://localhost:8080/debug",
         ]
 
@@ -176,6 +186,62 @@ class KbHandlerTests(unittest.TestCase):
                 kb_handler.validate_ingest_url("https://example.com/help")
         finally:
             kb_handler.ALLOWED_HOSTS = original_allowed_hosts
+
+    def test_download_rejects_dns_rebinding_before_connection(self):
+        public = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.215.14", 80))]
+        private = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("127.0.0.1", 80))]
+        with (
+            patch.object(kb_handler.socket, "getaddrinfo", side_effect=[public, private]),
+            patch.object(kb_handler, "_PinnedHTTPConnection") as connect,
+        ):
+            with self.assertRaisesRegex(ValueError, "Private, local"):
+                asyncio.run(kb_handler.download_bytes("http://example.com/help"))
+            connect.assert_not_called()
+
+    def test_download_connects_to_vetted_ip_and_keeps_host_header(self):
+        public = [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.215.14", 80))]
+        class Response:
+            status = 200
+            def __init__(self): self.parts = iter([b"hello", b""])
+            def getheader(self, name, default=""): return "text/html" if name == "Content-Type" else default
+            def read(self, _size): return next(self.parts)
+        class Connection:
+            def __init__(self): self.headers = None; self.path = None
+            def request(self, _method, path, headers): self.path = path; self.headers = headers
+            def getresponse(self): return Response()
+            def close(self): pass
+        connection = Connection()
+        with (
+            patch.object(kb_handler.socket, "getaddrinfo", return_value=public),
+            patch.object(kb_handler, "_PinnedHTTPConnection", return_value=connection) as connect,
+        ):
+            self.assertEqual(asyncio.run(kb_handler.download_bytes("http://example.com/help?token=1", expected_content="html")), b"hello")
+        connect.assert_called_once_with("example.com", 80, ["93.184.215.14"])
+        self.assertEqual(connection.headers["Host"], "example.com")
+        self.assertEqual(connection.path, "/help?token=1")
+
+    def test_vetted_connection_tries_another_public_address(self):
+        marker = object()
+        with patch.object(kb_handler.socket, "create_connection", side_effect=[OSError("IPv6 unavailable"), marker]) as connect:
+            self.assertIs(kb_handler._connect_vetted(["2606:2800:220:1:248:1893:25c8:1946", "93.184.215.14"], 443, 60), marker)
+        self.assertEqual(connect.call_count, 2)
+
+    def test_download_deadline_rejects_a_drip_feed(self):
+        with patch.object(kb_handler.time, "monotonic", side_effect=[0, 91]):
+            with patch.object(kb_handler, "validate_ingest_url", return_value="http://example.com/"):
+                with self.assertRaisesRegex(TimeoutError, "timed out"):
+                    kb_handler._download_bytes_pinned("http://example.com/", 100, None)
+
+    def test_document_expansion_limits_apply_before_chunking(self):
+        with patch.object(kb_handler, "MAX_EXTRACTED_CHARS", 10):
+            with self.assertRaisesRegex(ValueError, "Extracted text exceeds limit"):
+                kb_handler.parse_file(b"more than ten bytes", "TXT")
+        archive_data = io.BytesIO()
+        with zipfile.ZipFile(archive_data, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("large.xml", "x" * 100)
+        with patch.object(kb_handler, "MAX_ARCHIVE_UNCOMPRESSED_BYTES", 50):
+            with self.assertRaisesRegex(ValueError, "Document archive exceeds limit"):
+                kb_handler._validate_archive(archive_data.getvalue())
 
     def test_validate_content_type_blocks_unexpected_url_media(self):
         with self.assertRaises(ValueError):
@@ -352,6 +418,7 @@ class KbHandlerTests(unittest.TestCase):
         self.assertEqual(result[0]["error"], result[0]["userMessage"])
         self.assertFalse(result[0]["retryable"])
         self.assertNotIn("Extracted text is empty", result[0]["error"])
+        self.revoke.assert_called_once_with("agent_123", "kb_empty", "old-version")
 
     def test_embed_chunks_uses_pinecone_inference_passage_embeddings(self):
         calls = []

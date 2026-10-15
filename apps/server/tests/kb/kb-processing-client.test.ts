@@ -125,3 +125,18 @@ test("KB reassignment explicitly revokes instead of permanently deleting the sou
     },
   });
 });
+
+test("KB processing aborts a blocked request at its deadline", async () => {
+  const started = Date.now();
+  await assert.rejects(processKbDocuments({
+    aiApiUrl: "http://ai.local",
+    internalApiKey: "internal-key",
+    payload: { agentId: "agent_1", organizationId: "org_1", documents: [] },
+    timeoutMs: 20,
+    fetchImpl: async (_url, init) => new Promise((_resolve, reject) => {
+      assert.ok(init?.signal);
+      init.signal.addEventListener("abort", () => reject(init.signal?.reason), { once: true });
+    }),
+  }), (error: Error) => error.name === "TimeoutError");
+  assert.ok(Date.now() - started < 1_000);
+});
