@@ -33,6 +33,10 @@ for (const action of ["save configuration", "delete document"]) {
     let agent = { agentId: "agent-1", isConfigured: false, knowledgeSourcesCount: 1 };
     let sources = [{ kbId: "kb-1", status: "ACTIVE" }];
     const imports = {
+      react: {
+        useRef: (value) => ({ current: value }),
+        useEffect: () => {},
+      },
       "@tanstack/react-query": {
         useQueryClient: () => client,
         useQuery: (options) => options,
