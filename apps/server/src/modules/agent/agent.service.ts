@@ -45,7 +45,7 @@ import { enqueueAgentDeletion } from "../../queues/agent-deletion.queue.js";
 export type VoiceCatalog = {
   version: string;
   defaults: Record<string, unknown>;
-  languages: Array<{ id: string; label: string; locale?: string }>;
+  languages: Array<{ id: string; label: string; locale?: string; sample_text?: string | null }>;
   timezones: string[];
   stt_models: Array<Record<string, unknown>>;
   llm_models: Array<Record<string, unknown>>;

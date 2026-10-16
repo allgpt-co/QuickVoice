@@ -6,10 +6,17 @@ from unittest.mock import patch
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 
-from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
+from handlers.voice_provider_adapters import ProviderAdapterError, build_tts_adapter, build_voice_provider_adapters
 
 
 class VoiceProviderAdapterTests(unittest.TestCase):
+    def test_sample_tts_uses_selected_model_voice_and_language_without_other_provider_keys(self):
+        with patch.dict(os.environ, {"ELEVENLABS_API_KEY": "sample-key"}, clear=True), patch(
+            "handlers.voice_provider_adapters.elevenlabs.TTS"
+        ) as tts:
+            build_tts_adapter({"provider": "elevenlabs", "model": "eleven_flash_v2_5", "voice": "UgBBYS2sOqTuMpoF3BR0"}, "hi")
+        tts.assert_called_once_with(model="eleven_flash_v2_5", voice_id="UgBBYS2sOqTuMpoF3BR0", language="hi", api_key="sample-key")
+
     def setUp(self):
         self.config = {
             "language": "en",

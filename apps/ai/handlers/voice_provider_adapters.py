@@ -50,7 +50,7 @@ def build_voice_provider_adapters(config: dict[str, Any]) -> VoiceProviderAdapte
         raise
 
     try:
-        tts = _build_tts(config["tts"], config["language"])
+        tts = build_tts_adapter(config["tts"], config["language"])
         logger.info("tts adapter ready: %s/%s", config["tts"]["provider"], config["tts"]["model"])
     except Exception:
         logger.exception("failed to build TTS adapter (provider=%s)", config["tts"].get("provider"))
@@ -133,7 +133,7 @@ def _build_llm(config: dict[str, Any]):
 
     raise ProviderAdapterError(f"unsupported LLM provider: {provider}")
 
-def _build_tts(config: dict[str, Any], language: str):
+def build_tts_adapter(config: dict[str, Any], language: str):
     provider = config["provider"]
     model = config["model"]
     voice = config["voice"]

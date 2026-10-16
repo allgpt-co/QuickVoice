@@ -1,8 +1,10 @@
+import asyncio
 import os
 import sys
 import unittest
 import warnings
 from unittest.mock import AsyncMock, patch
+from types import SimpleNamespace
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
@@ -140,6 +142,51 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["config"]["language"], "hi")
         self.assertEqual(response.json()["config"]["tts"]["provider"], "elevenlabs")
+
+    def test_voice_sample_requires_internal_auth_and_fixed_content(self):
+        import api
+        payload = {"language": "hi", "ttsModel": "elevenlabs/eleven_flash_v2_5", "voiceId": "UgBBYS2sOqTuMpoF3BR0"}
+        sample = {"audioBase64": "test", "contentType": "audio/wav", "sampleText": "नमस्ते!"}
+        with patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}), patch.object(
+            api, "synthesize_voice_sample", new=AsyncMock(return_value=sample),
+        ) as synthesize:
+            with TestClient(api.app) as client:
+                self.assertEqual(client.post("/voice/sample", json=payload).status_code, 401)
+                headers = {"x-internal-key": "internal-secret"}
+                self.assertEqual(client.post("/voice/sample", json={**payload, "text": "arbitrary"}, headers=headers).status_code, 422)
+                response = client.post("/voice/sample", json=payload, headers=headers)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json(), sample)
+            self.assertEqual(synthesize.await_count, 1)
+            self.assertEqual(synthesize.call_args.args[0], payload)
+
+    def test_voice_sample_disconnect_cancels_generation(self):
+        import api
+
+        async def exercise_disconnect():
+            started, closed = asyncio.Event(), asyncio.Event()
+
+            async def synthesize(*_args):
+                started.set()
+                try:
+                    await asyncio.sleep(30)
+                finally:
+                    closed.set()
+
+            async def receive():
+                await started.wait()
+                return {"type": "http.disconnect"}
+
+            request = SimpleNamespace(headers={"x-internal-key": "internal-secret"}, receive=receive)
+            payload = api.VoiceSampleRequest(language="hi", ttsModel="elevenlabs/eleven_flash_v2_5", voiceId="UgBBYS2sOqTuMpoF3BR0")
+            with patch.object(api, "synthesize_voice_sample", new=synthesize):
+                with self.assertRaises(api.HTTPException) as caught:
+                    await asyncio.wait_for(api.create_voice_sample(payload, request), timeout=1)
+            self.assertEqual(caught.exception.status_code, 499)
+            self.assertTrue(closed.is_set())
+
+        with patch.dict(os.environ, {"INTERNAL_API_KEY": "internal-secret"}):
+            asyncio.run(exercise_disconnect())
 
     def test_kb_process_returns_accepted_job_and_status_exposes_results(self):
         import api

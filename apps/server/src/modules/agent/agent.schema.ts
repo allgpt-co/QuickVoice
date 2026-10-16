@@ -1,6 +1,13 @@
 import { z } from "zod";
 import { containsReservedSecretEnvelope } from "../../lib/secrets.js";
 
+export const voiceSampleSchema = z.object({
+  language: z.string().trim().min(2).max(20),
+  ttsModel: z.string().trim().min(1).max(200),
+  voiceId: z.string().trim().min(1).max(200),
+}).strict();
+export type VoiceSampleInput = z.infer<typeof voiceSampleSchema>;
+
 const agentTemplateSlugSchema = z.enum([
   "business",
   "medical",

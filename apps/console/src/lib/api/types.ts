@@ -90,7 +90,7 @@ export interface AgentConfiguration {
 export interface VoiceCatalog {
   version: string;
   defaults: Record<string, unknown>;
-  languages: Array<{ id: string; label: string; locale?: string }>;
+  languages: Array<{ id: string; label: string; locale?: string; sample_text?: string | null }>;
   timezones: string[];
   stt_models: Array<{
     provider: string;
@@ -132,6 +132,12 @@ export interface AgentPreviewSession {
     dispatchId: string;
   };
   expiresAt: string;
+}
+
+export interface VoiceSample {
+  audioBase64: string;
+  contentType: "audio/wav";
+  sampleText: string;
 }
 
 export type AgentWidgetPosition =

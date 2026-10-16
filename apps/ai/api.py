@@ -4,13 +4,14 @@ from typing import Any, List, Optional
 
 from fastapi import BackgroundTasks, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 from handlers.config_handler import get_config
 from handlers import kb_handler
 from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import VoiceConfigValidationError, resolve_voice_config
 from handlers.voice_session_broker import VoiceSessionBroker, VoiceSessionBrokerError
+from handlers.voice_samples import VoiceSampleError, synthesize_voice_sample
 from utils.auth import verify_internal_headers
 from utils.runtime_readiness import (
     evaluate_local_runtime_config,
@@ -108,6 +109,42 @@ async def create_voice_session(payload: dict[str, Any], request: Request):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except VoiceSessionBrokerError as exc:
         raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+
+class VoiceSampleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    language: str = Field(min_length=2, max_length=20)
+    ttsModel: str = Field(min_length=1, max_length=200)
+    voiceId: str = Field(min_length=1, max_length=200)
+
+
+@app.post("/voice/sample", tags=["Voice"])
+async def create_voice_sample(payload: VoiceSampleRequest, request: Request):
+    _verify_internal(request)
+
+    async def wait_for_disconnect():
+        while True:
+            message = await request.receive()
+            if message["type"] == "http.disconnect":
+                return
+
+    generation = asyncio.create_task(synthesize_voice_sample(payload.model_dump(), load_voice_catalog()))
+    disconnected = asyncio.create_task(wait_for_disconnect())
+    try:
+        completed, _ = await asyncio.wait({generation, disconnected}, return_when=asyncio.FIRST_COMPLETED)
+        if generation not in completed:
+            raise HTTPException(status_code=499, detail="Sample request cancelled")
+        return await generation
+    except VoiceConfigValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except VoiceSampleError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    except TimeoutError as exc:
+        raise HTTPException(status_code=504, detail="Voice sample timed out. Please try again.") from exc
+    finally:
+        generation.cancel()
+        disconnected.cancel()
+        await asyncio.gather(generation, disconnected, return_exceptions=True)
 
 
 # ── KB processing ─────────────────────────────────────────────────────────────

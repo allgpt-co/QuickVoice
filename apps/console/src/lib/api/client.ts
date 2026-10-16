@@ -26,7 +26,7 @@ apiClient.interceptors.response.use(
   (res) => res,
   (err) => {
     const apiErr = toApiError(err);
-    if (apiErr.status === 429 && typeof window !== "undefined") {
+    if (apiErr.status === 429 && apiErr.code !== "VOICE_SAMPLE_RATE_LIMITED" && typeof window !== "undefined") {
       retryAt = Math.max(retryAt, apiErr.retryAt ?? Date.now() + 60_000);
     }
     if (apiErr.status === 401 && typeof window !== "undefined") {

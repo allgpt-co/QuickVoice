@@ -36,7 +36,7 @@ test("buildVoiceOptionsFromCatalog maps AI catalog values to console dropdown op
   const options = buildVoiceOptionsFromCatalog({
     version: "2026-06-30",
     defaults: {},
-    languages: [{ id: "en-IN", label: "English (India)", locale: "en-IN" }],
+    languages: [{ id: "en-IN", label: "English (India)", locale: "en-IN", sample_text: "Hello! How can I help you today?" }],
     timezones: ["UTC", "Asia/Kolkata"],
     stt_models: [
       {
@@ -72,7 +72,7 @@ test("buildVoiceOptionsFromCatalog maps AI catalog values to console dropdown op
     ],
   });
 
-  assert.deepEqual(plain(options.languages), [{ code: "en-IN", label: "English (India)" }]);
+  assert.deepEqual(plain(options.languages), [{ code: "en-IN", label: "English (India)", sampleText: "Hello! How can I help you today?" }]);
   assert.deepEqual(plain(options.timezones), ["UTC", "Asia/Kolkata"]);
   assert.equal(options.sttModels[0].id, "deepgram/nova-3");
   assert.equal(options.llmModels[0].id, "bedrock/us.amazon.nova-lite-v1:0");

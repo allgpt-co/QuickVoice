@@ -19,7 +19,6 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
     stt_input = _section(client_config, "stt", defaults["stt"])
     stt_input = _language_sensitive_stt(stt_input, language)
     llm_input = _section(client_config, "llm", defaults["llm"])
-    tts_input = _section(client_config, "tts", defaults["tts"])
 
     stt_model = _find_option(
         catalog["stt_models"],
@@ -34,20 +33,7 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
         llm_input["provider"],
         llm_input["model"],
     )
-    tts_model = _find_option(
-        catalog["tts_models"],
-        "tts.model",
-        tts_input["provider"],
-        tts_input["model"],
-        language,
-    )
-    voice = _find_voice(
-        catalog["voices"],
-        provider=tts_input["provider"],
-        voice_id=tts_input["voice"],
-        tts_model_id=tts_input["model"],
-        language=language,
-    )
+    tts_config = resolve_tts_config(client_config, catalog)
 
     return {
         "language": language,
@@ -70,6 +56,34 @@ def resolve_voice_config(client_config: dict[str, Any], catalog: dict[str, Any])
                 f"{llm_model['provider']}/{llm_model['id']}",
             ),
         },
+        "tts": tts_config["tts"],
+    }
+
+
+def resolve_tts_config(client_config: dict[str, Any], catalog: dict[str, Any]) -> dict[str, Any]:
+    language = _catalog_language_id(
+        _pick(client_config, "language", "agent_language") or catalog["defaults"]["language"]
+    )
+    if not _contains_id(catalog["languages"], language):
+        raise VoiceConfigValidationError(f"language is not supported: {language}")
+    tts_input = _section(client_config, "tts", catalog["defaults"]["tts"])
+    tts_model = _find_option(
+        catalog["tts_models"],
+        "tts.model",
+        tts_input["provider"],
+        tts_input["model"],
+        language,
+    )
+    voice = _find_voice(
+        catalog["voices"],
+        provider=tts_input["provider"],
+        voice_id=tts_input["voice"],
+        tts_model_id=tts_input["model"],
+        language=language,
+    )
+
+    return {
+        "language": language,
         "tts": {
             "provider": tts_model["provider"],
             "model": tts_model["runtime_model"],

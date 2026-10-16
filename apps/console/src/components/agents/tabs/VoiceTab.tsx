@@ -527,9 +527,15 @@ export function VoiceTab({ agentId }: { agentId: string }) {
                     </div>
                     <div className="mt-5">
                         <VoiceProfilePanel
+                            key={`${agentId}:${selectedLanguage}:${selectedTtsModel}:${selectedVoiceId}`}
+                            agentId={agentId}
                             voice={selectedVoice}
+                            language={selectedLanguage}
                             languageLabel={selectedLanguageLabel}
+                            ttsModel={selectedTtsModel}
                             ttsModelLabel={selectedTtsModelLabel}
+                            sampleText={voiceOptions.languages.find((language) => language.code === selectedLanguage)?.sampleText}
+                            canPreview={availableVoices.some((voice) => voice.id === selectedVoiceId)}
                         />
                     </div>
                 </section>

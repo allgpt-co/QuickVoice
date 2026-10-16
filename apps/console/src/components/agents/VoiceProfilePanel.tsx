@@ -1,45 +1,102 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { BadgeInfo, Volume2 } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Loader2, Square, Volume2 } from "lucide-react";
 
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import type { Voice } from "@/src/lib/data/voices";
+import { agentsApi } from "@/src/lib/api/resources/agents";
+import type { VoiceSample } from "@/src/lib/api/types";
 
 function titleCase(value: string) {
   return value ? value.charAt(0).toUpperCase() + value.slice(1) : "-";
 }
 
 export function VoiceProfilePanel({
+  agentId,
   voice,
+  language,
   languageLabel,
+  ttsModel,
   ttsModelLabel,
+  sampleText,
+  canPreview,
 }: {
+  agentId: string;
   voice?: Voice;
+  language: string;
   languageLabel: string;
+  ttsModel: string;
   ttsModelLabel: string;
+  sampleText?: string | null;
+  canPreview: boolean;
 }) {
-  const [speaking, setSpeaking] = useState(false);
-  const canPreview =
-    typeof window !== "undefined" && "speechSynthesis" in window;
+  const [status, setStatus] = useState<"idle" | "loading" | "playing">("idle");
+  const [error, setError] = useState<string | null>(null);
+  const request = useRef<AbortController | null>(null);
+  const player = useRef<HTMLAudioElement | null>(null);
+  const audioUrl = useRef<string | null>(null);
+  const cachedSample = useRef<VoiceSample | null>(null);
+  const clearPlayback = useCallback(() => {
+    request.current?.abort();
+    request.current = null;
+    if (player.current) {
+      player.current.onended = null;
+      player.current.onerror = null;
+      player.current.pause();
+      player.current.removeAttribute("src");
+      player.current.load();
+      player.current = null;
+    }
+    if (audioUrl.current) URL.revokeObjectURL(audioUrl.current);
+    audioUrl.current = null;
+  }, []);
+  useEffect(() => clearPlayback, [clearPlayback]);
   const tags = useMemo(
     () => [...(voice?.styles ?? []), ...(voice?.useCases ?? [])].slice(0, 8),
     [voice?.styles, voice?.useCases]
   );
 
-  function playBrowserSample() {
-    if (!canPreview || !voice) return;
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(
-      "Hi, thanks for calling. How can I help you today?"
-    );
-    utterance.lang = voice.locale || voice.languages[0] || "en-US";
-    utterance.rate = 0.96;
-    utterance.onend = () => setSpeaking(false);
-    utterance.onerror = () => setSpeaking(false);
-    setSpeaking(true);
-    window.speechSynthesis.speak(utterance);
+  async function previewVoice() {
+    if (request.current) {
+      clearPlayback();
+      setStatus("idle");
+      return;
+    }
+    if (!canPreview || !voice || !sampleText) return;
+    const controller = new AbortController();
+    request.current = controller;
+    setError(null);
+    setStatus("loading");
+    try {
+      const sample = cachedSample.current ?? await agentsApi.createVoiceSample(
+        agentId, { language, ttsModel, voiceId: voice.id }, controller.signal,
+      );
+      if (controller.signal.aborted) return;
+      cachedSample.current = sample;
+      const bytes = Uint8Array.from(atob(sample.audioBase64), (character) => character.charCodeAt(0));
+      const url = URL.createObjectURL(new Blob([bytes], { type: sample.contentType }));
+      audioUrl.current = url;
+      const audio = new Audio(url);
+      player.current = audio;
+      audio.onended = () => {
+        clearPlayback();
+        setStatus("idle");
+      };
+      audio.onerror = () => {
+        clearPlayback();
+        setStatus("idle");
+        setError("Could not play this voice sample. Please try again.");
+      };
+      await audio.play();
+      if (!controller.signal.aborted) setStatus("playing");
+    } catch (cause) {
+      if (controller.signal.aborted) return;
+      clearPlayback();
+      setStatus("idle");
+      setError(cause instanceof Error ? cause.message : "Could not preview this voice. Please try again.");
+    }
   }
 
   if (!voice) {
@@ -65,8 +122,8 @@ export function VoiceProfilePanel({
               <p className="mt-1 font-medium">{titleCase(voice.gender)}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Locale</p>
-              <p className="mt-1 font-medium">{voice.locale || languageLabel}</p>
+              <p className="text-xs text-muted-foreground">Language</p>
+              <p className="mt-1 font-medium">{languageLabel}</p>
             </div>
             <div>
               <p className="text-xs text-muted-foreground">Accent</p>
@@ -89,20 +146,22 @@ export function VoiceProfilePanel({
             </div>
           ) : null}
         </div>
-        <div className="flex shrink-0 flex-col gap-2 lg:w-52">
+        <div className="flex min-w-0 shrink-0 flex-col gap-3 lg:w-72">
           <Button
             type="button"
             variant="outline"
-            onClick={playBrowserSample}
-            disabled={!canPreview || speaking}
+            className="h-11"
+            onClick={() => void previewVoice()}
+            disabled={!canPreview || !sampleText}
           >
-            <Volume2 className="size-4" />
-            {speaking ? "Playing" : "Browser sample"}
+            {status === "loading" ? <Loader2 className="size-4 animate-spin motion-reduce:animate-none" /> : status === "playing" ? <Square className="size-4" /> : <Volume2 className="size-4" />}
+            {status === "loading" ? "Cancel preview" : status === "playing" ? "Stop sample" : "Preview voice"}
           </Button>
-          <div className="flex gap-2 text-xs text-muted-foreground">
-            <BadgeInfo className="mt-0.5 size-3.5 shrink-0" />
-            Local browser speech is only a pacing sample.
-          </div>
+          <p role="status" className="text-xs text-muted-foreground">
+            {status === "loading" ? "Generating your voice sample…" : status === "playing" ? `Playing ${voice.name} in ${languageLabel}.` : "Listen using your current model and voice selections."}
+          </p>
+          {sampleText ? <p lang={language} dir="auto" className="break-words border bg-background p-3 text-sm leading-relaxed">{sampleText}</p> : <p className="text-xs text-muted-foreground">A sample is unavailable for this language.</p>}
+          {error ? <p role="alert" className="text-sm text-destructive">{error}</p> : null}
         </div>
       </div>
     </div>

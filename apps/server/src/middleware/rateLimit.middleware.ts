@@ -3,6 +3,26 @@ import rateLimit from "express-rate-limit";
 import authMiddleware, { getBearerToken, matchesInternalApiKey } from "./auth.middleware.js";
 import { rateLimitStore } from "./rate-limit-store.js";
 
+export const voiceSampleUserRateLimit = rateLimit({
+  windowMs: 60_000,
+  limit: 10,
+  store: rateLimitStore("voice-sample-user"),
+  keyGenerator: (req) => req.auth?.authMethod === "apiKey" ? `key:${req.auth.apiKeyId}` : `user:${req.auth?.userId}`,
+  message: { success: false, code: "VOICE_SAMPLE_RATE_LIMITED", message: "Too many voice samples. Please wait a minute before trying again." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+export const voiceSampleOrgRateLimit = rateLimit({
+  windowMs: 24 * 60 * 60_000,
+  limit: 100,
+  store: rateLimitStore("voice-sample-org"),
+  keyGenerator: (req) => `org:${req.auth?.activeOrganizationId}`,
+  message: { success: false, code: "VOICE_SAMPLE_RATE_LIMITED", message: "Your organization has reached its daily voice sample limit. Try again tomorrow." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 export const publicRateLimitMiddleware = rateLimit({
   windowMs: 60 * 1000, // 1 minute
   max: 1000, // Anonymous traffic only; authenticated traffic uses its own allowance.

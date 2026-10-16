@@ -38,7 +38,7 @@ export interface Voice {
 }
 
 export interface VoiceOptions {
-  languages: Array<{ code: string; label: string }>;
+  languages: Array<{ code: string; label: string; sampleText?: string | null }>;
   timezones: string[];
   sttModels: LanguageAwareModelOption[];
   llmModels: ModelOption[];
@@ -426,6 +426,7 @@ export function buildVoiceOptionsFromCatalog(
     languages: catalog.languages.map((language) => ({
       code: language.id,
       label: language.label,
+      ...(language.sample_text ? { sampleText: language.sample_text } : {}),
     })),
     timezones: catalog.timezones,
     sttModels: catalog.stt_models.map((model) => ({

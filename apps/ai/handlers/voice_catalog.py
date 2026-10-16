@@ -4,6 +4,43 @@ from copy import deepcopy
 from pathlib import Path
 
 
+VOICE_SAMPLE_TEXT = {
+    "en": "Hello! How can I help you today?",
+    "en-IN": "Hello! How can I help you today?",
+    "ar": "مرحباً! كيف يمكنني مساعدتك اليوم؟",
+    "bg": "Здравейте! Как мога да ви помогна днес?",
+    "zh": "您好！今天我能为您提供什么帮助？",
+    "hr": "Pozdrav! Kako vam mogu pomoći danas?",
+    "cs": "Dobrý den! Jak vám dnes mohu pomoci?",
+    "da": "Hej! Hvordan kan jeg hjælpe dig i dag?",
+    "nl": "Hallo! Hoe kan ik u vandaag helpen?",
+    "fil": "Kumusta! Paano kita matutulungan ngayon?",
+    "fi": "Hei! Kuinka voin auttaa sinua tänään?",
+    "fr": "Bonjour ! Comment puis-je vous aider aujourd’hui ?",
+    "de": "Hallo! Wie kann ich Ihnen heute helfen?",
+    "el": "Γεια σας! Πώς μπορώ να σας βοηθήσω σήμερα;",
+    "hi": "नमस्ते! मैं आपकी कैसे मदद कर सकता हूँ?",
+    "hu": "Üdvözlöm! Miben segíthetek ma?",
+    "id": "Halo! Apa yang bisa saya bantu hari ini?",
+    "it": "Salve! Come posso aiutarla oggi?",
+    "ja": "こんにちは！今日はどのようなお手伝いができますか？",
+    "ko": "안녕하세요! 오늘 무엇을 도와드릴까요?",
+    "ms": "Helo! Bagaimana saya boleh membantu anda hari ini?",
+    "no": "Hei! Hvordan kan jeg hjelpe deg i dag?",
+    "pl": "Dzień dobry! Jak mogę dziś pomóc?",
+    "pt": "Olá! Como posso ajudar você hoje?",
+    "ro": "Bună ziua! Cu ce vă pot ajuta astăzi?",
+    "ru": "Здравствуйте! Чем я могу вам помочь сегодня?",
+    "sk": "Dobrý deň! Ako vám dnes môžem pomôcť?",
+    "es": "¡Hola! ¿Cómo puedo ayudarle hoy?",
+    "sv": "Hej! Hur kan jag hjälpa dig idag?",
+    "ta": "வணக்கம்! இன்று நான் உங்களுக்கு எப்படி உதவ முடியும்?",
+    "tr": "Merhaba! Bugün size nasıl yardımcı olabilirim?",
+    "uk": "Вітаю! Чим я можу вам допомогти сьогодні?",
+    "vi": "Xin chào! Hôm nay tôi có thể giúp gì cho bạn?",
+}
+
+
 ELEVENLABS_FLASH_LANGUAGES = [
     {"id": "en", "label": "English", "locale": "en-US"},
     {"id": "ar", "label": "Arabic", "locale": "ar"},
@@ -47,7 +84,7 @@ NOVA_3_MULTILINGUAL_LANGUAGES = ["en", "en-IN", "es", "fr", "de", "hi", "ru", "p
 
 
 STATIC_VOICE_CATALOG = {
-    "version": "2026-10-15",
+    "version": "2026-10-16",
     "defaults": {
         "language": "en",
         "timezone": "UTC",
@@ -208,5 +245,10 @@ STATIC_VOICE_CATALOG = {
 def load_voice_catalog():
     catalog_path = os.getenv("VOICE_CATALOG_PATH")
     if catalog_path:
-        return json.loads(Path(catalog_path).read_text())
-    return deepcopy(STATIC_VOICE_CATALOG)
+        catalog = json.loads(Path(catalog_path).read_text())
+    else:
+        catalog = deepcopy(STATIC_VOICE_CATALOG)
+    for language in catalog["languages"]:
+        # Sample content is fixed by the application, never supplied by the caller.
+        language["sample_text"] = VOICE_SAMPLE_TEXT.get(language["id"])
+    return catalog

@@ -77,3 +77,18 @@ test("Retry-After supports HTTP dates and missing or invalid headers", () => {
   assert.equal(errors.retryApiQuery(0, new errors.ApiError("offline", 0)), true);
   assert.equal(errors.retryApiQuery(0, new errors.ApiError("server", 503)), true);
 });
+
+test("a voice-sample quota does not block calls or other console requests", async () => {
+  const { apiClient } = loadClient();
+  apiClient.defaults.adapter = async (config) => {
+    if (config.url.endsWith("/voice-sample")) {
+      const error = limited(config, "86400");
+      error.response.data.code = "VOICE_SAMPLE_RATE_LIMITED";
+      throw error;
+    }
+    return { status: 200, data: {}, headers: {}, config };
+  };
+  await assert.rejects(apiClient.post("/agents/agent/voice-sample", {}), (error) => error.code === "VOICE_SAMPLE_RATE_LIMITED");
+  assert.equal((await apiClient.get("/calls/live")).status, 200);
+  assert.equal((await apiClient.post("/agents/agent/config", {})).status, 200);
+});

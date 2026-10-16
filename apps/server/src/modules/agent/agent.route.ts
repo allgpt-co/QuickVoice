@@ -5,12 +5,14 @@ import authMiddleware, {
 } from "../../middleware/auth.middleware.js";
 import { requirePermission } from "../../middleware/authorize.middleware.js";
 import validate from "../../middleware/validate.middleware.js";
+import { voiceSampleOrgRateLimit, voiceSampleUserRateLimit } from "../../middleware/rateLimit.middleware.js";
 import * as agentController from "./agent.controller.js";
 import {
   configureAgentSchema,
   createAgentSchema,
   updateAgentSchema,
   webhookEventSchema,
+  voiceSampleSchema,
 } from "./agent.schema.js";
 
 const router = Router();
@@ -35,6 +37,16 @@ router.get(
   authMiddleware,
   requirePermission({ agentConfiguration: ["read"] }),
   agentController.getVoiceCatalog,
+);
+
+router.post(
+  "/:agentId/voice-sample",
+  authMiddleware,
+  requirePermission({ agentPreview: ["create"] }),
+  validate(voiceSampleSchema),
+  voiceSampleUserRateLimit,
+  voiceSampleOrgRateLimit,
+  agentController.previewVoiceSample,
 );
 
 router.post(

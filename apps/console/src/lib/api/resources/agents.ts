@@ -5,6 +5,7 @@ import type {
   AgentPreviewSession,
   ApiEnvelope,
   VoiceCatalog,
+  VoiceSample,
 } from "@/src/lib/api/types";
 
 // organizationId + userId are injected server-side from the session.
@@ -125,6 +126,16 @@ export const agentsApi = {
   getVoiceCatalog: async (): Promise<VoiceCatalog> => {
     const res = await apiClient.get<ApiEnvelope<VoiceCatalog>>(
       "/agents/voice/catalog",
+    );
+    return res.data.data;
+  },
+  createVoiceSample: async (
+    id: string,
+    input: { language: string; ttsModel: string; voiceId: string },
+    signal: AbortSignal,
+  ): Promise<VoiceSample> => {
+    const res = await apiClient.post<ApiEnvelope<VoiceSample>>(
+      `/agents/${id}/voice-sample`, input, { signal, timeout: 25_000 },
     );
     return res.data.data;
   },
