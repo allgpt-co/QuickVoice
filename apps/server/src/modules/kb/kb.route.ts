@@ -36,6 +36,13 @@ router.get(
 );
 
 router.get(
+  "/:kbId/file",
+  authMiddleware,
+  requirePermission({ knowledgeSource: ["read"] }),
+  kbController.getKnowledgeSourceFile,
+);
+
+router.get(
   "/:kbId/file-url",
   authMiddleware,
   requirePermission({ knowledgeSource: ["read"] }),

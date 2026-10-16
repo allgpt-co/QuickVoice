@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Eye, Loader2, Save } from "lucide-react";
 import { toast } from "sonner";
 
 import { KnowledgeSourceStatus } from "@/src/components/kb/kb-utils";
+import { KbDocumentPreview } from "@/src/components/kb/KbDocumentPreview";
 import { Button } from "@/src/components/ui/button";
 import {
   Dialog,
@@ -26,6 +27,7 @@ import {
 import { useUpdateKb } from "@/src/hooks/queries/kb";
 import { kbApi } from "@/src/lib/api/resources/kb";
 import type { Agent, KnowledgeSource } from "@/src/lib/api/types";
+import { downloadBlobAsFile } from "@/src/lib/export-csv";
 
 function formatDate(value: string | null) {
   if (!value) return "Not indexed";
@@ -87,7 +89,12 @@ function EditKbDialogContent({
     source.sourceType === "URL" ? source.storagePath : ""
   );
   const update = useUpdateKb();
-  const [fileAction, setFileAction] = useState<"inline" | "attachment" | null>(null);
+  const [downloading, setDownloading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const downloadRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => downloadRequest.current?.abort(), []);
+  const fileName = source.originalFileName?.split(/[\\/]/).pop()
+    || `${source.name.replace(/\.[^.]+$/, "")}.${source.sourceType.toLowerCase()}`;
 
   const metadata = useMemo(() => {
     if (!source.metadata || Object.keys(source.metadata).length === 0) {
@@ -132,25 +139,28 @@ function EditKbDialogContent({
     }
   }
 
-  async function openFile(disposition: "inline" | "attachment") {
-    if (fileAction) return;
-    const previewTab = disposition === "inline" ? window.open("about:blank", "_blank") : null;
-    if (disposition === "inline" && !previewTab) {
-      toast.error("Allow pop-ups to preview this document");
-      return;
-    }
-    if (previewTab) previewTab.opener = null;
-    setFileAction(disposition);
+  async function downloadFile() {
+    if (downloadRequest.current) return;
+    const controller = new AbortController();
+    downloadRequest.current = controller;
+    setDownloading(true);
     try {
-      const signedUrl = await kbApi.fileUrl(source.kbId, disposition);
-      if (previewTab) previewTab.location.href = signedUrl;
-      else window.location.assign(signedUrl);
+      const blob = await kbApi.file(source.kbId, "attachment", controller.signal);
+      if (!controller.signal.aborted) downloadBlobAsFile(fileName, blob);
     } catch (error) {
-      previewTab?.close();
-      toast.error(error instanceof Error ? error.message : "Could not open this document");
+      if (!controller.signal.aborted) toast.error(error instanceof Error ? error.message : "Could not download this document");
     } finally {
-      setFileAction(null);
+      downloadRequest.current = null;
+      if (!controller.signal.aborted) setDownloading(false);
     }
+  }
+
+  if (showPreview) {
+    return (
+      <Dialog open onOpenChange={onOpenChange}>
+        <KbDocumentPreview source={source} fileName={fileName} onBack={() => setShowPreview(false)} />
+      </Dialog>
+    );
   }
 
   return (
@@ -262,13 +272,13 @@ function EditKbDialogContent({
               <div className="space-y-2">
                 <div className="flex flex-wrap gap-2">
                   {canPreviewFile ? (
-                    <Button type="button" variant="outline" disabled={fileAction !== null} onClick={() => void openFile("inline")}>
-                      {fileAction === "inline" ? <Loader2 className="animate-spin" /> : <Eye />}
-                      Preview in new tab
+                    <Button type="button" variant="outline" disabled={downloading} onClick={() => setShowPreview(true)}>
+                      <Eye />
+                      Preview document
                     </Button>
                   ) : null}
-                  <Button type="button" variant="outline" disabled={fileAction !== null} onClick={() => void openFile("attachment")}>
-                    {fileAction === "attachment" ? <Loader2 className="animate-spin" /> : <Download />}
+                  <Button type="button" variant="outline" disabled={downloading} onClick={() => void downloadFile()}>
+                    {downloading ? <Loader2 className="animate-spin" /> : <Download />}
                     Download file
                   </Button>
                 </div>

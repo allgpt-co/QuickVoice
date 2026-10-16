@@ -80,11 +80,11 @@ export const kbApi = {
     );
     return res.data.data;
   },
-  fileUrl: async (kbId: string, disposition: "inline" | "attachment"): Promise<string> => {
-    const res = await apiClient.get<ApiEnvelope<{ url: string }>>(
-      `/kb/${encodeURIComponent(kbId)}/file-url`,
-      { params: { disposition } },
+  file: async (kbId: string, disposition: "inline" | "attachment", signal?: AbortSignal): Promise<Blob> => {
+    const res = await apiClient.get<Blob>(
+      `/kb/${encodeURIComponent(kbId)}/file`,
+      { params: { disposition }, responseType: "blob", timeout: 35_000, signal },
     );
-    return res.data.data.url;
+    return res.data;
   },
 };

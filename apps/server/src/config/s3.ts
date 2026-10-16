@@ -1,5 +1,6 @@
 import { S3Client, DeleteObjectCommand, GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { Readable } from "node:stream";
 
 type S3Credentials = {
   accessKeyId: string;
@@ -133,4 +134,15 @@ export const readObjectBuffer = async (key: string): Promise<Buffer> => {
 
   const bytes = await response.Body.transformToByteArray();
   return Buffer.from(bytes);
+};
+
+export const readObjectStream = async (key: string, signal: AbortSignal) => {
+  const response = await s3.send(
+    new GetObjectCommand({ Bucket: getBucket(), Key: key }),
+    { abortSignal: signal },
+  );
+  if (!(response.Body instanceof Readable)) {
+    throw new Error("Storage did not return a readable file");
+  }
+  return { body: response.Body, contentLength: response.ContentLength };
 };
