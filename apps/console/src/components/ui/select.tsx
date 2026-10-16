@@ -7,9 +7,14 @@ import { cn } from "@/src/lib/utils"
 import { ChevronDownIcon, CheckIcon, ChevronUpIcon } from "lucide-react"
 
 function Select({
+ onValueChange,
  ...props
 }: React.ComponentProps<typeof SelectPrimitive.Root>) {
- return <SelectPrimitive.Root data-slot="select" {...props} />
+ return <SelectPrimitive.Root data-slot="select" {...props} onValueChange={(value) => {
+ // The hidden native select can emit "" before async options register.
+ // Radix menu items cannot have an empty value, so this is not a user choice.
+ if (value !== "") onValueChange?.(value)
+ }} />
 }
 
 function SelectGroup({
