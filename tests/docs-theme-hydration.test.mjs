@@ -5,9 +5,9 @@ import test from "node:test";
 import vm from "node:vm";
 import ts from "typescript";
 
-const require = createRequire(new URL("../apps/docs/package.json", import.meta.url));
-const { createElement } = require("react");
-const { renderToString } = require("react-dom/server");
+const docsRequire = createRequire(new URL("../apps/docs/package.json", import.meta.url));
+const { createElement } = docsRequire("react");
+const { renderToString } = docsRequire("react-dom/server");
 const compiled = ts.transpileModule(
   readFileSync(new URL("../apps/docs/src/components/theme-toggle.tsx", import.meta.url), "utf8"),
   { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } },
@@ -17,7 +17,7 @@ function renderThemeToggle(theme) {
   const cjsModule = { exports: {} };
   vm.runInNewContext(compiled, {
     exports: cjsModule.exports,
-    require,
+    require: docsRequire,
     ...(theme ? {
       window: { localStorage: { getItem: () => theme } },
       document: { documentElement: { dataset: { theme } } },
