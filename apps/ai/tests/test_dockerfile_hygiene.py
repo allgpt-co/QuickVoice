@@ -5,6 +5,15 @@ from pathlib import Path
 AI_ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_standard_image_uses_patched_pillow_without_unused_fastembed():
+    requirements = (AI_ROOT / "requirements.txt").read_text(encoding="utf-8")
+    lockfile = (AI_ROOT / "requirements.lock").read_text(encoding="utf-8")
+    assert not re.search(r"^fastembed[<=>~\[]", requirements, re.MULTILINE)
+    assert not re.search(r"^fastembed==", lockfile, re.MULTILINE)
+    assert "pillow>=13.0.0,<14" in requirements
+    assert re.search(r"^pillow==13\.", lockfile, re.MULTILINE)
+
+
 def test_production_image_is_reproducible_and_keeps_queues_out_of_tmp():
     dockerfile = (AI_ROOT / "Dockerfile").read_text(encoding="utf-8")
     lockfile = (AI_ROOT / "requirements.lock").read_text(encoding="utf-8")

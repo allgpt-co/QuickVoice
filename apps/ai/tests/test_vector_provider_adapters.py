@@ -67,6 +67,11 @@ class VectorProviderAdaptersTests(unittest.TestCase):
         self.assertIsInstance(adapters.embedding, FastEmbedAdapter)
         self.assertIsInstance(adapters.vector_store, QdrantVectorStoreAdapter)
 
+    def test_missing_optional_fastembed_has_an_actionable_error(self):
+        with patch.dict(sys.modules, {"fastembed": None}):
+            with self.assertRaisesRegex(VectorAdapterError, "not bundled.*TEI"):
+                FastEmbedAdapter()._get_model()
+
     def test_factory_resolves_pinecone_when_configured(self):
         os.environ["EMBEDDING_PROVIDER"] = "pinecone"
         os.environ["VECTOR_STORE_PROVIDER"] = "pinecone"
