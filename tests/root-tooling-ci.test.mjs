@@ -53,6 +53,7 @@ test("required CI workflow gates pull requests with parallel quality shards", as
   assert.match(ci, /node --test apps\/console\/tests\/\*\.test\.mjs/);
   assert.match(ci, /python -m pip install -r requirements-dev\.txt/);
   assert.match(ci, /python -m pip_audit --local/);
+  assert.match(ci, /python -m pip_audit --disable-pip --no-deps -r requirements\.lock/);
   assert.match(ci, /python -m pytest tests/);
   assert.match(ci, /python -m pytest tests -W error/);
   assert.match(ci, /node-version: "24"/);
