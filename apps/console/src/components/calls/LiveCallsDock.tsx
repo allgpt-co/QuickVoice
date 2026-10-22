@@ -174,21 +174,28 @@ function ConnectionStatus({
 
 function LiveTranscriptDrawer({
   call,
+  active,
   canEndCall,
   now,
   onClose,
 }: {
   call: LiveCallRoom | null;
+  active: boolean;
   canEndCall: boolean;
   now: number | null;
   onClose: () => void;
 }) {
   const transcript = useLiveTranscript(call?.callId ?? null);
+  const isEnded = transcript.isEnded || !active;
   const endCall = useEndLiveCall();
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [lastSeenMessageCount, setLastSeenMessageCount] = useState(0);
   const [nearBottom, setNearBottom] = useState(true);
   const scrollContainer = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (call && !active && !transcript.isEnded) transcript.markEnded();
+  }, [active, call, transcript]);
 
   useEffect(() => {
     if (!transcript.messages.length || !nearBottom) return;
@@ -223,7 +230,7 @@ function LiveTranscriptDrawer({
   }
 
   async function confirmEndCall() {
-    if (!call || transcript.isEnded) return;
+    if (!call || isEnded) return;
     try {
       await endCall.mutateAsync(call.roomName);
       transcript.markEnded();
@@ -254,7 +261,7 @@ function LiveTranscriptDrawer({
                     <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-2">
                       <ConnectionStatus
                         state={transcript.connectionState}
-                        ended={transcript.isEnded}
+                        ended={isEnded}
                       />
                       <span className="text-xs text-[#77777F]">
                         {directionLabel(call.direction)}
@@ -274,7 +281,7 @@ function LiveTranscriptDrawer({
                   <div className="border-r border-b border-[#D9D9DD] px-4 py-3 sm:border-b-0">
                     <p className="text-[11px] text-[#77777F]">Elapsed</p>
                     <p className="mt-1 text-sm font-semibold tabular-nums text-[#111111]">
-                      {transcript.isEnded ? "Ended" : formatElapsed(call.startedAt, now)}
+                      {isEnded ? "Ended" : formatElapsed(call.startedAt, now)}
                     </p>
                   </div>
                   <div className="border-b border-[#D9D9DD] px-4 py-3 sm:border-r sm:border-b-0">
@@ -312,20 +319,32 @@ function LiveTranscriptDrawer({
                     </p>
                   </div>
 
-                  {transcript.error ? (
-                    <div className="mb-4 flex items-start gap-2 border border-[#B8B8BE] bg-[#F7F7F8] p-3 text-sm text-[#4B4B52]">
+                  {transcript.error && !isEnded ? (
+                    <div role="alert" className="mb-4 flex items-start gap-2 border border-[#B8B8BE] bg-[#F7F7F8] p-3 text-sm text-[#4B4B52]">
                       <WifiOff className="mt-0.5 size-4 shrink-0" />
-                      <p>{transcript.error}</p>
+                      <div className="min-w-0 flex-1">
+                        <p>{transcript.error}</p>
+                        <Button type="button" variant="outline" className="mt-3 min-h-11" onClick={transcript.retry}>
+                          <RefreshCw className="size-4" /> Retry transcript
+                        </Button>
+                      </div>
                     </div>
                   ) : null}
 
-                  {transcript.replayState !== "ready" &&
+                  {!isEnded && (transcript.replayState === "waiting" || transcript.replayState === "loading") &&
                   transcript.messages.length === 0 ? (
-                    <div className="border-t border-[#D9D9DD] py-8 text-sm text-[#65656D]">
-                      <Loader2 className="mb-3 size-4 animate-spin text-[#002FA7]" />
+                    <div role="status" className="border-t border-[#D9D9DD] py-8 text-sm text-[#65656D]">
+                      <Loader2 aria-hidden="true" className="mb-3 size-4 animate-spin motion-reduce:animate-none text-[#002FA7]" />
                       Loading transcript from the start…
                     </div>
-                  ) : transcript.messages.length === 0 ? (
+                  ) : transcript.messages.length === 0 && isEnded ? (
+                    <div className="border-t border-[#D9D9DD] py-8" role="status">
+                      <p className="text-sm font-medium text-[#111111]">Call ended</p>
+                      <p className="mt-1 text-sm text-[#65656D]">
+                        No transcript was recorded. The call may have ended before the conversation started.
+                      </p>
+                    </div>
+                  ) : transcript.messages.length === 0 && !transcript.error ? (
                     <div className="border-t border-[#D9D9DD] py-8">
                       <p className="text-sm font-medium text-[#111111]">
                         Waiting for the first finalized message
@@ -361,11 +380,11 @@ function LiveTranscriptDrawer({
               <SheetFooter className="border-t border-[#B8B8BE] bg-[#F7F7F8] p-4">
                 <div className="flex items-center justify-between gap-4">
                   <p className="text-xs text-[#65656D]">
-                    {transcript.isEnded
+                    {isEnded
                       ? "This transcript is no longer receiving messages."
                       : "Finalized turns are saved here during the live call."}
                   </p>
-                  {canEndCall && !transcript.isEnded ? (
+                  {canEndCall && !isEnded ? (
                     <Button
                       type="button"
                       variant="outline"
@@ -616,6 +635,7 @@ export function LiveCallsDock({ organizationId }: { organizationId: string }) {
       <LiveTranscriptDrawer
         key={selectedCall?.callId ?? "no-live-call"}
         call={selectedCall}
+        active={!liveCalls.isSuccess || sortedCalls.some((call) => call.callId === selectedCall?.callId || call.roomName === selectedCall?.roomName)}
         canEndCall={canEndCall}
         now={now}
         onClose={closeCall}

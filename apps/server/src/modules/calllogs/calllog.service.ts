@@ -189,6 +189,10 @@ export const listLiveCalls = async (
       claimedCallIds.add(event.callId);
       const room =
         roomsByName.get(event.roomName) ?? roomsByCallId.get(event.callId);
+      if (room?.participantCount === 0) {
+        stale.push(event);
+        continue;
+      }
       if (!room) {
         const startedAt = Date.parse(event.startedAt);
         const withinVisibilityGrace =
@@ -226,6 +230,7 @@ export const listLiveCalls = async (
 
   const fallbackRooms = normalizedRooms.filter(
     (room) =>
+      room.participantCount > 0 &&
       !claimedRooms.has(room.roomName) && !claimedCallIds.has(room.callId),
   );
   const scopedFallback = await Promise.all(
@@ -289,10 +294,18 @@ export const endLiveCall = async (
   } catch (error) {
     if (!isLiveKitRoomNotFound(error)) throw error;
   }
+  const callId = registeredCall?.callId ?? callIdFromRoomName(normalizedRoomName);
+  if (registry) {
+    await registry.markCallStale(organizationId, callId).catch((error) => {
+      console.warn("[live-calls] failed to clear ended call registry entry", {
+        organizationId, callId, error: error instanceof Error ? error.message : String(error),
+      });
+    });
+  }
   return {
     status: "ended" as const,
     roomName: normalizedRoomName,
-    callId: registeredCall?.callId ?? callIdFromRoomName(normalizedRoomName),
+    callId,
   };
 };
 
@@ -301,16 +314,15 @@ function normalizeLiveRoom(room: unknown): LiveCallRoom | null {
   const record = room as Record<string, unknown>;
   const roomName = stringValue(record.name ?? record.roomName);
   if (!roomName || roomName.startsWith("preview-")) return null;
+  const participantCount = numberValue(record.numParticipants ?? record.num_participants) ?? 0;
+  const startedAt = liveKitTimestamp(record.creationTime ?? record.creation_time ?? record.createdAt);
 
   return {
     roomName,
     callId: callIdFromRoomName(roomName),
     direction: roomName.startsWith("outbound_") ? "outbound" : "inbound",
-    participantCount:
-      numberValue(record.numParticipants ?? record.num_participants) ?? 0,
-    startedAt: liveKitTimestamp(
-      record.creationTime ?? record.creation_time ?? record.createdAt,
-    ),
+    participantCount,
+    startedAt,
     status: "active",
     agentId: null,
     agentName: null,

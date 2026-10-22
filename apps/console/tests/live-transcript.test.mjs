@@ -63,7 +63,7 @@ test("live transcript UI restores selection and preserves reader scroll position
   assert.match(dock, /new \{unseenMessages === 1 \? "message" : "messages"\}/);
   assert.doesNotMatch(transcriptRow, /padStart/);
   assert.match(dock, /End this live call\?/);
-  assert.match(dock, /canEndCall && !transcript\.isEnded/);
+  assert.match(dock, /canEndCall && !isEnded/);
   assert.match(dock, /fromNumber/);
   assert.match(dock, /toNumber/);
   assert.match(
