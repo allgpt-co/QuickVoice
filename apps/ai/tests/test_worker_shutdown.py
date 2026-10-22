@@ -113,6 +113,16 @@ class WorkerShutdownTests(unittest.IsolatedAsyncioTestCase):
         self.publisher.close.assert_awaited_once_with(reason="participant_disconnected")
         self.finalizer.finalize.assert_awaited_once()
 
+    async def test_pending_speech_flushes_before_live_publisher_closes(self):
+        await self.run_worker(self.ctx)
+        collector = self.scope["TranscriptCollector"].return_value.attach.return_value
+        events = []
+        collector.flush.side_effect = lambda: events.append("speech")
+        self.publisher.close.side_effect = lambda **_: events.append("closed")
+        await self.callbacks[0]()
+        self.assertEqual(events, ["speech", "closed"])
+        collector.flush.assert_called_once()
+
     async def test_preview_tasks_observe_failures_and_shutdown_drains_pending_readers(self):
         await self.run_worker(self.ctx)
         stream = self.room.register_text_stream_handler.call_args.args[1]

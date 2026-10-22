@@ -838,6 +838,8 @@ async def _run_entrypoint(ctx: JobContext):
         await asyncio.gather(*tasks, return_exceptions=True)
         await billing_shutdown_hook()
         try:
+            if transcript_collector is not None:
+                transcript_collector.flush()
             if live_transcript_publisher is not None:
                 await live_transcript_publisher.close(reason=shutdown_reason)
         except Exception as error:

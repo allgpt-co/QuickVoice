@@ -31,3 +31,5 @@ redis>=5,<7
 # Security floors for transitive HTTP dependencies, including the production lock.
 aiohttp>=3.14.4,<4
 certifi>=2026.10.19
+# Patched tracestate parsing (CVE-2026-114603).
+opentelemetry-api>=1.45.1,<2
