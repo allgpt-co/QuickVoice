@@ -17,7 +17,8 @@ class TranscriptCollector:
     ) -> None:
         self._items: list[dict[str, Any]] = []
         self._seen_ids: set[str] = set()
-        self._last_final_user_transcript: str | None = None
+        self._unpublished_user_ids: set[str] = set()
+        self._next_synthetic_id = 0
         self._recent_agent_transcripts: list[tuple[str, float]] = []
         self._on_item = on_item
         self._on_user_activity = on_user_activity
@@ -68,24 +69,23 @@ class TranscriptCollector:
         if not bool(getattr(event, "is_final", False)):
             return
         text = str(getattr(event, "transcript", "") or "").strip()
-        if not text or text == self._last_final_user_transcript:
+        if not text:
             return
         if self._looks_like_agent_echo(text):
             return
-        self._last_final_user_transcript = text
-
-        # Most final user turns also arrive through conversation_item_added.
-        # Keep this as a fallback for STT events that are not materialized into
-        # chat history before shutdown.
-        if any(item["role"] == "user" and item["content"] == text for item in self._items[-3:]):
-            return
+        # A final STT segment is not a final conversation turn. Only publish
+        # committed turns; keep segments for speech left uncommitted at hangup.
+        # https://docs.livekit.io/reference/agents/events/#conversation_item_added
+        message_id = self._synthetic_id(SYNTHETIC_USER_PREFIX)
+        self._unpublished_user_ids.add(message_id)
         self._append(
             {
-                "id": f"user-transcript-{len(self._items)}",
+                "id": message_id,
                 "role": "user",
                 "content": text,
                 "time": getattr(event, "created_at", None),
-            }
+            },
+            publish=False,
         )
 
     def on_agent_transcription_final(self, text: str, time: Any = None) -> None:
@@ -101,7 +101,7 @@ class TranscriptCollector:
             return
         self._append(
             {
-                "id": f"agent-transcript-{len(self._items)}",
+                "id": self._synthetic_id(SYNTHETIC_AGENT_PREFIX),
                 "role": "agent",
                 "content": text,
                 "time": time,
@@ -111,12 +111,28 @@ class TranscriptCollector:
     def read(self) -> list[dict[str, Any]]:
         return list(self._items)
 
-    def _append(self, item: dict[str, Any]) -> None:
+    def flush(self) -> None:
+        """Publish remaining fallback speech once, before closing live monitoring."""
+        for item in self._items:
+            if item["id"] in self._unpublished_user_ids:
+                self._unpublished_user_ids.remove(item["id"])
+                self._notify(item)
+
+    def _synthetic_id(self, prefix: str) -> str:
+        message_id = f"{prefix}{self._next_synthetic_id}"
+        self._next_synthetic_id += 1
+        return message_id
+
+    def _append(self, item: dict[str, Any], *, publish: bool = True) -> None:
         if item.get("role") == "agent":
             self._remember_agent_transcript(str(item.get("content") or ""))
         elif self._on_user_activity is not None:
             self._on_user_activity()
         self._items.append(item)
+        if publish:
+            self._notify(item)
+
+    def _notify(self, item: dict[str, Any]) -> None:
         if self._on_item is None:
             return
         try:
@@ -152,12 +168,41 @@ class TranscriptCollector:
         message_id: str,
         time: Any,
     ) -> bool:
-        prefix = SYNTHETIC_USER_PREFIX if role == "user" else SYNTHETIC_AGENT_PREFIX
+        if role == "user" and self._unpublished_user_ids:
+            indices = []
+            for index in range(len(self._items) - 1, -1, -1):
+                item = self._items[index]
+                if item["role"] == "user" and item["id"] not in self._unpublished_user_ids:
+                    break  # Never reconcile across an already committed caller turn.
+                if item["id"] in self._unpublished_user_ids:
+                    indices.append(index)
+            indices.reverse()
+            combined = " ".join(self._items[index]["content"] for index in indices)
+            if indices and _normalize_text(combined) != _normalize_text(text):
+                # The current contiguous segments belong to the committed turn,
+                # including STT corrections. Older unmatched fallback speech stays.
+                start = len(indices) - 1
+                while start and indices[start - 1] == indices[start] - 1:
+                    start -= 1
+                indices = indices[start:]
+                combined = " ".join(self._items[index]["content"] for index in indices)
+            if indices and (indices[-1] == len(self._items) - 1
+                            or _normalize_text(combined) == _normalize_text(text)):
+                item = {"id": message_id, "role": role, "content": text, "time": time}
+                for index in reversed(indices):
+                    self._unpublished_user_ids.discard(self._items[index]["id"])
+                    del self._items[index]
+                self._items.insert(indices[0], item)
+                self._seen_ids.add(message_id)
+                self._notify(item)
+                return True
+        if role == "user":
+            return False
         normalized_text = _normalize_text(text)
         for item in reversed(self._items[-5:]):
             if item.get("role") != role:
                 continue
-            if not str(item.get("id", "")).startswith(prefix):
+            if not str(item.get("id", "")).startswith(SYNTHETIC_AGENT_PREFIX):
                 continue
             if _normalize_text(item.get("content")) != normalized_text:
                 continue

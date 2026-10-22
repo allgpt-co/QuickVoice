@@ -19,6 +19,115 @@ class FakeSession:
 
 
 class TranscriptCollectorTests(unittest.TestCase):
+    def commit_user(self, collector, text, message_id="user-1"):
+        collector.on_conversation_item_added(SimpleNamespace(
+            item=SimpleNamespace(id=message_id, role="user", text_content=text)
+        ))
+
+    def test_split_speech_is_one_saved_and_published_turn(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        parts = ["Can you tell me about the company and the service", "that it provides?"]
+        for part in parts:
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=part, is_final=True))
+        self.assertEqual(published, [])
+        self.commit_user(collector, " ".join(parts))
+        self.assertEqual([item["content"] for item in collector.read()], [" ".join(parts)])
+        self.assertEqual(published, collector.read())
+
+    def test_committed_correction_replaces_segments_without_text_matching(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        for part in ["I want to book", "a flight to deli"]:
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=part, is_final=True))
+        self.commit_user(collector, "I want to book a flight to Delhi.")
+        self.assertEqual([item["content"] for item in collector.read()], ["I want to book a flight to Delhi."])
+        self.assertEqual(published, collector.read())
+
+    def test_repeated_confirmations_are_preserved_in_separate_turns(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        for index in range(2):
+            collector.on_user_input_transcribed(SimpleNamespace(transcript="Yes", is_final=True))
+            self.commit_user(collector, "Yes", f"user-{index}")
+        self.assertEqual([item["content"] for item in collector.read()], ["Yes", "Yes"])
+        self.assertEqual(published, collector.read())
+
+    def test_repeated_words_in_one_turn_are_not_discarded(self):
+        collector = TranscriptCollector()
+        for _ in range(2):
+            collector.on_user_input_transcribed(SimpleNamespace(transcript="Yes", is_final=True))
+        self.commit_user(collector, "Yes yes")
+        self.assertEqual([item["content"] for item in collector.read()], ["Yes yes"])
+
+    def test_uncommitted_speech_flushes_once_at_shutdown(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        collector.on_user_input_transcribed(SimpleNamespace(transcript="Wait", is_final=True))
+        self.assertEqual(published, [])
+        collector.flush()
+        collector.flush()
+        self.assertEqual([item["content"] for item in collector.read()], ["Wait"])
+        self.assertEqual(published, collector.read())
+
+    def test_delayed_committed_turn_after_agent_speech_replaces_all_segments(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        for part in ["Tell me about", "your service"]:
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=part, is_final=True))
+        collector.on_agent_transcription_final("We provide customer support.")
+        self.commit_user(collector, "Tell me about your service")
+        self.assertEqual([item["role"] for item in collector.read()], ["user", "agent"])
+        self.assertEqual(len(published), 2)
+        self.assertEqual(published[-1]["id"], "user-1")
+
+    def test_agent_speech_between_segments_does_not_duplicate_caller_turn(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        collector.on_user_input_transcribed(SimpleNamespace(transcript="Tell me about", is_final=True))
+        collector.on_agent_transcription_final("How can I help you?")
+        collector.on_user_input_transcribed(SimpleNamespace(transcript="your service", is_final=True))
+        self.commit_user(collector, "Tell me about your service")
+        collector.flush()
+        users = [item for item in collector.read() if item["role"] == "user"]
+        self.assertEqual([item["content"] for item in users], ["Tell me about your service"])
+        self.assertEqual(len(published), 2)
+
+    def test_old_uncommitted_speech_is_not_stolen_by_a_later_turn(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        collector.on_user_input_transcribed(SimpleNamespace(transcript="Yes", is_final=True))
+        collector.on_agent_transcription_final("Please confirm the date.")
+        self.commit_user(collector, "Tomorrow", "user-date")
+        self.commit_user(collector, "Yes", "user-confirmation")
+        collector.flush()
+        self.assertEqual([item["content"] for item in collector.read()],
+                         ["Yes", "Please confirm the date.", "Tomorrow", "Yes"])
+        self.assertEqual(len(published), 4)
+        self.assertEqual(len({item["id"] for item in published}), 4)
+
+    def test_many_segments_and_multilingual_text_use_one_canonical_turn(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        parts = ["मुझे", "आपकी", "कंपनी", "और", "सेवा", "के", "बारे", "में", "बताइए"]
+        for part in parts:
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=part, is_final=True))
+        self.commit_user(collector, " ".join(parts))
+        collector.flush()
+        self.assertEqual([item["content"] for item in collector.read()], [" ".join(parts)])
+        self.assertEqual(published, collector.read())
+
+    def test_reconciliation_does_not_reuse_live_message_ids(self):
+        published = []
+        collector = TranscriptCollector(on_item=published.append)
+        for index in range(3):
+            for part in ["Tell me", "something else"]:
+                collector.on_user_input_transcribed(SimpleNamespace(transcript=part, is_final=True))
+            self.commit_user(collector, "Tell me something else", f"user-{index}")
+            collector.on_agent_transcription_final(f"Here is answer {index}.")
+        self.assertEqual(len(published), 6)
+        self.assertEqual(len({item["id"] for item in published}), 6)
+
     def test_attach_registers_session_handlers_and_collects_conversation_items(self):
         session = FakeSession()
         collector = TranscriptCollector().attach(session)
@@ -40,7 +149,7 @@ class TranscriptCollectorTests(unittest.TestCase):
             [{"id": "assistant-1", "role": "agent", "content": "Hello there", "time": 1704067201.0}],
         )
 
-    def test_final_user_transcript_is_fallback_when_history_item_is_missing(self):
+    def test_repeated_final_user_transcripts_are_preserved_when_history_is_missing(self):
         activity = []
         collector = TranscriptCollector(on_user_activity=lambda: activity.append(True))
         collector.on_user_input_transcribed(
@@ -50,10 +159,10 @@ class TranscriptCollectorTests(unittest.TestCase):
             SimpleNamespace(transcript="I need help", is_final=True, created_at=1704067203.0)
         )
 
-        self.assertEqual(len(collector.read()), 1)
+        self.assertEqual(len(collector.read()), 2)
         self.assertEqual(collector.read()[0]["role"], "user")
         self.assertEqual(collector.read()[0]["content"], "I need help")
-        self.assertEqual(activity, [True])
+        self.assertEqual(activity, [True, True])
 
     def test_committed_user_item_replaces_matching_stt_fallback(self):
         published = []

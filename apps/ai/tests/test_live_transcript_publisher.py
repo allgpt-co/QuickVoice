@@ -2,6 +2,7 @@ import json
 import os
 import sys
 import unittest
+from types import SimpleNamespace
 from datetime import datetime, timezone
 from unittest.mock import patch
 
@@ -12,6 +13,7 @@ from handlers.live_transcript_publisher import (
     LIVE_TRANSCRIPT_CHANNEL,
     LiveTranscriptPublisher,
 )
+from handlers.transcript_collector import TranscriptCollector
 
 
 class FakeRedis:
@@ -59,6 +61,29 @@ def publisher(redis_client, *, zero_pii_retention=False):
 
 
 class LiveTranscriptPublisherTests(unittest.IsolatedAsyncioTestCase):
+    async def test_segmented_caller_turn_reaches_redis_only_once(self):
+        redis = FakeRedis()
+        live = publisher(redis)
+        collector = TranscriptCollector(on_item=live.publish_transcript)
+        await live.start()
+        for text in ["Can you tell me about the company and the service", "that it provides?"]:
+            collector.on_user_input_transcribed(SimpleNamespace(transcript=text, is_final=True))
+        collector.on_conversation_item_added(SimpleNamespace(item=SimpleNamespace(
+            id="user-committed", role="user",
+            text_content="Can you tell me about the company and the service that it provides?",
+        )))
+        # A final utterance at hangup still reaches both live replay and storage.
+        collector.on_user_input_transcribed(SimpleNamespace(transcript="Thank you", is_final=True))
+        collector.flush()
+        collector.flush()
+        await live.close()
+        events = [call["payload"] for call in redis.calls]
+        self.assertEqual([event["type"] for event in events],
+                         ["call.started", "transcript.final", "transcript.final", "call.ended"])
+        self.assertEqual([event["text"] for event in events if event["type"] == "transcript.final"],
+                         [item["content"] for item in collector.read()])
+        self.assertEqual(events[1]["messageId"], "user-committed")
+
     async def test_publishes_lifecycle_and_final_turns_in_order(self):
         redis = FakeRedis()
         live = publisher(redis)
