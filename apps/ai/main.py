@@ -666,6 +666,11 @@ async def _run_entrypoint(ctx: JobContext):
             await end_call_without_billing(ctx, "invalid_voice_configuration")
             return
 
+    # The caller may leave while configuration/webhooks are being fetched.
+    if participant.identity not in ctx.room.remote_participants:
+        await end_call_without_billing(ctx, "participant_disconnected")
+        return
+
     logger.info("Config loaded for agent: {}", redact_sensitive(config.get("agent_id")))
 
     if not call_context.get("agent_id") and config.get("agent_id"):
@@ -807,7 +812,8 @@ async def _run_entrypoint(ctx: JobContext):
 
     preview_tasks: set[asyncio.Task] = set()
     live_transcript_publisher = None
-    call_finalizer = None
+    transcript_collector = None
+    recording_task: asyncio.Task | None = None
 
     def on_preview_task_done(task: asyncio.Task) -> None:
         preview_tasks.discard(task)
@@ -815,6 +821,17 @@ async def _run_entrypoint(ctx: JobContext):
 
     async def run_unified_shutdown():
         call_limits.close()
+        if shutdown_reason == "participant_disconnected":
+            try:
+                await asyncio.wait_for(delete_call_room(ctx), timeout=5)
+            except Exception as error:
+                logger.warning("[HANGUP] Failed to delete call room: {}", redact_sensitive(str(error)))
+            try:
+                if session_started:
+                    session.shutdown(drain=False)
+                ctx.shutdown(reason=shutdown_reason)
+            except Exception as error:
+                logger.warning("[HANGUP] Failed to stop voice session: {}", redact_sensitive(str(error)))
         tasks = list(preview_tasks)
         for task in tasks:
             task.cancel()
@@ -828,9 +845,29 @@ async def _run_entrypoint(ctx: JobContext):
                 "[LIVE_TRANSCRIPT] Failed to close publisher: {}",
                 redact_sensitive(str(error)),
             )
-        if preview_mode or call_finalizer is None:
+        recording_id = None
+        if recording_task is not None:
+            try:
+                recording_id = await asyncio.wait_for(asyncio.shield(recording_task), timeout=5)
+            except asyncio.TimeoutError:
+                recording_task.cancel()
+                await asyncio.gather(recording_task, return_exceptions=True)
+                logger.warning("[RECORDING] Startup did not finish before call shutdown")
+            except asyncio.CancelledError:
+                if not recording_task.cancelled():
+                    raise
+            except Exception as error:
+                logger.warning("[RECORDING] Startup failed during call shutdown: {}", redact_sensitive(str(error)))
+        if preview_mode or transcript_collector is None or shutdown_reason == "session_start_failed":
             return
         try:
+            call_finalizer = CallFinalizer(
+                config=config,
+                call_context=call_context,
+                started_at=call_start_time,
+                recording_path=build_recording_path(recording_id) if recording_id else None,
+                transcript_reader=transcript_collector.read,
+            )
             call_context.setdefault("metadata", {})["terminationReason"] = shutdown_reason
             await call_finalizer.finalize(ended_at=call_ended_at)
         except Exception as error:
@@ -852,9 +889,31 @@ async def _run_entrypoint(ctx: JobContext):
     if hasattr(ctx, "add_shutdown_callback"):
         ctx.add_shutdown_callback(unified_shutdown_hook)
 
+    @ctx.room.on("participant_disconnected")
+    def on_participant_disconnected(participant):
+        nonlocal shutdown_started, shutdown_reason, call_ended_at
+        if not billed_participant_identity or getattr(participant, "identity", None) != billed_participant_identity:
+            return
+        logger.info("[HANGUP] Participant disconnected: {}", redact_sensitive(getattr(participant, "identity", "")))
+        if shutdown_started:
+            return
+        shutdown_started = True
+        if not billing_termination_started:
+            shutdown_reason = "participant_disconnected"
+        call_ended_at = datetime.now(timezone.utc)
+        billing_reporter.mark_ended()
+        call_limits.close()
+        ensure_unified_shutdown()
+
     if not await billing_reporter.authorize() or unified_shutdown_task is not None:
         await unified_shutdown_hook()
         return
+
+    if should_store_call_audio(config):
+        recording_task = asyncio.create_task(start_recording(ctx), name="call-recording-start")
+        recording_task.add_done_callback(log_task_failure)
+    else:
+        logger.info("[RECORDING] skipped by agent privacy controls")
 
     live_transcript_publisher = LiveTranscriptPublisher(
         config=config,
@@ -863,6 +922,9 @@ async def _run_entrypoint(ctx: JobContext):
     )
     if not preview_mode:
         await live_transcript_publisher.start(call_start_time)
+    if unified_shutdown_task is not None:
+        await unified_shutdown_hook()
+        return
     transcript_collector = TranscriptCollector(
         on_item=live_transcript_publisher.publish_transcript,
         on_user_activity=lambda: call_limits.record_user_activity("transcript"),
@@ -877,7 +939,7 @@ async def _run_entrypoint(ctx: JobContext):
 
     @ctx.room.on("data_received")
     def on_data_received(data_packet):
-        if unified_shutdown_task is not None:
+        if not session_started or unified_shutdown_task is not None:
             return
         participant = getattr(data_packet, "participant", None)
         text = parse_preview_user_transcript_packet(
@@ -897,7 +959,7 @@ async def _run_entrypoint(ctx: JobContext):
         session.generate_reply(user_input=text, allow_interruptions=True)
 
     def on_preview_text_stream(reader, participant_identity):
-        if unified_shutdown_task is not None:
+        if not session_started or unified_shutdown_task is not None:
             return
         task = asyncio.create_task(
             consume_preview_user_transcript_stream(
@@ -923,6 +985,17 @@ async def _run_entrypoint(ctx: JobContext):
             on_preview_text_stream,
         )
 
+    # Warm the recorder while preparing the session, then gate all speech on
+    # actual capture readiness rather than losing the opening greeting.
+    if recording_task is not None:
+        try:
+            await asyncio.shield(recording_task)
+        except Exception as error:
+            logger.warning("[RECORDING] Continuing without recording: {}", redact_sensitive(str(error)))
+    if unified_shutdown_task is not None:
+        await unified_shutdown_hook()
+        return
+
     try:
         await session.start(
             room=ctx.room,
@@ -935,39 +1008,16 @@ async def _run_entrypoint(ctx: JobContext):
         raise
     session_started = True
     if billing_termination_started or unified_shutdown_task is not None:
+        session.shutdown(drain=False)
         await unified_shutdown_hook()
         return
     await billing_reporter.start()
+    if unified_shutdown_task is not None:
+        await unified_shutdown_hook()
+        return
     speak_first_message(session, config)
-
-    recording_id = None
-    if should_store_call_audio(config):
-        recording_id = await start_recording(ctx)
-    else:
-        logger.info("[RECORDING] skipped by agent privacy controls")
-    recording_path = build_recording_path(recording_id) if recording_id else None
-    call_finalizer = CallFinalizer(
-        config=config,
-        call_context=call_context,
-        started_at=call_start_time,
-        recording_path=recording_path,
-        transcript_reader=transcript_collector.read,
-    )
-    @ctx.room.on("participant_disconnected")
-    def on_participant_disconnected(participant):
-        nonlocal shutdown_started, shutdown_reason, call_ended_at
-        if not billed_participant_identity or getattr(participant, "identity", None) != billed_participant_identity:
-            return
-        logger.info("[HANGUP] Participant disconnected: {}", redact_sensitive(getattr(participant, "identity", "")))
-        if shutdown_started:
-            return
-        shutdown_started = True
-        if not billing_termination_started:
-            shutdown_reason = "participant_disconnected"
-        call_ended_at = datetime.now(timezone.utc)
-        billing_reporter.mark_ended()
-        call_limits.close()
-        ensure_unified_shutdown()
+    if unified_shutdown_task is not None:
+        await unified_shutdown_hook()
 
 
 if __name__ == "__main__":
