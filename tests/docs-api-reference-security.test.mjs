@@ -14,7 +14,7 @@ test("docs pin and integrity-check the API console while constraining its networ
 
   assert.match(
     component,
-    /cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@1\.72\.3"/,
+    /cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@1\.72\.3\/dist\/browser\/standalone\.js"/,
   );
   assert.match(
     component,

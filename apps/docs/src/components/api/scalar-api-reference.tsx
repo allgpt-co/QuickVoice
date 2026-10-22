@@ -29,7 +29,7 @@ declare global {
 
 const containerId = "quickvoice-scalar-api-reference";
 const scalarScript =
-  "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3";
+  "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3/dist/browser/standalone.js";
 const scalarIntegrity =
   "sha384-HWi/QCSPi64AQ0xBXFGDk+7gmvZ4hJ/7sZMIXqWVz6Ikb6+Cxej/hWKaomOStyFb";
 
