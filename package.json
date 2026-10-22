@@ -42,7 +42,7 @@
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
-    "node": "^20.19 || ^22.13 || >=24"
+    "node": "^22.23.4 || >=24.22.1"
   },
   "pnpm": {
     "overrides": {
@@ -65,6 +65,7 @@
       "esbuild": "0.28.1",
       "fast-uri": "4.1.5",
       "flatted": "3.4.2",
+      "follow-redirects": "1.16.1",
       "form-data": "4.0.6",
       "glob": "10.5.0",
       "hono": "4.13.12",
