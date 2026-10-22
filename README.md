@@ -39,7 +39,7 @@ flowchart LR
 The supported one-command development path is a Linux environment with:
 
 - Bash `>=4`
-- Node.js `^20.19 || ^22.13 || >=24` and Corepack
+- Node.js `^22.23.4 || >=24.22.1` and Corepack
 - `pnpm@9.0.0` (activated by the setup task)
 - Python 3; Python 3.12 matches CI and the AI runtime image
 - Docker with the Compose v2 plugin
@@ -71,9 +71,9 @@ go install github.com/go-task/task/v3/cmd/task@latest
 export PATH="$PATH:$HOME/go/bin"
 ```
 
-Install Node.js `^20.19 || ^22.13 || >=24` separately with a version manager or the official Node.js packages; a distribution package may be older than QuickVoice requires. Reconnect the shell after changing Docker group membership. With Docker Desktop on WSL2, enable integration for the WSL distribution instead of installing a second Docker daemon.
+Install Node.js `^22.23.4 || >=24.22.1` separately with a version manager or the official Node.js packages; a distribution package may be older than QuickVoice requires. Reconnect the shell after changing Docker group membership. With Docker Desktop on WSL2, enable integration for the WSL distribution instead of installing a second Docker daemon.
 
-On macOS, install Docker Desktop, Go Task, Node.js `^20.19 || ^22.13 || >=24`, Python, and Bash `>=4` using your preferred package manager. Ensure the modern Bash appears before `/bin/bash` on `PATH`, because the scripts use `#!/usr/bin/env bash`.
+On macOS, install Docker Desktop, Go Task, Node.js `^22.23.4 || >=24.22.1`, Python, and Bash `>=4` using your preferred package manager. Ensure the modern Bash appears before `/bin/bash` on `PATH`, because the scripts use `#!/usr/bin/env bash`.
 
 First things to open:
 
