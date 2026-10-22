@@ -12,4 +12,5 @@ fi
 
 cd "${AI_DIR}"
 "${PYTHON}" -m pip_audit --local
+"${PYTHON}" -m pip_audit --disable-pip --no-deps -r requirements.lock
 "${PYTHON}" -m pytest tests -W error

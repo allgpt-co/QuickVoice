@@ -14,7 +14,7 @@ test("docs pin and integrity-check the API console while constraining its networ
 
   assert.match(
     component,
-    /cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@1\.72\.3"/,
+    /cdn\.jsdelivr\.net\/npm\/@scalar\/api-reference@1\.72\.3\/dist\/browser\/standalone\.js"/,
   );
   assert.match(
     component,
@@ -33,4 +33,11 @@ test("docs pin and integrity-check the API console while constraining its networ
   );
   assert.match(layout, /connect-src 'self' https:\/\/api\.quickvoice\.co/);
   assert.match(layout, /object-src 'none'/);
+});
+
+test("docs ship a valid favicon asset with the static application", async () => {
+  const favicon = await readFile(new URL("../apps/docs/src/app/favicon.ico", import.meta.url));
+  assert.equal(favicon.readUInt16LE(0), 0);
+  assert.equal(favicon.readUInt16LE(2), 1);
+  assert.ok(favicon.readUInt16LE(4) > 0);
 });

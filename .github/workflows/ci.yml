@@ -333,7 +333,9 @@ jobs:
 
       - name: Audit Python dependencies
         working-directory: apps/ai
-        run: python -m pip_audit --local
+        run: |
+          python -m pip_audit --local
+          python -m pip_audit --disable-pip --no-deps -r requirements.lock
 
       - name: Run AI tests
         working-directory: apps/ai

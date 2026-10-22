@@ -77,6 +77,14 @@ The TEI adapter:
 
 Do not change `EMBEDDING_PROVIDER` while staging and validating connectivity.
 
+The standard AI image includes the TEI client and does not install FastEmbed,
+whose dependency constraint prevents upgrading Pillow to its patched release.
+Pillow is still needed by LiveKit and is constrained to version 13 or newer.
+Existing `EMBEDDING_PROVIDER=tei` deployments
+keep their configured model, vector dimensions, and indexed data; this dependency
+cleanup does not require reindexing. The optional FastEmbed adapter requires a
+separate installation once its upstream Pillow constraint supports a secure release.
+
 ## Qdrant collection
 
 A MiniLM deployment requires a new collection. Do not reuse a collection populated by Pinecone, Google, FastEmbed, or another model.

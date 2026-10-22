@@ -312,7 +312,17 @@ class FastEmbedAdapter(BaseEmbeddingAdapter):
 
     def _get_model(self):
         if self._model is None:
-            from fastembed import TextEmbedding
+            try:
+                from fastembed import TextEmbedding
+            except ModuleNotFoundError as exc:
+                if exc.name != "fastembed":
+                    raise
+                raise VectorAdapterError(
+                    "FastEmbed is not bundled in the standard AI image because its "
+                    "Pillow dependency has unresolved security advisories. Use a "
+                    "supported embedding provider such as TEI; changing the embedding "
+                    "model for an existing index requires reindexing."
+                ) from exc
             self._model = TextEmbedding(model_name=self._model_name)
         return self._model
 

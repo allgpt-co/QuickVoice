@@ -29,7 +29,7 @@ declare global {
 
 const containerId = "quickvoice-scalar-api-reference";
 const scalarScript =
-  "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3";
+  "https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.72.3/dist/browser/standalone.js";
 const scalarIntegrity =
   "sha384-HWi/QCSPi64AQ0xBXFGDk+7gmvZ4hJ/7sZMIXqWVz6Ikb6+Cxej/hWKaomOStyFb";
 
@@ -40,6 +40,7 @@ function getDocsTheme() {
 
 export function ScalarApiReference() {
   const [scriptReady, setScriptReady] = useState(false);
+  const [scriptError, setScriptError] = useState(false);
   const [theme, setTheme] = useState(getDocsTheme);
 
   const mountScalar = useCallback(() => {
@@ -84,7 +85,15 @@ export function ScalarApiReference() {
         integrity={scalarIntegrity}
         crossOrigin="anonymous"
         strategy="afterInteractive"
-        onReady={() => setScriptReady(true)}
+        onReady={() => {
+          if (typeof window.Scalar?.createApiReference !== "function") {
+            setScriptError(true);
+            return;
+          }
+          setScriptError(false);
+          setScriptReady(true);
+        }}
+        onError={() => setScriptError(true)}
       />
       <div className="border-b border-[var(--qv-border)] bg-[var(--qv-card)] px-4 py-4 sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 pr-24">
@@ -104,9 +113,23 @@ export function ScalarApiReference() {
           </a>
         </div>
       </div>
-      <div id={containerId} className="min-h-[calc(100vh-97px)]" />
-      {!scriptReady ? (
-        <div className="mx-auto max-w-4xl px-6 py-16 text-center text-sm text-[var(--qv-muted)]">
+      <div id={containerId} className={scriptReady && !scriptError ? "min-h-[calc(100vh-97px)]" : "hidden"} />
+      {scriptError ? (
+        <div role="alert" className="mx-auto max-w-2xl px-6 py-16 text-center">
+          <h2 className="text-lg font-semibold">API reference could not load</h2>
+          <p className="mt-3 text-sm text-[var(--qv-muted)]">
+            Reload the page to try again, or use the OpenAPI JSON link above to view the API specification.
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-6 inline-flex min-h-11 items-center rounded-full border border-[var(--qv-border)] px-4 py-2 text-sm font-semibold transition hover:border-[var(--qv-blue)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--qv-blue)] motion-reduce:transition-none"
+          >
+            Reload page
+          </button>
+        </div>
+      ) : !scriptReady ? (
+        <div role="status" className="mx-auto max-w-4xl px-6 py-16 text-center text-sm text-[var(--qv-muted)]">
           Loading interactive API reference…
         </div>
       ) : null}

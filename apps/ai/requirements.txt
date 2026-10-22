@@ -18,7 +18,8 @@ uvicorn[standard]>=0.30,<1
 pinecone>=7.0,<8
 qdrant-client>=1.9,<2
 google-genai>=0.1.0,<1
-fastembed>=0.3.0,<1
+# LiveKit uses Pillow; keep its image codecs above the patched security floor.
+pillow>=13.0.0,<14
 tokenizers>=0.21,<0.23
 pymupdf>=1.24,<2
 python-docx>=1.1,<2
@@ -27,3 +28,6 @@ xlrd>=2.0,<3
 httpx>=0.27,<1
 beautifulsoup4>=4.12,<5
 redis>=5,<7
+# Security floors for transitive HTTP dependencies, including the production lock.
+aiohttp>=3.14.4,<4
+certifi>=2026.10.19

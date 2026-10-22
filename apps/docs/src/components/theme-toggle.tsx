@@ -1,14 +1,23 @@
 "use client";
 
 import { Moon, Sun } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
 type Theme = "dark" | "light";
 const storageKey = "quickvoice-docs-theme";
 
 function getInitialTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  return window.localStorage.getItem(storageKey) === "light" ? "light" : "dark";
+  if (typeof document === "undefined") return "dark";
+  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
+}
+
+function subscribeToTheme(onChange: () => void) {
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ["data-theme"],
+  });
+  return () => observer.disconnect();
 }
 
 function applyTheme(theme: Theme) {
@@ -17,16 +26,16 @@ function applyTheme(theme: Theme) {
 }
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme);
-
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+  const theme = useSyncExternalStore(subscribeToTheme, getInitialTheme, () => "dark" as const);
 
   function toggleTheme() {
-    const nextTheme: Theme = theme === "dark" ? "light" : "dark";
-    window.localStorage.setItem(storageKey, nextTheme);
-    setTheme(nextTheme);
+    const nextTheme: Theme = getInitialTheme() === "dark" ? "light" : "dark";
+    applyTheme(nextTheme);
+    try {
+      window.localStorage.setItem(storageKey, nextTheme);
+    } catch {
+      // Theme switching still works when browser storage is unavailable.
+    }
   }
 
   const isDark = theme === "dark";
@@ -35,7 +44,7 @@ export function ThemeToggle() {
     <button
       type="button"
       aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
-      className="fixed right-4 top-4 z-[100] inline-flex min-h-10 items-center gap-2 rounded-full border border-[var(--qv-border)] bg-[var(--qv-card)] px-3 text-sm font-semibold text-[var(--qv-ink)] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-[var(--qv-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--qv-blue)]/35"
+      className="fixed right-4 top-4 z-[100] inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--qv-border)] bg-[var(--qv-card)] px-3 text-sm font-semibold text-[var(--qv-ink)] shadow-lg shadow-black/10 transition hover:-translate-y-0.5 hover:border-[var(--qv-blue)] focus:outline-none focus:ring-2 focus:ring-[var(--qv-blue)]/35 motion-reduce:transform-none motion-reduce:transition-none"
       onClick={toggleTheme}
     >
       {isDark ? <Sun aria-hidden="true" className="size-4 text-[var(--qv-blue)]" /> : <Moon aria-hidden="true" className="size-4 text-[var(--qv-blue)]" />}
