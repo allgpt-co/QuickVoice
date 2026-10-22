@@ -3,6 +3,7 @@ import { test } from "node:test";
 
 import {
   getCallRecordingDownloadUrl,
+  endLiveCall,
   listLiveCalls,
   signCallRecordingUrl,
 } from "../../src/modules/calllogs/calllog.service.js";
@@ -125,4 +126,61 @@ test("repeated foreign-room polls never enumerate LiveKit participants", async (
   };
   for (let poll = 0; poll < 2; poll++) assert.deepEqual(await listLiveCalls("org_123", roomClient), []);
   assert.equal(lookups, 0);
+});
+
+test("empty outbound rooms are not live even during the startup grace period", async (t) => {
+  const { default: prisma } = await import("../../src/config/prisma.js");
+  const original = prisma.outboundCall.count;
+  prisma.outboundCall.count = (async () => 1) as typeof original;
+  t.after(() => { prisma.outboundCall.count = original; });
+  const now = Math.floor(Date.now() / 1000);
+  const calls = await listLiveCalls("org_123", {
+    listRooms: async () => [
+      { name: "outbound_rejected", numParticipants: 0, creationTime: now - 900 },
+      { name: "outbound_starting", numParticipants: 0, creationTime: now },
+      { name: "outbound_connected", numParticipants: 2, creationTime: now - 900 },
+      { name: "outbound_unknown_time", numParticipants: 0 },
+    ],
+    deleteRoom: async () => undefined,
+  });
+  assert.deepEqual(calls.map((call) => call.callId), ["connected"]);
+});
+
+test("empty rooms clear even a fresh active Redis registration", async () => {
+  const startedAt = new Date().toISOString();
+  const stale: string[] = [];
+  const calls = await listLiveCalls("org_123", {
+    listRooms: async () => [{ name: "outbound_rejected", numParticipants: 0, creationTime: Date.now() / 1000 }],
+    deleteRoom: async () => undefined,
+  }, {
+    listActiveCalls: async () => [{
+      version: 1, type: "call.started", organizationId: "org_123", callId: "rejected",
+      roomName: "outbound_rejected", eventId: "0-0", occurredAt: startedAt,
+      status: "active", agentId: "", direction: "outbound",
+      fromNumber: "+13022079009", toNumber: "+919876543210", startedAt,
+    }],
+    findActiveCallByRoom: async () => null,
+    markCallStale: async (_organizationId, callId) => { stale.push(callId); },
+  });
+  assert.deepEqual(calls, []);
+  assert.deepEqual(stale, ["rejected"]);
+});
+
+test("manually ending a call clears its active registry entry after room deletion", async () => {
+  const operations: string[] = [];
+  const result = await endLiveCall("org_123", "outbound_rejected", {
+    listRooms: async () => [],
+    deleteRoom: async (name) => { operations.push(`delete:${name}`); },
+  }, {
+    listActiveCalls: async () => [],
+    findActiveCallByRoom: async () => ({
+      version: 1, type: "call.started", organizationId: "org_123", callId: "rejected",
+      roomName: "outbound_rejected", eventId: "0-0", occurredAt: new Date().toISOString(),
+      status: "active", agentId: "", direction: "outbound", fromNumber: "", toNumber: "",
+      startedAt: new Date().toISOString(),
+    }),
+    markCallStale: async (_org, callId) => { operations.push(`stale:${callId}`); },
+  });
+  assert.equal(result.status, "ended");
+  assert.deepEqual(operations, ["delete:outbound_rejected", "stale:rejected"]);
 });

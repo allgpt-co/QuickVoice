@@ -2,7 +2,7 @@ import os
 import sys
 import unittest
 import asyncio
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 from types import SimpleNamespace
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -36,6 +36,7 @@ from main import (
     provider_section,
     selected_billing_model_ids,
     wait_for_billed_participant,
+    _run_entrypoint,
 )
 
 
@@ -93,6 +94,26 @@ class EarlyExitHangUpTests(unittest.TestCase):
 
 
 class WorkerCallTimingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_rejection_before_answer_wait_deletes_room_without_starting_billing(self):
+        ctx = _RoomExitContext()
+        room = rtc.EventEmitter()
+        room.name = ctx.room.name
+        room.remote_participants = {}
+        ctx.room = room
+        ctx.connect = AsyncMock()
+        ctx.job = SimpleNamespace(metadata='{"direction":"outbound"}')
+        ctx.wait_for_participant = AsyncMock(return_value=SimpleNamespace(
+            identity="caller", attributes={"sip.callStatus": "dialing"},
+            kind=rtc.ParticipantKind.PARTICIPANT_KIND_SIP,
+        ))
+        with patch("main.get_config", new_callable=AsyncMock) as config:
+            await asyncio.wait_for(_run_entrypoint(ctx), 0.1)
+            config.assert_not_called()
+        self.assertEqual(ctx.events, [
+            ("delete_room", "outbound_call-1"),
+            ("shutdown", "participant_connection_failed"),
+        ])
+
     async def test_connection_clock_starts_after_sip_answers(self):
         import time
 

@@ -12,6 +12,7 @@ import {
   callsApi,
   type CallListParams,
   type TranscriptParams,
+  type LiveCallRoom,
 } from "@/src/lib/api/resources/calls";
 import { queryKeys } from "@/src/lib/query-keys";
 
@@ -23,7 +24,7 @@ export function useLiveCalls(enabled = true) {
     queryFn: () => callsApi.live(),
     enabled,
     refetchOnWindowFocus: false,
-    refetchInterval: 60_000,
+    refetchInterval: (query) => query.state.data?.length ? 10_000 : 60_000,
     retry: false,
   });
 }
@@ -32,8 +33,12 @@ export function useEndLiveCall() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (roomName: string) => callsApi.endLive(roomName),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.calls.live() });
+    onSuccess: async (_data, roomName) => {
+      await qc.cancelQueries({ queryKey: queryKeys.calls.live() });
+      qc.setQueryData<LiveCallRoom[]>(queryKeys.calls.live(), (current) =>
+        current?.filter((call) => call.roomName !== roomName) ?? [],
+      );
+      void qc.invalidateQueries({ queryKey: queryKeys.calls.live() });
       toast.success("Live call ended");
     },
     onError: (err: Error) => {

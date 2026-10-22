@@ -25,6 +25,7 @@ export function useLiveTranscript(callId: string | null) {
   const [replayState, setReplayState] =
     useState<TranscriptReplayState>(callId ? "waiting" : "ready");
   const [error, setError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const watchAttempt = useRef(0);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export function useLiveTranscript(callId: string | null) {
     const activeSocket = socket;
     const activeCallId = callId;
     let disposed = false;
+    let ended = false;
     let acknowledgementTimer: number | undefined;
 
     function addMessages(values: unknown[]) {
@@ -54,6 +56,10 @@ export function useLiveTranscript(callId: string | null) {
         event.organizationId === organizationId &&
         event.callId === activeCallId
       ) {
+        ended = true;
+        window.clearTimeout(acknowledgementTimer);
+        setReplayState("ready");
+        setError(null);
         markCallEnded(activeCallId);
       }
     }
@@ -74,11 +80,14 @@ export function useLiveTranscript(callId: string | null) {
         "live-call:watch",
         { callId: activeCallId },
         (acknowledgement: LiveCallWatchAck) => {
-          window.clearTimeout(acknowledgementTimer);
           if (disposed || watchAttempt.current !== attempt) return;
+          window.clearTimeout(acknowledgementTimer);
           if (!acknowledgement.ok) {
+            if (ended) return;
             setReplayState("error");
-            setError(acknowledgement.error.message);
+            setError(acknowledgement.error.code === "NOT_FOUND"
+              ? "Transcript is not available for this call. Retry if the call is still connecting."
+              : acknowledgement.error.message);
             return;
           }
           addMessages(acknowledgement.messages);
@@ -108,7 +117,7 @@ export function useLiveTranscript(callId: string | null) {
         );
       }
     };
-  }, [callId, markCallEnded, organizationId, socket]);
+  }, [callId, markCallEnded, organizationId, retryAttempt, socket]);
 
   return useMemo(
     () => ({
@@ -120,6 +129,7 @@ export function useLiveTranscript(callId: string | null) {
       markEnded: () => {
         if (callId) markCallEnded(callId);
       },
+      retry: () => setRetryAttempt((current) => current + 1),
     }),
     [
       callId,

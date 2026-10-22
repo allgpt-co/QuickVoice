@@ -58,7 +58,13 @@ async def wait_for_sip_answer(room: Any, participant: Any) -> None:
     room.on("participant_attributes_changed", on_attributes_changed)
     room.on("participant_disconnected", on_disconnected)
     try:
-        on_attributes_changed({}, participant)
+        # The SIP participant can leave after wait_for_participant resolves but
+        # before these listeners attach. Do not wait for an event already missed.
+        participants = getattr(room, "remote_participants", None)
+        if participants is not None and participant.identity not in participants:
+            on_disconnected(participant)
+        else:
+            on_attributes_changed({}, participant)
         await answered
     finally:
         room.off("participant_attributes_changed", on_attributes_changed)

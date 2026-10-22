@@ -334,6 +334,15 @@ class CallLimitTests(unittest.IsolatedAsyncioTestCase):
             await wait
         self.assertFalse(any(room.handlers.values()))
 
+    async def test_sip_already_disconnected_before_waiting_fails_without_waiting_for_timeout(self):
+        for status in ("dialing", "active"):
+            room = Events()
+            room.remote_participants = {}
+            caller = SimpleNamespace(identity="caller", attributes={"sip.callStatus": status})
+            with self.assertRaisesRegex(RuntimeError, "before answering"):
+                await asyncio.wait_for(wait_for_sip_answer(room, caller), 0.05)
+            self.assertFalse(any(room.handlers.values()))
+
     async def test_answered_sip_calls_proceed_and_cancelled_waits_remove_listeners(self):
         for status in ("active", "automation"):
             room = Events()
