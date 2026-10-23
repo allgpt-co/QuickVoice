@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   CalendarClock,
   Download,
@@ -223,12 +223,12 @@ function CampaignIntelligencePanel({
   campaignId: string;
   shownCampaign: BatchCampaign;
 }) {
-  const [assignmentInput, setAssignmentInput] = useState<string>(defaultExperimentPayload());
+  const [assignmentInput, setAssignmentInput] = useState<string>(defaultExperimentPayload);
   const [assignmentResult, setAssignmentResult] = useState<CampaignExperimentAssignmentResponse | null>(null);
   const [assignmentLoading, setAssignmentLoading] = useState(false);
   const [assignmentError, setAssignmentError] = useState<CampaignErrorState>(null);
 
-  const [conversionInput, setConversionInput] = useState<string>(defaultConversionPayload());
+  const [conversionInput, setConversionInput] = useState<string>(defaultConversionPayload);
   const [conversionValidationLoading, setConversionValidationLoading] = useState(false);
   const [conversionIngestLoading, setConversionIngestLoading] = useState(false);
   const [conversionValidationResult, setConversionValidationResult] = useState<CampaignConversionEventResponse | null>(null);
@@ -240,20 +240,6 @@ function CampaignIntelligencePanel({
   const [reportLoading, setReportLoading] = useState(false);
   const [reportError, setReportError] = useState<CampaignErrorState>(null);
   const [reportResult, setReportResult] = useState<CampaignReportBuildResponse | null>(null);
-
-  useEffect(() => {
-    setAssignmentInput(defaultExperimentPayload());
-    setAssignmentResult(null);
-    setAssignmentError(null);
-    setConversionInput(defaultConversionPayload());
-    setConversionValidationResult(null);
-    setConversionIngestResult(null);
-    setConversionError(null);
-    setReportError(null);
-    setReportResult(null);
-    setReportRandomized(false);
-    setReportPersist(false);
-  }, [campaignId]);
 
   async function runAssignmentPreview() {
     setAssignmentLoading(true);
@@ -592,7 +578,7 @@ function CampaignDetailDialog({
               </div>
             </div>
 
-            <CampaignIntelligencePanel campaignId={shown.campaignId} shownCampaign={shown} />
+            <CampaignIntelligencePanel key={shown.campaignId} campaignId={shown.campaignId} shownCampaign={shown} />
           </div>
         )}
       </DialogContent>

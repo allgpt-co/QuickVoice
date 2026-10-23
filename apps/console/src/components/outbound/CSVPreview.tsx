@@ -158,13 +158,17 @@ export function CSVPreview({
 
   // Auto-parse when file changes
   useEffect(() => {
-    if (autoPreview && file) {
-      handleParseFile();
-    } else if (!file) {
-      setParsed(null);
-      setError(null);
-      setShowPreview(false);
-    }
+    // Start browser file work after commit; cancel it if the input changes first.
+    const timer = window.setTimeout(() => {
+      if (autoPreview && file) {
+        void handleParseFile();
+      } else if (!file) {
+        setParsed(null);
+        setError(null);
+        setShowPreview(false);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [file, autoPreview, handleParseFile]);
 
   if (!file) {
