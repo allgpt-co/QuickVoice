@@ -96,3 +96,26 @@ and for the application to become healthy with the expected image tag. A failed,
 cancelled, mismatched or timed-out rollout fails CI's deploy job and cannot become
 the next successful deployment baseline. Manual recovery must use the verified
 workflow on `main`; a successful trigger response alone is insufficient.
+
+### Coolify request timeouts
+
+The shared backend/MCP image helper logs the application lookup, image update,
+deployment request, and watched deployment UUID. GET requests retry up to three
+times for a network timeout, HTTP 429, or a server error; each request retains its
+30-second timeout. Authentication/permission errors stop immediately. Raw API
+responses, bearer tokens, and upstream error messages are not printed.
+
+Image PATCH and deployment POST requests are sent once. If an image update loses
+its response, the helper reads back the expected image configuration before
+continuing. If a deployment acknowledgment is lost, it compares the application's
+history before and after the request and resumes only one new deployment with the
+expected image tag. A later run can also resume a matching active deployment or
+verify an already finished, healthy deployment. Application ownership, image and
+health checks still apply; another active rollout is not overwritten.
+
+If reconciliation is ambiguous or the API stays unreachable, inspect that
+application's deployment history in Coolify before retrying. Reconciliation is
+limited to the ten latest history entries and fails closed if it cannot identify
+the deployment. After merging a helper fix, run **CI → Run workflow → main** so
+recovery uses the new verified helper; rerunning an old workflow uses its old
+commit. No new environment variables or API credentials are required.
