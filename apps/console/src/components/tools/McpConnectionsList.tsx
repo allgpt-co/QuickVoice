@@ -2,6 +2,7 @@
 
 import { AlertCircle, ExternalLink, Loader2, RefreshCw, ServerCrash, Trash2 } from "lucide-react";
 import { McpToolBadges } from "@/src/components/tools/McpToolBadges";
+import { McpAccessTest } from "@/src/components/tools/McpAccessTest";
 import { Badge } from "@/src/components/ui/badge";
 import { Button } from "@/src/components/ui/button";
 import { Skeleton } from "@/src/components/ui/skeleton";
@@ -74,7 +75,7 @@ export function McpConnectionsList() {
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">{connection.displayName}</p>
                   <Badge className={STATUS_CLASS[connection.status]}>
-                    {missingGoogleDriveScope ? "DRIVE ACCESS NOT GRANTED" : connection.status.replace("_", " ")}
+                    {missingGoogleDriveScope ? "DRIVE ACCESS NOT GRANTED" : connection.status === "CONNECTED" ? "SERVER CONNECTED" : connection.status.replace("_", " ")}
                   </Badge>
                 </div>
                 <p className="mt-1 truncate text-sm text-muted-foreground">{connection.mcpUrl}</p>
@@ -91,11 +92,12 @@ export function McpConnectionsList() {
                   </p>
                 )}
               </div>
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 {connection.setupUrl && (
                   <Button
                     variant="outline"
                     size="sm"
+                    className="min-h-11"
                     onClick={() => openMcpSetup(connection.setupUrl as string, connection.mcpConnectionId)}
                   >
                     <ExternalLink className="size-4" />
@@ -106,6 +108,7 @@ export function McpConnectionsList() {
                   <Button
                     variant="outline"
                     size="sm"
+                    className="min-h-11"
                     disabled={refresh.isPending && refresh.variables === connection.mcpConnectionId}
                     onClick={() => {
                       refresh.mutate(connection.mcpConnectionId, {
@@ -128,6 +131,7 @@ export function McpConnectionsList() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="min-h-11"
                   disabled={refresh.isPending && refresh.variables === connection.mcpConnectionId}
                   onClick={() => refresh.mutate(connection.mcpConnectionId)}
                 >
@@ -143,7 +147,7 @@ export function McpConnectionsList() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-destructive hover:text-destructive"
+                      className="min-h-11 text-destructive hover:text-destructive"
                       disabled={disconnect.isPending && disconnect.variables === connection.mcpConnectionId}
                     >
                       {disconnect.isPending && disconnect.variables === connection.mcpConnectionId ? (
@@ -176,6 +180,7 @@ export function McpConnectionsList() {
               </div>
             </div>
             <McpToolBadges tools={connection.tools} />
+            <McpAccessTest connection={connection} />
           </div>
         );
       })}

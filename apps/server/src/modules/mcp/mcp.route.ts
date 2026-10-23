@@ -4,7 +4,7 @@ import authMiddleware from "../../middleware/auth.middleware.js";
 import { requirePermission } from "../../middleware/authorize.middleware.js";
 import validate from "../../middleware/validate.middleware.js";
 import * as mcpController from "./mcp.controller.js";
-import { attachMcpSchema, connectMcpSchema, executeMcpToolSchema } from "./mcp.schema.js";
+import { attachMcpSchema, connectMcpSchema, executeMcpToolSchema, testMcpToolSchema } from "./mcp.schema.js";
 
 const router = Router();
 
@@ -64,6 +64,17 @@ router.delete(
   authMiddleware,
   requirePermission({ tools: ["update"] }),
   mcpController.detach
+);
+
+router.post(
+  "/connections/:mcpConnectionId/test",
+  authMiddleware,
+  (req, _res, next) => req.auth?.authMethod !== "session"
+    ? next(new ForbiddenError("Connection setup requires an authenticated console session"))
+    : next(),
+  requirePermission({ tools: ["execute"] }),
+  validate(testMcpToolSchema),
+  mcpController.testConnectionTool
 );
 
 router.post(

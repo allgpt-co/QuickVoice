@@ -4,6 +4,7 @@ import type {
   ApiEnvelope,
   McpCatalogPage,
   McpConnection,
+  McpAccessTestResult,
 } from "@/src/lib/api/types";
 
 export interface ConnectMcpInput {
@@ -41,6 +42,12 @@ export const mcpApi = {
   refresh: async (mcpConnectionId: string): Promise<McpConnection> => {
     const res = await apiClient.post<ApiEnvelope<McpConnection>>(`/mcp/connections/${mcpConnectionId}/refresh`);
     return normalizeConnection(res.data.data);
+  },
+  testAccess: async (id: string, toolName: string, args: Record<string, unknown>): Promise<McpAccessTestResult> => {
+    const res = await apiClient.post<ApiEnvelope<McpAccessTestResult>>(`/mcp/connections/${id}/test`, {
+      toolName, arguments: args,
+    });
+    return res.data.data;
   },
   disconnect: async (mcpConnectionId: string): Promise<void> => {
     await apiClient.delete(`/mcp/connections/${mcpConnectionId}`);

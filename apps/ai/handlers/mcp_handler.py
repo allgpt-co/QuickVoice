@@ -5,6 +5,7 @@ import re
 import time
 from typing import Any
 from urllib.parse import quote
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from utils.metrics import emit_metric
@@ -13,6 +14,12 @@ MAX_ARGUMENTS_JSON_BYTES = 8192
 MAX_TOOL_OUTPUT_CHARS = 4000
 MAX_SERVER_RESPONSE_BYTES = 1_048_576
 SAFE_TOOL_NAME = re.compile(r"[A-Za-z0-9._-]{1,128}\Z")
+
+
+class McpProviderFailure(RuntimeError):
+    def __init__(self, code: str):
+        self.code = code
+        super().__init__("MCP provider authorization required" if code == "MCP_AUTH_REQUIRED" else "MCP provider unavailable")
 
 
 def build_mcp_tool_instructions(connections: list[dict[str, Any]]) -> str:
@@ -36,12 +43,17 @@ def build_mcp_tool_instructions(connections: list[dict[str, Any]]) -> str:
                 f"- connection_id={json.dumps(str(connection_id))}; tools: {tool_names}"
             )
 
-    if not lines:
+    if not connections:
         return ""
 
     return (
-        "\n\nConnected MCP tools are available through call_mcp_tool. "
-        "Use the exact connection_id and tool_name from this list:\n" + "\n".join(lines)
+        ("\n\nConnected MCP tools are available through call_mcp_tool. " if lines else
+         "\n\nNo connected MCP tools are currently available. ") +
+        "Use the exact connection_id and tool_name from this list:\n" + "\n".join(lines) +
+        "\nProvider authorization is completed by the workspace administrator in the console, "
+        "not by callers. Never read, construct, or request an OAuth authorization link during a call. "
+        "Verbal approval does not complete OAuth. If authorization is required, briefly explain "
+        "that the service needs administrator setup. Claim success only after a successful tool result."
     )
 
 
@@ -62,6 +74,9 @@ async def call_mcp_tool(
         sanitized_arguments = dict(arguments or {})
         if _tool_requires_confirmation(tool):
             raise PermissionError("MCP tool requires trusted user confirmation before execution")
+        if any(str(c.get("mcpConnectionId")) == str(connection_id) and c.get("status") == "AUTH_REQUIRED"
+               for c in config.get("mcp_connections") or []):
+            raise McpProviderFailure("MCP_AUTH_REQUIRED")
 
         base_url = (server_api_url or os.getenv("SERVER_API_URL") or "").rstrip("/")
         api_key = internal_api_key or os.getenv("INTERNAL_API_KEY")
@@ -88,6 +103,16 @@ async def call_mcp_tool(
             "x-user-id": str(config.get("user_id") or "internal"),
         }
         result = await asyncio.to_thread(post_json or _post_json, url, headers, payload)
+        # Defense during rolling API/worker deploys: never forward Google OAuth
+        # challenges from an older API to the speaking model.
+        serialized = json.dumps(result, ensure_ascii=False)
+        if "https://accounts.google.com/o/oauth2/" in serialized:
+            if re.search(r"authorization\s+(?:is\s+)?(?:required|pending)|requires?\s+authorization", serialized, re.I):
+                raise McpProviderFailure("MCP_AUTH_REQUIRED")
+            result = _without_oauth_links(result)
+        payload_result = result.get("data", result) if isinstance(result, dict) else result
+        if isinstance(payload_result, dict) and payload_result.get("isError") is True:
+            raise McpProviderFailure("MCP_PROVIDER_ERROR")
         emit_metric(
             "mcp_tool_execution",
             status="ok",
@@ -96,6 +121,16 @@ async def call_mcp_tool(
             latency_ms=int((time.perf_counter() - started) * 1000),
         )
         return truncate_tool_result(result)
+    except McpProviderFailure as error:
+        emit_metric("mcp_tool_execution", status="auth_required" if error.code == "MCP_AUTH_REQUIRED" else "error",
+                    connection_id=connection_id, tool_name=tool_name,
+                    latency_ms=int((time.perf_counter() - started) * 1000))
+        return {"error": {"code": error.code, "message": (
+            "The connected service needs authorization from the workspace administrator. "
+            "Tell the caller that this service is temporarily unavailable; do not ask them to authorize."
+            if error.code == "MCP_AUTH_REQUIRED" else
+            "The connected service is temporarily unavailable. Do not claim the request succeeded."
+        )}}
     except Exception:
         emit_metric(
             "mcp_tool_execution",
@@ -121,13 +156,23 @@ def parse_arguments_json(arguments_json: str | None) -> dict[str, Any]:
     return parsed
 
 
+def _without_oauth_links(value):
+    if isinstance(value, str):
+        return re.sub(r'https://accounts\.google\.com/o/oauth2/[^\s"<>]+', "[authorization link withheld]", value)
+    if isinstance(value, list):
+        return [_without_oauth_links(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _without_oauth_links(item) for key, item in value.items()}
+    return value
+
+
 def _resolve_allowed_tool(
     connections: list[dict[str, Any]],
     connection_id: str,
     tool_name: str,
 ) -> dict[str, Any]:
     for connection in connections:
-        if connection.get("status") != "CONNECTED":
+        if connection.get("status") not in {"CONNECTED", "AUTH_REQUIRED"}:
             continue
         if str(connection.get("mcpConnectionId") or "") != str(connection_id):
             continue
@@ -169,8 +214,20 @@ def truncate_tool_result(result: Any) -> Any:
 def _post_json(url: str, headers: dict[str, str], payload: dict[str, Any]):
     body = json.dumps(payload).encode("utf-8")
     request = Request(url, data=body, headers=headers, method="POST")
-    with urlopen(request, timeout=30) as response:
-        body = response.read(MAX_SERVER_RESPONSE_BYTES + 1)
-        if len(body) > MAX_SERVER_RESPONSE_BYTES:
-            raise ValueError("MCP response is too large")
-        return json.loads(body.decode("utf-8"))
+    try:
+        with urlopen(request, timeout=30) as response:
+            body = response.read(MAX_SERVER_RESPONSE_BYTES + 1)
+            if len(body) > MAX_SERVER_RESPONSE_BYTES:
+                raise ValueError("MCP response is too large")
+            return json.loads(body.decode("utf-8"))
+    except HTTPError as error:
+        try:
+            body = error.read(MAX_SERVER_RESPONSE_BYTES + 1)
+        finally:
+            error.close()
+        try:
+            result = json.loads(body) if len(body) <= MAX_SERVER_RESPONSE_BYTES else {}
+        except (ValueError, UnicodeError):
+            result = {}
+        code = "MCP_AUTH_REQUIRED" if isinstance(result, dict) and result.get("code") == "MCP_AUTH_REQUIRED" else "MCP_PROVIDER_ERROR"
+        raise McpProviderFailure(code) from None

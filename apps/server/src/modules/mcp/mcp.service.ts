@@ -13,6 +13,7 @@ import {
   normalizeMcpTools,
 } from "./mcp-tool-policy.js";
 import type { ConnectMcpInput, ExecuteMcpToolInput } from "./mcp.schema.js";
+import { inspectMcpResult, McpProviderError, withoutMcpAuthorizationLinks } from "./mcp-provider-result.js";
 
 type McpStatus = "PENDING" | "CONNECTED" | "AUTH_REQUIRED" | "INPUT_REQUIRED" | "ERROR" | "DISCONNECTED";
 type CatalogSort = "popular" | "name";
@@ -173,13 +174,12 @@ const callSmitheryTool = async (
     }
   );
   const result = await readSmitheryJson(response);
-  if (!response.ok) {
-    if (isInsufficientGoogleScope(result)) {
-      throw new Error("Google Drive access was not granted during OAuth setup.");
-    }
-    throw new Error("MCP tool execution failed at the provider");
+  if (isInsufficientGoogleScope(result)) {
+    throw new McpProviderError("MCP_AUTH_REQUIRED");
   }
-  return result;
+  const error = inspectMcpResult(result, response.status);
+  if (error) throw error;
+  return withoutMcpAuthorizationLinks(result) as Record<string, any>;
 };
 
 const checkGoogleDriveScopes = async (namespace: string, connectionId: string) => {
@@ -187,7 +187,15 @@ const checkGoogleDriveScopes = async (namespace: string, connectionId: string) =
     return { ok: true, error: null };
   }
 
-  const result = await callSmitheryTool(namespace, connectionId, "list_files", { pageSize: 1 });
+  let result;
+  try {
+    result = await callSmitheryTool(namespace, connectionId, "list_files", { pageSize: 1 });
+  } catch (error) {
+    if (error instanceof McpProviderError && error.code === "MCP_AUTH_REQUIRED") {
+      return { ok: false, error: "Google Drive access was not granted during OAuth setup." };
+    }
+    throw error;
+  }
   if (isInsufficientGoogleScope(result)) {
     return {
       ok: false,
@@ -503,6 +511,12 @@ export const refreshConnection = async (organizationId: string, mcpConnectionId:
   let setupUrl: string | null = null;
   let smitheryStatus: unknown = null;
   const metadata = metadataObject(connection.metadata);
+  const providerAuthorization = metadataObject(metadata.providerAuthorization);
+  // Discovering tools does not prove that the provider's Google grant is ready.
+  if (Array.isArray(providerAuthorization.pendingTools) && providerAuthorization.pendingTools.length) {
+    status = "AUTH_REQUIRED";
+    error = "Complete provider authorization using Test access, then verify the requested tools.";
+  }
   metadata.scopeIssue = null;
   metadata.lastScopeError = null;
 
@@ -557,13 +571,14 @@ export const refreshConnection = async (organizationId: string, mcpConnectionId:
     }
   }
 
+  if (Array.isArray(providerAuthorization.pendingTools) && providerAuthorization.pendingTools.length) status = "AUTH_REQUIRED";
   await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
     status,
     tools,
     setupUrl: status === "CONNECTED" ? null : setupUrl,
     metadata: { ...metadata, lastSyncError: error, smitheryStatus },
     lastSyncedAt: status === "CONNECTED" ? new Date() : connection.lastSyncedAt,
-  });
+  }, connection.updatedAt);
 
   return repository.findConnection(organizationId, mcpConnectionId);
 };
@@ -627,19 +642,22 @@ export const executeTool = async (
   mcpConnectionId: string,
   toolName: string,
   input: ExecuteMcpToolInput,
-  context: { autonomous?: boolean } = {},
+  context: { autonomous?: boolean; providerSetup?: boolean } = {},
 ) => {
   const connection = input.agentId
     ? await repository.findConnectionForAgent(organizationId, input.agentId, mcpConnectionId)
     : await repository.findConnection(organizationId, mcpConnectionId);
 
   if (!connection) throw new NotFoundError("MCP connection not attached to this agent");
-  if (connection.status !== "CONNECTED") {
+  if (connection.status === "AUTH_REQUIRED" && !context.providerSetup) {
+    throw new McpProviderError("MCP_AUTH_REQUIRED");
+  }
+  if (connection.status !== "CONNECTED" && !(context.providerSetup && connection.status === "AUTH_REQUIRED")) {
     throw new BadRequestError("MCP connection is not connected");
   }
   const tool = findMcpTool(connection.tools, toolName);
   if (!tool) throw new NotFoundError("MCP tool is not available on this connection");
-  if (context.autonomous && mcpToolRequiresConfirmation(tool)) {
+  if ((context.autonomous || context.providerSetup) && mcpToolRequiresConfirmation(tool)) {
     throw new ForbiddenError(
       "MCP tool requires trusted user confirmation before execution",
     );
@@ -656,6 +674,9 @@ export const executeTool = async (
     if (isGoogleDriveMcp(connection.mcpUrl) && isInsufficientGoogleScope(result)) {
       throw new Error("Google Drive access was not granted during OAuth setup.");
     }
+    if (context.providerSetup) {
+      await recordProviderAuthorization(organizationId, mcpConnectionId, toolName, false);
+    }
     await repository.createExecutionLog({
       organizationId,
       agentId: input.agentId,
@@ -669,6 +690,17 @@ export const executeTool = async (
     });
     return result;
   } catch (err) {
+    if (err instanceof McpProviderError) {
+      if (err.code === "MCP_AUTH_REQUIRED") {
+        await recordProviderAuthorization(organizationId, mcpConnectionId, toolName, true);
+      }
+      await repository.createExecutionLog({
+        organizationId, agentId: input.agentId, mcpConnectionId, toolName,
+        callId: input.callId, status: err.code === "MCP_AUTH_REQUIRED" ? "auth_required" : "error",
+        latencyMs: Date.now() - startedAt, argumentsPreview: preview(input.arguments), error: err.code,
+      });
+      throw err;
+    }
     const message = isInsufficientGoogleScope(err instanceof Error ? err.message : "")
       ? "Google Drive access was not granted during OAuth setup."
       : "MCP tool execution failed at the provider";
@@ -696,6 +728,41 @@ export const executeTool = async (
       argumentsPreview: preview(input.arguments),
       error: message,
     });
-    throw new BadRequestError(message);
+    if (message.includes("Google Drive access")) throw new BadRequestError(message);
+    throw new McpProviderError("MCP_PROVIDER_ERROR");
   }
 };
+
+async function recordProviderAuthorization(
+  organizationId: string, id: string, toolName: string, required: boolean,
+) {
+  // CAS protects independently requested tool permissions from concurrent calls
+  // or console checks overwriting one another. No tokens or URLs are stored here.
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const connection = await repository.findConnection(organizationId, id);
+    if (!connection) throw new NotFoundError("MCP connection not found");
+    if (!["CONNECTED", "AUTH_REQUIRED"].includes(connection.status)) {
+      throw new BadRequestError("Connection setup changed. Refresh the connection before testing again.");
+    }
+    const metadata = metadataObject(connection.metadata);
+    const auth = metadataObject(metadata.providerAuthorization);
+    const strings = (value: unknown): string[] => Array.isArray(value)
+      ? value.filter((name): name is string => typeof name === "string") : [];
+    const pending = new Set(strings(auth.pendingTools));
+    const verified = new Set(strings(auth.verifiedTools));
+    if (required) { pending.add(toolName); verified.delete(toolName); }
+    else { pending.delete(toolName); verified.add(toolName); }
+    const result = await repository.updateConnectionStatus(organizationId, id, {
+      status: pending.size ? "AUTH_REQUIRED" : "CONNECTED",
+      setupUrl: null,
+      metadata: { ...metadata,
+        lastSyncError: pending.size ? "Provider authorization is required. Use Test access to complete setup." : null,
+        providerAuthorization: {
+          pendingTools: [...pending], verifiedTools: [...verified], checkedAt: new Date().toISOString(),
+        },
+      },
+    }, connection.updatedAt);
+    if (result.count) return;
+  }
+  throw new BadRequestError("Connection setup changed concurrently. Please run the test again.");
+}

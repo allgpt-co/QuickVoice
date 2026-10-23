@@ -131,6 +131,18 @@ export function useRefreshMcpConnection() {
   });
 }
 
+export function useTestMcpAccess(id: string) {
+  const qc = useQueryClient();
+  const invalidate = () => {
+    qc.invalidateQueries({ queryKey: queryKeys.mcp.all });
+  };
+  return useMutation({
+    mutationFn: ({ toolName, arguments: args }: { toolName: string; arguments: Record<string, unknown> }) =>
+      mcpApi.testAccess(id, toolName, args),
+    onSettled: invalidate,
+  });
+}
+
 export function useDisconnectMcpConnection() {
   const qc = useQueryClient();
   return useMutation({

@@ -38,5 +38,13 @@ export const executeMcpToolSchema = z.object({
   arguments: z.record(z.string(), z.unknown()).default({}),
 });
 
+export const testMcpToolSchema = z.object({
+  toolName: z.string().regex(/^[A-Za-z0-9._-]{1,128}$/),
+  arguments: z.record(z.string(), z.unknown()).default({}).refine(
+    (value) => Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
+    "Tool arguments must be at most 8 KB",
+  ),
+});
+
 export type ConnectMcpInput = z.infer<typeof connectMcpSchema>;
 export type ExecuteMcpToolInput = z.infer<typeof executeMcpToolSchema>;

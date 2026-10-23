@@ -12,6 +12,7 @@ let restorePrisma = () => {};
 let providerCalls: string[] = [];
 let connectionLookups = 0;
 let executionLogs = 0;
+let providerBody: unknown = { simulated: true };
 
 before(async () => {
   Object.assign(process.env, {
@@ -57,7 +58,7 @@ before(async () => {
   mock.method(globalThis, "fetch", async (url: any) => {
     assert.match(String(url), /^https:\/\/smithery\.invalid\/connect\/test-namespace\/test-connection\/\.tools\//);
     providerCalls.push(String(url).split("/").pop()!);
-    return new Response(JSON.stringify({ simulated: true }), { status: 200 });
+    return new Response(JSON.stringify(providerBody), { status: 200 });
   });
 
   // Prisma delegates are proxies, so restore assignments explicitly.
@@ -66,6 +67,7 @@ before(async () => {
   const listAgentConnections = prisma.agentMcpConnection.findMany;
   const findMember = prisma.member.findFirst;
   const createLog = prisma.mcpToolExecutionLog.create;
+  const updateConnection = prisma.mcpConnection.updateMany;
   const executeRaw = prisma.$executeRaw;
   prisma.mcpConnection.findFirst = (async ({ where }: any) => {
     connectionLookups++;
@@ -87,6 +89,7 @@ before(async () => {
       ],
     };
   }) as any;
+  prisma.mcpConnection.updateMany = (async () => ({ count: 1 })) as any;
   const legacyConnection = { mcpConnectionId: "legacy", tools: [
     { name: "legacy_tool" },
     { name: "list_files", annotations: { readOnlyHint: true } },
@@ -102,6 +105,7 @@ before(async () => {
     prisma.agentMcpConnection.findMany = listAgentConnections;
     prisma.member.findFirst = findMember;
     prisma.mcpToolExecutionLog.create = createLog;
+    prisma.mcpConnection.updateMany = updateConnection;
     prisma.$executeRaw = executeRaw;
   };
 
@@ -120,6 +124,7 @@ beforeEach(() => {
   providerCalls = [];
   connectionLookups = 0;
   executionLogs = 0;
+  providerBody = { simulated: true };
 });
 
 after(async () => {
@@ -166,6 +171,38 @@ test("owner and admin sessions retain execution permission", async () => {
   }
   assert.deepEqual(providerCalls, ["delete_file", "delete_file"]);
   assert.equal(executionLogs, 2);
+});
+
+test("provider setup requires an authorized console session and can only run read-only tools", async () => {
+  const run = (headers: Record<string, string>, toolName = "list_files") => requestJson(`${baseUrl}/connections/connection-test/test`, {
+    method: "POST", headers: { "content-type": "application/json", ...headers },
+    body: JSON.stringify({ toolName, arguments: {} }),
+  });
+  for (const headers of [{ cookie: "role=member" }, { cookie: "role=editor" }, { "x-api-key": "overbroad-key" },
+    { authorization: `Bearer ${internalKey}`, "x-user-id": "worker", "x-organization-id": "org-test" }]) {
+    assert.equal((await run(headers)).status, 403);
+  }
+  assert.deepEqual(providerCalls, []);
+  assert.equal((await run({ cookie: "role=owner" }, "delete_file")).status, 403);
+  assert.equal((await run({ cookie: "role=admin" })).status, 200);
+  assert.deepEqual(providerCalls, ["list_files"]);
+});
+
+test("OAuth challenge URLs are returned only by the authorized setup endpoint", async () => {
+  const authorizationUrl = "https://accounts.google.com/o/oauth2/v2/auth?state=private-state";
+  providerBody = { authorizationRequired: true, authorizationUrl };
+  const runtime = await execute({ authorization: `Bearer ${internalKey}`, "x-user-id": "worker", "x-organization-id": "org-test" },
+    "list_files", { agentId: "agent-test", callId: "call-1" });
+  assert.equal(runtime.status, 409);
+  const failure = await runtime.json();
+  assert.equal(failure.code, "MCP_AUTH_REQUIRED");
+  assert.ok(!JSON.stringify(failure).includes("private-state"));
+  const setup = await requestJson(`${baseUrl}/connections/connection-test/test`, {
+    method: "POST", headers: { "content-type": "application/json", cookie: "role=owner" },
+    body: JSON.stringify({ toolName: "list_files", arguments: {} }),
+  });
+  assert.equal(setup.status, 200);
+  assert.equal((await setup.json()).data.authorizationUrl, authorizationUrl);
 });
 
 test("trusted AI execution retains its enabled agent-connection check", async () => {
