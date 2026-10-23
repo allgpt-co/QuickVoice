@@ -52,7 +52,7 @@ export function ContactForm({
   const honeypotRef = useRef<HTMLInputElement>(null);
   const turnstileContainerRef = useRef<HTMLDivElement>(null);
   const turnstileWidgetId = useRef<string | undefined>(undefined);
-  const formStartedAt = useRef(Date.now());
+  const formStartedAt = useRef(0);
   const inFlight = useRef(false);
   const submissionId = useRef<string | undefined>(undefined);
   const [fields, setFields] = useState(emptyContactFields);
@@ -64,6 +64,8 @@ export function ContactForm({
   const [turnstileReady, setTurnstileReady] = useState(false);
   const [turnstileToken, setTurnstileToken] = useState("");
   const fieldId = (field: ContactField) => `${id}-${field}`;
+
+  useEffect(() => { formStartedAt.current = Date.now(); }, []);
 
   useEffect(() => {
     if (

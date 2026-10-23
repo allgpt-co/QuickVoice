@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Building2, Plus, ArrowRight, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { authClient } from "@/src/lib/auth-client";
 import { Button } from "@/src/components/ui/button";
@@ -19,22 +19,19 @@ export default function Orgs() {
     const { data: session } = authClient.useSession();
     const activeOrgId = session?.session?.activeOrganizationId ?? null;
 
-    const [pendingId, setPendingId] = useState<string | null>(null);
     const autoSelected = useRef(false);
-
-    async function selectOrg(orgId: string) {
-        setPendingId(orgId);
-        const { error } = await authClient.organization.setActive({
-            organizationId: orgId,
-        });
-        if (error) {
-            toast.error(error.message || "Could not select organization");
-            setPendingId(null);
-            return;
-        }
-        clearIdentityCache(queryClient);
-        router.replace("/dashboard");
-    }
+    const { mutate: selectOrg, isPending: selecting, variables: selectedOrgId } = useMutation({
+        mutationFn: async (orgId: string) => {
+            const { error } = await authClient.organization.setActive({ organizationId: orgId });
+            if (error) throw new Error(error.message || "Could not select organization");
+        },
+        onSuccess: () => {
+            clearIdentityCache(queryClient);
+            router.replace("/dashboard");
+        },
+        onError: (error: Error) => toast.error(error.message),
+    });
+    const pendingId = selecting ? selectedOrgId : null;
 
     // If the user has exactly one workspace and none is active, auto-pick it so
     // they skip the picker on first login. If they already have an active org
@@ -47,8 +44,7 @@ export default function Orgs() {
             autoSelected.current = true;
             selectOrg(organizations[0].id);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [organizations, activeOrgId]);
+    }, [organizations, activeOrgId, selectOrg]);
 
     if (isPending || !organizations) {
         return (

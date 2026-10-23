@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/src/components/ui/form";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
@@ -36,6 +36,7 @@ export function RegisterForm({ invitationId = "" }: { invitationId?: string } = 
       confirmPassword: "",
     },
   });
+  const password = useWatch({ control: form.control, name: "password" });
   const onSubmit = async (data: z.infer<typeof registerSchema>) => {
     setLoading(true);
     try {
@@ -137,7 +138,6 @@ export function RegisterForm({ invitationId = "" }: { invitationId?: string } = 
           name="confirmPassword"
           control={form.control}
           render={({ field }) => {
-            const password = form.watch("password");
             return (
               <FormItem>
                 <FormLabel>Confirm Password</FormLabel>

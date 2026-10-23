@@ -440,7 +440,6 @@ function LiveTranscriptDrawer({
 export function LiveCallsDock({ organizationId }: { organizationId: string }) {
   const [panelOpen, setPanelOpen] = useState(false);
   const [selectedCall, setSelectedCall] = useState<LiveCallRoom | null>(null);
-  const [restoreCallId, setRestoreCallId] = useState<string | null>(null);
   const liveCalls = useLiveCalls(true);
   const canEndCall = useCanEndLiveCalls(organizationId);
   const now = useClock(true);
@@ -455,34 +454,23 @@ export function LiveCallsDock({ organizationId }: { organizationId: string }) {
   );
 
   useEffect(() => {
-    setRestoreCallId(window.localStorage.getItem(storageKey));
-  }, [storageKey]);
-
-  useEffect(() => {
-    if (!restoreCallId) return;
-    const restored = sortedCalls.find((call) => call.callId === restoreCallId);
-    if (restored) {
-      setSelectedCall(restored);
-      setRestoreCallId(null);
-      return;
-    }
-    if (!liveCalls.isLoading && !liveCalls.isFetching) {
-      window.localStorage.removeItem(storageKey);
-      setRestoreCallId(null);
-    }
-  }, [liveCalls.isFetching, liveCalls.isLoading, restoreCallId, sortedCalls, storageKey]);
-
-  useEffect(() => {
-    if (!selectedCall) return;
-    const updated = sortedCalls.find(
-      (call) =>
-        call.callId === selectedCall.callId ||
-        call.roomName === selectedCall.roomName
-    );
-    if (updated && updated !== selectedCall) setSelectedCall(updated);
-    // Updating metadata should follow query-cache changes without closing an ended call.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedCall?.callId, sortedCalls]);
+    // Browser storage and query updates settle after hydration. Cancel pending
+    // restoration when the organization, selection, or query snapshot changes.
+    const timer = window.setTimeout(() => {
+      if (selectedCall) {
+        const updated = sortedCalls.find((call) =>
+          call.callId === selectedCall.callId || call.roomName === selectedCall.roomName);
+        if (updated && updated !== selectedCall) setSelectedCall(updated);
+        return;
+      }
+      const restoreCallId = window.localStorage.getItem(storageKey);
+      if (!restoreCallId) return;
+      const restored = sortedCalls.find((call) => call.callId === restoreCallId);
+      if (restored) setSelectedCall(restored);
+      else if (!liveCalls.isLoading && !liveCalls.isFetching) window.localStorage.removeItem(storageKey);
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, [liveCalls.isFetching, liveCalls.isLoading, selectedCall, sortedCalls, storageKey]);
 
   function openCall(call: LiveCallRoom) {
     setSelectedCall(call);

@@ -136,7 +136,10 @@ export default function OrganizationPage() {
  query: { organizationId: activeOrgId },
  });
  if (error) throw new Error(error.message || "Could not load organization");
- return data as Organization | null;
+ const organization = data as Organization | null;
+ return organization ? { ...organization, invitations: (organization.invitations ?? []).filter(
+ (invitation) => invitation.status === "pending" && new Date(invitation.expiresAt).getTime() > Date.now(),
+ ) } : null;
  },
  });
 
@@ -249,7 +252,7 @@ export default function OrganizationPage() {
  orgId={activeOrgId}
  currentUserId={session?.user?.id}
  members={org?.members ?? []}
- invitations={(org?.invitations ?? []).filter((invitation) => invitation.status === "pending" && new Date(invitation.expiresAt).getTime() > Date.now())}
+ invitations={org?.invitations ?? []}
  loading={loading}
  refresh={refresh}
  />
