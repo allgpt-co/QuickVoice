@@ -695,9 +695,9 @@ def speak_first_message(session: Any, config: dict[str, Any]):
                 f"naturally from English. Do not call tools or add details: {first_message}"
             ),
             tool_choice="none",
-            allow_interruptions=False,
+            allow_interruptions=True,
         )
-    return session.say(first_message, allow_interruptions=False)
+    return session.say(first_message, allow_interruptions=True)
 
 
 def parse_preview_user_transcript_packet(

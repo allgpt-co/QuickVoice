@@ -129,9 +129,8 @@ export function BuyNumberDrawer() {
     });
   }
 
-  async function onBuy(number: AvailableNumber) {
+  async function onBuy(number: AvailableNumber, nowMs: number) {
     if (!searchParams || buyingNumber) return;
-    const nowMs = Date.now();
     if (isQuoteExpired(number.quoteExpiresAt, nowMs)) {
       setQuoteClock(nowMs);
       toast.error("Quote expired. Search again for current pricing.");
@@ -173,7 +172,7 @@ export function BuyNumberDrawer() {
         <div className="shrink-0 border-b bg-muted/20 px-6 py-5">
           <Form {...form}>
             <form
-              onSubmit={form.handleSubmit(onSubmit)}
+              onSubmit={(event) => { void form.handleSubmit(onSubmit)(event); }}
               className="grid gap-4 md:grid-cols-[0.8fr_1.4fr_0.7fr_auto] md:items-start"
             >
               <FormField
@@ -433,7 +432,7 @@ export function BuyNumberDrawer() {
                       </div>
                       <Button
                         size="sm"
-                        onClick={() => onBuy(n)}
+                        onClick={() => onBuy(n, Date.now())}
                         disabled={buy.isPending || quoteExpired}
                         className="mt-4 w-full"
                       >

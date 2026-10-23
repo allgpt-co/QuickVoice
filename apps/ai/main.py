@@ -700,8 +700,19 @@ async def _run_entrypoint(ctx: JobContext):
         **provider_kwargs,
         user_away_timeout=None,
         vad=silero.VAD.load(),
+        # Browser capture already enables AEC. A blanket warmup drops the first
+        # caller words and blocks greeting interruptions (including inbound SIP).
+        # https://docs.livekit.io/agents/logic/turns/
+        aec_warmup_duration=None,
         turn_handling=TurnHandlingOptions(
             turn_detection=inference.TurnDetector(),
+            interruption={
+                "enabled": True,
+                "mode": "vad",
+                "min_duration": 0.25,
+                "min_words": 0,
+                "discard_audio_if_uninterruptible": False,
+            },
         ),
         ivr_detection=config["ivr_navigation_enabled"],
     )

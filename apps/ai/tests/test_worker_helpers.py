@@ -491,7 +491,7 @@ class WorkerHandlerTests(unittest.TestCase):
         result = speak_first_message(session, {"first_message": "Hello caller."})
 
         self.assertEqual(result, "speech-handle")
-        self.assertEqual(session.calls, [("Hello caller.", {"allow_interruptions": False})])
+        self.assertEqual(session.calls, [("Hello caller.", {"allow_interruptions": True})])
 
     def test_hindi_agent_localizes_standard_greeting_and_instruction(self):
         session = SimpleNamespace(say=lambda text, **kwargs: text)
@@ -519,7 +519,7 @@ class WorkerHandlerTests(unittest.TestCase):
         self.assertEqual(result, "speech-handle")
         self.assertIn("French (fr)", calls[0]["instructions"])
         self.assertEqual(calls[0]["tool_choice"], "none")
-        self.assertFalse(calls[0]["allow_interruptions"])
+        self.assertTrue(calls[0]["allow_interruptions"])
         self.assertIn("Speak and respond in French (fr)", build_agent_instructions({
             "agent_language": "fr",
             "system_prompt": "You are a helpful assistant.",

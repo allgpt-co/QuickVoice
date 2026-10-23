@@ -2,7 +2,8 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { authClient } from "@/src/lib/auth-client";
-import { useCallback, useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/src/lib/query-keys";
 import Link from "next/link";
 import { Building2, Users, ArrowLeft, Mail, Settings, Calendar, Shield } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -16,38 +17,18 @@ export default function OrgId() {
  const orgId = params.id as string;
  const orgSlug = searchParams.get("orgSlug");
 
- const [data, setData] = useState<Organization | null>(null);
- const [error, setError] = useState<string | null>(null);
- const [loading, setLoading] = useState(true);
-
- const getDetails = useCallback(async () => {
- try {
- setLoading(true);
+ const { data, error: loadError, isPending: loading } = useQuery({
+ queryKey: [...queryKeys.org.detail(orgId), orgSlug],
+ enabled: !!orgId,
+ queryFn: async () => {
  const { data, error } = await authClient.organization.getFullOrganization({
- query: {
- organizationId: orgId,
- organizationSlug: orgSlug || undefined,
- membersLimit: 10,
+ query: { organizationId: orgId, organizationSlug: orgSlug || undefined, membersLimit: 10 },
+ });
+ if (error) throw new Error(error.message || "Failed to load organization");
+ return data as Organization | null;
  },
  });
-
- if (error) {
- setError(error.message || "Failed to load organization");
- } else {
- setData(data as Organization);
- }
- } catch {
- setError("An unexpected error occurred");
- } finally {
- setLoading(false);
- }
- }, [orgId, orgSlug]);
-
- useEffect(() => {
- if (orgId) {
-	 getDetails();
-	 }
-	 }, [getDetails, orgId]);
+ const error = loadError?.message;
 
  if (loading) {
  return (

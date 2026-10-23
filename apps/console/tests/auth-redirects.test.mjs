@@ -56,6 +56,7 @@ test("signup rejects duplicate emails and new-account verification returns to th
         }),
       },
       "react-hook-form": {
+        useWatch: () => "",
         useForm: () => ({
           handleSubmit: (handler) => {
             submit = handler;
