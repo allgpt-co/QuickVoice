@@ -3,6 +3,7 @@ import os
 import sys
 import unittest
 from io import BytesIO
+from urllib.error import HTTPError
 from unittest.mock import patch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -12,6 +13,50 @@ from handlers.mcp_handler import _post_json, build_mcp_tool_instructions, call_m
 
 
 class McpHandlerTests(unittest.TestCase):
+    def invoke(self, post_json, status="CONNECTED"):
+        return asyncio.run(call_mcp_tool(
+            connection_id="calendar", tool_name="WhoAmI", arguments={},
+            config={"mcp_connections": [{"mcpConnectionId": "calendar", "status": status,
+                "tools": [{"name": "WhoAmI", "readOnly": True}]}]},
+            call_context={"call_id": "call-test"}, server_api_url="https://api.test", internal_api_key="test-only",
+            post_json=post_json,
+        ))
+
+    def test_oauth_challenges_from_older_api_never_reach_the_speaking_model(self):
+        url = "https://accounts.google.com/o/oauth2/v2/auth?state=private-state"
+        with patch("handlers.mcp_handler.emit_metric") as metric:
+            result = self.invoke(lambda *_: {"data": {"content": [{"text": f"Authorization required: {url}"}]}})
+        self.assertEqual(result["error"]["code"], "MCP_AUTH_REQUIRED")
+        self.assertNotIn("private-state", str(result))
+        self.assertEqual(metric.call_args.kwargs["status"], "auth_required")
+
+    def test_pending_connection_returns_a_safe_error_without_generating_another_link(self):
+        def never(*_):
+            self.fail("Pending provider authorization must be completed in the console")
+        result = self.invoke(never, status="AUTH_REQUIRED")
+        self.assertEqual(result["error"]["code"], "MCP_AUTH_REQUIRED")
+
+    def test_completed_authorization_metadata_does_not_trigger_reauthorization(self):
+        result = self.invoke(lambda *_: {"data": {"authorization": {
+            "status": "completed", "url": "https://accounts.google.com/o/oauth2/auth?state=private-state"
+        }, "calendars": [{"id": "primary"}]}})
+        self.assertEqual(result["data"]["calendars"], [{"id": "primary"}])
+        self.assertNotIn("private-state", str(result))
+
+    def test_mcp_semantic_error_is_not_counted_as_success(self):
+        with patch("handlers.mcp_handler.emit_metric") as metric:
+            result = self.invoke(lambda *_: {"data": {"isError": True, "content": []}})
+        self.assertEqual(result["error"]["code"], "MCP_PROVIDER_ERROR")
+        self.assertEqual(metric.call_args.kwargs["status"], "error")
+
+    def test_backend_oauth_error_is_sanitized_and_response_is_closed(self):
+        body = BytesIO(b'{"code":"MCP_AUTH_REQUIRED","message":"private OAuth URL"}')
+        with patch("handlers.mcp_handler.urlopen", side_effect=HTTPError("https://api.test", 409, "Conflict", {}, body)):
+            result = self.invoke(_post_json)
+        self.assertEqual(result["error"]["code"], "MCP_AUTH_REQUIRED")
+        self.assertNotIn("private OAuth URL", str(result))
+        self.assertTrue(body.closed)
+
     def test_mcp_prompt_quotes_untrusted_names_and_omits_unsafe_tools(self):
         instructions = build_mcp_tool_instructions([{
             "mcpConnectionId": "conn_123",

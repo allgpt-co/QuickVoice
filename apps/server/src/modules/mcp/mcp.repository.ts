@@ -180,12 +180,14 @@ export const updateConnectionStatus = (
     tools?: unknown;
     metadata?: unknown;
     lastSyncedAt?: Date | null;
-  }
+  },
+  expectedUpdatedAt?: Date,
 ) =>
   prisma.mcpConnection.updateMany({
-    where: { organizationId, mcpConnectionId },
+    where: { organizationId, mcpConnectionId, ...(expectedUpdatedAt ? { updatedAt: expectedUpdatedAt } : {}) },
     data: {
       status: data.status,
+      ...(expectedUpdatedAt ? { updatedAt: new Date(Math.max(Date.now(), expectedUpdatedAt.getTime() + 1)) } : {}),
       setupUrl: data.setupUrl,
       tools: data.tools === undefined ? undefined : jsonOrNull(data.tools),
       metadata: data.metadata === undefined ? undefined : jsonOrNull(data.metadata),

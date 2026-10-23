@@ -414,6 +414,14 @@ export interface McpConnection {
   agents?: { agentId: string; name: string }[];
 }
 
+export interface McpAccessTestResult {
+  status: "VERIFIED" | "AUTH_REQUIRED";
+  toolName: string;
+  authorizationUrl?: string | null;
+  message?: string;
+  result?: unknown;
+}
+
 export interface AgentMcpConnection {
   agentMcpConnectionId: string;
   organizationId: string;

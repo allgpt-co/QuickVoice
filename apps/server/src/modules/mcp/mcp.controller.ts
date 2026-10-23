@@ -3,6 +3,7 @@ import { BadRequestError } from "../../common/errors/badRequest.js";
 import { authorized } from "../../middleware/authorize.middleware.js";
 import { recordAuditEvent } from "../audit/audit-log.service.js";
 import * as mcpService from "./mcp.service.js";
+import { McpProviderError } from "./mcp-provider-result.js";
 
 const getStringParam = (value: string | string[] | undefined, name: string) => {
   if (!value || Array.isArray(value)) {
@@ -94,4 +95,24 @@ export const executeTool = authorized(async (req, res) => {
     resourceId: mcpConnectionId,
     metadata: { toolName, agentId: req.body?.agentId, callId: req.body?.callId },
   });
+});
+
+export const testConnectionTool = authorized(async (req, res) => {
+  const id = getStringParam(req.params.mcpConnectionId, "MCP connection ID");
+  const toolName = req.body.toolName as string;
+  try {
+    const result = await mcpService.executeTool(
+      req.auth.activeOrganizationId, id, toolName,
+      { arguments: req.body.arguments }, { providerSetup: true },
+    );
+    res.json({ success: true, data: { status: "VERIFIED", toolName, result } });
+  } catch (error) {
+    if (!(error instanceof McpProviderError) || error.code !== "MCP_AUTH_REQUIRED") throw error;
+    // Only this console-session endpoint exposes the transient OAuth challenge.
+    // It is never persisted in connection metadata, execution logs, or call results.
+    res.json({ success: true, data: {
+      status: "AUTH_REQUIRED", toolName, authorizationUrl: error.authorizationUrl,
+      message: "Authorize the connected account in your browser, then run this test again.",
+    } });
+  }
 });
