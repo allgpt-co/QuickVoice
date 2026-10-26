@@ -58,12 +58,12 @@
       "@tailwindcss/typography>postcss-selector-parser": "7.1.6",
       "axios": "1.20.0",
       "baseline-browser-mapping": "2.11.21",
-      "body-parser": "2.3.0",
+      "body-parser": "2.4.0",
       "brace-expansion": "5.0.12",
       "browserslist": "4.28.7",
       "engine.io": "6.6.10",
       "esbuild": "0.28.1",
-      "fast-uri": "4.1.5",
+      "fast-uri": "4.2.3",
       "flatted": "3.4.2",
       "follow-redirects": "1.16.1",
       "form-data": "4.0.6",
@@ -88,7 +88,8 @@
       "sharp": "0.35.5",
       "source-map-js": "1.2.2",
       "tar": "7.5.11",
-      "valibot": "1.4.2"
+      "valibot": "1.4.2",
+      "zod": "4.6.6"
     },
     "patchedDependencies": {
       "minimatch@10.2.5": "patches/minimatch@10.2.5.patch",

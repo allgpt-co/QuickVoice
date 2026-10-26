@@ -33,7 +33,7 @@ const withParams = (definition: Omit<ApiDefinition, "params">): ApiDefinition =>
   params: pathParams(definition.path),
 });
 
-const qp = z.record(z.union([z.string(), z.number(), z.boolean(), z.null(), z.undefined()])).optional();
+const qp = z.record(z.string(), z.union([z.string(), z.number(), z.boolean(), z.null()])).optional();
 const body = z.record(z.string(), z.unknown()).optional();
 const phoneNumberPurchaseBody = z.object({
   provider: z.enum(["TWILIO", "TELNYX"]),

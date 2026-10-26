@@ -33,3 +33,6 @@ aiohttp>=3.14.4,<4
 certifi>=2026.10.19
 # Patched tracestate parsing (CVE-2026-114603).
 opentelemetry-api>=1.45.1,<2
+# Patched transitive filesystem locking and legacy wheel installation.
+filelock>=4.2.1,<5
+setuptools>=84.1.0,<85
