@@ -8,6 +8,7 @@ from livekit.agents import (
     LanguageCode,
     TurnHandlingOptions,
     function_tool,
+    ToolError,
     inference,
     room_io,
 )
@@ -26,7 +27,7 @@ from handlers.finalization_handler import CallFinalizer
 from handlers.livekit_handler import recording_path as build_recording_path, start_recording
 from handlers.live_transcript_publisher import LiveTranscriptPublisher
 from handlers.http_tool_handler import build_http_tool_instructions, call_http_tool, parse_http_tool_arguments
-from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, parse_arguments_json
+from handlers.mcp_handler import build_mcp_tool_instructions, call_mcp_tool, describe_mcp_tool, parse_arguments_json
 from handlers.privacy_handler import should_store_call_audio
 from handlers.rag_handler import RagRetrievalError, get_rag_context
 from handlers.transcript_collector import TranscriptCollector
@@ -49,6 +50,8 @@ from handlers.voice_catalog import load_voice_catalog
 from handlers.voice_config_resolution import VoiceConfigValidationError, resolve_voice_config
 from handlers.voice_provider_adapters import ProviderAdapterError, build_voice_provider_adapters
 from handlers.voice_worker_metadata import is_voice_session_metadata, parse_voice_session_metadata
+from utils.time import get_time_context
+from pytz import UnknownTimeZoneError
 from utils.logger import logger
 from utils.logger import redact_sensitive
 from utils.runtime_readiness import validate_runtime_startup
@@ -183,6 +186,10 @@ def build_agent_instructions(config: dict, call_context: dict | None = None) -> 
         instructions += f"\n\n{metadata_instructions}"
     instructions += build_http_tool_instructions(config.get("tools") or [])
     instructions += build_mcp_tool_instructions(config.get("mcp_connections") or [])
+    try:
+        instructions += get_time_context(config.get("timezone") or "UTC")
+    except (UnknownTimeZoneError, ValueError):
+        instructions += get_time_context("UTC")
     return instructions
 
 
@@ -532,6 +539,31 @@ class Assistant(Agent):
         return json.dumps(result.get("data", result), ensure_ascii=False)
 
     @function_tool
+    async def get_current_time(self, timezone_name: str = "") -> str:
+        """Get the real current date/time for relative dates such as today and tomorrow.
+
+        Args:
+            timezone_name: An IANA timezone such as UTC or America/New_York. Empty uses the agent's timezone.
+        """
+        try:
+            return get_time_context(timezone_name or self._config.get("timezone") or "UTC")
+        except (UnknownTimeZoneError, ValueError):
+            raise ToolError("Use a valid IANA timezone such as UTC or America/New_York.") from None
+
+    @function_tool
+    async def get_mcp_tool_schema(self, connection_id: str, tool_name: str) -> str:
+        """Read an attached MCP tool's description and exact JSON inputSchema before calling it.
+
+        Args:
+            connection_id: The exact attached connection ID from the MCP tools list.
+            tool_name: The exact read-only tool name to inspect.
+        """
+        try:
+            return json.dumps(describe_mcp_tool(connection_id, tool_name, self._config), ensure_ascii=False)
+        except PermissionError:
+            raise ToolError("This MCP tool is not attached or requires trusted confirmation.") from None
+
+    @function_tool
     async def call_mcp_tool(self, connection_id: str, tool_name: str, arguments_json: str = "{}") -> str:
         """
         Call an attached MCP tool using a connected MCP connection.
@@ -541,7 +573,10 @@ class Assistant(Agent):
             tool_name: The exact MCP tool name to execute.
             arguments_json: A JSON object string containing the tool arguments.
         """
-        arguments = parse_arguments_json(arguments_json)
+        try:
+            arguments = parse_arguments_json(arguments_json)
+        except ValueError as error:
+            raise ToolError(str(error)) from None
         result = await call_mcp_tool(
             connection_id=connection_id,
             tool_name=tool_name,

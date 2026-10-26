@@ -83,16 +83,19 @@ before(async () => {
       smitheryConnectionId: "test-connection",
       mcpUrl: "https://example.invalid/mcp",
       tools: [
-        { name: "list_files", annotations: { readOnlyHint: true } },
-        { name: "delete_file", annotations: { destructiveHint: true } },
-        { name: "send_email", requiresConfirmation: true },
+        { name: "list_files", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
+        { name: "FindFree", annotations: { readOnlyHint: true }, inputSchema: {
+          type: "object", additionalProperties: false, properties: { start_date: { type: "string", format: "date" } },
+        } },
+        { name: "delete_file", annotations: { destructiveHint: true }, inputSchema: { type: "object" } },
+        { name: "send_email", requiresConfirmation: true, inputSchema: { type: "object" } },
       ],
     };
   }) as any;
   prisma.mcpConnection.updateMany = (async () => ({ count: 1 })) as any;
   const legacyConnection = { mcpConnectionId: "legacy", tools: [
     { name: "legacy_tool" },
-    { name: "list_files", annotations: { readOnlyHint: true } },
+    { name: "list_files", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },
   ] };
   prisma.mcpConnection.findMany = (async () => [legacyConnection]) as any;
   prisma.agentMcpConnection.findMany = (async () => [{ mcpConnection: legacyConnection }]) as any;
@@ -234,4 +237,24 @@ test("connection and agent lists label legacy tools without a remote resync", as
     ]);
   }
   assert.deepEqual(providerCalls, []);
+});
+
+test("all execution paths validate the provider contract before any upstream request", async () => {
+  const headers = { authorization: `Bearer ${internalKey}`, "x-user-id": "worker", "x-organization-id": "org-test" };
+  const bad = await execute(headers, "FindFree", { agentId: "agent-test", arguments: { start_time: "2026-10-27", duration_minutes: 30 } });
+  assert.equal(bad.status, 422);
+  const error = await bad.json();
+  assert.equal(error.code, "MCP_ARGUMENTS_INVALID");
+  assert.equal(error.details.inputSchema.additionalProperties, false);
+  assert.deepEqual(providerCalls, []);
+  assert.equal(executionLogs, 1);
+  const setup = await requestJson(`${baseUrl}/connections/connection-test/test`, {
+    method: "POST", headers: { "content-type": "application/json", cookie: "role=owner" },
+    body: JSON.stringify({ toolName: "FindFree", arguments: { start_time: "2026-10-27" } }),
+  });
+  assert.equal(setup.status, 422);
+  assert.deepEqual(providerCalls, []);
+  const good = await execute(headers, "FindFree", { agentId: "agent-test", arguments: { start_date: "2026-10-27" } });
+  assert.equal(good.status, 200);
+  assert.deepEqual(providerCalls, ["FindFree"]);
 });
