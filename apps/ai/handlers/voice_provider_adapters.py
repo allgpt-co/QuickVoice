@@ -90,7 +90,7 @@ def _build_stt(config: dict[str, Any], language: str):
     raise ProviderAdapterError(f"unsupported STT provider: {provider}")
 
 
-def _build_llm(config: dict[str, Any]):
+def _build_llm(config: dict[str, Any], *, max_output_tokens: int | None = None):
     provider = config["provider"]
     if provider == "bedrock":
         region = os.getenv("AWS_REGION", "us-east-1")
@@ -102,6 +102,9 @@ def _build_llm(config: dict[str, Any]):
             "model": config["model"],
             "region": region,
         }
+
+        if max_output_tokens is not None:
+            kwargs["max_output_tokens"] = max_output_tokens
 
         if access_key or secret_key or session_token:
             if not access_key:
