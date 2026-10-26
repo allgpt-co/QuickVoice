@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from handlers.calllog_handler import build_call_log_payload, post_call_log_with_retry
+from handlers.post_call_metadata import analyze_call
 from handlers.post_call_webhook_handler import enqueue_post_call_webhook
 from handlers.webhook_events import report_webhook_event
 from utils.logger import logger, redact_sensitive
@@ -49,6 +50,7 @@ class CallFinalizer:
                 recording_path=None if zero_pii_retention else self._recording_path,
                 transcripts=transcript,
             )
+            await analyze_call(self._config, payload)
             if zero_pii_retention:
                 payload["metadata"]["zeroPiiRetention"] = True
                 payload["extractedData"] = []

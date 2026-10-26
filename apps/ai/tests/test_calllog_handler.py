@@ -156,7 +156,7 @@ class CallLogHandlerTests(unittest.TestCase):
         self.assertEqual(payload["evaluatedData"][0]["identifier"], "qualified")
         self.assertNotIn("criteria", payload["evaluatedData"][0])
 
-    def test_build_call_log_payload_derives_metadata_from_transcript(self):
+    def test_build_call_log_payload_does_not_guess_fields_or_summary_from_snippets(self):
         payload = build_call_log_payload(
             config={
                 "agent_id": "agent_123",
@@ -189,18 +189,12 @@ class CallLogHandlerTests(unittest.TestCase):
             ],
         )
 
-        self.assertEqual(payload["metadata"]["username"], "Avery Stone")
-        self.assertEqual(payload["metadata"]["reason"], "upgrading my plan")
-        self.assertEqual(payload["metadata"]["intent"], "upgrading my plan")
-        self.assertIn("Caller said:", payload["metadata"]["summary"])
-        self.assertEqual(
-            {item["name"]: item["value"] for item in payload["extractedData"]},
-            {
-                "Customer name": "Avery Stone",
-                "Call reason": "upgrading my plan",
-                "Intention": "upgrading my plan",
-            },
-        )
+        self.assertNotIn("username", payload["metadata"])
+        self.assertNotIn("reason", payload["metadata"])
+        self.assertEqual(payload["metadata"]["intent"], "")
+        self.assertEqual(payload["metadata"]["summary"], "")
+        self.assertEqual(payload["extractedData"], [])
+        self.assertEqual(len(payload["transcripts"]), 2)
 
     def test_build_call_log_payload_preserves_explicit_metadata_over_transcript_fallback(self):
         payload = build_call_log_payload(

@@ -1096,6 +1096,8 @@ if __name__ == "__main__":
     agents.cli.run_app(
         agents.WorkerOptions(
             entrypoint_fnc=entrypoint,
+            # Allow bounded post-call analysis and existing durable delivery retries.
+            shutdown_process_timeout=75.0,
             agent_name=os.getenv("LIVEKIT_AGENT_NAME", "quickvoice-voice-agent"),
         )
     )

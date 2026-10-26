@@ -9,7 +9,6 @@ from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
-from handlers.post_call_metadata import build_transcript_extracted_data, merge_transcript_metadata
 from utils.logger import logger, redact_sensitive
 from utils.metrics import emit_metric
 
@@ -30,7 +29,7 @@ def build_call_log_payload(
     transcripts: list[dict[str, Any]],
     status: str = "COMPLETED",
 ) -> dict[str, Any]:
-    metadata = _build_metadata(call_context, transcripts)
+    metadata = _build_metadata(call_context)
     return {
         "organizationId": _required(config, "organization_id"),
         "userId": config.get("user_id"),
@@ -47,7 +46,7 @@ def build_call_log_payload(
         "toNumber": _optional_string(call_context, "to_number"),
         "fromNumber": _optional_string(call_context, "from_number"),
         "provider": call_context.get("provider") or config.get("provider") or "WEB_WIDGET",
-        "extractedData": build_transcript_extracted_data(config, transcripts, metadata),
+        "extractedData": _as_list(config.get("data_extracted")),
         "evaluatedData": _as_list(config.get("data_evaluated")),
     }
 
@@ -241,7 +240,7 @@ def _api_base_url(server_api_url: str) -> str:
     return base_url if base_url.endswith("/api/v1") else f"{base_url}/api/v1"
 
 
-def _build_metadata(call_context: dict[str, Any], transcripts: list[dict[str, Any]]) -> dict[str, Any]:
+def _build_metadata(call_context: dict[str, Any]) -> dict[str, Any]:
     metadata = dict(call_context.get("metadata")) if isinstance(call_context.get("metadata"), dict) else {}
     if call_context.get("summary") not in (None, ""):
         metadata["summary"] = call_context.get("summary")
@@ -253,7 +252,7 @@ def _build_metadata(call_context: dict[str, Any], transcripts: list[dict[str, An
         metadata.setdefault("intent", "")
     if call_context.get("outbound_id") not in (None, "") or "outboundId" not in metadata:
         metadata["outboundId"] = call_context.get("outbound_id")
-    return merge_transcript_metadata(metadata, transcripts)
+    return metadata
 
 
 def _as_list(value: Any) -> list[Any]:
