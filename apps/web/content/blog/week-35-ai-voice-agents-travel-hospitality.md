@@ -2,6 +2,7 @@
 title: "Voice AI for Hospitality: Reservation Requests and Guest Information"
 slug: "ai-voice-agents-travel-hospitality"
 date: "2026-10-26"
+draft: true
 author: "Rahul Agarwal"
 category: "Implementation Guides"
 tags: ["hospitality phone workflows", "reservation requests", "guest information"]
