@@ -14,8 +14,8 @@ function fixture(t: TestContext) {
     mcpUrl: "https://api.arcade.dev/mcp/calendar", setupUrl: null,
     updatedAt: new Date(), lastSyncedAt: null,
     tools: [
-      { name: "GoogleCalendar_WhoAmI", readOnly: true },
-      { name: "GoogleCalendar_ListCalendars", readOnly: true },
+      { name: "GoogleCalendar_WhoAmI", readOnly: true, inputSchema: { type: "object" } },
+      { name: "GoogleCalendar_ListCalendars", readOnly: true, inputSchema: { type: "object" } },
       { name: "delete_event", annotations: { destructiveHint: true } },
     ],
   };

@@ -32,18 +32,20 @@ export const attachMcpSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
+const toolArgumentsSchema = z.record(z.string(), z.unknown()).default({}).refine(
+  (value) => Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
+  "Tool arguments must be at most 8 KB",
+);
+
 export const executeMcpToolSchema = z.object({
   agentId: z.string().min(1).optional(),
   callId: z.string().min(1).optional(),
-  arguments: z.record(z.string(), z.unknown()).default({}),
+  arguments: toolArgumentsSchema,
 });
 
 export const testMcpToolSchema = z.object({
   toolName: z.string().regex(/^[A-Za-z0-9._-]{1,128}$/),
-  arguments: z.record(z.string(), z.unknown()).default({}).refine(
-    (value) => Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
-    "Tool arguments must be at most 8 KB",
-  ),
+  arguments: toolArgumentsSchema,
 });
 
 export type ConnectMcpInput = z.infer<typeof connectMcpSchema>;

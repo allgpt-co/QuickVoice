@@ -13,6 +13,7 @@ import {
   normalizeMcpTools,
 } from "./mcp-tool-policy.js";
 import type { ConnectMcpInput, ExecuteMcpToolInput } from "./mcp.schema.js";
+import { assertMcpArguments, McpToolContractError } from "./mcp-tool-contract.js";
 import { inspectMcpResult, McpProviderError, withoutMcpAuthorizationLinks } from "./mcp-provider-result.js";
 
 type McpStatus = "PENDING" | "CONNECTED" | "AUTH_REQUIRED" | "INPUT_REQUIRED" | "ERROR" | "DISCONNECTED";
@@ -665,6 +666,7 @@ export const executeTool = async (
 
   const startedAt = Date.now();
   try {
+    assertMcpArguments(tool.inputSchema, input.arguments ?? {});
     const result = await callSmitheryTool(
       connection.smitheryNamespace,
       connection.smitheryConnectionId,
@@ -690,6 +692,14 @@ export const executeTool = async (
     });
     return result;
   } catch (err) {
+    if (err instanceof McpToolContractError) {
+      await repository.createExecutionLog({
+        organizationId, agentId: input.agentId, mcpConnectionId, toolName, callId: input.callId,
+        status: "validation_error", latencyMs: Date.now() - startedAt,
+        argumentsPreview: preview(input.arguments), error: err.code,
+      });
+      throw err;
+    }
     if (err instanceof McpProviderError) {
       if (err.code === "MCP_AUTH_REQUIRED") {
         await recordProviderAuthorization(organizationId, mcpConnectionId, toolName, true);
