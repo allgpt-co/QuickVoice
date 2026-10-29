@@ -46,9 +46,21 @@ for (const { name, proxies, clients, pinned } of scenarios) {
       database: memoryAdapter(db),
       advanced: { ipAddress: AUTH_IP_ADDRESS_OPTIONS },
       rateLimit: { enabled: true, customRules: { [signInPath]: { window: 60, max: 2 } },
+        // Better Auth 1.7 storage contract: one atomic consume() per request (fixed window).
         customStorage: {
-          get: async (key) => buckets.get(key) ?? null,
-          set: async (key, value) => { buckets.set(key, value); },
+          consume: async (key, rule) => {
+            const now = Date.now();
+            const bucket = buckets.get(key);
+            if (!bucket || now - bucket.start >= rule.window * 1000) {
+              buckets.set(key, { start: now, count: 1 });
+              return { allowed: true, retryAfter: null };
+            }
+            if (bucket.count >= rule.max) {
+              return { allowed: false, retryAfter: Math.ceil((bucket.start + rule.window * 1000 - now) / 1000) };
+            }
+            bucket.count++;
+            return { allowed: true, retryAfter: null };
+          },
         },
       },
       emailAndPassword: { enabled: true },

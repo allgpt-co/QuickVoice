@@ -20,6 +20,16 @@
       ],
       "reason": "No patched sprintf-js version exists. The only resolved copy comes through gray-matter -> js-yaml 3 -> argparse; QuickVoice does not call argparse or pass caller-controlled format strings to sprintf-js. Review or remove this exception when upstream ships a fix or gray-matter drops that dependency.",
       "expires": "2026-11-12"
+    },
+    {
+      "id": "GHSA-gcqx-w48m-w2h4",
+      "module": "deepmerge",
+      "contexts": [
+        "production dependencies",
+        "all dependencies"
+      ],
+      "reason": "No patched deepmerge version exists (4.3.1 is the latest). The only resolved copy comes through the shadcn CLI in apps/console, which merges its own config files and never receives request or user data. Review or remove this exception when upstream ships a fix or shadcn drops the dependency.",
+      "expires": "2026-11-28"
     }
   ]
 }
