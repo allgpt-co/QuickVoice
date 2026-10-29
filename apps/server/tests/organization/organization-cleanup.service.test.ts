@@ -100,8 +100,10 @@ test("Stripe preflight and customer detachment happen before local cleanup and s
     clearCampaignFile: async (campaignId) => {
       operations.push(`campaign:${campaignId}`);
     },
-    revokeMcpConnection: async (namespace, connectionId) => {
-      operations.push(`mcp:${namespace}:${connectionId}`);
+    revokeMcpConnection: async (connection) => {
+      operations.push(
+        `mcp:${connection.smitheryNamespace}:${connection.smitheryConnectionId}`,
+      );
     },
     deleteSubscriptions: async () => {
       operations.push("subscription-rows");

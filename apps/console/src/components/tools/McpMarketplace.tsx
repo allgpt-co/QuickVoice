@@ -22,70 +22,22 @@ import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
 import { Label } from "@/src/components/ui/label";
 import { validateCustomMcpUrl } from "@/src/components/tools/custom-mcp-url";
-import { useConnectMcp, useMcpCatalog, useOpenMcpSetup } from "@/src/hooks/queries/mcp";
+import {
+  useConnectMcp,
+  useMcpCatalog,
+  useOpenMcpSetup,
+} from "@/src/hooks/queries/mcp";
 import type { McpCatalogItem } from "@/src/lib/api/types";
 
-const FALLBACK_CATALOG: McpCatalogItem[] = [
-  {
-    slug: "github",
-    name: "GitHub",
-    description: "Search repositories, inspect issues, and work with pull requests.",
-    provider: "smithery",
-    source: "SMITHERY",
-    mcpUrl: "https://server.smithery.ai/github",
-    smitheryServerKey: "github",
-    authType: "oauth",
-    categories: ["Developer tools", "Source control"],
-    verified: true,
-    toolCount: 0,
-  },
-  {
-    slug: "slack",
-    name: "Slack",
-    description: "Read channels, search messages, and send team updates.",
-    provider: "smithery",
-    source: "SMITHERY",
-    mcpUrl: "https://server.smithery.ai/slack",
-    smitheryServerKey: "slack",
-    authType: "oauth",
-    categories: ["Communication"],
-    verified: true,
-    toolCount: 0,
-  },
-  {
-    slug: "notion",
-    name: "Notion",
-    description: "Find pages, read workspace knowledge, and create structured notes.",
-    provider: "smithery",
-    source: "SMITHERY",
-    mcpUrl: "https://server.smithery.ai/notion",
-    smitheryServerKey: "notion",
-    authType: "oauth",
-    categories: ["Knowledge base", "Productivity"],
-    verified: true,
-    toolCount: 0,
-  },
-  {
-    slug: "google-drive",
-    name: "Google Drive",
-    description: "Search files, read documents, and retrieve workspace context.",
-    provider: "smithery",
-    source: "SMITHERY",
-    mcpUrl: "https://server.smithery.ai/googledrive",
-    smitheryServerKey: "googledrive",
-    authType: "oauth",
-    categories: ["Knowledge base", "Documents"],
-    verified: true,
-    toolCount: 0,
-  },
-];
-
-const hasMissingGoogleDriveScope = (metadata?: Record<string, unknown> | null) =>
-  metadata?.scopeIssue === "missing_google_drive_scope";
+const hasMissingGoogleDriveScope = (
+  metadata?: Record<string, unknown> | null,
+) => metadata?.scopeIssue === "missing_google_drive_scope";
 
 function AppLogo({ item }: { item: McpCatalogItem }) {
   const [failed, setFailed] = useState(false);
-  const iconUrl = item.iconUrl || (typeof item.metadata?.iconUrl === "string" ? item.metadata.iconUrl : null);
+  const iconUrl =
+    item.iconUrl ||
+    (typeof item.metadata?.iconUrl === "string" ? item.metadata.iconUrl : null);
 
   if (iconUrl && !failed) {
     return (
@@ -128,7 +80,9 @@ function MarketplaceAction({
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onSetup(item.setupUrl as string, item.mcpConnectionId as string)}
+        onClick={() =>
+          onSetup(item.setupUrl as string, item.mcpConnectionId as string)
+        }
       >
         <ExternalLink className="size-4" />
         Re-authorize
@@ -145,28 +99,54 @@ function MarketplaceAction({
     );
   }
 
-  if (item.connectionStatus === "AUTH_REQUIRED" || item.connectionStatus === "INPUT_REQUIRED") {
+  if (
+    item.connectionStatus === "AUTH_REQUIRED" ||
+    item.connectionStatus === "INPUT_REQUIRED"
+  ) {
     return item.setupUrl && item.mcpConnectionId ? (
       <Button
         variant="outline"
         size="sm"
-        onClick={() => onSetup(item.setupUrl as string, item.mcpConnectionId as string)}
+        onClick={() =>
+          onSetup(item.setupUrl as string, item.mcpConnectionId as string)
+        }
       >
         <ExternalLink className="size-4" />
         {missingGoogleDriveScope ? "Re-authorize" : "Setup"}
       </Button>
     ) : (
-      <Badge className="gap-1 bg-blue-500/10 text-blue-700 hover:bg-blue-500/10 dark:text-blue-300">
-        <AlertCircle className="size-3" />
-        {missingGoogleDriveScope ? "Drive access not granted" : "Setup required"}
-      </Badge>
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={isDisabled}
+        onClick={onConnect}
+      >
+        {isPending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <PlugZap className="size-4" />
+        )}
+        Reconnect
+      </Button>
     );
   }
 
-  if (item.connectionStatus === "ERROR" || item.connectionStatus === "DISCONNECTED") {
+  if (
+    item.connectionStatus === "ERROR" ||
+    item.connectionStatus === "DISCONNECTED"
+  ) {
     return (
-      <Button variant="outline" size="sm" disabled={isDisabled} onClick={onConnect}>
-        {isPending ? <Loader2 className="size-4 animate-spin" /> : <AlertCircle className="size-4" />}
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={isDisabled}
+        onClick={onConnect}
+      >
+        {isPending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          <AlertCircle className="size-4" />
+        )}
         Retry setup
       </Button>
     );
@@ -174,7 +154,11 @@ function MarketplaceAction({
 
   return (
     <Button size="sm" disabled={isDisabled} onClick={onConnect}>
-      {isPending ? <Loader2 className="size-4 animate-spin" /> : <PlugZap className="size-4" />}
+      {isPending ? (
+        <Loader2 className="size-4 animate-spin" />
+      ) : (
+        <PlugZap className="size-4" />
+      )}
       Connect
     </Button>
   );
@@ -185,6 +169,10 @@ export function McpMarketplace() {
   const openMcpSetup = useOpenMcpSetup();
   const [customUrl, setCustomUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
+  const [authMode, setAuthMode] = useState<"oauth" | "api_key" | "none">(
+    "oauth",
+  );
+  const [discoveryUrl, setDiscoveryUrl] = useState("");
   const [customSetup, setCustomSetup] = useState<{
     setupUrl: string;
     mcpConnectionId: string;
@@ -203,10 +191,14 @@ export function McpMarketplace() {
     verified: verifiedOnly || undefined,
     sort: sortBy,
   };
-  const { data, isError, isLoading } = useMcpCatalog(catalogParams);
-  const catalog = data?.items.length ? data.items : isError ? FALLBACK_CATALOG : [];
+  const { data, error, isError, isLoading, refetch } =
+    useMcpCatalog(catalogParams);
+  const catalog = data?.items ?? [];
   const pagination = data?.pagination;
   const customUrlValidation = validateCustomMcpUrl(customUrl);
+  const canConnectCustom =
+    customUrlValidation.isValid &&
+    (authMode !== "oauth" || validateCustomMcpUrl(discoveryUrl).isValid);
   const isCustomConnectPending =
     connectMcp.isPending && Boolean(connectMcp.variables?.customUrl);
 
@@ -226,11 +218,13 @@ export function McpMarketplace() {
           <div className="p-4">
             <p className="text-sm font-semibold">Connect a custom MCP server</p>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Use this option when a server provider has given you a remote MCP endpoint that is not in the
-              verified catalog.
+              Use this option when a server provider has given you a remote MCP
+              endpoint that is not in the verified catalog.
             </p>
           </div>
-          <Badge variant="outline" className="m-4 shrink-0">Unverified</Badge>
+          <Badge variant="outline" className="m-4 shrink-0">
+            Unverified
+          </Badge>
         </div>
 
         <div className="border-y bg-muted/30 p-4">
@@ -239,46 +233,107 @@ export function McpMarketplace() {
           </p>
           <div className="mt-3 grid gap-3 md:grid-cols-3">
             <div className="flex gap-3">
-              <Globe2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <Globe2
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-primary"
+              />
               <div>
                 <p className="text-sm font-medium">Remote endpoint</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Use the full public HTTPS endpoint, usually ending in <code>/mcp</code>. Legacy <code>/sse</code>{" "}
-                  endpoints are accepted.
+                  Use the full public HTTPS endpoint, usually ending in{" "}
+                  <code>/mcp</code>. Legacy <code>/sse</code> endpoints are
+                  accepted.
                 </p>
               </div>
             </div>
             <div className="flex gap-3">
-              <CheckCircle2 aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <CheckCircle2
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-primary"
+              />
               <div>
                 <p className="text-sm font-medium">Publicly reachable</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  The server must be reachable from the internet. Localhost and private network URLs are not
-                  supported.
+                  The server must be reachable from the internet. Localhost and
+                  private network URLs are not supported.
                 </p>
               </div>
             </div>
             <div className="flex gap-3">
-              <KeyRound aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-primary" />
+              <KeyRound
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-primary"
+              />
               <div>
                 <p className="text-sm font-medium">Authorization comes next</p>
                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Do not put tokens or passwords in the URL. If the server needs sign-in or setup, you will
-                  complete it after connecting.
+                  Do not put tokens or passwords in the URL. If the server needs
+                  sign-in or setup, you will complete it after connecting.
                 </p>
               </div>
             </div>
           </div>
         </div>
 
+        <div className="grid gap-4 border-b p-4 md:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="custom-mcp-auth">Authentication</Label>
+            <select
+              id="custom-mcp-auth"
+              value={authMode}
+              className="h-11 w-full border bg-background px-3 text-sm"
+              onChange={(event) =>
+                setAuthMode(event.target.value as typeof authMode)
+              }
+            >
+              <option value="oauth">OAuth (dynamic client registration)</option>
+              <option value="api_key">API key (Bearer token)</option>
+              <option value="none">No authentication</option>
+            </select>
+            <p className="text-xs leading-5 text-muted-foreground">
+              Custom MCP support is experimental. Choose the method documented
+              by your server provider.
+            </p>
+          </div>
+          {authMode === "oauth" && (
+            <div className="space-y-1.5">
+              <Label htmlFor="custom-mcp-discovery">OAuth discovery URL</Label>
+              <Input
+                id="custom-mcp-discovery"
+                type="url"
+                value={discoveryUrl}
+                className="h-11"
+                placeholder="https://example.com/.well-known/oauth-authorization-server"
+                aria-describedby="custom-mcp-discovery-help"
+                onChange={(event) => setDiscoveryUrl(event.target.value)}
+              />
+              <p
+                id="custom-mcp-discovery-help"
+                className="text-xs leading-5 text-muted-foreground"
+              >
+                Use your provider’s authorization-server metadata URL. The
+                server must support dynamic client registration.
+              </p>
+            </div>
+          )}
+          {authMode === "api_key" && (
+            <p className="text-sm text-muted-foreground">
+              Enter the token on Composio’s secure setup page after connecting.
+              Your server must accept an Authorization: Bearer header.
+            </p>
+          )}
+        </div>
         <form
           className="grid gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_280px_auto] lg:items-start"
           onSubmit={(event) => {
             event.preventDefault();
-            if (!customUrlValidation.isValid) return;
+            if (!canConnectCustom) return;
             connectMcp.mutate(
               {
                 customUrl: customUrl.trim(),
+                authMode,
+                discoveryUrl:
+                  authMode === "oauth" ? discoveryUrl.trim() : undefined,
                 displayName: displayName.trim() || undefined,
               },
               {
@@ -292,10 +347,10 @@ export function McpMarketplace() {
                           mcpConnectionId: connection.mcpConnectionId,
                           displayName: connection.displayName,
                         }
-                      : null
+                      : null,
                   );
                 },
-              }
+              },
             );
           }}
         >
@@ -311,15 +366,21 @@ export function McpMarketplace() {
               placeholder="https://example.com/mcp"
               autoComplete="off"
               spellCheck={false}
-              aria-invalid={customUrl ? !customUrlValidation.isValid : undefined}
+              aria-invalid={
+                customUrl ? !customUrlValidation.isValid : undefined
+              }
               aria-describedby="custom-mcp-url-help custom-mcp-url-status"
               onChange={(event) => {
                 setCustomUrl(event.target.value);
                 setCustomSetup(null);
               }}
             />
-            <p id="custom-mcp-url-help" className="text-xs leading-5 text-muted-foreground">
-              Paste the exact endpoint URL, including its <code>/mcp</code> or <code>/sse</code> path.
+            <p
+              id="custom-mcp-url-help"
+              className="text-xs leading-5 text-muted-foreground"
+            >
+              Paste the exact endpoint URL, including its <code>/mcp</code> or{" "}
+              <code>/sse</code> path.
             </p>
             <p
               id="custom-mcp-url-status"
@@ -337,7 +398,10 @@ export function McpMarketplace() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="custom-mcp-name">
-              Display name <span className="font-normal text-muted-foreground">(optional)</span>
+              Display name{" "}
+              <span className="font-normal text-muted-foreground">
+                (optional)
+              </span>
             </Label>
             <Input
               id="custom-mcp-name"
@@ -347,14 +411,15 @@ export function McpMarketplace() {
               onChange={(event) => setDisplayName(event.target.value)}
             />
             <p className="text-xs leading-5 text-muted-foreground">
-              This label is shown only inside QuickVoice so your team can recognize the connection. If left
-              blank, the server hostname is used.
+              This label is shown only inside QuickVoice so your team can
+              recognize the connection. If left blank, the server hostname is
+              used.
             </p>
           </div>
           <Button
             type="submit"
             className="lg:mt-6"
-            disabled={!customUrlValidation.isValid || connectMcp.isPending}
+            disabled={!canConnectCustom || connectMcp.isPending}
           >
             {isCustomConnectPending ? (
               <Loader2 className="size-4 animate-spin" />
@@ -366,13 +431,22 @@ export function McpMarketplace() {
         </form>
 
         {customSetup && (
-          <div role="status" className="mx-4 mb-4 flex flex-col gap-3 border border-blue-500/30 bg-blue-500/10 p-3 sm:flex-row sm:items-center sm:justify-between">
+          <div
+            role="status"
+            className="mx-4 mb-4 flex flex-col gap-3 border border-blue-500/30 bg-blue-500/10 p-3 sm:flex-row sm:items-center sm:justify-between"
+          >
             <div className="flex gap-3">
-              <Tag aria-hidden="true" className="mt-0.5 size-4 shrink-0 text-blue-700 dark:text-blue-300" />
+              <Tag
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-blue-700 dark:text-blue-300"
+              />
               <div>
-                <p className="text-sm font-medium">{customSetup.displayName} needs additional setup</p>
+                <p className="text-sm font-medium">
+                  {customSetup.displayName} needs additional setup
+                </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Continue in a new tab to authorize or configure the server, then return to QuickVoice.
+                  Continue in a new tab to authorize or configure the server,
+                  then return to QuickVoice.
                 </p>
               </div>
             </div>
@@ -392,7 +466,20 @@ export function McpMarketplace() {
 
       {isError && (
         <div className="border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-          The API catalog is not available yet. Restart the API server to enable connection actions.
+          <p>
+            {error instanceof Error
+              ? error.message
+              : "The integration catalog could not be loaded."}
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={() => void refetch()}
+          >
+            Retry
+          </Button>
         </div>
       )}
 
@@ -424,6 +511,7 @@ export function McpMarketplace() {
           </Button>
           <select
             className="h-9 border bg-background px-3 text-sm"
+            aria-label="Sort integrations"
             value={sortBy}
             onChange={(event) => {
               setPage(1);
@@ -451,13 +539,15 @@ export function McpMarketplace() {
                         Verified
                       </Badge>
                     )}
-                    {!!(item.useCount ?? item.toolCount) && (
+                    {!!item.toolCount && (
                       <Badge variant="secondary" className="text-[10px]">
-                        {(item.useCount ?? item.toolCount).toLocaleString()} uses
+                        {item.toolCount.toLocaleString()} tools
                       </Badge>
                     )}
                   </div>
-                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.description}</p>
+                  <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">
+                    {item.description}
+                  </p>
                   {item.qualifiedName && (
                     <p className="mt-1 truncate font-mono text-[11px] text-muted-foreground/80">
                       {item.qualifiedName}
@@ -465,7 +555,8 @@ export function McpMarketplace() {
                   )}
                   {hasMissingGoogleDriveScope(item.metadata) && (
                     <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
-                      On the Google consent screen, check Google Drive access before continuing.
+                      On the Google consent screen, check Google Drive access
+                      before continuing.
                     </p>
                   )}
                 </div>
@@ -483,7 +574,11 @@ export function McpMarketplace() {
             </div>
             <div className="mt-4 flex flex-wrap gap-1.5">
               {item.categories.map((category) => (
-                <Badge key={category} variant="secondary" className="text-[10px]">
+                <Badge
+                  key={category}
+                  variant="secondary"
+                  className="text-[10px]"
+                >
                   {category}
                 </Badge>
               ))}
@@ -493,17 +588,21 @@ export function McpMarketplace() {
       </div>
       {!catalog.length && (
         <div className="border bg-card px-4 py-8 text-center text-sm text-muted-foreground">
-          {isLoading ? "Loading MCP servers..." : "No MCP servers match the current filters."}
+          {isLoading
+            ? "Loading integrations..."
+            : "No integrations match the current filters."}
         </div>
       )}
       {pagination && pagination.totalCount > 0 && (
         <div className="flex flex-col gap-3 border bg-card p-3 text-sm text-muted-foreground md:flex-row md:items-center md:justify-between">
           <div>
-            Page {pagination.page} of {pagination.totalPages} - {pagination.totalCount.toLocaleString()} results
+            Page {pagination.page} of {pagination.totalPages} -{" "}
+            {pagination.totalCount.toLocaleString()} results
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <select
               className="h-9 border bg-background px-2 text-sm"
+              aria-label="Integrations per page"
               value={pageSize}
               onChange={(event) => {
                 setPage(1);

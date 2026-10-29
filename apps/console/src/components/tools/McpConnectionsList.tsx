@@ -1,6 +1,13 @@
 "use client";
 
-import { AlertCircle, ExternalLink, Loader2, RefreshCw, ServerCrash, Trash2 } from "lucide-react";
+import {
+  AlertCircle,
+  ExternalLink,
+  Loader2,
+  RefreshCw,
+  ServerCrash,
+  Trash2,
+} from "lucide-react";
 import { McpToolBadges } from "@/src/components/tools/McpToolBadges";
 import { McpAccessTest } from "@/src/components/tools/McpAccessTest";
 import { Badge } from "@/src/components/ui/badge";
@@ -35,10 +42,15 @@ const STATUS_CLASS: Record<McpConnectionStatus, string> = {
   DISCONNECTED: "bg-muted text-muted-foreground",
 };
 
-const hasMissingGoogleDriveScope = (metadata?: Record<string, unknown> | null) =>
-  metadata?.scopeIssue === "missing_google_drive_scope";
+const hasMissingGoogleDriveScope = (
+  metadata?: Record<string, unknown> | null,
+) => metadata?.scopeIssue === "missing_google_drive_scope";
 
-export function McpConnectionsList() {
+export function McpConnectionsList({
+  onBrowseMarketplace,
+}: {
+  onBrowseMarketplace: () => void;
+}) {
   const { data: connections = [], isLoading } = useMcpConnections();
   const refresh = useRefreshMcpConnection();
   const disconnect = useDisconnectMcpConnection();
@@ -67,7 +79,9 @@ export function McpConnectionsList() {
   return (
     <div className="space-y-3">
       {connections.map((connection) => {
-        const missingGoogleDriveScope = hasMissingGoogleDriveScope(connection.metadata);
+        const missingGoogleDriveScope = hasMissingGoogleDriveScope(
+          connection.metadata,
+        );
         return (
           <div key={connection.mcpConnectionId} className="border bg-card p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
@@ -75,20 +89,31 @@ export function McpConnectionsList() {
                 <div className="flex flex-wrap items-center gap-2">
                   <p className="font-medium">{connection.displayName}</p>
                   <Badge className={STATUS_CLASS[connection.status]}>
-                    {missingGoogleDriveScope ? "DRIVE ACCESS NOT GRANTED" : connection.status === "CONNECTED" ? "SERVER CONNECTED" : connection.status.replace("_", " ")}
+                    {missingGoogleDriveScope
+                      ? "DRIVE ACCESS NOT GRANTED"
+                      : connection.status === "CONNECTED"
+                        ? "SERVER CONNECTED"
+                        : connection.status.replace("_", " ")}
                   </Badge>
                 </div>
-                <p className="mt-1 truncate text-sm text-muted-foreground">{connection.mcpUrl}</p>
+                <p className="mt-1 truncate text-sm text-muted-foreground">
+                  {connection.mcpUrl}
+                </p>
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {(connection.tools?.length ?? 0)} tools synced
-                  {connection.lastSyncedAt ? ` - Last synced ${new Date(connection.lastSyncedAt).toLocaleString()}` : ""}
+                  {connection.tools?.length ?? 0} tools synced
+                  {connection.lastSyncedAt
+                    ? ` - Last synced ${new Date(connection.lastSyncedAt).toLocaleString()}`
+                    : ""}
                 </p>
                 {typeof connection.metadata?.lastSyncError === "string" && (
-                  <p className="mt-2 text-xs text-destructive" role="status">{connection.metadata.lastSyncError}</p>
+                  <p className="mt-2 text-xs text-destructive" role="status">
+                    {connection.metadata.lastSyncError}
+                  </p>
                 )}
                 {missingGoogleDriveScope && (
                   <p className="mt-2 text-xs text-blue-700 dark:text-blue-300">
-                    On the Google consent screen, check Google Drive access before continuing.
+                    On the Google consent screen, check Google Drive access
+                    before continuing.
                   </p>
                 )}
               </div>
@@ -98,44 +123,76 @@ export function McpConnectionsList() {
                     variant="outline"
                     size="sm"
                     className="min-h-11"
-                    onClick={() => openMcpSetup(connection.setupUrl as string, connection.mcpConnectionId)}
+                    onClick={() =>
+                      openMcpSetup(
+                        connection.setupUrl as string,
+                        connection.mcpConnectionId,
+                      )
+                    }
                   >
                     <ExternalLink className="size-4" />
                     {missingGoogleDriveScope ? "Re-authorize" : "Setup"}
                   </Button>
                 )}
-                {!connection.setupUrl && ["ERROR", "DISCONNECTED"].includes(connection.status) && (
+                {(connection.metadata?.migrationRequired ||
+                  (connection.status === "AUTH_REQUIRED" &&
+                    !connection.setupUrl)) && (
                   <Button
                     variant="outline"
                     size="sm"
                     className="min-h-11"
-                    disabled={refresh.isPending && refresh.variables === connection.mcpConnectionId}
-                    onClick={() => {
-                      refresh.mutate(connection.mcpConnectionId, {
-                        onSuccess: (updated) => {
-                          if (updated.setupUrl) {
-                            openMcpSetup(updated.setupUrl, updated.mcpConnectionId);
-                          }
-                        },
-                      });
-                    }}
+                    onClick={onBrowseMarketplace}
                   >
-                    {refresh.isPending && refresh.variables === connection.mcpConnectionId ? (
-                      <Loader2 className="size-4 animate-spin" />
-                    ) : (
-                      <AlertCircle className="size-4" />
-                    )}
-                    {missingGoogleDriveScope ? "Re-authorize" : "Retry setup"}
+                    Reconnect in marketplace
                   </Button>
                 )}
+                {!connection.metadata?.migrationRequired &&
+                  !connection.setupUrl &&
+                  ["ERROR", "DISCONNECTED"].includes(connection.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11"
+                      disabled={
+                        Boolean(connection.metadata?.migrationRequired) ||
+                        (refresh.isPending &&
+                          refresh.variables === connection.mcpConnectionId)
+                      }
+                      onClick={() => {
+                        refresh.mutate(connection.mcpConnectionId, {
+                          onSuccess: (updated) => {
+                            if (updated.setupUrl) {
+                              openMcpSetup(
+                                updated.setupUrl,
+                                updated.mcpConnectionId,
+                              );
+                            }
+                          },
+                        });
+                      }}
+                    >
+                      {refresh.isPending &&
+                      refresh.variables === connection.mcpConnectionId ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <AlertCircle className="size-4" />
+                      )}
+                      {missingGoogleDriveScope ? "Re-authorize" : "Retry setup"}
+                    </Button>
+                  )}
                 <Button
                   variant="outline"
                   size="sm"
                   className="min-h-11"
-                  disabled={refresh.isPending && refresh.variables === connection.mcpConnectionId}
+                  disabled={
+                    Boolean(connection.metadata?.migrationRequired) ||
+                    (refresh.isPending &&
+                      refresh.variables === connection.mcpConnectionId)
+                  }
                   onClick={() => refresh.mutate(connection.mcpConnectionId)}
                 >
-                  {refresh.isPending && refresh.variables === connection.mcpConnectionId ? (
+                  {refresh.isPending &&
+                  refresh.variables === connection.mcpConnectionId ? (
                     <Loader2 className="size-4 animate-spin" />
                   ) : (
                     <RefreshCw className="size-4" />
@@ -148,9 +205,13 @@ export function McpConnectionsList() {
                       variant="outline"
                       size="sm"
                       className="min-h-11 text-destructive hover:text-destructive"
-                      disabled={disconnect.isPending && disconnect.variables === connection.mcpConnectionId}
+                      disabled={
+                        disconnect.isPending &&
+                        disconnect.variables === connection.mcpConnectionId
+                      }
                     >
-                      {disconnect.isPending && disconnect.variables === connection.mcpConnectionId ? (
+                      {disconnect.isPending &&
+                      disconnect.variables === connection.mcpConnectionId ? (
                         <Loader2 className="size-4 animate-spin" />
                       ) : (
                         <Trash2 className="size-4" />
@@ -162,15 +223,20 @@ export function McpConnectionsList() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Disconnect MCP?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will remove <span className="font-medium">{connection.displayName}</span> from your
-                        organization and detach it from all agents.
+                        This will remove{" "}
+                        <span className="font-medium">
+                          {connection.displayName}
+                        </span>{" "}
+                        from your organization and detach it from all agents.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                        onClick={() => disconnect.mutate(connection.mcpConnectionId)}
+                        onClick={() =>
+                          disconnect.mutate(connection.mcpConnectionId)
+                        }
                       >
                         Disconnect
                       </AlertDialogAction>
@@ -180,7 +246,9 @@ export function McpConnectionsList() {
               </div>
             </div>
             <McpToolBadges tools={connection.tools} />
-            <McpAccessTest connection={connection} />
+            {!connection.metadata?.migrationRequired && (
+              <McpAccessTest connection={connection} />
+            )}
           </div>
         );
       })}

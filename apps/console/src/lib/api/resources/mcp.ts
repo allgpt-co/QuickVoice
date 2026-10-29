@@ -10,6 +10,8 @@ import type {
 export interface ConnectMcpInput {
   catalogSlug?: string;
   customUrl?: string;
+  authMode?: "oauth" | "api_key" | "none";
+  discoveryUrl?: string;
   displayName?: string;
 }
 

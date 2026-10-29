@@ -10,7 +10,12 @@ import { ToolCard } from "@/src/components/tools/ToolCard";
 import { ToolSheet } from "@/src/components/tools/ToolSheet";
 import { McpConnectionsList } from "@/src/components/tools/McpConnectionsList";
 import { McpMarketplace } from "@/src/components/tools/McpMarketplace";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/src/components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/src/components/ui/tabs";
 import { useTools } from "@/src/hooks/queries/tools";
 
 function SkeletonRow() {
@@ -29,6 +34,7 @@ function SkeletonRow() {
 
 export default function ToolsPage() {
   const [createOpen, setCreateOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("marketplace");
   const { data: tools, isLoading } = useTools();
 
   const addButton = (
@@ -46,7 +52,11 @@ export default function ToolsPage() {
         actions={addButton}
       />
 
-      <Tabs defaultValue="marketplace" className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList>
           <TabsTrigger value="http">HTTP tools</TabsTrigger>
           <TabsTrigger value="marketplace">MCP marketplace</TabsTrigger>
@@ -56,7 +66,9 @@ export default function ToolsPage() {
         <TabsContent value="http" className="mt-0">
           {isLoading ? (
             <div className="space-y-3">
-              {[...Array(3)].map((_, i) => <SkeletonRow key={i} />)}
+              {[...Array(3)].map((_, i) => (
+                <SkeletonRow key={i} />
+              ))}
             </div>
           ) : !tools?.length ? (
             <EmptyState
@@ -79,7 +91,9 @@ export default function ToolsPage() {
         </TabsContent>
 
         <TabsContent value="connections" className="mt-0">
-          <McpConnectionsList />
+          <McpConnectionsList
+            onBrowseMarketplace={() => setActiveTab("marketplace")}
+          />
         </TabsContent>
       </Tabs>
 

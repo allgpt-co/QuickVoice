@@ -7,15 +7,17 @@ test("custom MCP connection accepts HTTPS MCP and legacy SSE endpoints", () => {
   assert.equal(
     connectMcpSchema.safeParse({
       customUrl: "https://server.example.com/mcp",
+      authMode: "none",
       displayName: "Internal tools",
     }).success,
-    true
+    true,
   );
   assert.equal(
     connectMcpSchema.safeParse({
       customUrl: "https://demo-day.mcp.cloudflare.com/sse",
+      authMode: "api_key",
     }).success,
-    true
+    true,
   );
 });
 
@@ -30,5 +32,32 @@ test("custom MCP connection rejects insecure and credential-bearing URLs", () =>
   assert.equal(insecure.success, false);
   assert.match(JSON.stringify(insecure.error), /must use HTTPS/);
   assert.equal(credentials.success, false);
-  assert.match(JSON.stringify(credentials.error), /credentials are not allowed/);
+  assert.match(
+    JSON.stringify(credentials.error),
+    /credentials are not allowed/,
+  );
+});
+
+test("custom OAuth requires an HTTPS discovery URL and explicit authentication mode", () => {
+  assert.equal(
+    connectMcpSchema.safeParse({ customUrl: "https://example.com/mcp" })
+      .success,
+    false,
+  );
+  assert.equal(
+    connectMcpSchema.safeParse({
+      customUrl: "https://example.com/mcp",
+      authMode: "oauth",
+    }).success,
+    false,
+  );
+  assert.equal(
+    connectMcpSchema.safeParse({
+      customUrl: "https://example.com/mcp",
+      authMode: "oauth",
+      discoveryUrl:
+        "https://auth.example.com/.well-known/oauth-authorization-server",
+    }).success,
+    true,
+  );
 });

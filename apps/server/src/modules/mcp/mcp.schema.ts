@@ -20,22 +20,48 @@ const customMcpUrlSchema = z
     }
   });
 
-export const connectMcpSchema = z.object({
-  catalogSlug: z.string().trim().min(1).optional(),
-  customUrl: customMcpUrlSchema.optional(),
-  displayName: z.string().trim().min(1).max(100).optional(),
-}).refine((data) => Boolean(data.catalogSlug) !== Boolean(data.customUrl), {
-  message: "Provide either catalogSlug or customUrl",
-});
+export const connectMcpSchema = z
+  .object({
+    catalogSlug: z.string().trim().min(1).optional(),
+    customUrl: customMcpUrlSchema.optional(),
+    authMode: z.enum(["oauth", "api_key", "none"]).optional(),
+    discoveryUrl: customMcpUrlSchema.optional(),
+    displayName: z.string().trim().min(1).max(100).optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.customUrl && !data.authMode)
+      ctx.addIssue({
+        code: "custom",
+        path: ["authMode"],
+        message: "Select the custom server authentication method",
+      });
+    if (data.customUrl && data.authMode === "oauth" && !data.discoveryUrl)
+      ctx.addIssue({
+        code: "custom",
+        path: ["discoveryUrl"],
+        message: "OAuth authorization-server discovery URL is required",
+      });
+    if (!data.customUrl && (data.authMode || data.discoveryUrl))
+      ctx.addIssue({
+        code: "custom",
+        message: "Custom authentication settings require a custom URL",
+      });
+  })
+  .refine((data) => Boolean(data.catalogSlug) !== Boolean(data.customUrl), {
+    message: "Provide either catalogSlug or customUrl",
+  });
 
 export const attachMcpSchema = z.object({
   enabled: z.boolean().default(true),
 });
 
-const toolArgumentsSchema = z.record(z.string(), z.unknown()).default({}).refine(
-  (value) => Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
-  "Tool arguments must be at most 8 KB",
-);
+const toolArgumentsSchema = z
+  .record(z.string(), z.unknown())
+  .default({})
+  .refine(
+    (value) => Buffer.byteLength(JSON.stringify(value), "utf8") <= 8192,
+    "Tool arguments must be at most 8 KB",
+  );
 
 export const executeMcpToolSchema = z.object({
   agentId: z.string().min(1).optional(),

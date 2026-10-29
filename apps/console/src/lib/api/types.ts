@@ -355,7 +355,7 @@ export interface McpCatalogItem {
   name: string;
   description: string;
   provider: string;
-  source: "SMITHERY" | "CUSTOM";
+  source: "COMPOSIO" | "SMITHERY" | "CUSTOM";
   mcpUrl: string;
   smitheryServerKey?: string | null;
   authType: string;
@@ -402,8 +402,8 @@ export interface McpConnection {
   displayName: string;
   provider: string;
   mcpUrl: string;
-  smitheryNamespace: string;
-  smitheryConnectionId: string;
+  smitheryNamespace?: string | null;
+  smitheryConnectionId?: string | null;
   status: McpConnectionStatus;
   setupUrl: string | null;
   tools: McpToolDescriptor[] | null;

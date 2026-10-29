@@ -52,7 +52,7 @@ const openSetupAndPoll = (
         toast.success(`${connection.displayName} connected`);
       }
     } catch {
-      // Keep polling while Smithery is still settling after OAuth.
+      // Keep polling while the provider is still settling after OAuth.
     } finally {
       refreshing = false;
     }

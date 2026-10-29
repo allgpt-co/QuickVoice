@@ -1307,8 +1307,15 @@ model McpConnection {
   displayName          String
   provider             String                @default("smithery")
   mcpUrl               String
-  smitheryNamespace    String
-  smitheryConnectionId String
+  // Retained only to identify and remove legacy Smithery grants.
+  smitheryNamespace    String?
+  smitheryConnectionId String?
+  connectionKey        String?
+  toolkitSlug          String?
+  providerUserId       String?
+  providerAccountId    String?
+  providerSessionId    String?
+  setupLeaseUntil      DateTime?
   status               McpConnectionStatus   @default(PENDING)
   setupUrl             String?
   tools                Json?                 @default("[]")
@@ -1319,6 +1326,7 @@ model McpConnection {
   agents               AgentMcpConnection[]
 
   @@unique([organizationId, smitheryConnectionId])
+  @@unique([organizationId, provider, connectionKey])
   @@index([organizationId])
   @@index([userId])
   @@index([status])
