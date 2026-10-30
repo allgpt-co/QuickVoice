@@ -5,7 +5,7 @@ type OpenApiParameter = {
   in: "path" | "query";
   required: boolean;
   description?: string;
-  schema: { type: string };
+  schema: { type: string; minimum?: number; example?: number };
 };
 
 type OpenApiOperation = {
@@ -21,7 +21,7 @@ type OpenApiOperation = {
         schema: {
           type: "object";
           additionalProperties: true;
-          properties: Record<string, { type: string; description: string }>;
+          properties: Record<string, { type: string; description: string; example?: boolean }>;
         };
       };
     };
@@ -260,6 +260,20 @@ function buildParameters(endpoint: ApiEndpoint): OpenApiParameter[] | undefined 
 
   for (const queryParam of endpoint.query ?? []) {
     const { name, description, optional } = parseField(queryParam);
+    if (
+      endpoint.method === "GET" &&
+      (endpoint.path === "/outbound-calls/batch-upload-url" || endpoint.path === "/kb/upload-url") &&
+      name === "fileSize"
+    ) {
+      params.push({
+        name,
+        in: "query",
+        required: true,
+        description,
+        schema: { type: "integer", minimum: 1, example: 1024 },
+      });
+      continue;
+    }
     params.push({ name, in: "query", required: !optional, description, schema: { type: "string" } });
   }
 
@@ -279,6 +293,13 @@ function buildRequestBody(endpoint: ApiEndpoint): OpenApiOperation["requestBody"
           properties: Object.fromEntries(
             endpoint.body.map((field) => {
               const { name, description } = parseField(field);
+              if (
+                endpoint.method === "POST" &&
+                endpoint.path === "/agents/{agentId}/config" &&
+                name === "use_rag"
+              ) {
+                return [name, { type: "boolean", description, example: false }];
+              }
               return [name, { type: "string", description }];
             }),
           ),
