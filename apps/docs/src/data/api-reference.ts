@@ -664,7 +664,7 @@ export const apiGroups: ApiGroup[] = [
           "name, description, api_url",
           "api_method?: GET|POST|PUT|PATCH|DELETE",
           "api_headers?, api_body?, api_query_params?, api_path_params?",
-          "response_timeout_secs?, dynamic_variables?",
+          "response_timeout_secs?: integer | null (1–15 seconds; maximum: 15; example: 15), dynamic_variables?",
           "disable_interruptions?, force_pre_tool_speech?",
         ],
         "201 { success, message, data: Tool }",
@@ -1002,10 +1002,7 @@ export const apiGroups: ApiGroup[] = [
         "apps/server/src/modules/widgets/widget.route.ts",
         undefined,
         ["widgetId: wgt_... returned by widget creation"],
-        [
-          "visitorId?: string max 120",
-          "dynamicVariables?: Record<string, string>",
-        ],
+        ["visitorId?: string max 120"],
         "201 { success, message, data: PublicWidgetSession }",
       ),
       endpoint(
