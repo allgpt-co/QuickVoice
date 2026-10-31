@@ -93,9 +93,9 @@ export async function getReadiness() {
       "LiveKit Telnyx outbound trunk is not configured",
       "all",
     ),
-    smithery: checkEnv(
-      ["SMITHERY_API_KEY"],
-      "Smithery API key is not configured",
+    composio: checkEnv(
+      ["COMPOSIO_API_KEY"],
+      "Composio API key is not configured",
     ),
   };
 

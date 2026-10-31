@@ -777,7 +777,7 @@ export const swaggerSpec = {
         properties: {
           catalogSlug: {
             type: "string",
-            example: "smithery/slack",
+            example: "slack",
             description:
               "Connect a catalog server. Provide either catalogSlug or customUrl.",
           },
@@ -787,6 +787,18 @@ export const swaggerSpec = {
             example: "https://mcp.example.com/sse",
             description:
               "Connect a custom MCP server. Provide either catalogSlug or customUrl.",
+          },
+          authMode: {
+            type: "string",
+            enum: ["oauth", "api_key", "none"],
+            description:
+              "Required for a custom endpoint. API key uses a Bearer token entered on the hosted setup page.",
+          },
+          discoveryUrl: {
+            type: "string",
+            format: "uri",
+            description:
+              "Required for custom OAuth: authorization-server discovery metadata URL.",
           },
           displayName: { type: "string", example: "Slack workspace" },
         },

@@ -4,7 +4,7 @@ import { stripeClient } from "../../config/stripe.js";
 import { isHostedBilling } from "../../config/billing-mode.js";
 import { cleanupKnowledgeSourceAssets } from "../kb/kb-assets.service.js";
 import * as kbRepository from "../kb/kb.repository.js";
-import { disconnectSmitheryConnection } from "../mcp/mcp.service.js";
+import { revokeMcpConnection as revokeRemoteMcpConnection } from "../mcp/mcp.service.js";
 import { deleteNumber } from "../numbers/phone.service.js";
 
 type OrganizationCleanupInput = {
@@ -36,7 +36,7 @@ type OrganizationCleanupDependencies = {
   >;
   listMcpConnections?: (
     organizationId: string,
-  ) => Promise<Array<{ smitheryNamespace: string; smitheryConnectionId: string }>>;
+  ) => Promise<Array<Parameters<typeof revokeRemoteMcpConnection>[0]>>;
   listPhoneNumbers?: (
     organizationId: string,
   ) => Promise<Array<{ phId: string }>>;
@@ -52,10 +52,7 @@ type OrganizationCleanupDependencies = {
     customerId: string,
   ) => Promise<Array<{ id: string; status: string }>>;
   releaseNumber?: typeof deleteNumber;
-  revokeMcpConnection?: (
-    namespace: string,
-    connectionId: string,
-  ) => Promise<void>;
+  revokeMcpConnection?: typeof revokeRemoteMcpConnection;
 };
 
 const TERMINAL_SUBSCRIPTION_STATUSES = new Set([
@@ -200,12 +197,9 @@ export async function cleanupOrganizationBeforeDeletion(
   }
 
   const revokeMcpConnection =
-    dependencies.revokeMcpConnection ?? disconnectSmitheryConnection;
+    dependencies.revokeMcpConnection ?? revokeRemoteMcpConnection;
   for (const connection of mcpConnections) {
-    await revokeMcpConnection(
-      connection.smitheryNamespace,
-      connection.smitheryConnectionId,
-    );
+    await revokeMcpConnection(connection);
   }
 
   const cleanupKnowledgeSource =
@@ -353,6 +347,12 @@ async function defaultListMcpConnections(organizationId: string) {
   return prisma.mcpConnection.findMany({
     where: { organizationId },
     select: {
+      provider: true,
+      providerUserId: true,
+      providerAccountId: true,
+      providerSessionId: true,
+      toolkitSlug: true,
+      metadata: true,
       smitheryNamespace: true,
       smitheryConnectionId: true,
     },

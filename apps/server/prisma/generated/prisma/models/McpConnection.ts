@@ -34,6 +34,12 @@ export type McpConnectionMinAggregateOutputType = {
   mcpUrl: string | null
   smitheryNamespace: string | null
   smitheryConnectionId: string | null
+  connectionKey: string | null
+  toolkitSlug: string | null
+  providerUserId: string | null
+  providerAccountId: string | null
+  providerSessionId: string | null
+  setupLeaseUntil: Date | null
   status: $Enums.McpConnectionStatus | null
   setupUrl: string | null
   lastSyncedAt: Date | null
@@ -51,6 +57,12 @@ export type McpConnectionMaxAggregateOutputType = {
   mcpUrl: string | null
   smitheryNamespace: string | null
   smitheryConnectionId: string | null
+  connectionKey: string | null
+  toolkitSlug: string | null
+  providerUserId: string | null
+  providerAccountId: string | null
+  providerSessionId: string | null
+  setupLeaseUntil: Date | null
   status: $Enums.McpConnectionStatus | null
   setupUrl: string | null
   lastSyncedAt: Date | null
@@ -68,6 +80,12 @@ export type McpConnectionCountAggregateOutputType = {
   mcpUrl: number
   smitheryNamespace: number
   smitheryConnectionId: number
+  connectionKey: number
+  toolkitSlug: number
+  providerUserId: number
+  providerAccountId: number
+  providerSessionId: number
+  setupLeaseUntil: number
   status: number
   setupUrl: number
   tools: number
@@ -89,6 +107,12 @@ export type McpConnectionMinAggregateInputType = {
   mcpUrl?: true
   smitheryNamespace?: true
   smitheryConnectionId?: true
+  connectionKey?: true
+  toolkitSlug?: true
+  providerUserId?: true
+  providerAccountId?: true
+  providerSessionId?: true
+  setupLeaseUntil?: true
   status?: true
   setupUrl?: true
   lastSyncedAt?: true
@@ -106,6 +130,12 @@ export type McpConnectionMaxAggregateInputType = {
   mcpUrl?: true
   smitheryNamespace?: true
   smitheryConnectionId?: true
+  connectionKey?: true
+  toolkitSlug?: true
+  providerUserId?: true
+  providerAccountId?: true
+  providerSessionId?: true
+  setupLeaseUntil?: true
   status?: true
   setupUrl?: true
   lastSyncedAt?: true
@@ -123,6 +153,12 @@ export type McpConnectionCountAggregateInputType = {
   mcpUrl?: true
   smitheryNamespace?: true
   smitheryConnectionId?: true
+  connectionKey?: true
+  toolkitSlug?: true
+  providerUserId?: true
+  providerAccountId?: true
+  providerSessionId?: true
+  setupLeaseUntil?: true
   status?: true
   setupUrl?: true
   tools?: true
@@ -213,8 +249,14 @@ export type McpConnectionGroupByOutputType = {
   displayName: string
   provider: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace: string | null
+  smitheryConnectionId: string | null
+  connectionKey: string | null
+  toolkitSlug: string | null
+  providerUserId: string | null
+  providerAccountId: string | null
+  providerSessionId: string | null
+  setupLeaseUntil: Date | null
   status: $Enums.McpConnectionStatus
   setupUrl: string | null
   tools: runtime.JsonValue | null
@@ -253,8 +295,14 @@ export type McpConnectionWhereInput = {
   displayName?: Prisma.StringFilter<"McpConnection"> | string
   provider?: Prisma.StringFilter<"McpConnection"> | string
   mcpUrl?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryNamespace?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryConnectionId?: Prisma.StringFilter<"McpConnection"> | string
+  smitheryNamespace?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  smitheryConnectionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  connectionKey?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  toolkitSlug?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerUserId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerAccountId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerSessionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  setupLeaseUntil?: Prisma.DateTimeNullableFilter<"McpConnection"> | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFilter<"McpConnection"> | $Enums.McpConnectionStatus
   setupUrl?: Prisma.StringNullableFilter<"McpConnection"> | string | null
   tools?: Prisma.JsonNullableFilter<"McpConnection">
@@ -276,8 +324,14 @@ export type McpConnectionOrderByWithRelationInput = {
   displayName?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   mcpUrl?: Prisma.SortOrder
-  smitheryNamespace?: Prisma.SortOrder
-  smitheryConnectionId?: Prisma.SortOrder
+  smitheryNamespace?: Prisma.SortOrderInput | Prisma.SortOrder
+  smitheryConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  connectionKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  toolkitSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  setupLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   setupUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   tools?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -294,6 +348,7 @@ export type McpConnectionOrderByWithRelationInput = {
 export type McpConnectionWhereUniqueInput = Prisma.AtLeast<{
   mcpConnectionId?: string
   organizationId_smitheryConnectionId?: Prisma.McpConnectionOrganizationIdSmitheryConnectionIdCompoundUniqueInput
+  organizationId_provider_connectionKey?: Prisma.McpConnectionOrganizationIdProviderConnectionKeyCompoundUniqueInput
   AND?: Prisma.McpConnectionWhereInput | Prisma.McpConnectionWhereInput[]
   OR?: Prisma.McpConnectionWhereInput[]
   NOT?: Prisma.McpConnectionWhereInput | Prisma.McpConnectionWhereInput[]
@@ -303,8 +358,14 @@ export type McpConnectionWhereUniqueInput = Prisma.AtLeast<{
   displayName?: Prisma.StringFilter<"McpConnection"> | string
   provider?: Prisma.StringFilter<"McpConnection"> | string
   mcpUrl?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryNamespace?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryConnectionId?: Prisma.StringFilter<"McpConnection"> | string
+  smitheryNamespace?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  smitheryConnectionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  connectionKey?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  toolkitSlug?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerUserId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerAccountId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerSessionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  setupLeaseUntil?: Prisma.DateTimeNullableFilter<"McpConnection"> | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFilter<"McpConnection"> | $Enums.McpConnectionStatus
   setupUrl?: Prisma.StringNullableFilter<"McpConnection"> | string | null
   tools?: Prisma.JsonNullableFilter<"McpConnection">
@@ -316,7 +377,7 @@ export type McpConnectionWhereUniqueInput = Prisma.AtLeast<{
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null
   catalogItem?: Prisma.XOR<Prisma.McpServerCatalogItemNullableScalarRelationFilter, Prisma.McpServerCatalogItemWhereInput> | null
   agents?: Prisma.AgentMcpConnectionListRelationFilter
-}, "mcpConnectionId" | "organizationId_smitheryConnectionId">
+}, "mcpConnectionId" | "organizationId_smitheryConnectionId" | "organizationId_provider_connectionKey">
 
 export type McpConnectionOrderByWithAggregationInput = {
   mcpConnectionId?: Prisma.SortOrder
@@ -326,8 +387,14 @@ export type McpConnectionOrderByWithAggregationInput = {
   displayName?: Prisma.SortOrder
   provider?: Prisma.SortOrder
   mcpUrl?: Prisma.SortOrder
-  smitheryNamespace?: Prisma.SortOrder
-  smitheryConnectionId?: Prisma.SortOrder
+  smitheryNamespace?: Prisma.SortOrderInput | Prisma.SortOrder
+  smitheryConnectionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  connectionKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  toolkitSlug?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerUserId?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerAccountId?: Prisma.SortOrderInput | Prisma.SortOrder
+  providerSessionId?: Prisma.SortOrderInput | Prisma.SortOrder
+  setupLeaseUntil?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   setupUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   tools?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -351,8 +418,14 @@ export type McpConnectionScalarWhereWithAggregatesInput = {
   displayName?: Prisma.StringWithAggregatesFilter<"McpConnection"> | string
   provider?: Prisma.StringWithAggregatesFilter<"McpConnection"> | string
   mcpUrl?: Prisma.StringWithAggregatesFilter<"McpConnection"> | string
-  smitheryNamespace?: Prisma.StringWithAggregatesFilter<"McpConnection"> | string
-  smitheryConnectionId?: Prisma.StringWithAggregatesFilter<"McpConnection"> | string
+  smitheryNamespace?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  smitheryConnectionId?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  connectionKey?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  toolkitSlug?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  providerUserId?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  providerAccountId?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  providerSessionId?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
+  setupLeaseUntil?: Prisma.DateTimeNullableWithAggregatesFilter<"McpConnection"> | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusWithAggregatesFilter<"McpConnection"> | $Enums.McpConnectionStatus
   setupUrl?: Prisma.StringNullableWithAggregatesFilter<"McpConnection"> | string | null
   tools?: Prisma.JsonNullableWithAggregatesFilter<"McpConnection">
@@ -367,8 +440,14 @@ export type McpConnectionCreateInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -390,8 +469,14 @@ export type McpConnectionUncheckedCreateInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -407,8 +492,14 @@ export type McpConnectionUpdateInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -430,8 +521,14 @@ export type McpConnectionUncheckedUpdateInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -450,8 +547,14 @@ export type McpConnectionCreateManyInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -466,8 +569,14 @@ export type McpConnectionUpdateManyMutationInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -485,8 +594,14 @@ export type McpConnectionUncheckedUpdateManyInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -511,6 +626,12 @@ export type McpConnectionOrganizationIdSmitheryConnectionIdCompoundUniqueInput =
   smitheryConnectionId: string
 }
 
+export type McpConnectionOrganizationIdProviderConnectionKeyCompoundUniqueInput = {
+  organizationId: string
+  provider: string
+  connectionKey: string
+}
+
 export type McpConnectionCountOrderByAggregateInput = {
   mcpConnectionId?: Prisma.SortOrder
   organizationId?: Prisma.SortOrder
@@ -521,6 +642,12 @@ export type McpConnectionCountOrderByAggregateInput = {
   mcpUrl?: Prisma.SortOrder
   smitheryNamespace?: Prisma.SortOrder
   smitheryConnectionId?: Prisma.SortOrder
+  connectionKey?: Prisma.SortOrder
+  toolkitSlug?: Prisma.SortOrder
+  providerUserId?: Prisma.SortOrder
+  providerAccountId?: Prisma.SortOrder
+  providerSessionId?: Prisma.SortOrder
+  setupLeaseUntil?: Prisma.SortOrder
   status?: Prisma.SortOrder
   setupUrl?: Prisma.SortOrder
   tools?: Prisma.SortOrder
@@ -540,6 +667,12 @@ export type McpConnectionMaxOrderByAggregateInput = {
   mcpUrl?: Prisma.SortOrder
   smitheryNamespace?: Prisma.SortOrder
   smitheryConnectionId?: Prisma.SortOrder
+  connectionKey?: Prisma.SortOrder
+  toolkitSlug?: Prisma.SortOrder
+  providerUserId?: Prisma.SortOrder
+  providerAccountId?: Prisma.SortOrder
+  providerSessionId?: Prisma.SortOrder
+  setupLeaseUntil?: Prisma.SortOrder
   status?: Prisma.SortOrder
   setupUrl?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
@@ -557,6 +690,12 @@ export type McpConnectionMinOrderByAggregateInput = {
   mcpUrl?: Prisma.SortOrder
   smitheryNamespace?: Prisma.SortOrder
   smitheryConnectionId?: Prisma.SortOrder
+  connectionKey?: Prisma.SortOrder
+  toolkitSlug?: Prisma.SortOrder
+  providerUserId?: Prisma.SortOrder
+  providerAccountId?: Prisma.SortOrder
+  providerSessionId?: Prisma.SortOrder
+  setupLeaseUntil?: Prisma.SortOrder
   status?: Prisma.SortOrder
   setupUrl?: Prisma.SortOrder
   lastSyncedAt?: Prisma.SortOrder
@@ -718,8 +857,14 @@ export type McpConnectionCreateWithoutUserInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -739,8 +884,14 @@ export type McpConnectionUncheckedCreateWithoutUserInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -788,8 +939,14 @@ export type McpConnectionScalarWhereInput = {
   displayName?: Prisma.StringFilter<"McpConnection"> | string
   provider?: Prisma.StringFilter<"McpConnection"> | string
   mcpUrl?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryNamespace?: Prisma.StringFilter<"McpConnection"> | string
-  smitheryConnectionId?: Prisma.StringFilter<"McpConnection"> | string
+  smitheryNamespace?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  smitheryConnectionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  connectionKey?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  toolkitSlug?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerUserId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerAccountId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  providerSessionId?: Prisma.StringNullableFilter<"McpConnection"> | string | null
+  setupLeaseUntil?: Prisma.DateTimeNullableFilter<"McpConnection"> | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFilter<"McpConnection"> | $Enums.McpConnectionStatus
   setupUrl?: Prisma.StringNullableFilter<"McpConnection"> | string | null
   tools?: Prisma.JsonNullableFilter<"McpConnection">
@@ -804,8 +961,14 @@ export type McpConnectionCreateWithoutOrganizationInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -825,8 +988,14 @@ export type McpConnectionUncheckedCreateWithoutOrganizationInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -868,8 +1037,14 @@ export type McpConnectionCreateWithoutCatalogItemInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -889,8 +1064,14 @@ export type McpConnectionUncheckedCreateWithoutCatalogItemInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -932,8 +1113,14 @@ export type McpConnectionCreateWithoutAgentsInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -954,8 +1141,14 @@ export type McpConnectionUncheckedCreateWithoutAgentsInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -986,8 +1179,14 @@ export type McpConnectionUpdateWithoutAgentsInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1008,8 +1207,14 @@ export type McpConnectionUncheckedUpdateWithoutAgentsInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1026,8 +1231,14 @@ export type McpConnectionCreateManyUserInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1042,8 +1253,14 @@ export type McpConnectionUpdateWithoutUserInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1063,8 +1280,14 @@ export type McpConnectionUncheckedUpdateWithoutUserInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1082,8 +1305,14 @@ export type McpConnectionUncheckedUpdateManyWithoutUserInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1100,8 +1329,14 @@ export type McpConnectionCreateManyOrganizationInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1116,8 +1351,14 @@ export type McpConnectionUpdateWithoutOrganizationInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1137,8 +1378,14 @@ export type McpConnectionUncheckedUpdateWithoutOrganizationInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1156,8 +1403,14 @@ export type McpConnectionUncheckedUpdateManyWithoutOrganizationInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1174,8 +1427,14 @@ export type McpConnectionCreateManyCatalogItemInput = {
   displayName: string
   provider?: string
   mcpUrl: string
-  smitheryNamespace: string
-  smitheryConnectionId: string
+  smitheryNamespace?: string | null
+  smitheryConnectionId?: string | null
+  connectionKey?: string | null
+  toolkitSlug?: string | null
+  providerUserId?: string | null
+  providerAccountId?: string | null
+  providerSessionId?: string | null
+  setupLeaseUntil?: Date | string | null
   status?: $Enums.McpConnectionStatus
   setupUrl?: string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1190,8 +1449,14 @@ export type McpConnectionUpdateWithoutCatalogItemInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1211,8 +1476,14 @@ export type McpConnectionUncheckedUpdateWithoutCatalogItemInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1230,8 +1501,14 @@ export type McpConnectionUncheckedUpdateManyWithoutCatalogItemInput = {
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   provider?: Prisma.StringFieldUpdateOperationsInput | string
   mcpUrl?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryNamespace?: Prisma.StringFieldUpdateOperationsInput | string
-  smitheryConnectionId?: Prisma.StringFieldUpdateOperationsInput | string
+  smitheryNamespace?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  smitheryConnectionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  connectionKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  toolkitSlug?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerAccountId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  providerSessionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  setupLeaseUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   status?: Prisma.EnumMcpConnectionStatusFieldUpdateOperationsInput | $Enums.McpConnectionStatus
   setupUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tools?: Prisma.NullableJsonNullValueInput | runtime.InputJsonValue
@@ -1282,6 +1559,12 @@ export type McpConnectionSelect<ExtArgs extends runtime.Types.Extensions.Interna
   mcpUrl?: boolean
   smitheryNamespace?: boolean
   smitheryConnectionId?: boolean
+  connectionKey?: boolean
+  toolkitSlug?: boolean
+  providerUserId?: boolean
+  providerAccountId?: boolean
+  providerSessionId?: boolean
+  setupLeaseUntil?: boolean
   status?: boolean
   setupUrl?: boolean
   tools?: boolean
@@ -1306,6 +1589,12 @@ export type McpConnectionSelectCreateManyAndReturn<ExtArgs extends runtime.Types
   mcpUrl?: boolean
   smitheryNamespace?: boolean
   smitheryConnectionId?: boolean
+  connectionKey?: boolean
+  toolkitSlug?: boolean
+  providerUserId?: boolean
+  providerAccountId?: boolean
+  providerSessionId?: boolean
+  setupLeaseUntil?: boolean
   status?: boolean
   setupUrl?: boolean
   tools?: boolean
@@ -1328,6 +1617,12 @@ export type McpConnectionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
   mcpUrl?: boolean
   smitheryNamespace?: boolean
   smitheryConnectionId?: boolean
+  connectionKey?: boolean
+  toolkitSlug?: boolean
+  providerUserId?: boolean
+  providerAccountId?: boolean
+  providerSessionId?: boolean
+  setupLeaseUntil?: boolean
   status?: boolean
   setupUrl?: boolean
   tools?: boolean
@@ -1350,6 +1645,12 @@ export type McpConnectionSelectScalar = {
   mcpUrl?: boolean
   smitheryNamespace?: boolean
   smitheryConnectionId?: boolean
+  connectionKey?: boolean
+  toolkitSlug?: boolean
+  providerUserId?: boolean
+  providerAccountId?: boolean
+  providerSessionId?: boolean
+  setupLeaseUntil?: boolean
   status?: boolean
   setupUrl?: boolean
   tools?: boolean
@@ -1359,7 +1660,7 @@ export type McpConnectionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type McpConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"mcpConnectionId" | "organizationId" | "userId" | "catalogItemId" | "displayName" | "provider" | "mcpUrl" | "smitheryNamespace" | "smitheryConnectionId" | "status" | "setupUrl" | "tools" | "metadata" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mcpConnection"]>
+export type McpConnectionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"mcpConnectionId" | "organizationId" | "userId" | "catalogItemId" | "displayName" | "provider" | "mcpUrl" | "smitheryNamespace" | "smitheryConnectionId" | "connectionKey" | "toolkitSlug" | "providerUserId" | "providerAccountId" | "providerSessionId" | "setupLeaseUntil" | "status" | "setupUrl" | "tools" | "metadata" | "lastSyncedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["mcpConnection"]>
 export type McpConnectionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   organization?: boolean | Prisma.OrganizationDefaultArgs<ExtArgs>
   user?: boolean | Prisma.McpConnection$userArgs<ExtArgs>
@@ -1394,8 +1695,14 @@ export type $McpConnectionPayload<ExtArgs extends runtime.Types.Extensions.Inter
     displayName: string
     provider: string
     mcpUrl: string
-    smitheryNamespace: string
-    smitheryConnectionId: string
+    smitheryNamespace: string | null
+    smitheryConnectionId: string | null
+    connectionKey: string | null
+    toolkitSlug: string | null
+    providerUserId: string | null
+    providerAccountId: string | null
+    providerSessionId: string | null
+    setupLeaseUntil: Date | null
     status: $Enums.McpConnectionStatus
     setupUrl: string | null
     tools: runtime.JsonValue | null
@@ -1839,6 +2146,12 @@ export interface McpConnectionFieldRefs {
   readonly mcpUrl: Prisma.FieldRef<"McpConnection", 'String'>
   readonly smitheryNamespace: Prisma.FieldRef<"McpConnection", 'String'>
   readonly smitheryConnectionId: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly connectionKey: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly toolkitSlug: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly providerUserId: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly providerAccountId: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly providerSessionId: Prisma.FieldRef<"McpConnection", 'String'>
+  readonly setupLeaseUntil: Prisma.FieldRef<"McpConnection", 'DateTime'>
   readonly status: Prisma.FieldRef<"McpConnection", 'McpConnectionStatus'>
   readonly setupUrl: Prisma.FieldRef<"McpConnection", 'String'>
   readonly tools: Prisma.FieldRef<"McpConnection", 'Json'>

@@ -1,69 +1,62 @@
-# Populate the MCP marketplace catalog
+# Composio integrations
 
-> **Provider shutdown:** [Smithery's October 2026 announcement](https://smithery.ai/future) says its Connect/API, managed OAuth, API keys, and hosted `server.smithery.ai` / `run.tools` endpoints shut down on **October 31, 2026**. The public registry remains available. QuickVoice's existing Smithery transport requires migration to a supported connection provider or direct MCP transport before that shutdown. Schema validation does not replace that transport or transfer OAuth grants. Choose the replacement and reauthorize the intended organization accounts; do not treat a registry listing as a working connection.
+QuickVoice uses Composio REST API v3.1 for marketplace discovery, account authorization, tool schemas, and execution. The existing `/mcp` API routes and agent tool bridge remain compatible. Native Composio integrations are toolkits; custom remote MCP servers are registered as experimental custom toolkits.
 
-The API shows four built-in MCP servers when the shared `McpServerCatalogItem` table has no Smithery rows. Agent **Add MCP** shows only connections already made by the organization; it is not the marketplace catalog.
+## Server setup
 
-After deploying a server image that contains `dist/src/modules/mcp/import-smithery-catalog.cli.js`:
+1. Create a Composio project dedicated to this QuickVoice environment. Use separate projects/keys for staging and production.
+2. Create a project API key with access to toolkit discovery, connected accounts (including linking and deletion), session management, and session tool execution. Custom MCP also needs custom-toolkit management access. Store it as `COMPOSIO_API_KEY` on the **API server**, never in a browser variable or agent prompt.
+3. Managed authentication is the default. To use your own OAuth applications, create the toolkit auth configurations in Composio and set `COMPOSIO_AUTH_CONFIGS` to a JSON object, for example `{"googlecalendar":"ac_your_config_id"}`. Enable those auth configurations for Tool Router/session use. Grant the scopes needed for the tools you intend to use.
+4. Apply the normal Prisma deployment migrations before starting the new server (`pnpm --filter server exec prisma migrate deploy` in a source checkout). Deploy matching API and console images. If `READINESS_REQUIRED_INTEGRATIONS` previously included `smithery`, replace it with `composio`.
+5. In QuickVoice, open **Tools → MCP marketplace**, search for the app, select **Connect**, then **Setup**, and authorize the intended business account. The browser polls for completion; **Refresh** checks it again. A missing API key or provider outage displays an error with Retry, never a fake four-app fallback.
+6. In **Connected MCPs**, use **Test access** on a read-only tool with valid inputs. Attach the connected integration to the desired agents, then start a fresh preview or call.
 
-1. Confirm the API server has `SMITHERY_API_KEY` and `DATABASE_URL` configured. Do not print either value or pass the key on a command line.
-2. Open the production QuickVoice server container's terminal in Coolify and run:
+Do not turn on Composio's optional project callback identity verifier until QuickVoice has a compatible verifier endpoint. This implementation uses hosted Connect Links and server-side account ownership checks; it does not implement that optional callback protocol. Return to QuickVoice after Composio shows successful authorization.
 
-   ```sh
-   cd /app/apps/server
-   test -n "$SMITHERY_API_KEY" && test -n "$DATABASE_URL"
-   node dist/src/modules/mcp/import-smithery-catalog.cli.js
-   ```
+## Existing Smithery accounts
 
-   The command fetches deployed remote servers from Smithery and upserts them into the shared database. It can take several minutes. If it fails part-way, fix the reported error and rerun it; existing entries are updated by URL.
-3. In the production database, confirm rows were imported:
+OAuth grants and tool names do not transfer between providers. The migration retains old rows, attachments, and logs for reference but marks Smithery connections disconnected and clears their executable tools and setup links. Legacy entries explain how to reconnect.
 
-   ```sql
-   SELECT count(*)
-   FROM "McpServerCatalogItem"
-   WHERE "organizationId" IS NULL AND "source" = 'SMITHERY';
-   ```
+Authorize the corresponding app through the Composio marketplace, test it, and attach the **new** connection to each intended agent. Update any prompts that hard-code Smithery/Arcade tool names or argument names: Composio has its own schemas. Remove the legacy entries after switching agents. If Smithery is unavailable, local removal succeeds; revoke the old authorization in the connected app's account settings. An optional existing `SMITHERY_API_KEY` is used only for best-effort retirement of old grants, never for new setup or execution.
 
-4. Reload **Tools marketplace → MCP marketplace**. Search for a provider, connect it, complete authorization, then check **Connected MCPs** for `CONNECTED` and synced tools before attaching it to an agent.
+The Smithery import CLI is retired. The marketplace reads the current native Composio catalog, paginates fully, and caches it for five minutes. No manual catalog import is needed. Native listings are provider-managed entries, not a promise that every operation is authorized or tested. Catalog presence alone does not implement or verify every item in an integration planning spreadsheet.
 
-Importing Smithery listings does not implement every item in the integration planning spreadsheet. A provider absent from Smithery needs a working remote MCP endpoint for **Connect a custom MCP server**, or an HTTP tool/integration built for that provider. Only attach trusted servers and review the tools and permissions granted during authorization.
+## Account and tool behavior
 
-## Authorize and verify an organization's provider account
+- A stable provider principal belongs to one organization connection. All attached agents/calls reuse that principal and its explicit connected-account ID. Caller IDs and call IDs never become Composio auth identities.
+- Account selection is pinned in the session and execution request. Sessions enable only that connection's toolkit. Provider connection-management helpers, sandbox/workbench, proxy execution, search helpers, and instant paid tools are disabled.
+- OAuth/API credentials stay in Composio. QuickVoice saves only connection/session identifiers, normalized schemas, status, and redacted execution previews. Account API responses are not returned or logged.
+- Only read-only tools are autonomous, consistent with the existing QuickVoice policy. Create/update/delete/unknown tools still require a trusted user execution path. This migration does **not** make spoken approval sufficient to book events or send messages automatically.
+- Tool arguments are validated against the synced provider schema before execution. No guessed remapping, coercion, or removal of unsupported inputs occurs. Refresh tools after provider schema changes.
+- HTTP success with a provider failure/challenge is still failure. Callers receive an administrator-setup message rather than an OAuth URL. Reconnect in the marketplace after revocation/expiry or a new permission requirement; ordinary calls do not initiate consent.
+- Setup is serialized by a database lease across replicas. Repeated Connect clicks reuse the saved account. A remote account whose ID failed to save is recovered by its dedicated principal. Leases expire after five minutes if a process dies.
+- Ordinary refresh reuses the runtime session so it does not invalidate active calls. A missing or deleted session can be replaced during refresh, keeping the authorized account. A missing session/tool during execution marks the connection as needing refresh; a late failure cannot overwrite a newer connection state. Failed execution is never automatically replayed, because that could duplicate a provider write.
+- Temporary setup errors preserve the existing consent link. If a pending account has lost its link, Reconnect creates a replacement authorization flow using the same saved principal.
+- Disconnect removes the remote account/session before deleting local records and attachments. Failed Composio cleanup leaves the local handle available for retry. Provider revocation may be asynchronous; deleting a connection is not proof that an issuer has invalidated every token.
 
-`SERVER CONNECTED` confirms MCP server connectivity, not Google Calendar or other tool-level authorization. Complete account setup in **Tools marketplace → Connected MCPs → Test access** before deploying an agent:
+## Custom MCP servers
 
-1. Choose an explicitly read-only tool, such as `GoogleCalendar_WhoAmI` or `GoogleCalendar_ListCalendars`. Use the displayed input schema for required arguments; use `{}` when no inputs are required.
-2. Run the read-only test. If the provider requests authorization, select **Authorize account**, sign in as the intended organization calendar owner, and review the permissions requested by the provider.
-3. Return to QuickVoice and run the same test again. Browser or verbal confirmation alone does not mark a tool verified. Verify each tool the agent needs: one tool's Google grant may not cover another tool's scopes.
-4. Attach this saved connection to the intended agents. End the preview, start a new preview, and repeat the same read operation to verify consent survives a new call. Calls reuse the persisted Smithery namespace and connection ID; they do not create a new provider connection per caller.
+Select the authentication method documented by the server:
 
-Account setup tests require an authenticated console session with `tools:execute`. Organization API keys, internal callers, and read-only members cannot use that endpoint. Setup tests cannot execute destructive, unknown, or confirmation-required tools. Authorizing Google access does not bypass QuickVoice's separate restrictions on autonomous write tools.
+- **OAuth:** supports dynamic client registration (DCR). Supply its public HTTPS authorization-server discovery document, not the protected-resource metadata URL. CIMD-only servers are not supported by Composio's experimental custom-MCP OAuth path.
+- **API key:** the current form supports an `Authorization: Bearer` token. Enter the token on Composio's hosted setup page. Arbitrary custom credential headers are not exposed by this form.
+- **No authentication:** only for servers that actually accept unauthenticated requests.
 
-When a tool returns an authorization challenge during a call, QuickVoice records the pending tool permission and gives the voice worker a safe administrator-setup error, without passing the OAuth URL to the LLM. The transient link is returned only to the authorized console test response; it is not stored in connection metadata or execution logs. Refreshing a tool list cannot clear pending authorization. Upstream HTTP failures and MCP `isError` responses are failures, including when the provider returns HTTP 200.
+The endpoint must be public HTTPS, directly served without redirects, and contain no credentials. Toolkits are named using a digest of the organization and endpoint/auth configuration. They are never listed in another organization's marketplace; user-supplied `CUSTOM_*` catalog slugs are rejected. Custom sync uses the selected account. Composio currently limits a custom toolkit to 500 tools and labels the lifecycle API experimental.
 
-Deploy the API server, AI worker, and console together for this change. No new environment variables or database migrations are needed. Google consent must still be completed by the account owner; QuickVoice cannot grant it automatically. If consent is revoked or a new permission is requested, repeat the console setup test for that tool. Actual Google authorization and cross-call token persistence must be verified against the deployed provider.
+## Deployment acceptance test
 
-UI verification screenshots use the actual console components with a local mock Calendar provider; no Google account was accessed: [desktop](images/mcp-provider-authorization-desktop.png), [mobile](images/mcp-provider-authorization-mobile.png).
+Use a staging Composio project and a non-production Calendar account first:
 
-## Tool contracts and calendar dates
+1. Connect Calendar in organization A; finish consent. Refresh must show Connected and actual tools.
+2. Test a calendar-list tool using its displayed schema. Confirm the intended account and results.
+3. Attach to two agents. End preview, start a new preview, and repeat: both use the same account with no consent request to the caller.
+4. Check organization B cannot list, attach, or execute A's saved connection.
+5. Revoke Calendar access at Google; the next failure must be reported without a spoken OAuth link. Reconnect through the admin console and repeat.
+6. Supply an invalid parameter: execution must return `MCP_ARGUMENTS_INVALID` before a provider call. A write tool must remain blocked for autonomous execution.
+7. Reject/dismiss OAuth, expire a link, and retry. If the provider still presents an expired pending link, disconnect that pending connection and connect again.
+8. Disconnect: remove the agent attachment and confirm subsequent calls cannot use the old handle.
 
-The voice agent lists allowed tool names, then uses `get_mcp_tool_schema` to read a selected tool's complete stored `inputSchema` and description before constructing arguments. This works across MCP providers; Calendar argument names are not hardcoded. Schemas and descriptions are reference data, not system instructions.
+Local automated checks mock Composio responses. They do not establish live OAuth compatibility, provider availability, or account scopes. Live acceptance requires the configured project and actual consent.
 
-The API independently validates every execution, including console **Test access**, against that tool's synced JSON Schema before contacting the provider. Validation supports draft 7, 2019-09, and 2020-12, nested objects, local references, enums, alternatives, and standard formats. It does not coerce types, insert defaults, remove unknown fields, or fetch external schema URLs. Invalid arguments return `422 MCP_ARGUMENTS_INVALID` with the schema and bounded validation issues so the model can correct its request. Missing, unsupported, oversized, or excessively expensive schemas return `409 MCP_SCHEMA_UNAVAILABLE`; refresh the connection and investigate the provider schema. Authorization and confirmation checks still run first. Schemas are limited to 64 KB, argument objects to 8 KB, and the process keeps at most 64 compiled validators with compilation/validation time limits.
-
-For example, the reported `GoogleCalendar_FindTimeSlotsWhenEveryoneIsFree` schema accepts these arguments:
-
-```json
-{
-  "start_date": "2026-10-27",
-  "end_date": "2026-10-27",
-  "start_time_boundary": "00:00",
-  "end_time_boundary": "23:59"
-}
-```
-
-That particular tool does **not** accept `start_time`, `end_time`, `calendar_ids`, `duration_minutes`, or `timezone`. Its documented defaults select the current account when `email_addresses` is omitted. A request for 30-minute availability must be derived from the returned free intervals. Check the provider's timezone and date-boundary semantics rather than inventing extra fields or promising exact midnight coverage. Other tools can have different contracts; inspect each one.
-
-Each call receives the current date/time in the agent's saved IANA timezone, with UTC as the fallback. `get_current_time` refreshes it during long calls or for a caller-requested timezone. Relative dates use that clock, and future event searches start now unless the caller specifies otherwise. Provider results must still be converted to the caller's requested timezone when necessary.
-
-Deploy the **API server and AI worker** together for contract validation and clock context. There are no new environment variables or database migrations. Refresh older connections, complete **Test access** for each needed read-only operation, then start a new preview. Confirm an intentionally unsupported argument produces a validation error without a provider request, correct it using the displayed schema, and verify the read succeeds in both a new preview and a phone call. This local regression suite uses mocked providers and does not establish live OAuth persistence or availability. Write tools still require a separate trusted confirmation flow.
+Official contracts: [sessions](https://docs.composio.dev/reference/api-reference/tool-router), [connected accounts](https://docs.composio.dev/reference/api-reference/connected-accounts), [custom MCP](https://docs.composio.dev/docs/extending-sessions/custom-mcp).

@@ -23,8 +23,7 @@ before(async () => {
     GOOGLE_CLIENT_ID: "test",
     GOOGLE_CLIENT_SECRET: "test",
     INTERNAL_API_KEY: internalKey,
-    SMITHERY_API_KEY: "local-test-only",
-    SMITHERY_API_BASE_URL: "https://smithery.invalid",
+    COMPOSIO_API_KEY: "local-test-only",
   });
   const { auth } = await import("../../src/lib/auth.js");
   const { roles, ac } = await import("../../src/lib/permissions.js");
@@ -55,10 +54,12 @@ before(async () => {
       metadata: { permissions: { tools: ["execute"] } },
     },
   }));
-  mock.method(globalThis, "fetch", async (url: any) => {
-    assert.match(String(url), /^https:\/\/smithery\.invalid\/connect\/test-namespace\/test-connection\/\.tools\//);
-    providerCalls.push(String(url).split("/").pop()!);
-    return new Response(JSON.stringify(providerBody), { status: 200 });
+  mock.method(globalThis, "fetch", async (url: any, options: any) => {
+    assert.equal(String(url), "https://backend.composio.dev/api/v3.1/tool_router/session/test-session/execute");
+    const body = JSON.parse(options.body);
+    assert.equal(body.account, "test-account");
+    providerCalls.push(body.tool_slug);
+    return Response.json((providerBody as any).authorizationRequired ? providerBody : { result_type: "completed", data: providerBody });
   });
 
   // Prisma delegates are proxies, so restore assignments explicitly.
@@ -79,8 +80,8 @@ before(async () => {
     }
     return {
       status: "CONNECTED",
-      smitheryNamespace: "test-namespace",
-      smitheryConnectionId: "test-connection",
+      provider: "composio", providerUserId: "qv:org-test:saved", providerAccountId: "test-account",
+      toolkitSlug: "googlecalendar", providerSessionId: "test-session",
       mcpUrl: "https://example.invalid/mcp",
       tools: [
         { name: "list_files", annotations: { readOnlyHint: true }, inputSchema: { type: "object" } },

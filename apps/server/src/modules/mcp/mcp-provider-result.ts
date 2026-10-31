@@ -2,6 +2,7 @@ import CustomApiError from "../../common/errors/customApiError.js";
 
 const authorizationHosts = new Set([
   "accounts.google.com", "cloud.arcade.dev", "auth.arcade.dev",
+  "connect.composio.dev", "app.composio.dev", "backend.composio.dev",
   "api.arcade.dev", "connect.smithery.ai", "smithery.run",
 ]);
 
@@ -48,7 +49,7 @@ export function inspectMcpResult(result: unknown, httpStatus = 200): McpProvider
       return;
     }
     const node = value as Record<string, unknown>;
-    if (node.isError === true || node.success === false) toolError = true;
+    if (node.isError === true || node.success === false || node.successful === false) toolError = true;
     if (node.authorizationRequired === true || node.auth_required === true ||
         ["auth_required", "authorization_required"].includes(String(node.code ?? node.error ?? node.status ?? node.type).toLowerCase())) {
       authRequired = true;

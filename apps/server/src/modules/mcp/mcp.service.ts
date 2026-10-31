@@ -1,641 +1,707 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { BadRequestError } from "../../common/errors/badRequest.js";
 import { ForbiddenError } from "../../common/errors/forbidden.js";
 import { NotFoundError } from "../../common/errors/notFound.js";
 import { assertSafeRemoteUrl } from "../../lib/url-safety.js";
 import { redactJson } from "../../lib/redaction.js";
-import { findCuratedMcp, curatedMcpCatalog } from "./mcp.catalog.js";
 import * as repository from "./mcp.repository.js";
-import { readSmitheryJson, resolveSmitheryNamespace } from "./smithery-namespace.js";
 import {
   findMcpTool,
   mcpToolRequiresConfirmation,
   normalizeMcpTools,
 } from "./mcp-tool-policy.js";
+import {
+  assertMcpArguments,
+  McpToolContractError,
+} from "./mcp-tool-contract.js";
+import { inspectMcpResult, McpProviderError } from "./mcp-provider-result.js";
+import {
+  composioRequest,
+  composioPages,
+  composioTools,
+  createComposioSession,
+  deleteComposioResource,
+  safeComposioSetupUrl,
+  ComposioHttpError,
+  object,
+} from "./composio.client.js";
 import type { ConnectMcpInput, ExecuteMcpToolInput } from "./mcp.schema.js";
-import { assertMcpArguments, McpToolContractError } from "./mcp-tool-contract.js";
-import { inspectMcpResult, McpProviderError, withoutMcpAuthorizationLinks } from "./mcp-provider-result.js";
 
-type McpStatus = "PENDING" | "CONNECTED" | "AUTH_REQUIRED" | "INPUT_REQUIRED" | "ERROR" | "DISCONNECTED";
-type CatalogSort = "popular" | "name";
+const LEGACY_MESSAGE =
+  "Reconnect this integration through Composio in the marketplace, then attach the new connection to your agents.";
+type Connection = Omit<
+  NonNullable<Awaited<ReturnType<typeof repository.findConnection>>>,
+  "agents"
+>;
 type CatalogListParams = {
   page: number;
   pageSize: number;
   search?: string;
   verified?: boolean;
-  sort: CatalogSort;
+  sort: "popular" | "name";
 };
-type CatalogItemLike = {
-  mcpServerId?: string | null;
-  slug: string;
-  name: string;
-  description: string;
-  provider: string;
-  source: "SMITHERY" | "CUSTOM";
-  mcpUrl: string;
-  smitheryServerKey?: string | null;
-  authType: string;
-  categories: string[];
-  verified: boolean;
-  toolCount: number;
-  metadata?: Record<string, unknown> | null;
-};
+const toolkitUrl = (slug: string) =>
+  `https://platform.composio.dev/toolkits/${encodeURIComponent(slug)}`;
+const identifier = (value: unknown): value is string =>
+  typeof value === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(value);
+const sessionPath = (id: string) =>
+  `/tool_router/session/${encodeURIComponent(id)}`;
+const accountPath = (id: string) =>
+  `/connected_accounts/${encodeURIComponent(id)}`;
 
-const SMITHERY_NAMESPACE = process.env.SMITHERY_NAMESPACE;
-const SMITHERY_RUN_BASE_URL = process.env.SMITHERY_RUN_BASE_URL || "https://smithery.run";
-const SMITHERY_API_BASE_URL = process.env.SMITHERY_API_BASE_URL || "https://api.smithery.ai";
-
-const getSmitheryApiKey = () => {
-  const key = process.env.SMITHERY_API_KEY;
-  if (!key) {
-    throw new BadRequestError(
-      "MCP connections are not configured. Ask an administrator to add a Smithery API key."
+let catalogCache:
+  | { key: string; expires: number; items: Record<string, any>[] }
+  | undefined;
+export const listCatalog = async (
+  organizationId: string,
+  params: CatalogListParams,
+) => {
+  const key = createHash("sha256")
+    .update(process.env.COMPOSIO_API_KEY ?? "")
+    .digest("hex");
+  if (
+    !catalogCache ||
+    catalogCache.key !== key ||
+    catalogCache.expires < Date.now()
+  ) {
+    const items = await composioPages(
+      "/toolkits?type=native&sort_by=usage&limit=1000",
     );
-  }
-  return key;
-};
-
-const slugify = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/https?:\/\//g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 64) || "custom-mcp";
-
-const normalizeStatus = (state: unknown): McpStatus => {
-  const value = String(state ?? "").toLowerCase();
-  if (value === "connected" || value === "ready") return "CONNECTED";
-  if (value === "auth_required" || value === "authorization_required") return "AUTH_REQUIRED";
-  if (value === "input_required") return "INPUT_REQUIRED";
-  if (value === "disconnected") return "DISCONNECTED";
-  if (value === "error" || value === "failed") return "ERROR";
-  return "PENDING";
-};
-
-const connectionApiUrl = (namespace: string, connectionId: string) =>
-  `${SMITHERY_API_BASE_URL.replace(/\/$/, "")}/connect/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}`;
-
-const smitherySetupUrl = (namespace: string, connectionId: string) =>
-  `${SMITHERY_RUN_BASE_URL.replace(/\/$/, "")}/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}/setup`;
-
-const smitheryState = (connection: Record<string, any>) =>
-  typeof connection.status === "string"
-    ? connection.status
-    : connection.status?.state ?? connection.state;
-
-const smitheryAuthorizationUrl = (connection: Record<string, any>) =>
-  connection.authorizationUrl ??
-  connection.status?.authorizationUrl ??
-  connection.status?.setupUrl ??
-  connection.setupUrl ??
-  null;
-
-const isGoogleDriveMcp = (mcpUrl: string) =>
-  mcpUrl.toLowerCase().includes("server.smithery.ai/googledrive");
-
-const metadataObject = (value: unknown): Record<string, unknown> =>
-  value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
-
-const stringArray = (value: unknown): string[] =>
-  Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-
-const normalizeCatalogItem = (item: {
-  mcpServerId?: string | null;
-  slug: string;
-  name: string;
-  description: string;
-  provider: string;
-  source: "SMITHERY" | "CUSTOM";
-  mcpUrl: string;
-  smitheryServerKey?: string | null;
-  authType: string;
-  categories: unknown;
-  verified: boolean;
-  toolCount: number;
-  metadata?: unknown;
-}): CatalogItemLike => {
-  const metadata = metadataObject(item.metadata);
-  return {
-    mcpServerId: item.mcpServerId ?? null,
-    slug: item.slug,
-    name: item.name,
-    description: item.description,
-    provider: item.provider,
-    source: item.source,
-    mcpUrl: item.mcpUrl,
-    smitheryServerKey: item.smitheryServerKey,
-    authType: item.authType,
-    categories: stringArray(item.categories),
-    verified: item.verified,
-    toolCount: item.toolCount,
-    metadata,
-  };
-};
-
-const catalogResponseItem = (item: CatalogItemLike) => {
-  const metadata = metadataObject(item.metadata);
-  return {
-    ...item,
-    iconUrl: typeof metadata.iconUrl === "string" ? metadata.iconUrl : null,
-    homepage: typeof metadata.homepage === "string" ? metadata.homepage : null,
-    qualifiedName: typeof metadata.qualifiedName === "string" ? metadata.qualifiedName : item.smitheryServerKey ?? item.slug,
-    namespace: typeof metadata.namespace === "string" ? metadata.namespace : null,
-    useCount: typeof metadata.useCount === "number" ? metadata.useCount : item.toolCount,
-    metadata,
-  };
-};
-
-const isInsufficientGoogleScope = (value: unknown) => {
-  const text = JSON.stringify(value ?? "").toLowerCase();
-  return (
-    text.includes("access_token_scope_insufficient") ||
-    text.includes("insufficient permission") ||
-    text.includes("insufficient authentication scopes") ||
-    text.includes("insufficientpermissions")
-  );
-};
-
-const callSmitheryTool = async (
-  namespace: string,
-  connectionId: string,
-  toolName: string,
-  args: Record<string, unknown>
-) => {
-  const response = await fetch(
-    `${SMITHERY_API_BASE_URL.replace(/\/$/, "")}/connect/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}/.tools/${encodeURIComponent(toolName)}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${getSmitheryApiKey()}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(args),
-      signal: AbortSignal.timeout(20_000),
-    }
-  );
-  const result = await readSmitheryJson(response);
-  if (isInsufficientGoogleScope(result)) {
-    throw new McpProviderError("MCP_AUTH_REQUIRED");
-  }
-  const error = inspectMcpResult(result, response.status);
-  if (error) throw error;
-  return withoutMcpAuthorizationLinks(result) as Record<string, any>;
-};
-
-const checkGoogleDriveScopes = async (namespace: string, connectionId: string) => {
-  if (!connectionId.toLowerCase().includes("googledrive")) {
-    return { ok: true, error: null };
-  }
-
-  let result;
-  try {
-    result = await callSmitheryTool(namespace, connectionId, "list_files", { pageSize: 1 });
-  } catch (error) {
-    if (error instanceof McpProviderError && error.code === "MCP_AUTH_REQUIRED") {
-      return { ok: false, error: "Google Drive access was not granted during OAuth setup." };
-    }
-    throw error;
-  }
-  if (isInsufficientGoogleScope(result)) {
-    return {
-      ok: false,
-      error: "Google Drive access was not granted during OAuth setup.",
+    catalogCache = {
+      key,
+      expires: Date.now() + 300_000,
+      items: items.filter(
+        (item) => item.type === "native" && identifier(item.slug),
+      ),
     };
   }
-  return { ok: true, error: null };
-};
-
-const upsertSmitheryConnection = async (args: {
-  namespace: string;
-  connectionId: string;
-  displayName: string;
-  mcpUrl: string;
-  organizationId: string;
-  userId: string | null;
-}) => {
-  const response = await fetch(connectionApiUrl(args.namespace, args.connectionId), {
-    method: "PUT",
-    headers: {
-      Authorization: `Bearer ${getSmitheryApiKey()}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      mcpUrl: args.mcpUrl,
-      name: args.displayName,
-      metadata: {
-        organizationId: args.organizationId,
-        userId: args.userId,
-      },
-    }),
-    signal: AbortSignal.timeout(10_000),
-  });
-
-  const body = await readSmitheryJson(response);
-  if (!response.ok) {
-    const message = String(body?.message ?? "");
-    if (
-      [401, 403, 404].includes(response.status) &&
-      /credential|namespace|token|unauthor|forbidden/i.test(message)
-    ) {
-      throw new BadRequestError(
-        "MCP connections are not configured correctly. Ask an administrator to verify the Smithery API key."
-      );
-    }
-    throw new BadRequestError("Could not connect to the MCP endpoint. Check its URL and provider setup.");
-  }
-  return body;
-};
-
-export const disconnectSmitheryConnection = async (
-  namespace: string,
-  connectionId: string,
-) => {
-  const key = getSmitheryApiKey();
-
-  const response = await fetch(connectionApiUrl(namespace, connectionId), {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${key}` },
-    signal: AbortSignal.timeout(10_000),
-  });
-
-  if (!response.ok && response.status !== 404) {
-    throw new BadRequestError("Could not disconnect Smithery connection");
-  }
-};
-
-const syncTools = async (namespace: string, connectionId: string) => {
-  const response = await fetch(
-    `${SMITHERY_API_BASE_URL.replace(/\/$/, "")}/connect/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}/.tools`,
-    {
-      headers: { Authorization: `Bearer ${getSmitheryApiKey()}` },
-      signal: AbortSignal.timeout(10_000),
-    }
-  );
-  const result = await readSmitheryJson(response);
-  if (!response.ok) {
-    throw new BadRequestError("Could not list MCP tools");
-  }
-  if (!Array.isArray(result.tools)) throw new BadRequestError("MCP provider returned an invalid tool list");
-  return normalizeMcpTools(result.tools);
-};
-
-const filterCuratedCatalog = (params: CatalogListParams) => {
-  const term = params.search?.trim().toLowerCase();
-  return curatedMcpCatalog
-    .filter((item) => {
-      if (params.verified && !item.verified) return false;
-      if (!term) return true;
-      return [
-        item.name,
-        item.description,
-        item.slug,
-        item.mcpUrl,
-        item.smitheryServerKey,
-        ...item.categories,
-      ]
-        .filter(Boolean)
-        .join(" ")
+  const term = params.search?.toLowerCase();
+  let items = catalogCache.items.filter(
+    (item) =>
+      !term ||
+      `${item.name} ${item.slug} ${object(item.meta).description}`
         .toLowerCase()
-        .includes(term);
-    })
-    .sort((a, b) => {
-      if (params.sort === "name") return a.name.localeCompare(b.name);
-      return (b.toolCount ?? 0) - (a.toolCount ?? 0) || a.name.localeCompare(b.name);
-    });
-};
-
-export const listCatalog = async (organizationId: string, params: CatalogListParams) => {
-  const [connections, catalogResult] = await Promise.all([
-    repository.listConnections(organizationId),
-    repository.listCatalogItems(params),
-  ]);
-  const connectionByUrl = new Map(connections.map((connection) => [connection.mcpUrl, connection]));
-  const useCuratedFallback = catalogResult.catalogCount === 0;
-  const fallbackCatalog = useCuratedFallback ? filterCuratedCatalog(params) : [];
-  const baseCatalog = useCuratedFallback
-    ? fallbackCatalog
-        .slice((params.page - 1) * params.pageSize, params.page * params.pageSize)
-        .map((item) => normalizeCatalogItem({ ...item, metadata: null }))
-    : catalogResult.items.map(normalizeCatalogItem);
-  const totalCount = useCuratedFallback ? fallbackCatalog.length : catalogResult.totalCount;
-  const totalPages = Math.max(1, Math.ceil(totalCount / params.pageSize));
-
-  const items = baseCatalog.map((item) => {
-    const connection = connectionByUrl.get(item.mcpUrl);
-    return {
-      ...catalogResponseItem(item),
-      mcpConnectionId: connection?.mcpConnectionId ?? null,
-      connectionStatus: connection?.status ?? null,
-      setupUrl: connection?.setupUrl ?? null,
-      metadata: { ...metadataObject(item.metadata), ...metadataObject(connection?.metadata) },
-      connected: connection?.status === "CONNECTED",
-    };
-  });
-
+        .includes(term),
+  );
+  if (params.sort === "name")
+    items = [...items].sort((a, b) =>
+      String(a.name).localeCompare(String(b.name)),
+    );
+  const connections = await repository.listConnections(organizationId);
+  const byToolkit = new Map(
+    connections
+      .filter((item) => item.provider === "composio")
+      .map((item) => [item.toolkitSlug, item]),
+  );
   return {
-    items,
+    items: items
+      .slice((params.page - 1) * params.pageSize, params.page * params.pageSize)
+      .map((item) => {
+        const meta = object(item.meta);
+        const connection = byToolkit.get(item.slug);
+        return {
+          slug: item.slug,
+          name: item.name,
+          description: meta.description ?? "",
+          provider: "composio",
+          source: "COMPOSIO",
+          mcpUrl: toolkitUrl(item.slug),
+          authType: item.no_auth ? "none" : "managed",
+          verified: true,
+          categories: Array.isArray(meta.categories)
+            ? meta.categories
+                .map((category: unknown) => object(category).name)
+                .filter((name: unknown) => typeof name === "string")
+            : [],
+          toolCount:
+            typeof meta.tools_count === "number" ? meta.tools_count : 0,
+          iconUrl: typeof meta.logo === "string" ? meta.logo : null,
+          qualifiedName: item.slug,
+          metadata: object(connection?.metadata),
+          mcpConnectionId: connection?.mcpConnectionId ?? null,
+          connectionStatus: connection?.status ?? null,
+          setupUrl: connection?.setupUrl ?? null,
+          connected: connection?.status === "CONNECTED",
+        };
+      }),
     pagination: {
       page: params.page,
       pageSize: params.pageSize,
-      totalCount,
-      totalPages,
+      totalCount: items.length,
+      totalPages: Math.max(1, Math.ceil(items.length / params.pageSize)),
     },
   };
 };
 
+const publicConnection = <
+  T extends { provider?: string; tools?: unknown; metadata?: unknown },
+>(
+  connection: T,
+) => {
+  if (connection.provider === "smithery")
+    return {
+      ...connection,
+      status: "DISCONNECTED",
+      setupUrl: null,
+      tools: [],
+      metadata: {
+        ...object(connection.metadata),
+        migrationRequired: true,
+        lastSyncError: LEGACY_MESSAGE,
+      },
+    };
+  return { ...connection, tools: normalizeMcpTools(connection.tools) };
+};
 export const listConnections = async (organizationId: string) =>
-  (await repository.listConnections(organizationId)).map((connection) => ({
-    ...connection,
-    tools: normalizeMcpTools(connection.tools),
-  }));
+  (await repository.listConnections(organizationId)).map(publicConnection);
+export const listAgentConnections = async (
+  organizationId: string,
+  agentId: string,
+) =>
+  (await repository.listAgentConnections(organizationId, agentId)).map(
+    (item) => ({
+      ...item,
+      mcpConnection: publicConnection(item.mcpConnection),
+    }),
+  );
 
-export const listAgentConnections = async (organizationId: string, agentId: string) =>
-  (await repository.listAgentConnections(organizationId, agentId)).map((connection) => ({
-    ...connection,
-    mcpConnection: {
-      ...connection.mcpConnection,
-      tools: normalizeMcpTools(connection.mcpConnection.tools),
+function requireComposio(connection: Connection) {
+  if (connection.provider !== "composio")
+    throw new BadRequestError(LEGACY_MESSAGE);
+  if (!connection.providerUserId || !connection.toolkitSlug)
+    throw new BadRequestError(
+      "Integration setup is incomplete. Reconnect it in the marketplace.",
+    );
+  return { userId: connection.providerUserId, toolkit: connection.toolkitSlug };
+}
+
+async function withConnectionSetup<T>(
+  connection: Connection,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const until = new Date(Date.now() + 300_000);
+  const claimed = await repository.claimConnectionSetup(
+    connection.organizationId,
+    connection.mcpConnectionId,
+    until,
+  );
+  if (!claimed.count)
+    throw new BadRequestError(
+      "Integration setup is already in progress. Please refresh shortly.",
+    );
+  try {
+    const fresh = await repository.findConnection(
+      connection.organizationId,
+      connection.mcpConnectionId,
+    );
+    if (!fresh) throw new NotFoundError("Integration connection not found");
+    Object.assign(connection, fresh);
+    return await operation();
+  } finally {
+    await repository.releaseConnectionSetup(
+      connection.organizationId,
+      connection.mcpConnectionId,
+      until,
+    );
+  }
+}
+
+async function createSetup(connection: Connection): Promise<Connection | null> {
+  const { userId, toolkit } = requireComposio(connection);
+  let sessionId = connection.providerSessionId;
+  if (!sessionId) {
+    sessionId = await createComposioSession(userId, toolkit);
+    await repository.updateConnectionStatus(
+      connection.organizationId,
+      connection.mcpConnectionId,
+      {
+        status: "PENDING",
+        providerSessionId: sessionId,
+      },
+    );
+    connection.providerSessionId = sessionId;
+  }
+  // Recover a grant when the provider succeeded but saving its ID failed. The
+  // principal belongs only to this local connection; never search other users.
+  const accounts = await composioPages(
+    `/connected_accounts?user_ids=${encodeURIComponent(userId)}&toolkit_slugs=${encodeURIComponent(toolkit)}&limit=100`,
+  );
+  if (accounts.length > 1)
+    throw new BadRequestError(
+      "Multiple pending provider accounts were found. Disconnect this connection and start setup again.",
+    );
+  for (const account of accounts) {
+    if (
+      account.toolkit?.slug !== toolkit ||
+      (account.user_id && account.user_id !== userId) ||
+      !identifier(account.id)
+    )
+      throw new McpProviderError("MCP_PROVIDER_ERROR");
+    if (account.status === "ACTIVE") {
+      await repository.updateConnectionStatus(
+        connection.organizationId,
+        connection.mcpConnectionId,
+        { status: "PENDING", providerAccountId: account.id },
+      );
+      connection.providerAccountId = account.id;
+      return refreshSavedConnection(connection);
+    }
+    await deleteComposioResource(
+      `${accountPath(account.id)}?revoke_on_delete=true`,
+    );
+  }
+  const link = await composioRequest(`${sessionPath(sessionId)}/link`, {
+    toolkit,
+    alias: connection.mcpConnectionId,
+  });
+  if (!identifier(link.connected_account_id))
+    throw new McpProviderError("MCP_PROVIDER_ERROR");
+  const setupUrl = safeComposioSetupUrl(link.redirect_url);
+  await repository.updateConnectionStatus(
+    connection.organizationId,
+    connection.mcpConnectionId,
+    {
+      status: "AUTH_REQUIRED",
+      providerAccountId: link.connected_account_id,
+      setupUrl,
+      metadata: { ...object(connection.metadata), lastSyncError: null },
     },
-  }));
+  );
+  return repository.findConnection(
+    connection.organizationId,
+    connection.mcpConnectionId,
+  );
+}
 
 export const connect = async (
   organizationId: string,
   userId: string | null,
-  input: ConnectMcpInput
+  input: ConnectMcpInput,
 ) => {
-  const dbCatalogItem = input.catalogSlug
-    ? await repository.findCatalogItemBySlug(input.catalogSlug)
-    : null;
-  const catalogItem = dbCatalogItem
-    ? normalizeCatalogItem(dbCatalogItem)
-    : input.catalogSlug
-      ? findCuratedMcp(input.catalogSlug)
-      : null;
-  if (input.catalogSlug && !catalogItem) {
-    throw new NotFoundError("MCP catalog item not found");
+  let toolkit: string;
+  let name: string;
+  let noAuth: boolean;
+  let mcpUrl: string;
+  let custom = false;
+  let connectionKey: string;
+  if (input.customUrl) {
+    await assertSafeRemoteUrl(input.customUrl);
+    if (input.discoveryUrl) await assertSafeRemoteUrl(input.discoveryUrl);
+    // Project-owned custom toolkits are never listed globally. Include the full
+    // tenant identity in the registration key to prevent cross-workspace reuse.
+    connectionKey = createHash("sha256")
+      .update(
+        JSON.stringify([
+          organizationId,
+          input.customUrl,
+          input.authMode,
+          input.discoveryUrl,
+        ]),
+      )
+      .digest("hex");
+    toolkit = `CUSTOM_QV_${connectionKey.toUpperCase()}`;
+    name = input.displayName || new URL(input.customUrl).hostname;
+    noAuth = input.authMode === "none";
+    mcpUrl = input.customUrl;
+    custom = true;
+  } else {
+    if (
+      !identifier(input.catalogSlug) ||
+      input.catalogSlug.startsWith("CUSTOM_")
+    )
+      throw new NotFoundError("Integration not found");
+    const item = await composioRequest(
+      `/toolkits/${encodeURIComponent(input.catalogSlug)}`,
+    );
+    if (item.type !== "native" || item.slug !== input.catalogSlug)
+      throw new NotFoundError("Integration not found");
+    toolkit = item.slug;
+    name = input.displayName || item.name;
+    noAuth = item.no_auth === true;
+    mcpUrl = toolkitUrl(toolkit);
+    connectionKey = toolkit;
   }
-
-  const mcpUrl = catalogItem?.mcpUrl ?? input.customUrl;
-  if (!mcpUrl) throw new BadRequestError("MCP URL is required");
-  await assertSafeRemoteUrl(mcpUrl);
-
-  const displayName = input.displayName || catalogItem?.name || new URL(mcpUrl).hostname;
-  const rawConnectionKey = catalogItem?.smitheryServerKey ?? `custom-${slugify(displayName)}-${randomUUID().slice(0, 8)}`;
-  const connectionKey = slugify(rawConnectionKey);
-  const smitheryConnectionId = `${organizationId.slice(0, 8)}-${connectionKey}`.slice(0, 96);
-  const customSlug = slugify(displayName);
-  const smitheryNamespace = await resolveSmitheryNamespace({
-    apiBaseUrl: SMITHERY_API_BASE_URL,
-    apiKey: getSmitheryApiKey(),
-    preferredNamespace: SMITHERY_NAMESPACE,
-  });
-
-  // Persist the handle before creating the remote OAuth connection so a later
-  // database failure never leaves an undiscoverable grant at Smithery.
-  const pending = await repository.upsertConnection({
+  // Persist a stable identity before creating any remote grant. Retries and all
+  // future calls use this same connection principal, never the phone caller.
+  const connection = await repository.upsertConnection({
     organizationId,
     userId,
-    catalogItemId: dbCatalogItem?.mcpServerId ?? null,
-    displayName,
+    connectionKey,
+    displayName: name,
     mcpUrl,
-    smitheryNamespace,
-    smitheryConnectionId,
-    status: "PENDING",
-    tools: [],
-    metadata: { source: catalogItem ? "curated" : "custom", catalogSlug: catalogItem?.slug ?? null },
-    lastSyncedAt: null,
+    toolkitSlug: toolkit,
+    providerUserId: `qv:${organizationId}:${randomUUID()}`,
+    metadata: {
+      noAuth,
+      custom,
+      catalogSlug: custom ? null : toolkit,
+      authMode: input.authMode ?? null,
+    },
   });
-
-  const smithery = await upsertSmitheryConnection({
-    namespace: smitheryNamespace,
-    connectionId: smitheryConnectionId,
-    displayName,
-    mcpUrl,
-    organizationId,
-    userId,
-  }).catch(async (error) => {
-    await repository.updateConnectionStatus(organizationId, pending.mcpConnectionId, {
-      status: "ERROR",
-      metadata: { lastSyncError: "Could not create MCP connection at the provider" },
-    });
-    throw error;
-  });
-
-  // Persist a custom catalog row only after the remote connection has been
-  // accepted. Upsert also makes retries safe if an older failed attempt left a
-  // row with the same display-name slug.
-  const persistedCatalogItem = catalogItem
-    ? null
-    : await repository.upsertCustomCatalogItem({
+  return withConnectionSetup(connection, async () => {
+    if (connection.providerAccountId) {
+      const refreshed = await refreshSavedConnection(connection);
+      if (
+        refreshed?.status !== "AUTH_REQUIRED" ||
+        refreshed?.setupUrl ||
+        !object(refreshed?.metadata).authorizationRequired
+      )
+        return refreshed;
+      // An expired/revoked account needs fresh consent. Remove its old grant first.
+      await deleteComposioResource(
+        `${accountPath(connection.providerAccountId)}?revoke_on_delete=true`,
+      );
+      if (connection.providerSessionId)
+        await deleteComposioResource(sessionPath(connection.providerSessionId));
+      await repository.updateConnectionStatus(
         organizationId,
-        slug: customSlug,
-        name: displayName,
-        description: "Custom remote MCP server",
-        source: "CUSTOM",
-        provider: "smithery",
-        mcpUrl,
-        authType: "oauth",
-        categories: ["Custom"],
-        verified: false,
-      });
-
-  let status = normalizeStatus(smitheryState(smithery));
-  let tools: unknown[] = [];
-  let lastSyncedAt: Date | null = null;
-  let setupUrl: string | null = smitheryAuthorizationUrl(smithery);
-  if (!setupUrl && ["AUTH_REQUIRED", "INPUT_REQUIRED"].includes(status)) {
-    setupUrl = smitherySetupUrl(smitheryNamespace, smitheryConnectionId);
-  }
-  const metadata: Record<string, unknown> = {
-    source: catalogItem ? "curated" : "custom",
-    catalogSlug: catalogItem?.slug ?? null,
-    smitheryStatus: smithery?.status ?? null,
-  };
-
-  if (status === "CONNECTED") {
+        connection.mcpConnectionId,
+        {
+          status: "PENDING",
+          providerAccountId: null,
+          providerSessionId: null,
+          setupUrl: null,
+          metadata: {
+            ...object(connection.metadata),
+            runtimeSession: false,
+            authorizationRequired: false,
+          },
+        },
+      );
+      connection.providerAccountId = null;
+      connection.providerSessionId = null;
+      connection.metadata = {
+        ...object(connection.metadata),
+        runtimeSession: false,
+        authorizationRequired: false,
+      };
+    }
     try {
-      tools = await syncTools(smitheryNamespace, smitheryConnectionId);
-    } catch {
-      status = "ERROR";
-      metadata.lastSyncError = "Could not sync MCP tools";
-    }
-    if (status === "CONNECTED" && isGoogleDriveMcp(mcpUrl)) {
-      const scopeCheck = await checkGoogleDriveScopes(smitheryNamespace, smitheryConnectionId).catch(() => ({
-        ok: false,
-        error: "Could not verify Google Drive access",
-      }));
-      metadata.lastScopeCheckAt = new Date().toISOString();
-      metadata.lastProviderMethod = "google.apps.drive.v3.DriveFiles.List";
-      if (!scopeCheck.ok) {
-        status = scopeCheck.error === "Google Drive access was not granted during OAuth setup." ? "AUTH_REQUIRED" : "ERROR";
-        if (status === "AUTH_REQUIRED") {
-          setupUrl = setupUrl ?? smitherySetupUrl(smitheryNamespace, smitheryConnectionId);
-          metadata.scopeIssue = "missing_google_drive_scope";
-        } else {
-          metadata.lastSyncError = scopeCheck.error;
-        }
-        metadata.lastScopeError = scopeCheck.error;
-      } else {
-        metadata.scopeIssue = null;
-        metadata.lastScopeError = null;
-        lastSyncedAt = new Date();
+      if (custom) {
+        const auth =
+          input.authMode === "none"
+            ? { mode: "NO_AUTH" }
+            : input.authMode === "api_key"
+              ? {
+                  mode: "API_KEY",
+                  headers: { Authorization: "Bearer {{generic_api_key}}" },
+                }
+              : { mode: "DCR_OAUTH", discovery_url: input.discoveryUrl };
+        const registered = await composioRequest("/custom/toolkits/upsert", {
+          slug: toolkit.replace(/^CUSTOM_/, ""),
+          toolkit_config: { name, app_url: mcpUrl, auth_schemes: [auth] },
+        });
+        if (registered.slug !== toolkit)
+          throw new McpProviderError("MCP_PROVIDER_ERROR");
       }
-    } else if (status === "CONNECTED") {
-      lastSyncedAt = new Date();
+      if (noAuth) return refreshSavedConnection(connection);
+      return await createSetup(connection);
+    } catch (error) {
+      await repository.updateConnectionStatus(
+        organizationId,
+        connection.mcpConnectionId,
+        {
+          status: "ERROR",
+          metadata: {
+            ...object(connection.metadata),
+            lastSyncError:
+              "Could not complete integration setup. Retry from the marketplace.",
+          },
+        },
+      );
+      throw error;
     }
-  }
-
-  return repository.upsertConnection({
-    organizationId,
-    userId,
-    catalogItemId: dbCatalogItem?.mcpServerId ?? persistedCatalogItem?.mcpServerId ?? null,
-    displayName,
-    mcpUrl,
-    smitheryNamespace,
-    smitheryConnectionId,
-    status,
-    setupUrl,
-    tools,
-    metadata,
-    lastSyncedAt,
   });
 };
 
-export const refreshConnection = async (organizationId: string, mcpConnectionId: string) => {
-  const connection = await repository.findConnection(organizationId, mcpConnectionId);
-  if (!connection) throw new NotFoundError("MCP connection not found");
-
-  let tools: unknown[] = [];
-  let status: McpStatus = "CONNECTED";
-  let error: string | null = null;
-  let setupUrl: string | null = null;
-  let smitheryStatus: unknown = null;
-  const metadata = metadataObject(connection.metadata);
-  const providerAuthorization = metadataObject(metadata.providerAuthorization);
-  // Discovering tools does not prove that the provider's Google grant is ready.
-  if (Array.isArray(providerAuthorization.pendingTools) && providerAuthorization.pendingTools.length) {
-    status = "AUTH_REQUIRED";
-    error = "Complete provider authorization using Test access, then verify the requested tools.";
-  }
-  metadata.scopeIssue = null;
-  metadata.lastScopeError = null;
-
-  try {
-    tools = await syncTools(connection.smitheryNamespace, connection.smitheryConnectionId);
-    if (isGoogleDriveMcp(connection.mcpUrl)) {
-      const scopeCheck = await checkGoogleDriveScopes(connection.smitheryNamespace, connection.smitheryConnectionId).catch(() => ({
-        ok: false,
-        error: "Could not verify Google Drive access",
-      }));
-      metadata.lastScopeCheckAt = new Date().toISOString();
-      metadata.lastProviderMethod = "google.apps.drive.v3.DriveFiles.List";
-      if (!scopeCheck.ok) {
-        status = scopeCheck.error === "Google Drive access was not granted during OAuth setup." ? "AUTH_REQUIRED" : "ERROR";
-        error = scopeCheck.error;
-        if (status === "AUTH_REQUIRED") {
-          setupUrl = connection.setupUrl ?? smitherySetupUrl(connection.smitheryNamespace, connection.smitheryConnectionId);
-          metadata.scopeIssue = "missing_google_drive_scope";
-        }
-        metadata.lastScopeError = scopeCheck.error;
-      } else {
-        metadata.scopeIssue = null;
-        metadata.lastScopeError = null;
-      }
-    }
-  } catch {
-    error = "Could not sync MCP tools";
-    try {
-      const smithery = await upsertSmitheryConnection({
-        namespace: connection.smitheryNamespace,
-        connectionId: connection.smitheryConnectionId,
-        displayName: connection.displayName,
-        mcpUrl: connection.mcpUrl,
-        organizationId: connection.organizationId,
-        userId: connection.userId,
-      });
-      smitheryStatus = smithery?.status ?? null;
-      status = normalizeStatus(smitheryState(smithery));
-      if (status === "CONNECTED") status = "ERROR";
-      setupUrl = smitheryAuthorizationUrl(smithery) ?? connection.setupUrl;
-      if (!setupUrl && ["AUTH_REQUIRED", "INPUT_REQUIRED"].includes(status)) {
-        setupUrl = smitherySetupUrl(
-          connection.smitheryNamespace,
-          connection.smitheryConnectionId
-        );
-      }
-    } catch {
-      status = connection.status === "AUTH_REQUIRED" || connection.status === "INPUT_REQUIRED"
-        ? connection.status
-        : "ERROR";
-      setupUrl = connection.setupUrl;
-    }
-  }
-
-  if (Array.isArray(providerAuthorization.pendingTools) && providerAuthorization.pendingTools.length) status = "AUTH_REQUIRED";
-  await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
-    status,
-    tools,
-    setupUrl: status === "CONNECTED" ? null : setupUrl,
-    metadata: { ...metadata, lastSyncError: error, smitheryStatus },
-    lastSyncedAt: status === "CONNECTED" ? new Date() : connection.lastSyncedAt,
-  }, connection.updatedAt);
-
-  return repository.findConnection(organizationId, mcpConnectionId);
+export const refreshConnection = async (
+  organizationId: string,
+  mcpConnectionId: string,
+) => {
+  const connection = await repository.findConnection(
+    organizationId,
+    mcpConnectionId,
+  );
+  if (!connection) throw new NotFoundError("Integration connection not found");
+  return withConnectionSetup(connection, () =>
+    refreshSavedConnection(connection),
+  );
 };
+
+async function refreshSavedConnection(
+  connection: Connection,
+): Promise<Connection | null> {
+  const { organizationId, mcpConnectionId } = connection;
+  const { userId, toolkit } = requireComposio(connection);
+  const metadata = object(connection.metadata);
+  try {
+    if (metadata.authorizationRequired) return connection;
+    if (!metadata.noAuth) {
+      if (!connection.providerAccountId) return await createSetup(connection);
+      const account = await composioRequest(
+        accountPath(connection.providerAccountId),
+      );
+      if (
+        account.toolkit?.slug !== toolkit ||
+        (account.user_id && account.user_id !== userId)
+      )
+        throw new McpProviderError("MCP_PROVIDER_ERROR");
+      if (account.status !== "ACTIVE") {
+        const pending = ["INITIALIZING", "INITIATED"].includes(account.status);
+        await repository.updateConnectionStatus(
+          organizationId,
+          mcpConnectionId,
+          {
+            status: "AUTH_REQUIRED",
+            tools: [],
+            setupUrl: pending ? connection.setupUrl : null,
+            metadata: {
+              ...metadata,
+              authorizationRequired: !pending || !connection.setupUrl,
+              lastSyncError: pending
+                ? connection.setupUrl
+                  ? "Complete authorization in your browser."
+                  : "Authorization link is unavailable. Reconnect from the marketplace."
+                : "Authorization expired or was revoked. Reconnect from the marketplace.",
+            },
+          },
+        );
+        return repository.findConnection(organizationId, mcpConnectionId);
+      }
+    }
+    if (metadata.custom)
+      await composioRequest("/custom/toolkits/sync", {
+        slug: toolkit,
+        ...(connection.providerAccountId
+          ? { connected_account_id: connection.providerAccountId }
+          : {}),
+      });
+    // A runtime session pins exactly the account authorized in this workspace.
+    let sessionId =
+      metadata.runtimeSession === true ? connection.providerSessionId : null;
+    if (!sessionId)
+      sessionId = await createComposioSession(
+        userId,
+        toolkit,
+        connection.providerAccountId,
+      );
+    try {
+      let tools;
+      try {
+        tools = await composioTools(sessionId, toolkit);
+      } catch (error) {
+        if (
+          !(error instanceof ComposioHttpError) ||
+          ![404, 410].includes(error.status)
+        )
+          throw error;
+        sessionId = await createComposioSession(
+          userId,
+          toolkit,
+          connection.providerAccountId,
+        );
+        tools = await composioTools(sessionId, toolkit);
+      }
+      if (!tools.length)
+        throw new BadRequestError(
+          "No tools are available yet. Refresh this connection after provider setup finishes.",
+        );
+      await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
+        status: "CONNECTED",
+        tools,
+        setupUrl: null,
+        providerSessionId: sessionId,
+        lastSyncedAt: new Date(),
+        metadata: {
+          ...metadata,
+          lastSyncError: null,
+          providerAuthorization: null,
+          runtimeSession: true,
+        },
+      });
+    } catch (error) {
+      if (sessionId !== connection.providerSessionId)
+        await deleteComposioResource(sessionPath(sessionId)).catch(() => {});
+      throw error;
+    }
+    if (
+      connection.providerSessionId &&
+      connection.providerSessionId !== sessionId
+    ) {
+      await deleteComposioResource(
+        sessionPath(connection.providerSessionId),
+      ).catch(() => {});
+    }
+  } catch (error) {
+    const missingAccount =
+      error instanceof ComposioHttpError && error.status === 404;
+    await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
+      status: missingAccount ? "AUTH_REQUIRED" : "ERROR",
+      tools: [],
+      setupUrl: missingAccount ? null : connection.setupUrl,
+      metadata: {
+        ...metadata,
+        authorizationRequired: missingAccount,
+        lastSyncError: missingAccount
+          ? "Reconnect from the marketplace."
+          : "Could not sync integration tools. Refresh to retry.",
+      },
+    });
+    if (error instanceof BadRequestError && !process.env.COMPOSIO_API_KEY)
+      throw error;
+  }
+  return repository.findConnection(organizationId, mcpConnectionId);
+}
 
 export const attach = async (
   organizationId: string,
   agentId: string,
   mcpConnectionId: string,
-  enabled = true
+  enabled = true,
 ) => {
-  const result = await repository.attachConnection(organizationId, agentId, mcpConnectionId, enabled);
-  if (!result) throw new NotFoundError("Agent or MCP connection not found");
+  const connection = await repository.findConnection(
+    organizationId,
+    mcpConnectionId,
+  );
+  if (!connection) throw new NotFoundError("Integration connection not found");
   if (enabled) {
-    try {
-      const connection = await repository.findConnection(organizationId, mcpConnectionId);
-      const tools = connection?.tools;
-      const missingAnnotations = !Array.isArray(tools) || tools.length === 0 || tools.some((value) => {
-        const tool = metadataObject(value);
-        return typeof tool.readOnly !== "boolean" &&
-          typeof metadataObject(tool.annotations).readOnlyHint !== "boolean";
-      });
-      if (connection && missingAnnotations) {
-        const refreshed = await syncTools(connection.smitheryNamespace, connection.smitheryConnectionId);
-        await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
-          status: connection.status, tools: refreshed, lastSyncedAt: new Date(),
-        });
-      }
-    } catch {
-      // Keep the attachment and its existing fail-closed tool policy on outage.
-      console.warn("[mcp] could not refresh legacy tool annotations on attach", { organizationId, mcpConnectionId });
-    }
+    requireComposio(connection);
+    if (
+      connection.status !== "CONNECTED" ||
+      !normalizeMcpTools(connection.tools).length
+    )
+      throw new BadRequestError(
+        "Complete integration setup before attaching it.",
+      );
   }
+  const result = await repository.attachConnection(
+    organizationId,
+    agentId,
+    mcpConnectionId,
+    enabled,
+  );
+  if (!result)
+    throw new NotFoundError("Agent or integration connection not found");
   return result;
 };
-
-export const detach = async (organizationId: string, agentId: string, mcpConnectionId: string) => {
-  const result = await repository.detachConnection(organizationId, agentId, mcpConnectionId);
-  if (result.count === 0) throw new NotFoundError("Agent MCP connection not found");
+export const detach = async (
+  organizationId: string,
+  agentId: string,
+  mcpConnectionId: string,
+) => {
+  const result = await repository.detachConnection(
+    organizationId,
+    agentId,
+    mcpConnectionId,
+  );
+  if (!result.count)
+    throw new NotFoundError("Agent integration connection not found");
 };
 
-export const disconnect = async (organizationId: string, mcpConnectionId: string) => {
-  const connection = await repository.findConnection(organizationId, mcpConnectionId);
-  if (!connection) throw new NotFoundError("MCP connection not found");
-
-  await disconnectSmitheryConnection(
-    connection.smitheryNamespace,
-    connection.smitheryConnectionId,
+// Kept solely for retiring old grants. No discovery, authorization, or execution
+// path uses Smithery. An unavailable legacy provider must not block local removal.
+export const disconnectSmitheryConnection = async (
+  namespace: string,
+  connectionId: string,
+) => {
+  const key = process.env.SMITHERY_API_KEY;
+  if (!key) return;
+  const response = await fetch(
+    `https://api.smithery.ai/connect/${encodeURIComponent(namespace)}/${encodeURIComponent(connectionId)}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${key}` },
+      redirect: "error",
+      signal: AbortSignal.timeout(10_000),
+    },
   );
-  await repository.deleteConnection(organizationId, mcpConnectionId);
+  if (!response.ok && ![404, 410].includes(response.status))
+    throw new BadRequestError("Could not disconnect Smithery connection");
+};
+
+export async function revokeMcpConnection(
+  connection: Pick<
+    Connection,
+    | "provider"
+    | "providerUserId"
+    | "providerAccountId"
+    | "providerSessionId"
+    | "toolkitSlug"
+    | "metadata"
+    | "smitheryNamespace"
+    | "smitheryConnectionId"
+  >,
+) {
+  if (connection.provider === "composio") {
+    if (
+      !connection.providerAccountId &&
+      !object(connection.metadata).noAuth &&
+      connection.providerUserId &&
+      connection.toolkitSlug
+    ) {
+      const accounts = await composioPages(
+        `/connected_accounts?user_ids=${encodeURIComponent(connection.providerUserId)}&toolkit_slugs=${encodeURIComponent(connection.toolkitSlug)}&limit=100`,
+      );
+      for (const account of accounts) {
+        if (
+          !identifier(account.id) ||
+          account.toolkit?.slug !== connection.toolkitSlug ||
+          (account.user_id && account.user_id !== connection.providerUserId)
+        )
+          throw new McpProviderError("MCP_PROVIDER_ERROR");
+        await deleteComposioResource(
+          `${accountPath(account.id)}?revoke_on_delete=true`,
+        );
+      }
+    }
+    if (connection.providerAccountId)
+      await deleteComposioResource(
+        `${accountPath(connection.providerAccountId)}?revoke_on_delete=true`,
+      );
+    if (connection.providerSessionId)
+      await deleteComposioResource(sessionPath(connection.providerSessionId));
+    if (object(connection.metadata).custom && connection.toolkitSlug)
+      await deleteComposioResource(
+        `/custom/toolkits/${encodeURIComponent(connection.toolkitSlug)}`,
+      );
+  } else if (connection.smitheryNamespace && connection.smitheryConnectionId) {
+    await disconnectSmitheryConnection(
+      connection.smitheryNamespace,
+      connection.smitheryConnectionId,
+    ).catch(() => {
+      console.warn(
+        "[mcp] legacy provider unavailable; revoke the old grant at the connected app",
+      );
+    });
+  }
+}
+export const disconnect = async (
+  organizationId: string,
+  mcpConnectionId: string,
+) => {
+  const connection = await repository.findConnection(
+    organizationId,
+    mcpConnectionId,
+  );
+  if (!connection) throw new NotFoundError("Integration connection not found");
+  await withConnectionSetup(connection, async () => {
+    // Stop new invocations before revocation; keep failed cleanup retryable.
+    await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
+      status: "DISCONNECTED",
+      tools: [],
+      setupUrl: null,
+    });
+    await revokeMcpConnection(connection);
+    await repository.deleteConnection(organizationId, mcpConnectionId);
+  });
 };
 
 const preview = (value: unknown) => {
   const redacted = redactJson(value ?? null);
   const serialized = JSON.stringify(redacted);
-  if (serialized.length <= 2000) return redacted;
-  return { truncated: true, text: serialized.slice(0, 2000) };
+  return serialized.length <= 2000
+    ? redacted
+    : { truncated: true, text: serialized.slice(0, 2000) };
 };
 
 export const executeTool = async (
@@ -646,39 +712,59 @@ export const executeTool = async (
   context: { autonomous?: boolean; providerSetup?: boolean } = {},
 ) => {
   const connection = input.agentId
-    ? await repository.findConnectionForAgent(organizationId, input.agentId, mcpConnectionId)
+    ? await repository.findConnectionForAgent(
+        organizationId,
+        input.agentId,
+        mcpConnectionId,
+      )
     : await repository.findConnection(organizationId, mcpConnectionId);
-
-  if (!connection) throw new NotFoundError("MCP connection not attached to this agent");
-  if (connection.status === "AUTH_REQUIRED" && !context.providerSetup) {
-    throw new McpProviderError("MCP_AUTH_REQUIRED");
-  }
-  if (connection.status !== "CONNECTED" && !(context.providerSetup && connection.status === "AUTH_REQUIRED")) {
+  if (!connection)
+    throw new NotFoundError("MCP connection not attached to this agent");
+  requireComposio(connection);
+  if (context.autonomous && !input.agentId)
+    throw new ForbiddenError(
+      "Agent identity is required to execute integration tools",
+    );
+  if (connection.status === "AUTH_REQUIRED")
+    throw new McpProviderError(
+      "MCP_AUTH_REQUIRED",
+      context.providerSetup ? connection.setupUrl : null,
+    );
+  if (connection.status !== "CONNECTED" || !connection.providerSessionId)
     throw new BadRequestError("MCP connection is not connected");
-  }
   const tool = findMcpTool(connection.tools, toolName);
-  if (!tool) throw new NotFoundError("MCP tool is not available on this connection");
-  if ((context.autonomous || context.providerSetup) && mcpToolRequiresConfirmation(tool)) {
+  if (!tool)
+    throw new NotFoundError("MCP tool is not available on this connection");
+  if (
+    (context.autonomous || context.providerSetup) &&
+    mcpToolRequiresConfirmation(tool)
+  )
     throw new ForbiddenError(
       "MCP tool requires trusted user confirmation before execution",
     );
-  }
-
   const startedAt = Date.now();
   try {
     assertMcpArguments(tool.inputSchema, input.arguments ?? {});
-    const result = await callSmitheryTool(
-      connection.smitheryNamespace,
-      connection.smitheryConnectionId,
-      toolName,
-      input.arguments as Record<string, unknown>
+    const result = await composioRequest(
+      `${sessionPath(connection.providerSessionId)}/execute`,
+      {
+        tool_slug: toolName,
+        arguments: input.arguments,
+        ...(connection.providerAccountId
+          ? { account: connection.providerAccountId }
+          : {}),
+      },
     );
-    if (isGoogleDriveMcp(connection.mcpUrl) && isInsufficientGoogleScope(result)) {
-      throw new Error("Google Drive access was not granted during OAuth setup.");
-    }
-    if (context.providerSetup) {
-      await recordProviderAuthorization(organizationId, mcpConnectionId, toolName, false);
-    }
+    // Successful HTTP transport is not proof of successful execution. Do not
+    // expose pending consent links, helper actions, or credentials to callers.
+    const providerError = inspectMcpResult(result);
+    if (providerError) throw providerError;
+    if (
+      result.result_type !== "completed" ||
+      result.error ||
+      result.successful === false
+    )
+      throw new McpProviderError("MCP_TOOL_ERROR");
     await repository.createExecutionLog({
       organizationId,
       agentId: input.agentId,
@@ -688,91 +774,71 @@ export const executeTool = async (
       status: "success",
       latencyMs: Date.now() - startedAt,
       argumentsPreview: preview(input.arguments),
-      resultPreview: preview(result),
+      resultPreview: preview(result.data),
     });
-    return result;
-  } catch (err) {
-    if (err instanceof McpToolContractError) {
-      await repository.createExecutionLog({
-        organizationId, agentId: input.agentId, mcpConnectionId, toolName, callId: input.callId,
-        status: "validation_error", latencyMs: Date.now() - startedAt,
-        argumentsPreview: preview(input.arguments), error: err.code,
-      });
-      throw err;
-    }
-    if (err instanceof McpProviderError) {
-      if (err.code === "MCP_AUTH_REQUIRED") {
-        await recordProviderAuthorization(organizationId, mcpConnectionId, toolName, true);
-      }
-      await repository.createExecutionLog({
-        organizationId, agentId: input.agentId, mcpConnectionId, toolName,
-        callId: input.callId, status: err.code === "MCP_AUTH_REQUIRED" ? "auth_required" : "error",
-        latencyMs: Date.now() - startedAt, argumentsPreview: preview(input.arguments), error: err.code,
-      });
-      throw err;
-    }
-    const message = isInsufficientGoogleScope(err instanceof Error ? err.message : "")
-      ? "Google Drive access was not granted during OAuth setup."
-      : "MCP tool execution failed at the provider";
-    if (isGoogleDriveMcp(connection.mcpUrl) && (isInsufficientGoogleScope(message) || message.includes("Google Drive access"))) {
-      await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
-        status: "AUTH_REQUIRED",
-        setupUrl: connection.setupUrl ?? smitherySetupUrl(connection.smitheryNamespace, connection.smitheryConnectionId),
-        metadata: {
-          ...metadataObject(connection.metadata),
-          scopeIssue: "missing_google_drive_scope",
-          lastScopeError: message,
-          lastScopeCheckAt: new Date().toISOString(),
-          lastProviderMethod: "google.apps.drive.v3.DriveFiles.List",
+    return result.data;
+  } catch (error) {
+    if (
+      error instanceof ComposioHttpError &&
+      [404, 410].includes(error.status)
+    ) {
+      // A missing session or tool needs a refresh, not an automatic replay of
+      // an operation that may have side effects. Keep the account for recovery.
+      await repository.updateConnectionStatus(
+        organizationId,
+        mcpConnectionId,
+        {
+          status: "ERROR",
+          tools: [],
+          metadata: {
+            ...object(connection.metadata),
+            lastSyncError:
+              "The integration session or tool is unavailable. Refresh this connection before retrying.",
+          },
         },
-      });
+        connection.updatedAt,
+      );
     }
+    if (
+      error instanceof McpProviderError &&
+      error.code === "MCP_AUTH_REQUIRED"
+    ) {
+      await repository.updateConnectionStatus(
+        organizationId,
+        mcpConnectionId,
+        {
+          status: "AUTH_REQUIRED",
+          setupUrl: null,
+          metadata: {
+            ...object(connection.metadata),
+            authorizationRequired: true,
+            lastSyncError:
+              "Reconnect this integration from the marketplace to renew authorization.",
+          },
+        },
+        connection.updatedAt,
+      );
+    }
+    const failure =
+      error instanceof McpToolContractError || error instanceof McpProviderError
+        ? error
+        : new McpProviderError("MCP_PROVIDER_ERROR");
     await repository.createExecutionLog({
       organizationId,
       agentId: input.agentId,
       mcpConnectionId,
       toolName,
       callId: input.callId,
-      status: "error",
+      status:
+        failure instanceof McpToolContractError
+          ? "validation_error"
+          : failure.code === "MCP_AUTH_REQUIRED"
+            ? "auth_required"
+            : "error",
       latencyMs: Date.now() - startedAt,
       argumentsPreview: preview(input.arguments),
-      error: message,
+      error: failure.code,
     });
-    if (message.includes("Google Drive access")) throw new BadRequestError(message);
-    throw new McpProviderError("MCP_PROVIDER_ERROR");
+    throw failure;
   }
 };
-
-async function recordProviderAuthorization(
-  organizationId: string, id: string, toolName: string, required: boolean,
-) {
-  // CAS protects independently requested tool permissions from concurrent calls
-  // or console checks overwriting one another. No tokens or URLs are stored here.
-  for (let attempt = 0; attempt < 5; attempt++) {
-    const connection = await repository.findConnection(organizationId, id);
-    if (!connection) throw new NotFoundError("MCP connection not found");
-    if (!["CONNECTED", "AUTH_REQUIRED"].includes(connection.status)) {
-      throw new BadRequestError("Connection setup changed. Refresh the connection before testing again.");
-    }
-    const metadata = metadataObject(connection.metadata);
-    const auth = metadataObject(metadata.providerAuthorization);
-    const strings = (value: unknown): string[] => Array.isArray(value)
-      ? value.filter((name): name is string => typeof name === "string") : [];
-    const pending = new Set(strings(auth.pendingTools));
-    const verified = new Set(strings(auth.verifiedTools));
-    if (required) { pending.add(toolName); verified.delete(toolName); }
-    else { pending.delete(toolName); verified.add(toolName); }
-    const result = await repository.updateConnectionStatus(organizationId, id, {
-      status: pending.size ? "AUTH_REQUIRED" : "CONNECTED",
-      setupUrl: null,
-      metadata: { ...metadata,
-        lastSyncError: pending.size ? "Provider authorization is required. Use Test access to complete setup." : null,
-        providerAuthorization: {
-          pendingTools: [...pending], verifiedTools: [...verified], checkedAt: new Date().toISOString(),
-        },
-      },
-    }, connection.updatedAt);
-    if (result.count) return;
-  }
-  throw new BadRequestError("Connection setup changed concurrently. Please run the test again.");
-}

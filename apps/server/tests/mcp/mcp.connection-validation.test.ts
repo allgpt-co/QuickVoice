@@ -12,29 +12,39 @@ test("MCP connection validation returns structured 400 errors before the handler
   const app = express();
   let handlerCalls = 0;
   app.use(express.json());
-  app.post("/api/v1/mcp/connections", validate(connectMcpSchema), (req, res) => {
-    handlerCalls += 1;
-    res.status(201).json({ success: true, data: req.body });
-  });
+  app.post(
+    "/api/v1/mcp/connections",
+    validate(connectMcpSchema),
+    (req, res) => {
+      handlerCalls += 1;
+      res.status(201).json({ success: true, data: req.body });
+    },
+  );
   app.use(errorMiddleware);
 
   const server = await new Promise<Server>((resolve) => {
-    const listeningServer = app.listen(0, "127.0.0.1", () => resolve(listeningServer));
+    const listeningServer = app.listen(0, "127.0.0.1", () =>
+      resolve(listeningServer),
+    );
   });
   t.after(async () => {
     server.closeAllConnections();
     await new Promise<void>((resolve, reject) => {
-      server.close((error) => error ? reject(error) : resolve());
+      server.close((error) => (error ? reject(error) : resolve()));
     });
   });
   const address = server.address();
   assert.ok(address && typeof address === "object");
   const url = `http://127.0.0.1:${address.port}/api/v1/mcp/connections`;
-  const post = (body: Record<string, string>) => requestJson(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-request-id": "mcp-validation-test" },
-    body: JSON.stringify(body),
-  });
+  const post = (body: Record<string, string>) =>
+    requestJson(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-request-id": "mcp-validation-test",
+      },
+      body: JSON.stringify(body),
+    });
 
   const malformed = await post({ customUrl: "not-a-valid-url" });
   assert.equal(malformed.status, 400);
@@ -58,11 +68,14 @@ test("MCP connection validation returns structured 400 errors before the handler
   assert.equal(missing.status, 400);
   assert.equal(handlerCalls, 0);
 
-  const valid = await post({ customUrl: " https://server.example.com/mcp " });
+  const valid = await post({
+    customUrl: " https://server.example.com/mcp ",
+    authMode: "none",
+  });
   assert.equal(valid.status, 201);
   assert.deepEqual(await valid.json(), {
     success: true,
-    data: { customUrl: "https://server.example.com/mcp" },
+    data: { customUrl: "https://server.example.com/mcp", authMode: "none" },
   });
   const catalog = await post({ catalogSlug: "example" });
   assert.equal(catalog.status, 201);
