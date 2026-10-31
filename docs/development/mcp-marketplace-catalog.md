@@ -30,7 +30,8 @@ The Smithery import CLI is retired. The marketplace reads the current native Com
 - Tool arguments are validated against the synced provider schema before execution. No guessed remapping, coercion, or removal of unsupported inputs occurs. Refresh tools after provider schema changes.
 - HTTP success with a provider failure/challenge is still failure. Callers receive an administrator-setup message rather than an OAuth URL. Reconnect in the marketplace after revocation/expiry or a new permission requirement; ordinary calls do not initiate consent.
 - Setup is serialized by a database lease across replicas. Repeated Connect clicks reuse the saved account. A remote account whose ID failed to save is recovered by its dedicated principal. Leases expire after five minutes if a process dies.
-- Ordinary refresh reuses the runtime session so it does not invalidate active calls. An expired session can be replaced during refresh. Failed execution is never automatically replayed, because that could duplicate a provider write.
+- Ordinary refresh reuses the runtime session so it does not invalidate active calls. A missing or deleted session can be replaced during refresh, keeping the authorized account. A missing session/tool during execution marks the connection as needing refresh; a late failure cannot overwrite a newer connection state. Failed execution is never automatically replayed, because that could duplicate a provider write.
+- Temporary setup errors preserve the existing consent link. If a pending account has lost its link, Reconnect creates a replacement authorization flow using the same saved principal.
 - Disconnect removes the remote account/session before deleting local records and attachments. Failed Composio cleanup leaves the local handle available for retry. Provider revocation may be asynchronous; deleting a connection is not proof that an issuer has invalidated every token.
 
 ## Custom MCP servers

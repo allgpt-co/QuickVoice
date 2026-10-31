@@ -457,9 +457,11 @@ async function refreshSavedConnection(
             setupUrl: pending ? connection.setupUrl : null,
             metadata: {
               ...metadata,
-              authorizationRequired: !pending,
+              authorizationRequired: !pending || !connection.setupUrl,
               lastSyncError: pending
-                ? "Complete authorization in your browser."
+                ? connection.setupUrl
+                  ? "Complete authorization in your browser."
+                  : "Authorization link is unavailable. Reconnect from the marketplace."
                 : "Authorization expired or was revoked. Reconnect from the marketplace.",
             },
           },
@@ -488,7 +490,10 @@ async function refreshSavedConnection(
       try {
         tools = await composioTools(sessionId, toolkit);
       } catch (error) {
-        if (!(error instanceof ComposioHttpError) || error.status !== 404)
+        if (
+          !(error instanceof ComposioHttpError) ||
+          ![404, 410].includes(error.status)
+        )
           throw error;
         sessionId = await createComposioSession(
           userId,
@@ -533,7 +538,7 @@ async function refreshSavedConnection(
     await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
       status: missingAccount ? "AUTH_REQUIRED" : "ERROR",
       tools: [],
-      setupUrl: null,
+      setupUrl: missingAccount ? null : connection.setupUrl,
       metadata: {
         ...metadata,
         authorizationRequired: missingAccount,
@@ -773,6 +778,27 @@ export const executeTool = async (
     });
     return result.data;
   } catch (error) {
+    if (
+      error instanceof ComposioHttpError &&
+      [404, 410].includes(error.status)
+    ) {
+      // A missing session or tool needs a refresh, not an automatic replay of
+      // an operation that may have side effects. Keep the account for recovery.
+      await repository.updateConnectionStatus(
+        organizationId,
+        mcpConnectionId,
+        {
+          status: "ERROR",
+          tools: [],
+          metadata: {
+            ...object(connection.metadata),
+            lastSyncError:
+              "The integration session or tool is unavailable. Refresh this connection before retrying.",
+          },
+        },
+        connection.updatedAt,
+      );
+    }
     if (
       error instanceof McpProviderError &&
       error.code === "MCP_AUTH_REQUIRED"

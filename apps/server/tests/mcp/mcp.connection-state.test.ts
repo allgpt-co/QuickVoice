@@ -59,6 +59,11 @@ function fixture(t: TestContext) {
   }) as any;
   prisma.mcpConnection.updateMany = (async ({ where, data }: any) => {
     if (!state.connection) return { count: 0 };
+    if (
+      where.updatedAt &&
+      where.updatedAt.getTime() !== state.connection.updatedAt.getTime()
+    )
+      return { count: 0 };
     if (where.OR && state.connection.setupLeaseUntil > new Date())
       return { count: 0 };
     if (state.failSaveAccount && data.providerAccountId) {
@@ -271,6 +276,105 @@ test("a failed local account-ID write recovers the same authorized account witho
   await f.setup();
   assert.equal(f.state.connection.status, "CONNECTED");
   assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+});
+
+test("transient OAuth refresh failure preserves the pending setup link and account", async (t) => {
+  const f = fixture(t);
+  const pending = await f.setup();
+  const provider = globalThis.fetch;
+  let fail = true;
+  t.mock.method(globalThis, "fetch", async (url, init) => {
+    if (fail && String(url).endsWith("/connected_accounts/ca_saved")) {
+      fail = false;
+      return Response.json({ error: "unavailable" }, { status: 503 });
+    }
+    return provider(url, init);
+  });
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.setupUrl, pending?.setupUrl);
+  const recovered = await f.setup();
+  assert.equal(recovered?.status, "AUTH_REQUIRED");
+  assert.equal(recovered?.setupUrl, pending?.setupUrl);
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+  assert.equal(f.calls.filter((call) => call.method === "DELETE").length, 0);
+});
+
+test("Reconnect replaces a pending account with a lost setup link using the same principal", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  const principal = f.state.connection.providerUserId;
+  f.state.connection.setupUrl = null;
+  const recovered = await f.setup();
+  assert.equal(recovered?.status, "AUTH_REQUIRED");
+  assert.ok(recovered?.setupUrl);
+  assert.equal(f.state.connection.providerUserId, principal);
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 2);
+});
+
+test("missing runtime sessions require refresh and recover without consent or replaying the failed call", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  await f.activate();
+  const oldSession = f.state.connection.providerSessionId;
+  const provider = globalThis.fetch;
+  let executions = 0;
+  t.mock.method(globalThis, "fetch", async (url, init) => {
+    if (String(url).endsWith("/execute")) executions++;
+    if (String(url).includes(`/session/${oldSession}/`))
+      return Response.json({ error: "session missing" }, { status: 404 });
+    return provider(url, init);
+  });
+  const execute = () =>
+    executeTool(
+      "org",
+      "local",
+      "GOOGLECALENDAR_LIST",
+      { agentId: "agent", arguments: {} },
+      { autonomous: true },
+    );
+  await assert.rejects(execute());
+  assert.equal(executions, 1);
+  assert.equal(f.state.connection.status, "ERROR");
+  assert.deepEqual(f.state.connection.tools, []);
+  assert.match(f.state.connection.metadata.lastSyncError, /Refresh/);
+  await assert.rejects(execute(), /not connected/);
+  assert.equal(executions, 1);
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.notEqual(f.state.connection.providerSessionId, oldSession);
+  assert.equal(f.state.connection.providerAccountId, "ca_saved");
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+  await execute();
+  assert.equal(executions, 2);
+});
+
+test("a late missing-session response does not overwrite a newer refreshed connection", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  await f.activate();
+  const provider = globalThis.fetch;
+  t.mock.method(globalThis, "fetch", async (url, init) => {
+    if (String(url).endsWith("/execute")) {
+      f.state.connection.updatedAt = new Date(
+        f.state.connection.updatedAt.getTime() + 1000,
+      );
+      f.state.connection.providerSessionId = "replacement";
+      return Response.json({ error: "session missing" }, { status: 404 });
+    }
+    return provider(url, init);
+  });
+  await assert.rejects(
+    executeTool(
+      "org",
+      "local",
+      "GOOGLECALENDAR_LIST",
+      { agentId: "agent", arguments: {} },
+      { autonomous: true },
+    ),
+  );
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.equal(f.state.connection.providerSessionId, "replacement");
+  assert.equal(f.state.connection.tools.length, 1);
 });
 
 test("transient sync failure never deletes a valid account or reports CONNECTED", async (t) => {

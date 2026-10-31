@@ -826,6 +826,8 @@ export const apiGroups: ApiGroup[] = [
         [
           "catalogSlug?: string",
           "customUrl?: URL",
+          "authMode?: oauth | api_key | none (required with customUrl)",
+          "discoveryUrl?: URL (required for custom OAuth)",
           "displayName?: string",
           "Provide exactly one of catalogSlug or customUrl",
         ],
