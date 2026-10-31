@@ -5,6 +5,8 @@ const customMcpUrlSchema = z
   .trim()
   .url()
   .superRefine((value, context) => {
+    // Preserve the URL validation issue instead of throwing from new URL().
+    if (!URL.canParse(value)) return;
     const parsed = new URL(value);
     if (parsed.protocol !== "https:") {
       context.addIssue({
