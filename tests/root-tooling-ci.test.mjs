@@ -198,11 +198,10 @@ test("security overrides keep legacy glob callers on patched modern dependencies
   const patchedDependencies = manifest.pnpm?.patchedDependencies ?? {};
 
   assert.equal(overrides["brace-expansion"], "5.0.12");
-  assert.equal(overrides["minimatch@3"], "10.2.5");
-  assert.equal(overrides["minimatch@9"], "10.2.5");
+  assert.equal(overrides.minimatch, "11.0.1");
   assert.equal(
-    patchedDependencies["minimatch@10.2.5"],
-    "patches/minimatch@10.2.5.patch",
+    patchedDependencies["minimatch@11.0.1"],
+    "patches/minimatch@11.0.1.patch",
   );
 
   const minimatch = require("minimatch");
@@ -210,6 +209,23 @@ test("security overrides keep legacy glob callers on patched modern dependencies
   assert.equal(minimatch("src/app.ts", "**/*.ts"), true);
   assert.equal(minimatch("src/app.js", "**/*.ts"), false);
   assert.equal(minimatch.minimatch, minimatch);
+
+  // Bound the upstream globparts-amplification regression in both module formats.
+  const check = spawnSync(process.execPath, ["--input-type=module", "-e", `
+    import assert from 'node:assert/strict';
+    import { createRequire } from 'node:module';
+    import { Minimatch } from 'minimatch';
+    const commonjs = createRequire(import.meta.url)('minimatch');
+    const pattern = Array(30).fill('**/../a/b').join('/');
+    for (const Matcher of [Minimatch, commonjs.Minimatch]) {
+      assert.equal(new Matcher(pattern, { optimizationLevel: 2, braceExpandMax: 64 }).set.length, 64);
+    }
+  `], {
+    cwd: fileURLToPath(new URL("../", import.meta.url)),
+    encoding: "utf8",
+    timeout: 5_000,
+  });
+  assert.equal(check.status, 0, check.error?.message ?? check.stderr);
 });
 
 test("deploy workflows are gated, immutable, scanned, signed, and environment protected", async () => {
