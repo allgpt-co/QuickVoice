@@ -74,6 +74,7 @@ pnpm lint
 pnpm check-types
 pnpm test
 pnpm build
+pnpm docs:links
 pnpm ci:local
 pnpm audit:deps -- --audit-level low
 ```
