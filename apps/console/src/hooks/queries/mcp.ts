@@ -26,7 +26,7 @@ const isSafeSetupUrl = (setupUrl: string) => {
 export const pollMcpSetup = (
   mcpConnectionId: string,
   qc: ReturnType<typeof useQueryClient>,
-  onSettled?: () => void,
+  onSettled?: (connected: boolean) => void,
 ): (() => void) => {
   let attempts = 0;
   let failures = 0;
@@ -45,7 +45,7 @@ export const pollMcpSetup = (
     stop();
     if (success) toast.success(message);
     else toast.error(message);
-    onSettled?.();
+    onSettled?.(success);
   };
   async function refresh() {
     if (stopped || refreshing) return;
@@ -90,6 +90,16 @@ export const pollMcpSetup = (
   return stop;
 };
 
+// A same-origin channel lets the return tab notify its initiator without giving
+// the external authorization page access to window.opener.
+const setupChannel = (id: string): BroadcastChannel | null => {
+  try {
+    return new BroadcastChannel(`quickvoice-mcp-setup:${id}`);
+  } catch {
+    return null;
+  }
+};
+
 export function useMcpSetupReturn(selectTab: (tab: string) => void) {
   const qc = useQueryClient();
   useEffect(() => {
@@ -106,11 +116,31 @@ export function useMcpSetupReturn(selectTab: (tab: string) => void) {
     toast.info("Checking authorization and syncing your integration…");
     // A redirect is not proof of authorization. The tenant-scoped API verifies
     // the provider account and its tools before the UI reports Connected.
-    return pollMcpSetup(id, qc, () => {
+    const channel = setupChannel(id);
+    let acknowledgementTimeout: number | undefined;
+    const stopPolling = pollMcpSetup(id, qc, (connected) => {
       const current = new URL(window.location.href);
       current.searchParams.delete("mcpConnectionId");
       window.history.replaceState(window.history.state, "", current.href);
+      if (!connected || !channel) return;
+      channel.onmessage = ({ data }) => {
+        if (data !== "return-acknowledged") return;
+        window.clearTimeout(acknowledgementTimeout);
+        channel.close();
+        window.close();
+        // Shown only if the browser refuses to close this tab.
+        toast.info(
+          "Connected. You can close this tab and return to your original QuickVoice tab.",
+        );
+      };
+      acknowledgementTimeout = window.setTimeout(() => channel.close(), 2000);
+      channel.postMessage("setup-completed");
     });
+    return () => {
+      stopPolling();
+      window.clearTimeout(acknowledgementTimeout);
+      channel?.close();
+    };
   }, [qc, selectTab]);
 }
 
@@ -170,11 +200,25 @@ export function useOpenMcpSetup() {
       toast.error("Setup URL is invalid or uses an unsupported protocol.");
       return;
     }
+    const channel = setupChannel(mcpConnectionId);
+    if (channel)
+      channel.onmessage = ({ data }) => {
+        if (data !== "setup-completed") return;
+        // Re-fetch authoritative connection data; channel messages never set status.
+        void qc.invalidateQueries({ queryKey: queryKeys.mcp.all });
+        channel.postMessage("return-acknowledged");
+        window.focus();
+        cleanup.current?.();
+      };
     window.open(setupUrl, "_blank", "noopener,noreferrer");
     toast.info(
       "Complete setup in the new tab. You will return to QuickVoice automatically.",
     );
-    cleanup.current = pollMcpSetup(mcpConnectionId, qc);
+    const stopPolling = pollMcpSetup(mcpConnectionId, qc);
+    cleanup.current = () => {
+      stopPolling();
+      channel?.close();
+    };
   };
 }
 
