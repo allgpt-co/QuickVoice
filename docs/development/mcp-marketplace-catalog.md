@@ -8,10 +8,10 @@ QuickVoice uses Composio REST API v3.1 for marketplace discovery, account author
 2. Create a project API key with access to toolkit discovery, connected accounts (including linking and deletion), session management, and session tool execution. Custom MCP also needs custom-toolkit management access. Store it as `COMPOSIO_API_KEY` on the **API server**, never in a browser variable or agent prompt.
 3. Managed authentication is the default. To use your own OAuth applications, create the toolkit auth configurations in Composio and set `COMPOSIO_AUTH_CONFIGS` to a JSON object, for example `{"googlecalendar":"ac_your_config_id"}`. Enable those auth configurations for Tool Router/session use. Grant the scopes needed for the tools you intend to use.
 4. Apply the normal Prisma deployment migrations before starting the new server (`pnpm --filter server exec prisma migrate deploy` in a source checkout). Deploy matching API and console images. If `READINESS_REQUIRED_INTEGRATIONS` previously included `smithery`, replace it with `composio`.
-5. In QuickVoice, open **Tools → MCP marketplace**, search for the app, select **Connect**, then **Setup**, and authorize the intended business account. The browser polls for completion; **Refresh** checks it again. A missing API key or provider outage displays an error with Retry, never a fake four-app fallback.
+5. Set `CONSOLE_URL` on the API server to the public QuickVoice console origin (HTTPS in production; the first entry is used if comma-separated). New authorization links redirect to `/tools?mcpConnectionId=…` on this origin. In QuickVoice, open **Tools → MCP marketplace**, search for the app, select **Connect**, then **Setup**, and authorize the intended business account. After consent, Composio returns to **Connected MCPs** and QuickVoice verifies authorization and syncs tools automatically. The original tab also polls and refreshes on focus. **Refresh** checks it again. A missing API key or provider outage displays an error with Retry, never a fake four-app fallback.
 6. In **Connected MCPs**, use **Test access** on a read-only tool with valid inputs. Attach the connected integration to the desired agents, then start a fresh preview or call.
 
-Do not turn on Composio's optional project callback identity verifier until QuickVoice has a compatible verifier endpoint. This implementation uses hosted Connect Links and server-side account ownership checks; it does not implement that optional callback protocol. Return to QuickVoice after Composio shows successful authorization.
+Do not turn on Composio's optional project callback identity verifier until QuickVoice has a compatible verifier endpoint. This implementation uses hosted Connect Links and server-side account ownership checks; it does not implement that optional callback protocol. The browser redirect is separate from that identity-verifier protocol and is never treated as proof of authorization. Links created before this change may still show Composio’s completion page; return to QuickVoice to sync those accounts.
 
 ## Existing Smithery accounts
 
@@ -31,7 +31,7 @@ The Smithery import CLI is retired. The marketplace reads the current native Com
 - HTTP success with a provider failure/challenge is still failure. Callers receive an administrator-setup message rather than an OAuth URL. Reconnect in the marketplace after revocation/expiry or a new permission requirement; ordinary calls do not initiate consent.
 - Setup is serialized by a database lease across replicas. Repeated Connect clicks reuse the saved account. A remote account whose ID failed to save is recovered by its dedicated principal. Leases expire after five minutes if a process dies.
 - Ordinary refresh reuses the runtime session so it does not invalidate active calls. A missing or deleted session can be replaced during refresh, keeping the authorized account. A missing session/tool during execution marks the connection as needing refresh; a late failure cannot overwrite a newer connection state. Failed execution is never automatically replayed, because that could duplicate a provider write.
-- Temporary setup errors preserve the existing consent link. If a pending account has lost its link, Reconnect creates a replacement authorization flow using the same saved principal.
+- Once the provider account is ACTIVE, the consent link is cleared even if tool sync fails. The UI offers **Retry sync** instead of Setup; `lastSyncStage` and `lastSyncProviderStatus` identify the failing stage without exposing provider response bodies. Temporary errors before authorization preserve the existing consent link. If a pending account has lost its link, Reconnect creates a replacement authorization flow using the same saved principal.
 - Disconnect removes the remote account/session before deleting local records and attachments. Failed Composio cleanup leaves the local handle available for retry. Provider revocation may be asynchronous; deleting a connection is not proof that an issuer has invalidated every token.
 
 ## Custom MCP servers
@@ -48,7 +48,7 @@ The endpoint must be public HTTPS, directly served without redirects, and contai
 
 Use a staging Composio project and a non-production Calendar account first:
 
-1. Connect Calendar in organization A; finish consent. Refresh must show Connected and actual tools.
+1. Connect Calendar in organization A; finish consent. Verify automatic return to QuickVoice and Connected with actual tools without manually refreshing. Repeat with the original tab closed and with consent taking over two minutes.
 2. Test a calendar-list tool using its displayed schema. Confirm the intended account and results.
 3. Attach to two agents. End preview, start a new preview, and repeat: both use the same account with no consent request to the caller.
 4. Check organization B cannot list, attach, or execute A's saved connection.

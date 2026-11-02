@@ -16,6 +16,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/src/components/ui/tabs";
+import { useMcpSetupReturn } from "@/src/hooks/queries/mcp";
 import { useTools } from "@/src/hooks/queries/tools";
 
 function SkeletonRow() {
@@ -36,6 +37,7 @@ export default function ToolsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("marketplace");
   const { data: tools, isLoading } = useTools();
+  useMcpSetupReturn(setActiveTab);
 
   const addButton = (
     <Button onClick={() => setCreateOpen(true)}>
