@@ -109,12 +109,15 @@ function fixture(t: TestContext) {
     calls.push({ path, body, method: init?.method ?? "GET" });
     if (path === "/toolkits")
       return Response.json({
-        items: Array.from({ length: 31 }, (_, index) => ({
-          slug: `app${index}`,
-          name: `App ${index}`,
-          type: "native",
-          meta: { tools_count: 2 },
-        })),
+        items: [
+          { slug: "composio", name: "Composio", type: "native", no_auth: true },
+          ...Array.from({ length: 31 }, (_, index) => ({
+            slug: `app${index}`,
+            name: `App ${index}`,
+            type: "native",
+            meta: { tools_count: 2 },
+          })),
+        ],
         next_cursor: null,
       });
     if (path === "/toolkits/googlecalendar")
@@ -122,7 +125,21 @@ function fixture(t: TestContext) {
         slug: "googlecalendar",
         name: "Calendar",
         type: "native",
-        no_auth: false,
+        // Deliberately omit no_auth, matching the documented detail response.
+      });
+    if (path.endsWith("/toolkits"))
+      return Response.json({
+        items: [
+          {
+            slug:
+              state.sessionToolkit ??
+              state.connection.toolkitSlug.toUpperCase(),
+            ...(state.omitSessionAuth
+              ? {}
+              : { is_no_auth: state.sessionNoAuth ?? false }),
+          },
+        ],
+        next_cursor: null,
       });
     if (path === "/tool_router/session") {
       assert.ok(
@@ -311,14 +328,11 @@ test("a missing tool endpoint does not mark an authorized account as requiring c
   assert.equal(f.state.connection.metadata.lastSyncProviderStatus, 404);
 });
 
-test("OAuth redirect requires a configured console origin before creating remote setup", async (t) => {
+test("OAuth redirect requires a configured console origin before creating a consent link", async (t) => {
   const f = fixture(t);
   process.env.CONSOLE_URL = "javascript:alert(1)";
   await assert.rejects(f.setup(), /CONSOLE_URL/);
-  assert.equal(
-    f.calls.filter((call) => call.path === "/tool_router/session").length,
-    0,
-  );
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 0);
   process.env.CONSOLE_URL =
     "https://console.quickvoice.test/,https://other.example";
   await f.setup();
@@ -677,4 +691,102 @@ test("uppercase provider toolkits sync and recover the existing account without 
   await refreshConnection("org", "local");
   assert.equal(f.state.connection.status, "ERROR");
   assert.equal(f.state.connection.tools.length, 0);
+});
+
+test("no-auth toolkits bypass consent when toolkit detail omits no_auth", async (t) => {
+  const f = fixture(t);
+  f.state.sessionNoAuth = true;
+  delete process.env.CONSOLE_URL;
+  const connected = await f.setup();
+  assert.equal(connected?.status, "CONNECTED");
+  assert.equal(f.state.connection.metadata.noAuth, true);
+  assert.equal(f.state.connection.providerAccountId, null);
+  assert.equal(f.state.connection.setupUrl, null);
+  assert.equal(f.state.connection.tools.length, 1);
+  assert.equal(
+    f.calls.some(
+      (call) =>
+        call.path.endsWith("/link") ||
+        call.path.startsWith("/connected_accounts"),
+    ),
+    false,
+  );
+  const session = f.state.connection.providerSessionId;
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.providerSessionId, session);
+});
+
+test("refresh repairs a stale no-auth ERROR connection without repeating authorization", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  Object.assign(f.state.connection, {
+    status: "ERROR",
+    providerAccountId: null,
+    setupUrl: null,
+  });
+  f.state.connection.metadata.noAuth = false;
+  f.state.sessionNoAuth = true;
+  f.calls.length = 0;
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.equal(f.state.connection.metadata.noAuth, true);
+  assert.equal(
+    f.calls.some(
+      (call) =>
+        call.path.endsWith("/link") ||
+        call.path.startsWith("/connected_accounts"),
+    ),
+    false,
+  );
+});
+
+test("missing no-auth metadata still requires consent and unrelated session toolkit cannot bypass it", async (t) => {
+  const f = fixture(t);
+  f.state.omitSessionAuth = true;
+  await f.setup();
+  assert.equal(f.state.connection.status, "AUTH_REQUIRED");
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+  f.state.connection.providerAccountId = null;
+  f.state.sessionNoAuth = true;
+  f.state.omitSessionAuth = false;
+  f.state.sessionToolkit = "unrelated";
+  await assert.rejects(f.setup());
+  assert.equal(f.state.connection.metadata.noAuth, false);
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+});
+
+test("Composio management toolkit is excluded from discovery, setup, refresh and agent attachment", async (t) => {
+  const f = fixture(t);
+  const catalog = await listCatalog("org", {
+    page: 1,
+    pageSize: 100,
+    sort: "popular",
+  });
+  assert.equal(
+    catalog.items.some((item) => item.slug.toLowerCase() === "composio"),
+    false,
+  );
+  for (const catalogSlug of ["composio", "COMPOSIO"]) {
+    await assert.rejects(
+      connect("org", "admin", { catalogSlug }),
+      /management tools/,
+    );
+  }
+  assert.equal(f.state.connection, null);
+  await f.setup();
+  f.state.connection.toolkitSlug = "composio";
+  f.calls.length = 0;
+  await assert.rejects(refreshConnection("org", "local"), /management tools/);
+  await assert.rejects(attach("org", "agent", "local"), /management tools/);
+  await assert.rejects(
+    executeTool(
+      "org",
+      "local",
+      "GOOGLECALENDAR_LIST",
+      { agentId: "agent", arguments: {} },
+      { autonomous: true },
+    ),
+    /management tools/,
+  );
+  assert.equal(f.calls.length, 0);
 });
