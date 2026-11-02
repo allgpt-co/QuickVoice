@@ -28,6 +28,9 @@ import {
 } from "./composio.client.js";
 import type { ConnectMcpInput, ExecuteMcpToolInput } from "./mcp.schema.js";
 
+const INTERNAL_TOOLKIT_MESSAGE =
+  "Composio management tools cannot be attached to QuickVoice agents. Choose the app you want to use, such as Gmail, Notion, or Calendar.";
+
 const LEGACY_MESSAGE =
   "Reconnect this integration through Composio in the marketplace, then attach the new connection to your agents.";
 type Connection = Omit<
@@ -72,7 +75,10 @@ export const listCatalog = async (
       key,
       expires: Date.now() + 300_000,
       items: items.filter(
-        (item) => item.type === "native" && identifier(item.slug),
+        (item) =>
+          item.type === "native" &&
+          identifier(item.slug) &&
+          !matchesComposioToolkit(item.slug, "composio"),
       ),
     };
   }
@@ -169,6 +175,8 @@ export const listAgentConnections = async (
 function requireComposio(connection: Connection) {
   if (connection.provider !== "composio")
     throw new BadRequestError(LEGACY_MESSAGE);
+  if (matchesComposioToolkit(connection.toolkitSlug, "composio"))
+    throw new BadRequestError(INTERNAL_TOOLKIT_MESSAGE);
   if (!connection.providerUserId || !connection.toolkitSlug)
     throw new BadRequestError(
       "Integration setup is incomplete. Reconnect it in the marketplace.",
@@ -209,6 +217,43 @@ async function withConnectionSetup<T>(
 
 async function createSetup(connection: Connection): Promise<Connection | null> {
   const { userId, toolkit } = requireComposio(connection);
+  let sessionId = connection.providerSessionId;
+  if (!sessionId) {
+    sessionId = await createComposioSession(userId, toolkit);
+    await repository.updateConnectionStatus(
+      connection.organizationId,
+      connection.mcpConnectionId,
+      {
+        status: "PENDING",
+        providerSessionId: sessionId,
+      },
+    );
+    connection.providerSessionId = sessionId;
+  }
+  // Toolkit detail responses omit no_auth. The session API supplies the explicit
+  // is_no_auth flag; missing/false values must never bypass account authorization.
+  const sessionToolkits = await composioPages(
+    `${sessionPath(sessionId)}/toolkits?toolkits=${encodeURIComponent(toolkit)}&limit=50`,
+  );
+  const sessionToolkit = sessionToolkits.find((item) =>
+    matchesComposioToolkit(item.slug, toolkit),
+  );
+  if (!sessionToolkit) throw new McpProviderError("MCP_PROVIDER_ERROR");
+  if (sessionToolkit.is_no_auth === true) {
+    const metadata = {
+      ...object(connection.metadata),
+      noAuth: true,
+      authorizationRequired: false,
+    };
+    await repository.updateConnectionStatus(
+      connection.organizationId,
+      connection.mcpConnectionId,
+      { status: "PENDING", setupUrl: null, metadata },
+    );
+    connection.metadata = metadata;
+    connection.setupUrl = null;
+    return refreshSavedConnection(connection);
+  }
   let callbackUrl: URL;
   try {
     callbackUrl = new URL(process.env.CONSOLE_URL?.split(",")[0]?.trim() ?? "");
@@ -224,19 +269,6 @@ async function createSetup(connection: Connection): Promise<Connection | null> {
     throw new BadRequestError(
       "Set CONSOLE_URL to the QuickVoice console URL before connecting integrations.",
     );
-  }
-  let sessionId = connection.providerSessionId;
-  if (!sessionId) {
-    sessionId = await createComposioSession(userId, toolkit);
-    await repository.updateConnectionStatus(
-      connection.organizationId,
-      connection.mcpConnectionId,
-      {
-        status: "PENDING",
-        providerSessionId: sessionId,
-      },
-    );
-    connection.providerSessionId = sessionId;
   }
   // Recover a grant when the provider succeeded but saving its ID failed. The
   // principal belongs only to this local connection; never search other users.
@@ -323,6 +355,8 @@ export const connect = async (
     mcpUrl = input.customUrl;
     custom = true;
   } else {
+    if (matchesComposioToolkit(input.catalogSlug, "composio"))
+      throw new BadRequestError(INTERNAL_TOOLKIT_MESSAGE);
     if (
       !identifier(input.catalogSlug) ||
       input.catalogSlug.startsWith("CUSTOM_")
