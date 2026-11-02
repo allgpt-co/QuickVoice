@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   composioTool,
+  matchesComposioToolkit,
   composioPages,
   safeComposioSetupUrl,
   composioRequest,
@@ -120,4 +121,39 @@ test("provider failures are sanitized, not retried, and cannot redirect the API 
     "javascript:alert(1)",
   ])
     assert.throws(() => safeComposioSetupUrl(url));
+});
+
+test("toolkit matching accepts case variants without accepting unrelated or malformed toolkits", () => {
+  for (const slug of ["GMAIL", "Gmail", "gmail"]) {
+    assert.equal(matchesComposioToolkit(slug, "gmail"), true);
+    const tool = composioTool(
+      {
+        slug: "GMAIL_ADD_LABEL_TO_EMAIL",
+        toolkit: { slug },
+        input_parameters: { type: "object", properties: {} },
+        tags: ["updateHint"],
+      },
+      "gmail",
+    );
+    assert.equal(tool?.name, "GMAIL_ADD_LABEL_TO_EMAIL");
+    assert.equal(tool?.requiresConfirmation, true);
+  }
+  for (const slug of [
+    undefined,
+    null,
+    123,
+    {},
+    "",
+    " gmail",
+    "gmail.other",
+    "NOTION",
+  ]) {
+    assert.equal(matchesComposioToolkit(slug, "gmail"), false);
+    assert.equal(
+      composioTool({ slug: "GMAIL_READ", toolkit: { slug } }, "gmail"),
+      null,
+    );
+  }
+  assert.equal(matchesComposioToolkit("", ""), false);
+  assert.equal(matchesComposioToolkit("gmail", "GMAIL"), true);
 });

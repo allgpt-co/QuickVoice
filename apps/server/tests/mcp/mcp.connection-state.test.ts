@@ -174,7 +174,7 @@ function fixture(t: TestContext) {
       return Response.json({
         id: "ca_saved",
         status: state.accountStatus,
-        toolkit: { slug: state.connection.toolkitSlug },
+        toolkit: { slug: state.accountToolkit ?? state.connection.toolkitSlug },
         user_id: state.accountUser ?? state.connection.providerUserId,
         state: { access_token: "NEVER_STORE_ME" },
       });
@@ -188,7 +188,7 @@ function fixture(t: TestContext) {
         items: [
           {
             slug: "GOOGLECALENDAR_LIST",
-            toolkit: { slug: state.connection.toolkitSlug },
+            toolkit: { slug: state.connection.toolkitSlug.toUpperCase() },
             tags: ["readOnlyHint"],
             input_parameters: {
               type: "object",
@@ -654,4 +654,27 @@ test("custom OAuth registers the supplied authorization-server discovery URL", a
     },
   ]);
   assert.equal(f.state.connection.status, "AUTH_REQUIRED");
+});
+
+test("uppercase provider toolkits sync and recover the existing account without fresh consent", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  f.state.accountToolkit = "GOOGLECALENDAR";
+  await f.activate();
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.equal(f.state.connection.tools.length, 1);
+  assert.equal(f.state.connection.tools[0].name, "GOOGLECALENDAR_LIST");
+
+  f.state.connection.providerAccountId = null;
+  f.state.remoteAccounts[0].status = "ACTIVE";
+  f.state.remoteAccounts[0].toolkit.slug = "GOOGLECALENDAR";
+  await f.setup();
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.equal(f.state.connection.providerAccountId, "ca_saved");
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+
+  f.state.accountToolkit = "GMAIL";
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.status, "ERROR");
+  assert.equal(f.state.connection.tools.length, 0);
 });

@@ -110,9 +110,19 @@ export async function createComposioSession(
   return result.session_id as string;
 }
 
+// Session tool responses can use uppercase slugs while the catalog uses lowercase.
+// Compare toolkit names only; preserve tool names and account/user IDs verbatim.
+export const matchesComposioToolkit = (
+  value: unknown,
+  expected: string,
+): boolean =>
+  typeof value === "string" &&
+  expected.length > 0 &&
+  value.toLowerCase() === expected.toLowerCase();
+
 export function composioTool(tool: Record<string, any>, toolkit: string) {
   if (
-    tool.toolkit?.slug !== toolkit ||
+    !matchesComposioToolkit(tool.toolkit?.slug, toolkit) ||
     tool.is_deprecated ||
     String(tool.slug).startsWith("COMPOSIO_")
   )
