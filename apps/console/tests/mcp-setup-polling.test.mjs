@@ -14,11 +14,14 @@ const compiled = ts.transpileModule(
   },
 ).outputText;
 
-function fixture(refresh) {
+function fixture(refresh, BroadcastChannel) {
   const messages = [];
   const intervals = new Set();
   const listeners = new Map();
   const effects = [];
+  const timeouts = new Set();
+  let closeCount = 0;
+  let focusCount = 0;
   let invalidations = 0;
   let settled = 0;
   const qc = {
@@ -27,6 +30,18 @@ function fixture(refresh) {
     },
   };
   const window = {
+    open: () => null,
+    close: () => {
+      closeCount++;
+    },
+    focus: () => {
+      focusCount++;
+    },
+    setTimeout: (fn) => {
+      timeouts.add(fn);
+      return fn;
+    },
+    clearTimeout: (fn) => timeouts.delete(fn),
     location: {
       href: "https://console.test/tools?mcpConnectionId=b07f665d-ca0e-4e4e-924a-5d70a6a1ff02&other=keep#details",
     },
@@ -50,9 +65,13 @@ function fixture(refresh) {
     window,
     URL,
     Error,
+    BroadcastChannel,
     require: (id) => {
       if (id === "react")
-        return { useEffect: (effect) => effects.push(effect) };
+        return {
+          useEffect: (effect) => effects.push(effect),
+          useRef: (value) => ({ current: value }),
+        };
       if (id === "@tanstack/react-query") return { useQueryClient: () => qc };
       if (id === "sonner")
         return {
@@ -77,6 +96,15 @@ function fixture(refresh) {
     intervals,
     listeners,
     effects,
+    get closeCount() {
+      return closeCount;
+    },
+    get focusCount() {
+      return focusCount;
+    },
+    expireAcknowledgement: () => {
+      for (const fn of timeouts) fn();
+    },
     start: () =>
       exports.pollMcpSetup("connection", qc, () => {
         settled++;
@@ -176,4 +204,90 @@ test("invalid callback IDs never trigger provider synchronization", () => {
   });
   assert.equal(f.effects[0](), undefined);
   assert.equal(f.intervals.size, 0);
+});
+
+function channelBus() {
+  const channels = new Set();
+  return class {
+    constructor(name) {
+      this.name = name;
+      channels.add(this);
+    }
+    postMessage(data) {
+      for (const channel of channels) {
+        if (channel !== this && channel.name === this.name)
+          queueMicrotask(() => {
+            if (channels.has(channel)) channel.onmessage?.({ data });
+          });
+      }
+    }
+    close() {
+      channels.delete(this);
+    }
+  };
+}
+const connectionId = "b07f665d-ca0e-4e4e-924a-5d70a6a1ff02";
+
+test("successful return refreshes the original tab and closes only after its acknowledgement", async () => {
+  const Channel = channelBus();
+  const original = fixture(async () => ({ status: "AUTH_REQUIRED" }), Channel);
+  let opened;
+  original.window.open = (...args) => {
+    opened = args;
+  };
+  original.useOpenMcpSetup()(
+    "https://connect.composio.dev/setup",
+    connectionId,
+  );
+  const returned = fixture(
+    async () => ({ status: "CONNECTED", displayName: "Notion" }),
+    Channel,
+  );
+  returned.useMcpSetupReturn(() => {});
+  const cleanup = returned.effects[0]();
+  await flush();
+  assert.equal(opened[2], "noopener,noreferrer");
+  assert.equal(original.focusCount, 1);
+  assert.equal(original.invalidations, 2);
+  assert.equal(returned.closeCount, 1);
+  assert.equal(original.intervals.size, 0);
+  cleanup();
+});
+
+test("return stays open when the initiator closed or a different connection is being authorized", async () => {
+  const Channel = channelBus();
+  const other = fixture(async () => ({ status: "AUTH_REQUIRED" }), Channel);
+  other.useOpenMcpSetup()("https://connect.composio.dev/setup", "other-id");
+  const returned = fixture(
+    async () => ({ status: "CONNECTED", displayName: "Notion" }),
+    Channel,
+  );
+  returned.useMcpSetupReturn(() => {});
+  const cleanup = returned.effects[0]();
+  await flush();
+  returned.expireAcknowledgement();
+  assert.equal(returned.closeCount, 0);
+  assert.equal(other.focusCount, 0);
+  cleanup();
+  other.effects[0]()();
+});
+
+test("failed tool sync stays visible instead of closing the return tab", async () => {
+  const Channel = channelBus();
+  const original = fixture(async () => ({ status: "AUTH_REQUIRED" }), Channel);
+  original.useOpenMcpSetup()(
+    "https://connect.composio.dev/setup",
+    connectionId,
+  );
+  const returned = fixture(async () => ({ status: "ERROR" }), Channel);
+  returned.useMcpSetupReturn(() => {});
+  const cleanup = returned.effects[0]();
+  await flush();
+  await returned.tick();
+  await returned.tick();
+  await flush();
+  assert.equal(returned.closeCount, 0);
+  assert.equal(original.focusCount, 0);
+  cleanup();
+  original.effects[0]()();
 });
