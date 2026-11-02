@@ -12,7 +12,9 @@ import {
 
 function fixture(t: TestContext) {
   const oldKey = process.env.COMPOSIO_API_KEY;
+  const oldConsole = process.env.CONSOLE_URL;
   process.env.COMPOSIO_API_KEY = `test-${Math.random()}`;
+  process.env.CONSOLE_URL = "https://console.quickvoice.test";
   const state: any = {
     connection: null,
     failSaveAccount: false,
@@ -178,7 +180,10 @@ function fixture(t: TestContext) {
       });
     if (path.endsWith("/tools")) {
       if (state.failTools)
-        return Response.json({ error: "unavailable" }, { status: 503 });
+        return Response.json(
+          { error: "unavailable" },
+          { status: state.toolsStatus ?? 503 },
+        );
       return Response.json({
         items: [
           {
@@ -216,6 +221,8 @@ function fixture(t: TestContext) {
     ] = saved as any;
     if (oldKey === undefined) delete process.env.COMPOSIO_API_KEY;
     else process.env.COMPOSIO_API_KEY = oldKey;
+    if (oldConsole === undefined) delete process.env.CONSOLE_URL;
+    else process.env.CONSOLE_URL = oldConsole;
   });
   return {
     state,
@@ -233,6 +240,10 @@ test("Composio OAuth is saved once, refreshed, and reused by subsequent calls wi
   const f = fixture(t);
   const pending = await f.setup();
   assert.equal(pending?.status, "AUTH_REQUIRED");
+  assert.equal(
+    f.calls.find((call) => call.path.endsWith("/link"))?.body.callback_url,
+    "https://console.quickvoice.test/tools?mcpConnectionId=local",
+  );
   const principal = f.state.connection.providerUserId;
   await f.setup();
   assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
@@ -264,6 +275,56 @@ test("Composio OAuth is saved once, refreshed, and reused by subsequent calls wi
     f.state.connection.providerSessionId,
     session,
     "ordinary refresh does not replace a session used by active calls",
+  );
+});
+
+test("authorized accounts clear setup links even when tool sync fails and recover without new consent", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  f.state.failTools = true;
+  await f.activate();
+  assert.equal(f.state.connection.status, "ERROR");
+  assert.equal(f.state.connection.setupUrl, null);
+  assert.equal(f.state.connection.metadata.authorizationComplete, true);
+  assert.equal(f.state.connection.metadata.lastSyncStage, "tool_sync");
+  assert.equal(f.state.connection.metadata.lastSyncProviderStatus, 503);
+  assert.match(
+    f.state.connection.metadata.lastSyncError,
+    /Authorization completed/,
+  );
+  f.state.failTools = false;
+  await refreshConnection("org", "local");
+  assert.equal(f.state.connection.status, "CONNECTED");
+  assert.equal(f.state.connection.metadata.lastSyncStage, null);
+  assert.equal(f.calls.filter((call) => call.path.endsWith("/link")).length, 1);
+});
+
+test("a missing tool endpoint does not mark an authorized account as requiring consent", async (t) => {
+  const f = fixture(t);
+  await f.setup();
+  f.state.failTools = true;
+  f.state.toolsStatus = 404;
+  await f.activate();
+  assert.equal(f.state.connection.status, "ERROR");
+  assert.equal(f.state.connection.setupUrl, null);
+  assert.equal(f.state.connection.metadata.authorizationRequired, false);
+  assert.equal(f.state.connection.metadata.lastSyncProviderStatus, 404);
+});
+
+test("OAuth redirect requires a configured console origin before creating remote setup", async (t) => {
+  const f = fixture(t);
+  process.env.CONSOLE_URL = "javascript:alert(1)";
+  await assert.rejects(f.setup(), /CONSOLE_URL/);
+  assert.equal(
+    f.calls.filter((call) => call.path === "/tool_router/session").length,
+    0,
+  );
+  process.env.CONSOLE_URL =
+    "https://console.quickvoice.test/,https://other.example";
+  await f.setup();
+  assert.equal(
+    f.calls.find((call) => call.path.endsWith("/link"))?.body.callback_url,
+    "https://console.quickvoice.test/tools?mcpConnectionId=local",
   );
 });
 

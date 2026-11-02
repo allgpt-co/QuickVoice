@@ -177,7 +177,11 @@ export function McpConnectionsList({
                       ) : (
                         <AlertCircle className="size-4" />
                       )}
-                      {missingGoogleDriveScope ? "Re-authorize" : "Retry setup"}
+                      {missingGoogleDriveScope
+                        ? "Re-authorize"
+                        : connection.metadata?.authorizationComplete
+                          ? "Retry sync"
+                          : "Retry setup"}
                     </Button>
                   )}
                 <Button

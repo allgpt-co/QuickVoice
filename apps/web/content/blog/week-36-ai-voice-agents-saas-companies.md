@@ -2,6 +2,7 @@
 title: "Voice AI for SaaS: Route Requested Help From Product Events"
 slug: "ai-voice-agents-saas-companies"
 date: "2026-11-02"
+draft: true
 author: "Rahul Agarwal"
 category: "Implementation Guides"
 tags: ["SaaS voice workflows", "onboarding requests", "product event routing"]

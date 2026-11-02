@@ -25,6 +25,7 @@ import { validateCustomMcpUrl } from "@/src/components/tools/custom-mcp-url";
 import {
   useConnectMcp,
   useMcpCatalog,
+  useMcpConnections,
   useOpenMcpSetup,
 } from "@/src/hooks/queries/mcp";
 import type { McpCatalogItem } from "@/src/lib/api/types";
@@ -147,7 +148,7 @@ function MarketplaceAction({
         ) : (
           <AlertCircle className="size-4" />
         )}
-        Retry setup
+        {item.metadata?.authorizationComplete ? "Retry sync" : "Retry setup"}
       </Button>
     );
   }
@@ -167,6 +168,7 @@ function MarketplaceAction({
 export function McpMarketplace() {
   const connectMcp = useConnectMcp();
   const openMcpSetup = useOpenMcpSetup();
+  const { data: connections } = useMcpConnections();
   const [customUrl, setCustomUrl] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [authMode, setAuthMode] = useState<"oauth" | "api_key" | "none">(
@@ -178,6 +180,10 @@ export function McpMarketplace() {
     mcpConnectionId: string;
     displayName: string;
   } | null>(null);
+  const savedCustomConnection = connections?.find(
+    (connection) => connection.mcpConnectionId === customSetup?.mcpConnectionId,
+  );
+  const pendingCustomSetup = savedCustomConnection ?? customSetup;
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [verifiedOnly, setVerifiedOnly] = useState(false);
@@ -430,7 +436,7 @@ export function McpMarketplace() {
           </Button>
         </form>
 
-        {customSetup && (
+        {pendingCustomSetup?.setupUrl && (
           <div
             role="status"
             className="mx-4 mb-4 flex flex-col gap-3 border border-blue-500/30 bg-blue-500/10 p-3 sm:flex-row sm:items-center sm:justify-between"
@@ -442,7 +448,7 @@ export function McpMarketplace() {
               />
               <div>
                 <p className="text-sm font-medium">
-                  {customSetup.displayName} needs additional setup
+                  {pendingCustomSetup.displayName} needs additional setup
                 </p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Continue in a new tab to authorize or configure the server,
@@ -454,7 +460,10 @@ export function McpMarketplace() {
               type="button"
               size="sm"
               onClick={() =>
-                openMcpSetup(customSetup.setupUrl, customSetup.mcpConnectionId)
+                openMcpSetup(
+                  pendingCustomSetup.setupUrl!,
+                  pendingCustomSetup.mcpConnectionId,
+                )
               }
             >
               <ExternalLink className="size-4" />

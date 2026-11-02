@@ -208,6 +208,22 @@ async function withConnectionSetup<T>(
 
 async function createSetup(connection: Connection): Promise<Connection | null> {
   const { userId, toolkit } = requireComposio(connection);
+  let callbackUrl: URL;
+  try {
+    callbackUrl = new URL(process.env.CONSOLE_URL?.split(",")[0]?.trim() ?? "");
+    if (
+      !["https:", "http:"].includes(callbackUrl.protocol) ||
+      callbackUrl.username ||
+      callbackUrl.password
+    )
+      throw new Error("Invalid console URL");
+    callbackUrl = new URL("/tools", callbackUrl.origin);
+    callbackUrl.searchParams.set("mcpConnectionId", connection.mcpConnectionId);
+  } catch {
+    throw new BadRequestError(
+      "Set CONSOLE_URL to the QuickVoice console URL before connecting integrations.",
+    );
+  }
   let sessionId = connection.providerSessionId;
   if (!sessionId) {
     sessionId = await createComposioSession(userId, toolkit);
@@ -253,6 +269,7 @@ async function createSetup(connection: Connection): Promise<Connection | null> {
   const link = await composioRequest(`${sessionPath(sessionId)}/link`, {
     toolkit,
     alias: connection.mcpConnectionId,
+    callback_url: callbackUrl.href,
   });
   if (!identifier(link.connected_account_id))
     throw new McpProviderError("MCP_PROVIDER_ERROR");
@@ -434,6 +451,7 @@ async function refreshSavedConnection(
   const { organizationId, mcpConnectionId } = connection;
   const { userId, toolkit } = requireComposio(connection);
   const metadata = object(connection.metadata);
+  let stage = "authorization";
   try {
     if (metadata.authorizationRequired) return connection;
     if (!metadata.noAuth) {
@@ -468,7 +486,11 @@ async function refreshSavedConnection(
         );
         return repository.findConnection(organizationId, mcpConnectionId);
       }
+      // Consent succeeded. A later sync error must not reopen the completed flow.
+      connection.setupUrl = null;
+      metadata.authorizationComplete = true;
     }
+    stage = "tool_sync";
     if (metadata.custom)
       await composioRequest("/custom/toolkits/sync", {
         slug: toolkit,
@@ -479,6 +501,7 @@ async function refreshSavedConnection(
     // A runtime session pins exactly the account authorized in this workspace.
     let sessionId =
       metadata.runtimeSession === true ? connection.providerSessionId : null;
+    stage = "runtime_session";
     if (!sessionId)
       sessionId = await createComposioSession(
         userId,
@@ -486,6 +509,7 @@ async function refreshSavedConnection(
         connection.providerAccountId,
       );
     try {
+      stage = "tool_sync";
       let tools;
       try {
         tools = await composioTools(sessionId, toolkit);
@@ -506,6 +530,7 @@ async function refreshSavedConnection(
         throw new BadRequestError(
           "No tools are available yet. Refresh this connection after provider setup finishes.",
         );
+      stage = "saving_tools";
       await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
         status: "CONNECTED",
         tools,
@@ -515,6 +540,8 @@ async function refreshSavedConnection(
         metadata: {
           ...metadata,
           lastSyncError: null,
+          lastSyncStage: null,
+          lastSyncProviderStatus: null,
           providerAuthorization: null,
           runtimeSession: true,
         },
@@ -534,7 +561,9 @@ async function refreshSavedConnection(
     }
   } catch (error) {
     const missingAccount =
-      error instanceof ComposioHttpError && error.status === 404;
+      stage === "authorization" &&
+      error instanceof ComposioHttpError &&
+      error.status === 404;
     await repository.updateConnectionStatus(organizationId, mcpConnectionId, {
       status: missingAccount ? "AUTH_REQUIRED" : "ERROR",
       tools: [],
@@ -542,9 +571,14 @@ async function refreshSavedConnection(
       metadata: {
         ...metadata,
         authorizationRequired: missingAccount,
+        lastSyncStage: stage,
+        lastSyncProviderStatus:
+          error instanceof ComposioHttpError ? error.status : null,
         lastSyncError: missingAccount
           ? "Reconnect from the marketplace."
-          : "Could not sync integration tools. Refresh to retry.",
+          : metadata.authorizationComplete
+            ? "Authorization completed, but tools could not be synced. Retry sync; you do not need to authorize again."
+            : "Could not sync integration tools. Refresh to retry.",
       },
     });
     if (error instanceof BadRequestError && !process.env.COMPOSIO_API_KEY)
