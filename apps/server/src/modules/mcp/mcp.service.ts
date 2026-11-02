@@ -19,6 +19,7 @@ import {
   composioRequest,
   composioPages,
   composioTools,
+  matchesComposioToolkit,
   createComposioSession,
   deleteComposioResource,
   safeComposioSetupUrl,
@@ -248,7 +249,7 @@ async function createSetup(connection: Connection): Promise<Connection | null> {
     );
   for (const account of accounts) {
     if (
-      account.toolkit?.slug !== toolkit ||
+      !matchesComposioToolkit(account.toolkit?.slug, toolkit) ||
       (account.user_id && account.user_id !== userId) ||
       !identifier(account.id)
     )
@@ -460,7 +461,7 @@ async function refreshSavedConnection(
         accountPath(connection.providerAccountId),
       );
       if (
-        account.toolkit?.slug !== toolkit ||
+        !matchesComposioToolkit(account.toolkit?.slug, toolkit) ||
         (account.user_id && account.user_id !== userId)
       )
         throw new McpProviderError("MCP_PROVIDER_ERROR");
@@ -679,7 +680,10 @@ export async function revokeMcpConnection(
       for (const account of accounts) {
         if (
           !identifier(account.id) ||
-          account.toolkit?.slug !== connection.toolkitSlug ||
+          !matchesComposioToolkit(
+            account.toolkit?.slug,
+            connection.toolkitSlug,
+          ) ||
           (account.user_id && account.user_id !== connection.providerUserId)
         )
           throw new McpProviderError("MCP_PROVIDER_ERROR");

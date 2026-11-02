@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   composioTool,
+  matchesComposioToolkit,
   composioPages,
   safeComposioSetupUrl,
   composioRequest,
@@ -121,3 +122,107 @@ test("provider failures are sanitized, not retried, and cannot redirect the API 
   ])
     assert.throws(() => safeComposioSetupUrl(url));
 });
+
+test("toolkit matching accepts case variants without accepting unrelated or malformed toolkits", () => {
+  for (const slug of ["GMAIL", "Gmail", "gmail"]) {
+    assert.equal(matchesComposioToolkit(slug, "gmail"), true);
+    const tool = composioTool(
+      {
+        slug: "GMAIL_ADD_LABEL_TO_EMAIL",
+        toolkit: { slug },
+        input_parameters: { type: "object", properties: {} },
+        tags: ["updateHint"],
+      },
+      "gmail",
+    );
+    assert.equal(tool?.name, "GMAIL_ADD_LABEL_TO_EMAIL");
+    assert.equal(tool?.requiresConfirmation, true);
+  }
+  for (const slug of [
+    undefined,
+    null,
+    123,
+    {},
+    "",
+    " gmail",
+    "gmail.other",
+    "NOTION",
+  ]) {
+    assert.equal(matchesComposioToolkit(slug, "gmail"), false);
+    assert.equal(
+      composioTool({ slug: "GMAIL_READ", toolkit: { slug } }, "gmail"),
+      null,
+    );
+  }
+  assert.equal(matchesComposioToolkit("", ""), false);
+  assert.equal(matchesComposioToolkit("gmail", "GMAIL"), true);
+});
+
+// Synthetic tool schemas exercise the common adapter, not live provider access.
+for (const toolkit of [
+  "gmail",
+  "notion",
+  "slack",
+  "github",
+  "googledrive",
+  "googlecalendar",
+  "canvas",
+  "CUSTOM_QV_ABC123",
+]) {
+  test(`shared normalization handles toolkit casing for ${toolkit}`, () => {
+    const name = `${toolkit.toUpperCase()}_TEST_TOOL`;
+    const inputSchema = {
+      type: "object",
+      properties: { id: { type: "string" } },
+      required: ["id"],
+    };
+    for (const expected of [toolkit.toLowerCase(), toolkit.toUpperCase()]) {
+      for (const returned of [
+        toolkit.toLowerCase(),
+        toolkit.toUpperCase(),
+        toolkit[0]!.toUpperCase() + toolkit.slice(1).toLowerCase(),
+      ]) {
+        const candidate = {
+          slug: name,
+          toolkit: { slug: returned },
+          input_parameters: inputSchema,
+          tags: ["readOnlyHint"],
+        };
+        const tool = composioTool(candidate, expected);
+        assert.equal(tool?.name, name);
+        assert.deepEqual(tool?.inputSchema, inputSchema);
+        assert.equal(tool?.requiresConfirmation, false);
+        assert.equal(
+          composioTool(
+            { ...candidate, tags: ["readOnlyHint", "updateHint"] },
+            expected,
+          )?.requiresConfirmation,
+          true,
+        );
+        assert.equal(
+          composioTool({ ...candidate, tags: [] }, expected)
+            ?.requiresConfirmation,
+          true,
+        );
+        assert.equal(
+          composioTool({ ...candidate, is_deprecated: true }, expected),
+          null,
+        );
+        assert.equal(
+          composioTool(
+            { ...candidate, slug: "COMPOSIO_MANAGE_CONNECTIONS" },
+            expected,
+          ),
+          null,
+        );
+        assert.equal(
+          composioTool(
+            { ...candidate, toolkit: { slug: "UNRELATED" } },
+            expected,
+          ),
+          null,
+        );
+      }
+    }
+  });
+}
