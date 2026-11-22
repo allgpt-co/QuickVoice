@@ -11,6 +11,8 @@ body:
         Use this form for failures in `task doctor`, `task up:dev`, dependency installation, Docker Compose, or local migrations.
 
         QuickVoice's one-command scripts require Linux with Bash >=4. On Windows, use WSL2, a Dev Container, or Codespaces. Placeholder env values do not make live calls, OAuth, billing, email, storage, or other provider-backed features work.
+
+        On Windows, work through the [WSL2 and Docker Desktop troubleshooting guide](https://github.com/allgpt-co/QuickVoice/blob/main/docs/setup/windows-wsl2.md) before filing.
   - type: dropdown
     id: host
     attributes:
