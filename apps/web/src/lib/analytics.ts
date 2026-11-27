@@ -16,7 +16,8 @@ declare global {
     quickvoiceAnalyticsConsent?: "unknown" | "granted" | "denied";
     quickvoiceAnalyticsMeasurementId?: string;
     quickvoiceStartAnalytics?: () => void;
-    quickvoiceAnalyticsPageAllowed?: () => boolean;
+    quickvoiceAnalyticsPageAllowed?: (url?: string) => boolean;
+    quickvoiceAnalyticsPageviewInitialized?: boolean;
     gtag?: (...args: unknown[]) => void;
   }
 }

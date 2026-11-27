@@ -37,10 +37,17 @@ export function createGoogleAnalyticsScript(configuredId = "", manualPageviews =
   return `(() => {
     const publicPaths = new Set(${JSON.stringify(publicPaths)});
     // Recheck the current URL for custom events even after the tag has loaded.
-    window.quickvoiceAnalyticsPageAllowed = () => {
+    window.quickvoiceAnalyticsPageAllowed = (url) => {
       if (${!configuredId.trim()} && !["quickvoice.co", "www.quickvoice.co"].includes(window.location.hostname)) return false;
-      const pathname = window.location.pathname.replace(/\\/$/, "") || "/";
-      return publicPaths.has(pathname);
+      let pathname = window.location.pathname;
+      if (url !== undefined) {
+        try {
+          const candidate = new URL(url);
+          if (!["http:", "https:"].includes(candidate.protocol) || candidate.origin !== window.location.origin || candidate.username || candidate.password) return false;
+          pathname = candidate.pathname;
+        } catch { return false; }
+      }
+      return publicPaths.has(pathname.replace(/\\/$/, "") || "/");
     };
     window.quickvoiceStartAnalytics = () => {
       if (window.quickvoiceAnalyticsConsent !== "granted") return;
